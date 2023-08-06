@@ -1,11 +1,13 @@
-/* eslint-disable */
 import React, { useState, useEffect } from 'react';
 import { Stage, Layer, Line, Circle } from 'react-konva';
 import { DndProvider, useDrag } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import myPatternImage from '../assets/601.png'
 import Json from '../lithologic.json';
-//delete system32 C: 
+import { io } from 'socket.io-client';
+
+const port = 3001
+const socket = io(`http://localhost:${port}`)
 
 interface Point {
   x: number;
@@ -30,6 +32,18 @@ const EditablePolygon: React.FC = () => {
   const [image,setImage] = useState(new window.Image());
   image.src = myPatternImage;
 
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    socket.on('connect', () => setIsConnected(true));
+    socket.on('polygons', (data => { 
+      setPolygons(data.polygons);
+    }))
+    return () => {
+      socket.off('connect');
+      socket.off('polygons');
+    }
+  }, [])
 
   useEffect(() => {
     image.onload = () => {
@@ -70,7 +84,9 @@ const EditablePolygon: React.FC = () => {
       updatedPolygon[pointIndex] = { x: e.target.x(), y: updatedPolygon[pointIndex].y}; // solo se mueve el eje x
       const updatedPolygons = [...polygons];
       updatedPolygons[polygonIndex] = updatedPolygon;
-      setPolygons(updatedPolygons);
+      socket.emit('polygons', {
+        polygons: updatedPolygons,
+      })
     }
   };
 
@@ -90,13 +106,18 @@ const EditablePolygon: React.FC = () => {
       { x: 200, y: lastPolygon[0].y + verticalSpacing + 100 }, // Punto inicial derecho inferior
       { x: 100, y: lastPolygon[0].y + verticalSpacing + 100 }, // Punto inicial izquierdo inferior
     ];
-    setPolygons([...polygons, newPolygon]);
+    //setPolygons([...polygons, newPolygon]);
+    socket.emit('polygons', {
+      polygons: [...polygons, newPolygon],
+    })
+
   };
   
   const opcionesArray = Object.keys(Json).map((key) => ({ value: key, label: Json[key] }));
   
   return (
     <DndProvider backend={HTML5Backend}>
+      <h2>{isConnected ? 'CONECTADO' : 'NO CONECTADO'}</h2>
       <button onClick={handleAddPolygon}>Agregar capa</button>
       <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
         <Stage width={stageWidth} height={stageHeight}>
