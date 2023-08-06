@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
-import myPatternImage from '../assets/sand_glauconitic.png';
+import myPatternImage from '../assets/601.png';
 
 function Konva() {
   const [image] = useState(new window.Image());
