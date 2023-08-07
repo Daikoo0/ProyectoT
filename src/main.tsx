@@ -6,6 +6,7 @@ import './index.css'
 //import App from './App.tsx'
 import Konva from './components/konva.tsx'
 import EditablePolygon from './components/PruebaKonva.tsx'
+//import Ruler from './components/Ruler.tsx'
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ const router = createBrowserRouter([
     path: "/konva",
     element: <Konva />,
   },
+  
   
 ]);
 
