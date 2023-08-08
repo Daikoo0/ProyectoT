@@ -3,8 +3,10 @@ import { Stage, Layer, Line, Circle, Image as KonvaImage,Rect } from 'react-konv
 import { DndProvider, useDrag } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import myPatternImage from '../assets/601.png'
+//import Ruler from './Ruler.tsx'
 import Json from '../lithologic.json';
 import { io } from 'socket.io-client';
+
 
 const port = 3001
 const socket = io(`http://localhost:${port}`)
