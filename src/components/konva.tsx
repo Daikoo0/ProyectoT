@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Stage, Layer, Line, Circle } from 'react-konva';
 import myPatternImage from '../assets/612.png';
+import RulerComponent from './Ruler';
+import Ruler from '@scena/ruler';
 
 const App = () => {
 
@@ -69,6 +71,8 @@ const App = () => {
   };
 
   return (
+    <div>
+    <RulerComponent/>
     <Stage width={window.innerWidth} height={window.innerHeight}>
       <Layer>
         {circles.map((circle, index) => (
@@ -95,6 +99,7 @@ const App = () => {
         />
       </Layer>
     </Stage>
+    </div>
   );
 };
 

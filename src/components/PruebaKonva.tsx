@@ -6,7 +6,7 @@ import myPatternImage from '../assets/601.png'
 //import Ruler from './Ruler.tsx'
 import Json from '../lithologic.json';
 import { io } from 'socket.io-client';
-
+import useImage from 'use-image';
 
 const port = 3001
 const socket = io(`http://localhost:${port}`)
@@ -27,20 +27,30 @@ const initialPoints: Point[] = [
 ];
 
 const EditablePolygon: React.FC = () => {
-  const [polygons, setPolygons] = useState<{ points: Point[]; image?: HTMLImageElement }[]>([
-    { points: initialPoints },
-  ]);
+  //const imageURL = new URL(`../assets/601.png`, import.meta.url).href
+
+  //const [image3] = useImage(myPatternImage);
+  const image3 = new window.Image();
+  image3.src = `./src/assets/601.png`;
+  
   const [stageWidth, setStageWidth] = useState(window.innerWidth);
   const [stageHeight, setStageHeight] = useState(window.innerHeight / 2);
   const [selectedPolygonIndex, setSelectedPolygonIndex] = useState<number | null>(null);
   const [image,setImage] = useState(new window.Image());
   image.src = myPatternImage;
 
+   const [polygons, setPolygons] = useState<{ points: Point[]; image: HTMLImageElement }[]>([
+    { points: initialPoints, image : image3 },
+  ]);
+
   const [isConnected, setIsConnected] = useState(false);
+
+
 
   useEffect(() => {
     socket.on('connect', () => setIsConnected(true));
     socket.on('polygons', (data => { 
+      console.log(data.polygons)
       setPolygons(data.polygons);
     }))
     return () => {
@@ -91,7 +101,7 @@ const EditablePolygon: React.FC = () => {
         updatedPoints[pointIndex] = { x: e.target.x(), y: polygon.points[pointIndex].y }; // Solo actualizamos la coordenada x
         return { ...polygon, points: updatedPoints };
       });
-  
+      
       setPolygons(updatedPolygons);
     }
   };
@@ -117,17 +127,12 @@ const EditablePolygon: React.FC = () => {
       { x: 100, y: lastPolygon.points[0].y + verticalSpacing + 100 }, // Punto inicial izquierdo inferior
     ];
     //const newSelectedImage = selectedImage ? new window.Image() : new window.Image();
- 
-    //setPolygons([...polygons, newPolygon]);
-    const image = new window.Image();
-    image.src = `./src/assets/601.png`;
-    image.onload = () => {
-
-      socket.emit('polygons', {
-          polygons: [...polygons, { points: newPolygon , image: image  }],
+    console.log([...polygons, { points: newPolygon, image : image3 }])
+    setPolygons([...polygons, { points: newPolygon, image : image3 }]);
+    
+    socket.emit('polygons', {
+          polygons: [...polygons, { points: newPolygon, image : image3 }],
       })
-      
-     };
 
   };
 
@@ -139,15 +144,17 @@ const EditablePolygon: React.FC = () => {
       const updatedPolygons = polygons.map((polygon, index) => {
         if (index !== selectedPolygonIndex) return polygon;
 
-        const image = new window.Image();
-        image.src = `./src/assets/${Json[selectedFileName]}.png`;
-        image.onload = () => {
-          const updatedPolygon = { ...polygon, image };
-          const updatedPolygons = [...polygons];
-          updatedPolygons[selectedPolygonIndex] = updatedPolygon;
-          setPolygons(updatedPolygons);
-          console.log(image.src)
-        };
+       const image = new window.Image();
+       image.src = `./src/assets/${Json[selectedFileName]}.png`;
+       // const imageURL = new URL(`../assets/${Json[selectedFileName]}.png`, import.meta.url).href
+      //  const [image] = useImage(imageURL);
+      image.onload = () => {
+        const updatedPolygon = { ...polygon, image: image };
+        const updatedPolygons = [...polygons];
+        updatedPolygons[selectedPolygonIndex] = updatedPolygon;
+        setPolygons(updatedPolygons);
+        console.log(image.src)
+      }
         image.onerror = () => {
           console.error(`Error loading image: ${Json[selectedFileName]}.png`);
         };
@@ -176,7 +183,7 @@ const EditablePolygon: React.FC = () => {
                   points={polygon.points.flatMap((p) => [p.x, p.y])}
                   closed
                   //fill={selectedImage ? `url(#pattern${polygonIndex})` : 'transparent'}
-                  fillPatternImage={polygon.image || undefined} 
+                  fillPatternImage={polygon.image} 
                  // fillPatternImage={polygon.image ? fillPatterns[polygon.image.src] : undefined} 
                   stroke="red"
                   shadowBlur={10}
