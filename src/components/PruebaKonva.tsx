@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Stage, Layer, Line, Circle, Image as KonvaImage,Rect } from 'react-konva';
+import { Stage, Layer, Line, Circle, Group, Image as KonvaImage,Rect } from 'react-konva';
 import { DndProvider, useDrag } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import myPatternImage from '../assets/601.png'
@@ -7,6 +7,7 @@ import myPatternImage from '../assets/601.png'
 import Json from '../lithologic.json';
 import { io } from 'socket.io-client';
 import useImage from 'use-image';
+import Konva from 'konva';
 
 const port = 3001
 const socket = io(`http://localhost:${port}`)
@@ -27,25 +28,26 @@ const initialPoints: Point[] = [
 ];
 
 const EditablePolygon: React.FC = () => {
-  //const imageURL = new URL(`../assets/601.png`, import.meta.url).href
-
-  //const [image3] = useImage(myPatternImage);
-  const image3 = new window.Image();
-  image3.src = `./src/assets/601.png`;
+  const imageURL = new URL(`../assets/601.png`, import.meta.url).href
+  const [image3] = useImage(myPatternImage);
+  //const image3 = new window.Image();
+ // image3.src = `./src/assets/601.png`;
   
   const [stageWidth, setStageWidth] = useState(window.innerWidth);
   const [stageHeight, setStageHeight] = useState(window.innerHeight / 2);
   const [selectedPolygonIndex, setSelectedPolygonIndex] = useState<number | null>(null);
   const [image,setImage] = useState(new window.Image());
   image.src = myPatternImage;
+  const blockSnapSize = initialPoints[5].y - initialPoints[0].y;
 
    const [polygons, setPolygons] = useState<{ points: Point[]; image: HTMLImageElement }[]>([
     { points: initialPoints, image : image3 },
   ]);
 
+  const [lastPositionY, setLastPositionY] = useState(0);
+
+
   const [isConnected, setIsConnected] = useState(false);
-
-
 
   useEffect(() => {
     socket.on('connect', () => setIsConnected(true));
@@ -130,10 +132,11 @@ const EditablePolygon: React.FC = () => {
     console.log([...polygons, { points: newPolygon, image : image3 }])
     setPolygons([...polygons, { points: newPolygon, image : image3 }]);
     
-    socket.emit('polygons', {
+    /*socket.emit('polygons', {
           polygons: [...polygons, { points: newPolygon, image : image3 }],
-      })
+      })*/
 
+   
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -165,49 +168,127 @@ const EditablePolygon: React.FC = () => {
       setPolygons(updatedPolygons);
     }
   };
-
+  
+  const handleContainerDragEnd = (polygonIndex: number, e: any) => {
+    const dragOffsetY = e.target.y() - Math.min(...polygons[polygonIndex].points.map((p) => p.y));
+  
+    const updatedPolygons = polygons.map((polygon, index) => {
+      if (index === polygonIndex) {
+        const minY = Math.min(...polygon.points.map((p) => p.y));
+        const updatedPoints = polygon.points.map((point) => ({
+          x: point.x,
+          y: point.y + dragOffsetY,
+        }));
+        return { ...polygon, points: updatedPoints };
+      }
+      return polygon;
+    });
+  
+    setPolygons(updatedPolygons);
+    setLastPositionY(e.target.y());
+  };
+  
+  
+  
   
   const opcionesArray = Object.keys(Json).map((key) => ({ value: key, label: Json[key] }));
   
   return (
     <DndProvider backend={HTML5Backend}>
+    
       <h2>{isConnected ? 'CONECTADO' : 'NO CONECTADO'}</h2>
       <button onClick={handleAddPolygon}>Agregar capa</button>
+   
       <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
-        <Stage width={stageWidth} height={stageHeight}>
-        <Layer>
+      <Stage width={stageWidth} height={stageHeight}>
+  <Layer>
+    {/* Dibujar líneas del grid para cada polígono */}
+    {polygons.map((polygon, polygonIndex) => (
+      
+      <React.Fragment key={polygonIndex}>
+           <Line
+        points={[
+          Math.min(...polygon.points.map((p) => p.x)),
+          Math.min(...polygon.points.map((p) => p.y)),
+          Math.max(...polygon.points.map((p) => p.x)) + 900, // Ajusta según sea necesario
+          Math.min(...polygon.points.map((p) => p.y)),
+        ]}
+        stroke="white"
+        strokeWidth={1}
+      />
        
-            {polygons.map((polygon, polygonIndex) => (
-              <React.Fragment key={polygonIndex}>
-                <Line
-                  points={polygon.points.flatMap((p) => [p.x, p.y])}
-                  closed
-                  //fill={selectedImage ? `url(#pattern${polygonIndex})` : 'transparent'}
-                  fillPatternImage={polygon.image} 
-                 // fillPatternImage={polygon.image ? fillPatterns[polygon.image.src] : undefined} 
-                  stroke="red"
-                  shadowBlur={10}
-                  strokeWidth={2}
-                  onClick={() => handlePolygonClick(polygonIndex)}
-                />
-                {polygon.points.map((point, pointIndex) => (
-                  <DraggableCircle
-                    key={`${polygonIndex}-${pointIndex}`}
-                    x={point.x}
-                    y={point.y}
-                    radius={6}
-                    fill={pointIndex >= 2 && pointIndex <= 4 ? 'blue' : 'green'}
-                    onDragEnd={(e) => handleDragEnd(polygonIndex, pointIndex, e)}
-                  />
-                ))}
-              
-              </React.Fragment>
-            ))}
-          </Layer>
-          
-        </Stage>
-      </div>
-      <div>
+  {/* Dibuja la cuadrícula horizontal */}
+  {Array.from({ length: Math.ceil(stageHeight / 100) }).map((_, index) => (
+    <Line
+      key={`horizontal-${index}`}
+      points={[0, index * 100, stageWidth, index * 100]}
+      stroke="#ddd"
+      strokeWidth={1}
+    />
+  ))}
+      </React.Fragment>
+    ))}
+  </Layer>
+  <Layer>
+    {/* Dibujar polígonos */}
+    {polygons.map((polygon, polygonIndex) => (
+      <React.Fragment key={polygonIndex}>
+       
+        <Line
+          points={polygon.points.flatMap((p) => [p.x, p.y])}
+          closed
+          fillPatternImage={polygon.image} 
+          stroke="red"
+          shadowBlur={10}
+          strokeWidth={2}
+          onClick={() => handlePolygonClick(polygonIndex)}
+        //  draggable={false}
+        />
+       {polygon.points.map((point, pointIndex) => (
+          <DraggableCircle
+            key={`${polygonIndex}-${pointIndex}`}
+            x={point.x}
+            y={point.y}
+            radius={6}
+            fill={pointIndex >= 2 && pointIndex <= 4 ? 'blue' : 'green'}
+            onDragEnd={(e) => handleDragEnd(polygonIndex, pointIndex, e)}
+          />
+        ))}
+
+      </React.Fragment>
+    ))}
+  </Layer>
+  <Layer>
+  {polygons.map((polygon, polygonIndex) => (
+  <React.Fragment key={polygonIndex}>
+  <Rect
+      x={Math.max(...polygon.points.map((p) => p.x)) - 100}
+      y={Math.min(...polygon.points.map((p) => p.y))}
+      width={25}
+      height={polygon.points[5].y - polygon.points[0].y}
+      fill="yellow"
+      opacity={0.5}
+      draggable
+      onDragStart={(e) => setLastPositionY(e.target.y())}
+      onDragMove={(e) => {
+        const posY = Math.round(e.target.y() / blockSnapSize) * blockSnapSize;
+        e.target.y(posY);
+      }}
+      onDragEnd={(e) => handleContainerDragEnd(polygonIndex, e)}
+      dragBoundFunc={(pos) => ({
+        x: Math.max(Math.min(pos.x, Math.max(...polygon.points.map((p) => p.x)) + 1), Math.min(...polygon.points.map((p) => p.x)) + 1),
+        y: pos.y, // Mantén la misma posición en Y
+      })}
+    />
+
+  </React.Fragment>
+))}
+
+  </Layer>
+
+</Stage>
+        </div>
+     
       <label htmlFor="opcionesSelect">Selecciona una opción:</label>
       <select id="opcionesSelect" onChange={handleSelectChange}>
         {opcionesArray.map((opcion) => (
@@ -216,7 +297,6 @@ const EditablePolygon: React.FC = () => {
           </option>
         ))}
       </select>
-    </div>
     </DndProvider>
   );
 };
