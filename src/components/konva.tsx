@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { Stage, Layer, Line, Circle } from 'react-konva';
-import myPatternImage from '../assets/612.png';
-import RulerComponent from './Ruler';
-import Ruler from '@scena/ruler';
+import useImage from 'use-image';
 
-const App = () => {
+const Polygon = () => {
 
-  const [image] = useState(new window.Image());
-  image.src = myPatternImage;
+  const imageURL = new URL(`../assets/604.png`, import.meta.url).href
 
+  const [image] = useImage(imageURL);
 
+  // Puntos Iniciales del Poligono
   const [circles, setCircles] = useState([
-    { x: 100, y: 100, radius: 5 },
-    { x: 200, y: 100, radius: 5 },
-    { x: 200, y: 200, radius: 5 },
-    { x: 100, y: 200, radius: 5 },
+    { x: 100, y: 100, radius: 5, movable: false},
+    { x: 200, y: 100, radius: 5, movable: false},
+    { x: 200, y: 200, radius: 5, movable: false},
+    { x: 100, y: 200, radius: 5, movable: false},
   ]);
 
   const circlesToPoints = (circles) => {
@@ -35,17 +34,27 @@ const App = () => {
         updatedCircles[index].radius = 5;
         setCircles(updatedCircles);
       },
-      onDragMove: (e) => {
+      ondragMove: (e) => {
+        const updatedCircles = [...circles];
+        updatedCircles[index].x = e.target.x();
+        setCircles(updatedCircles);
+        setPolygonPoints(circlesToPoints(updatedCircles));
+      },
+
+      // Movimiento en Cualquier dirección
+      /*onDragMove: (e) => {
         const updatedCircles = [...circles];
         updatedCircles[index].x = e.target.x();
         updatedCircles[index].y = e.target.y();
         setCircles(updatedCircles);
         setPolygonPoints(circlesToPoints(updatedCircles));
-      },
+      },*/
+      
     };
   };
 
   const handlePolygonClick = (e) => {
+
     const mousePos = e.target.getStage().getPointerPosition();
     const x = mousePos.x;
     const y = mousePos.y;
@@ -60,7 +69,7 @@ const App = () => {
         ((s_x <= x && x <= e_x) || (e_x <= x && x <= s_x)) &&
         ((s_y <= y && y <= e_y) || (e_y <= y && y <= s_y))
       ) {
-        const point = { x, y, radius: 5 };
+        const point = { x, y, radius: 5, movable: true };
         const updatedCircles = [...circles];
         updatedCircles.splice(i + 1, 0, point);
         setCircles(updatedCircles);
@@ -70,37 +79,44 @@ const App = () => {
     }
   };
 
+  /*const exportToJson = () => {
+    const json = StageRef.current.toJSON();
+    console.log(json)
+  
+  }*/
+
+
   return (
-    <div>
-    <RulerComponent/>
-    <Stage width={window.innerWidth} height={window.innerHeight}>
-      <Layer>
-        {circles.map((circle, index) => (
-          <Circle
-            key={index}
-            x={circle.x}
-            y={circle.y}
-            radius={circle.radius}
+    
+      <Stage width={window.innerWidth} height={window.innerHeight} >
+        <Layer>
+          {circles.map((circle, index) => (
+            <Circle
+              key={index}
+              x={circle.x}
+              y={circle.y}
+              radius={circle.radius}
+              stroke="#ff0000"
+              strokeWidth={1}
+              draggable ={circle.movable}
+              dragBoundFunc={(pos) => ({ x: pos.x, y: circle.y })}
+              {...addEventToCircle(index)}
+            />
+          ))}
+          <Line
+            points={polygonPoints}
             stroke="#ff0000"
             strokeWidth={1}
-            draggable
-            {...addEventToCircle(index)}
+            fillPatternImage={image}
+            closed
+            //tension={0.7}
+            onClick = {handlePolygonClick}
           />
-        ))}
-        <Line
-          points={polygonPoints}
-          //fill="#ff000088"
-          stroke="#ff0000"
-          strokeWidth={1}
-          fillPatternImage={image}
-          closed
-          dash={[]}
-          onClick={handlePolygonClick}
-        />
-      </Layer>
-    </Stage>
-    </div>
+        </Layer>
+      </Stage>
+
   );
 };
 
-export default App;
+export default Polygon;
+

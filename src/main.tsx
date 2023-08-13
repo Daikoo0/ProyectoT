@@ -1,13 +1,12 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider} from 'react-router-dom'
 import './index.css'
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 
 //import App from './App.tsx'
 import Konva from './components/konva.tsx'
 import EditablePolygonWithGrid from './components/PruebaKonva.tsx'
+import Editor from './components/Editor.tsx'
+import Example from './components/example.tsx'
 //import Ruler from './components/Ruler.tsx'
 
 const router = createBrowserRouter([
@@ -20,7 +19,14 @@ const router = createBrowserRouter([
     path: "/konva",
     element: <Konva />,
   },
-  
+  {
+    path: "/editor",
+    element: <Editor />,
+  },
+  {
+    path: "/example",
+    element: <Example />,
+  }
 
 ]);
 
