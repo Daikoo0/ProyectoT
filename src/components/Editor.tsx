@@ -5,7 +5,7 @@ import ShapeComponent from './shape';
 import Json from '../lithologic.json';
 
 const CoordinateInputs: React.FC = () => {
-    
+
     //Figuras 
     const [shapes, setShapes] = useState([]); 
 
@@ -38,6 +38,12 @@ const CoordinateInputs: React.FC = () => {
 
     const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedOption(event.target.value);
+        if (selectedShapeIndex !== null) {
+          const updatedShapes = [...shapes];
+          updatedShapes[selectedShapeIndex].file = Json[event.target.value];
+          updatedShapes[selectedShapeIndex].fileOption = event.target.value;
+          setShapes(updatedShapes);
+        }
     };
 
     const handleColorChangeFill = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,33 +64,47 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
-
     // Agregar Figura, se genera una posicion aleatoria, se agrega al array de figuras
     const handleAddShape = () => {
         const newX = Math.random() * window.innerWidth;
         const newY = Math.random() * window.innerHeight;
-        setShapes(prevShapes => [...prevShapes, { x: newX, y: newY, colorfill: initialColorFill, colorstroke: initialColorStroke }]);
-      };
+        setX(newX);
+        setY(newY);
+        setShapes(prevShapes => [...prevShapes, { x: newX, y: newY, colorfill: initialColorFill, colorstroke: initialColorStroke, file: Json[selectedOption], fileOption:selectedOption }]);
+
+    };
     
-      // Seleccionar index de la figura 
-      const handleShapeClick = (index) => {
+    const handleShapeClick = (index) => {
         setSelectedShapeIndex(index);
         setX(shapes[index].x);
         setY(shapes[index].y);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
-      };
 
+        setSelectedOption(shapes[index].fileOption);
+    };
 
+    const handleShapeonDrag = ( index, pos) => {
+        shapes[index].x = pos.x;
+        shapes[index].y = pos.y;
+        setX(pos.x);
+        setY(pos.y);
+        setSelectedShapeIndex(index);
+        setColorFill(shapes[index].colorfill);
+        setColorStroke(shapes[index].colorstroke);
+
+        setSelectedOption(shapes[index].fileOption);
+
+    };
 
     return (
         <div>
         <div>
-            <label>Coordenada X: </label>
+            <label>Pos X: </label>
             <input type="number" value={x} onChange={handleXChange} />
         </div>
         <div>
-            <label>Coordenada Y: </label>
+            <label>Pos Y: </label>
             <input type="number" value={y} onChange={handleYChange} />
         </div>
         <div>
@@ -116,7 +136,9 @@ const CoordinateInputs: React.FC = () => {
                   y={shape.y}
                   ColorFill={shape.colorfill}
                   ColorStroke={shape.colorstroke}
+                  File = {shape.file}
                   onClick={() => handleShapeClick(index)}
+                  onDrag={(pos) => {handleShapeonDrag(index, pos)}}
                 />
               ))}
         </Layer>

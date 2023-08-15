@@ -1,16 +1,20 @@
 //import { useRef } from 'react';
 import { Rect } from 'react-konva';
-import { useState, useEffect } from 'react';
+import { useRef,useState, useEffect } from 'react';
 import useImage from 'use-image';
 
-const ShapeComponent = ({ x, y, ColorFill, ColorStroke, onClick }) => {
-    //const shapeRef = useRef<any>(null);
-    const imageURL = new URL(`../assets/pattern.svg`, import.meta.url).href
-    
-  
+const ShapeComponent = ({ x, y, ColorFill, ColorStroke, File, onClick, onDrag }) => {
+    const shapeRef = useRef(null);
+
     const [svgContent, setSvgContent] = useState('');
 
     useEffect(() => {
+        if(File === 0){
+            setSvgContent('');
+            return;
+        }
+
+        const imageURL = new URL('../assets/'+File+'.svg', import.meta.url).href
 
         fetch(imageURL)
         .then(response => response.text())
@@ -24,9 +28,13 @@ const ShapeComponent = ({ x, y, ColorFill, ColorStroke, onClick }) => {
         
         });
 
-    }, []);
+    }, [File]);
 
     useEffect(() => {
+        if(File === 0){
+            setSvgContent('');
+            return;
+        }
 
         setSvgContent(svgContent
             .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'") // Cambia el color del stroke
@@ -36,20 +44,24 @@ const ShapeComponent = ({ x, y, ColorFill, ColorStroke, onClick }) => {
 
     }, [ColorFill, ColorStroke]);
 
-    const [image] = useImage("data:image/svg+xml;base64," + window.btoa(svgContent));
+    const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
  
+ 
+
     return (
         <Rect
-          x={x}
-          y={y}
-          width={50}
-          height={50}
-          //fill={ColorFill}
-          //stroke={ColorStroke}
-          fillPatternImage={image}
-          shadowBlur={5}
-          onClick={onClick}
-          draggable
+            ref={shapeRef}
+            x={x}
+            y={y}
+            width={100}
+            height={100}
+            //fill={ColorFill}
+            stroke={'black'}
+            fillPatternImage={image}
+            shadowBlur={5}
+            onClick={onClick}
+            dragBoundFunc = {onDrag}
+            draggable 
         />
       );
     };
