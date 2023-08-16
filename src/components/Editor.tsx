@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Stage, Layer } from 'react-konva';
 
-import ShapeComponent from './shape';
+//import ShapeComponent from './shape';
+import Konva from './konva';
 import Json from '../lithologic.json';
 
 const CoordinateInputs: React.FC = () => {
@@ -129,7 +130,7 @@ const CoordinateInputs: React.FC = () => {
         <div>
         <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer>
-            {shapes.map((shape, index) => (
+            {/* {shapes.map((shape, index) => (
                 <ShapeComponent
                   key={index}
                   x={shape.x}
@@ -140,7 +141,17 @@ const CoordinateInputs: React.FC = () => {
                   onClick={() => handleShapeClick(index)}
                   onDrag={(pos) => {handleShapeonDrag(index, pos)}}
                 />
-              ))}
+            ))} */}
+            {shapes.map((shape, index) => (
+                <Konva
+                  key={index}
+                  ColorFill={shape.colorfill}
+                  ColorStroke={shape.colorstroke}
+                  File = {shape.file}
+                  onClick={() => handleShapeClick(index)}
+                  onDrag={(pos) => {handleShapeonDrag(index, pos)}}
+                />
+            ))}
         </Layer>
         </Stage>
         </div>

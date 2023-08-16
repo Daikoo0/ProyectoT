@@ -49,6 +49,7 @@ const ShapeComponent = ({ x, y, ColorFill, ColorStroke, File, onClick, onDrag })
  
 
     return (
+        <>
         <Rect
             ref={shapeRef}
             x={x}
@@ -63,6 +64,7 @@ const ShapeComponent = ({ x, y, ColorFill, ColorStroke, File, onClick, onDrag })
             dragBoundFunc = {onDrag}
             draggable 
         />
+        </>
       );
     };
 
