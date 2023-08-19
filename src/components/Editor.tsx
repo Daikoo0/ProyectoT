@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Stage, Layer } from 'react-konva';
+import { Stage, Layer, Rect } from 'react-konva';
 
-//import ShapeComponent from './shape';
-import Konva from './konva';
+import ShapeComponent from './shape';
+//import Konva from './konva';
 import Json from '../lithologic.json';
+import Polygon from './Polygon';
 
 const CoordinateInputs: React.FC = () => {
 
@@ -26,7 +27,13 @@ const CoordinateInputs: React.FC = () => {
 
     // Index Figura
     const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); 
-
+    
+    // Posicion Poligono
+    const [lastPositionSI, setLastPositionSI] = useState({ x: 100, y:100 })
+    const [lastPositionID, setLastPositionID] = useState({ x: 200, y:200 });
+   
+    // const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
+    const blockSnapSize = 100;
 
     // Cambios en los inputs
     const handleXChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,12 +74,19 @@ const CoordinateInputs: React.FC = () => {
 
     // Agregar Figura, se genera una posicion aleatoria, se agrega al array de figuras
     const handleAddShape = () => {
-        const newX = Math.random() * window.innerWidth;
-        const newY = Math.random() * window.innerHeight;
-        setX(newX);
-        setY(newY);
-        setShapes(prevShapes => [...prevShapes, { x: newX, y: newY, colorfill: initialColorFill, colorstroke: initialColorStroke, file: Json[selectedOption], fileOption:selectedOption }]);
+        
+        
+        setShapes(prevShapes => [...prevShapes, 
+            {   x1: lastPositionSI.x, y1: lastPositionSI.y, 
+                x2: lastPositionID.x, y2: lastPositionID.y,  
+                colorfill: initialColorFill, 
+                colorstroke: initialColorStroke, 
+                file: Json[selectedOption], 
+                fileOption:selectedOption }]);
 
+        setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y + 100 })
+        setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y + 100 })
+      
     };
     
     const handleShapeClick = (index) => {
@@ -81,7 +95,6 @@ const CoordinateInputs: React.FC = () => {
         setY(shapes[index].y);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
-
         setSelectedOption(shapes[index].fileOption);
     };
 
@@ -97,6 +110,52 @@ const CoordinateInputs: React.FC = () => {
         setSelectedOption(shapes[index].fileOption);
 
     };
+
+    const handleContainerDrag = (polygonIndex: number, e: any) => {
+        const updatedPolygons = [...shapes];
+       // const shape = updatedPolygons[polygonIndex];
+        const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
+
+        // Check for collision with the dragged area
+        const dragMaxY = updatedPolygons[polygonIndex].y2 + dragOffsetY;
+        const dragMinY = updatedPolygons[polygonIndex].y1 + dragOffsetY;
+      
+        for (let i = 0; i < updatedPolygons.length; i++) {
+          if (i !== polygonIndex) {
+            const minY = updatedPolygons[i].y1;
+            const maxY = updatedPolygons[i].y2;
+      
+            // Check if polygons are adjacent without any gap
+            if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) {
+              const adjustment = dragOffsetY > 0 ? -blockSnapSize : blockSnapSize;
+            
+              updatedPolygons[i].y1 += adjustment;
+              updatedPolygons[i].y2 += adjustment;
+            
+            }
+          }
+        }
+        updatedPolygons[polygonIndex].y1 += dragOffsetY;
+        updatedPolygons[polygonIndex].y2 += dragOffsetY;
+        //console.log(updatedPolygons)
+ 
+        
+        setShapes(updatedPolygons);
+
+        const coordA = shapes.reduce((maxCoords, objeto) => {
+            return {
+              x1: Math.max(maxCoords.x1, objeto.x1),
+              x2: Math.max(maxCoords.x2, objeto.x2),
+              y1: Math.max(maxCoords.y1, objeto.y1),
+              y2: Math.max(maxCoords.y2, objeto.y2),
+            };
+          }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
+
+        
+        setLastPositionSI({ x: coordA.x1, y: coordA.y1+100 })
+        setLastPositionID({ x: coordA.x2, y: coordA.y2+100 })
+
+      };
 
     return (
         <div>
@@ -130,7 +189,49 @@ const CoordinateInputs: React.FC = () => {
         <div>
         <Stage width={window.innerWidth} height={window.innerHeight}>
         <Layer>
-            {/* {shapes.map((shape, index) => (
+            {shapes.map((shape, index) => (
+                <Polygon
+                  key={index}
+                  x1={shape.x1}
+                  y1={shape.y1}
+                  x2={shape.x2}
+                  y2={shape.y2}
+                  ColorFill={shape.colorfill}
+                  ColorStroke={shape.colorstroke}
+                  File = {shape.file}
+                  onClick={() => handleShapeClick(index)}
+                  onDrag={(pos) => {handleShapeonDrag(index, pos)}}
+                />
+                
+            ))} 
+            {shapes.map((shape, index) => (
+                <Rect
+                  key={index}
+                  //x={shape.x1} // lado izquerdo poligono
+                  //y={shape.y1}
+                  x={shape.x1}
+                  y={shape.y1}
+                  width={25}
+                  height={100}
+                 // height={shape.x2-shape.x1}
+                  fill="yellow"
+                  opacity={0.5}
+                  draggable
+                  onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
+                  onDragMove={(e) => {
+                    const posY = Math.round(e.target.y() / blockSnapSize) * blockSnapSize;
+                    e.target.y(posY);
+                    handleContainerDrag(index, e); 
+                  }}
+              //   onDragEnd={(e) => handleContainerDrag(index, e)}
+                  dragBoundFunc={(pos) => ({
+                        x: 100,
+                        y: pos.y, 
+                  })}
+                />
+            ))} 
+            
+           {/* {shapes.map((shape, index) => (
                 <ShapeComponent
                   key={index}
                   x={shape.x}
@@ -141,8 +242,8 @@ const CoordinateInputs: React.FC = () => {
                   onClick={() => handleShapeClick(index)}
                   onDrag={(pos) => {handleShapeonDrag(index, pos)}}
                 />
-            ))} */}
-            {shapes.map((shape, index) => (
+            ))}    */}
+           {/* {shapes.map((shape, index) => (
                 <Konva
                   key={index}
                   ColorFill={shape.colorfill}
@@ -151,7 +252,7 @@ const CoordinateInputs: React.FC = () => {
                   onClick={() => handleShapeClick(index)}
                   onDrag={(pos) => {handleShapeonDrag(index, pos)}}
                 />
-            ))}
+            ))} */}
         </Layer>
         </Stage>
         </div>

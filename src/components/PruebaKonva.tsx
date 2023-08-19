@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Stage, Layer, Line, Circle, Group, Image as KonvaImage,Rect } from 'react-konva';
+import { Stage, Layer, Line, Circle, Rect } from 'react-konva';
 import { DndProvider, useDrag } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import myPatternImage from '../assets/601.png'
+//import myPatternImage from '../assets/601.png'
 //import Ruler from './Ruler.tsx'
 import Json from '../lithologic.json';
 import { io } from 'socket.io-client';
-import useImage from 'use-image';
-import Konva from 'konva';
+//import useImage from 'use-image';
+//import Konva from 'konva';
+import Polygon from './Polygon.tsx';
 
 const port = 3001
 const socket = io(`http://localhost:${port}`)
@@ -15,35 +16,36 @@ const socket = io(`http://localhost:${port}`)
 interface Point {
   x: number;
   y: number;
+  radius : number;
+  movable : boolean;
 }
 
 const initialPoints: Point[] = [
-  { x: 100, y: 100 },
-  { x: 200, y: 100 },
-  { x: 200, y: 120 }, 
-  { x: 200, y: 140 }, 
-  { x: 200, y: 180 }, 
-  { x: 200, y: 200 },
-  { x: 100, y: 200 },
+  { x: 100, y: 100 , radius: 5, movable: false}, // S. Izquieda
+  { x: 200, y: 100 , radius: 5, movable: false}, // S. Derecha
+  { x: 200, y: 200 , radius: 5, movable: false}, // I. Derecha
+  { x: 100, y: 200 , radius: 5, movable: false}, // I. Izquierda
 ];
 
 const EditablePolygon: React.FC = () => {
   
-  const [stageWidth, setStageWidth] = useState(window.innerWidth);
-  const [stageHeight, setStageHeight] = useState(window.innerHeight / 2);
+  //const [stageWidth, setStageWidth] = useState(window.innerWidth);
+  //const [stageHeight, setStageHeight] = useState(window.innerHeight / 2);
   const [selectedPolygonIndex, setSelectedPolygonIndex] = useState<number | null>(null);
-  const [image,setImage] = useState(new window.Image());
-  image.src = myPatternImage;
-  const blockSnapSize = initialPoints[5].y - initialPoints[0].y;
-
-   const [polygons, setPolygons] = useState<{ points: Point[]; image: HTMLImageElement }[]>([
+  const [selectedFileName,setSelectedFileName] = useState< string | null>(null);
+  
+  //const [image,setImage] = useState(new window.Image());
+  //image.src = myPatternImage;
+  const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
+ /* const [polygons, setPolygons] = useState<{ points: Point[]; image: HTMLImageElement }[]>([
     { points: initialPoints, image : null },
-  ]);
+  ]);*/
+
+  const [polygons, setPolygons] = useState([]);
 
   const [lastPositionY, setLastPositionY] = useState(0);
-
-
   const [isConnected, setIsConnected] = useState(false);
+  const opcionesArray = Object.keys(Json).map((key) => ({ value: key, label: Json[key] }));
 
   useEffect(() => {
     socket.on('connect', () => setIsConnected(true));
@@ -56,13 +58,14 @@ const EditablePolygon: React.FC = () => {
       socket.off('polygons');
     }
   }, [])
-
+/*
   useEffect(() => {
     image.onload = () => {
       setImage(image); };
 
     image.src = myPatternImage;
-
+    
+    // Redimencionado de la pantalla al cambio en la ventana del navegador 
     const calculateStageSize = () => {
       let maxX = 0;
       let maxY = 0;
@@ -79,76 +82,81 @@ const EditablePolygon: React.FC = () => {
     calculateStageSize();
     window.addEventListener('resize', calculateStageSize);
     return () => window.removeEventListener('resize', calculateStageSize);
-  }, [polygons,image.src]);
+  }, [polygons,image.src]);*/
 
-  useEffect(() => {
+ /* useEffect(() => {
     const imageObj = new window.Image();
     imageObj.onload = () => {
       setImage(imageObj);
     };
     imageObj.src = myPatternImage;
-  }, []);
+  }, []);*/
 
+  // Solo para mover los puntos del poligono, movable == True
   const handleDragEnd = (polygonIndex: number, pointIndex: number, e: any) => {
-    // Solo permitir arrastrar los puntos del medio (índices 2, 3 y 4)
-    if (pointIndex >= 2 && pointIndex <= 4) {
+    
       const updatedPolygons = polygons.map((polygon, index) => {
         if (index !== polygonIndex) return polygon;
-  
         const updatedPoints = [...polygon.points];
-        updatedPoints[pointIndex] = { x: e.target.x(), y: polygon.points[pointIndex].y }; // Solo actualizamos la coordenada x
+        updatedPoints[pointIndex] = { x: e.target.x(), y: polygon.points[pointIndex].y, radius:5, movable : true }; 
         return { ...polygon, points: updatedPoints };
       });
       
       setPolygons(updatedPolygons);
-    }
+    
   };
   
-
+  // CAMBIO PROXIMO, Seleccion del indice de la figura
   const handlePolygonClick = (polygonIndex: number) => {
     setSelectedPolygonIndex(polygonIndex);
   };
 
   //const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
+  //const [selectedImage, setSelectedImage] = useState<HTMLImageElement | null>(null);
 
-
+  // Añade los nuevos puntos para un nuevo poligono.
   const handleAddPolygon = () => {
-  const lastPolygon = polygons[polygons.length - 1] || { points: initialPoints };
-  const verticalSpacing = lastPolygon.points[5].y - lastPolygon.points[0].y;
-  const newPolygon: Point[] = [
-    { x: 100, y: lastPolygon.points[0].y + verticalSpacing },
-    { x: 200, y: lastPolygon.points[0].y + verticalSpacing },
-    { x: 200, y: lastPolygon.points[0].y + verticalSpacing + 20 },
-    { x: 200, y: lastPolygon.points[0].y + verticalSpacing + 40 },
-    { x: 200, y: lastPolygon.points[0].y + verticalSpacing + 80 },
-    { x: 200, y: lastPolygon.points[0].y + verticalSpacing + 100 },
-    { x: 100, y: lastPolygon.points[0].y + verticalSpacing + 100 },
-  ];
+    const lastPolygon = polygons[polygons.length - 1] || { points: initialPoints };
+    const verticalSpacing = lastPolygon.points[3].y - lastPolygon.points[0].y;
+    const newPolygon = {
+      x2 : 200,
+      y1 : 100, 
+      y2 : 200, 
+      ColorFill : "red", 
+      ColorStroke : "black", 
+      File : null,  
+      onClick : null, 
+      onDrag : null};
 
-  const updatedPolygons = [
-    ...polygons,
-    { points: newPolygon, image: null },
-  ];
+   /* const newPolygon: Point[] = [
+      { x: 100, y: lastPolygon.points[0].y + verticalSpacing , radius: 5, movable: false},
+      { x: 200, y: lastPolygon.points[0].y + verticalSpacing , radius: 5, movable: false},
+      { x: 200, y: lastPolygon.points[0].y + verticalSpacing + 100 , radius: 5, movable: false},
+      { x: 100, y: lastPolygon.points[0].y + verticalSpacing + 100 , radius: 5, movable: false},
+    ];
+    const updatedPolygons = [
+      ...polygons,
+      { points: newPolygon, image: null },
+    ];*/
 
-  /*socket.emit('polygons', {
-          polygons: [...polygons, { points: newPolygon, image : image3 }],
-      })*/
+    /*socket.emit('polygons', {
+            polygons: [...polygons, { points: newPolygon, image : image3 }],
+        })*/
 
-  setPolygons(updatedPolygons);
+    setPolygons(updatedPolygons);
 };
 
-
+  // al seleccionar patrones:
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedFileName = e.target.value;
-    setSelectedImage(Json[selectedFileName]);
-
+    setSelectedFileName(Json[e.target.value]);
+  /*  const selectedFileName = e.target.value;
+     console.log(selectedFileName);
     if (selectedPolygonIndex !== null) {
       const updatedPolygons = polygons.map((polygon, index) => {
         if (index !== selectedPolygonIndex) return polygon;
 
-       const image = new window.Image();
-       image.src = `./src/assets/${Json[selectedFileName]}.png`;
+      const image = new window.Image();
+      image.src = `./src/assets/${Json[selectedFileName]}.png`;
       image.onload = () => {
         const updatedPolygon = { ...polygon, image: image };
         const updatedPolygons = [...polygons];
@@ -165,11 +173,12 @@ const EditablePolygon: React.FC = () => {
 
       setPolygons(updatedPolygons);
     }
+    */
   };
   
-const handleContainerDragEnd = (polygonIndex: number, e: any) => {
+// Barrita amarilla 
+const handleContainerDrag = (polygonIndex: number, e: any) => {
   const dragOffsetY = e.target.y() - Math.min(...polygons[polygonIndex].points.map((p) => p.y));
-  const dragDirection = dragOffsetY > lastPositionY ? 'down' : 'up';
   const updatedPolygons = [...polygons];
 
   // Check for collision with the dragged area
@@ -183,112 +192,68 @@ const handleContainerDragEnd = (polygonIndex: number, e: any) => {
 
       // Check if polygons are adjacent without any gap
       if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) {
-        // Adjust position of neighboring polygon based on the direction of the drag
         const adjustment = dragOffsetY > 0 ? -blockSnapSize : blockSnapSize;
         updatedPolygons[i].points = updatedPolygons[i].points.map((point) => ({
           x: point.x,
           y: point.y + adjustment,
+          radius: 3,
+          movable: true
         }));
       }
     }
   }
 
-  // Update the dragged polygon's position
   updatedPolygons[polygonIndex].points = updatedPolygons[polygonIndex].points.map((point) => ({
     x: point.x,
     y: point.y + dragOffsetY,
+    radius: 5,
+    movable : true,
   }));
 
-  // Update the position of the dragged area
   const adjustedLastPositionY = lastPositionY + dragOffsetY;
   setLastPositionY(adjustedLastPositionY);
-
   setPolygons(updatedPolygons);
 };
 
+const handleAddPoint = (e, polygonIndex) => {
 
-  const opcionesArray = Object.keys(Json).map((key) => ({ value: key, label: Json[key] }));
+  const mousePos = e.target.getStage().getPointerPosition();
+  const x = mousePos.x;
+  const y = mousePos.y;
+  const points = polygons[polygonIndex].points;
+  for (let i = 0; i < points.length / 2; i++) {
+    const s_x = points[i * 2];
+    const s_y = points[i * 2 + 1];
+    const e_x = points[(i * 2 + 2) % points.length];
+    const e_y = points[(i * 2 + 3) % points.length];
+
+    if (
+      ((s_x <= x && x <= e_x) || (e_x <= x && x <= s_x)) &&
+      ((s_y <= y && y <= e_y) || (e_y <= y && y <= s_y))
+    ) {
+      const point = { x, y, radius: 5, movable: true };
+      const updatedCircles = [...polygons[polygonIndex].points];
+      updatedCircles.splice(i + 1, 0, point);
+      //var circles = updatedCircles.map((circle) => [circle.x, circle.y]).flat();
+      
+     const updatedPolygons = polygons.map((polygon, index) => {
+        if (index !== polygonIndex) return polygon;
+  
+        return { ...polygon, points: updatedCircles };
+      });
+    
+ //     setCircles(updatedCircles);
+   //   setPolygonPoints(circlesToPoints(updatedCircles));
+    
+      break;
+    }
+  }
+};
   
   return (
     <DndProvider backend={HTML5Backend}>
-    
       <h2>{isConnected ? 'CONECTADO' : 'NO CONECTADO'}</h2>
-      <button onClick={handleAddPolygon}>Agregar capa</button>
-   
-      <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
-      <Stage width={stageWidth} height={stageHeight}>
-      <Layer>
-  {/* Dibujar polígonos */}
-  {polygons.map((polygon, polygonIndex) => (
-    <React.Fragment key={polygonIndex}>
-      {/* Cuadro contenedor */}
-      <Rect
-        x={polygon.points[0].x}
-        y={polygon.points[0].y}
-        width={stageWidth - polygon.points[0].x} // Ancho ajustado
-        height={polygon.points[5].y - polygon.points[0].y}
-        stroke="white" // Borde blanco
-        strokeWidth={2}
-        opacity={0.5}
-      />
       
-      {/* Polígono */}
-      <Line
-        points={polygon.points.flatMap((p) => [p.x, p.y])}
-        closed
-        fillPatternImage={polygon.image} 
-        stroke="red"
-        shadowBlur={10}
-        strokeWidth={2}
-        onClick={() => handlePolygonClick(polygonIndex)}
-      />
-      {polygon.points.map((point, pointIndex) => (
-        <DraggableCircle
-          key={`${polygonIndex}-${pointIndex}`}
-          x={point.x}
-          y={point.y}
-          radius={6}
-          fill={pointIndex >= 2 && pointIndex <= 4 ? 'blue' : 'green'}
-          onDragEnd={(e) => handleDragEnd(polygonIndex, pointIndex, e)}
-        />
-      ))}
-    </React.Fragment>
-  ))}
-</Layer>
-
-  <Layer>
-  {polygons.map((polygon, polygonIndex) => (
-  <React.Fragment key={polygonIndex}>
-  <Rect
-      x={Math.max(...polygon.points.map((p) => p.x)) - 100}
-      y={Math.min(...polygon.points.map((p) => p.y))}
-      width={25}
-      height={polygon.points[5].y - polygon.points[0].y}
-      fill="yellow"
-      opacity={0.5}
-      draggable
-      onDragStart={(e) => setLastPositionY(e.target.y())}
-      onDragMove={(e) => {
-        const posY = Math.round(e.target.y() / blockSnapSize) * blockSnapSize;
-        e.target.y(posY);
-        handleContainerDragEnd(polygonIndex, e); 
-      }}
-      onDragEnd={(e) => handleContainerDragEnd(polygonIndex, e)}
-      dragBoundFunc={(pos) => ({
-        x: 100,
-        y: pos.y, 
-      })}
-      
-    />
-
-  </React.Fragment>
-))}
-
-  </Layer>
-
-</Stage>
-        </div>
-     
       <label htmlFor="opcionesSelect">Selecciona una opción:</label>
       <select id="opcionesSelect" onChange={handleSelectChange}>
         {opcionesArray.map((opcion) => (
@@ -297,8 +262,107 @@ const handleContainerDragEnd = (polygonIndex: number, e: any) => {
           </option>
         ))}
       </select>
+      
+      <button onClick={handleAddPolygon}>Agregar capa</button>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '80vh' }}>
+        <Stage width={window.innerWidth} height={window.innerHeight}>
+          <Layer>
+            {polygons.map((polygon, polygonIndex) => (
+              <React.Fragment key={polygonIndex}>
+                {/* Cuadro contenedor */}
+                <Rect
+                  x={polygon.points[0].x}
+                  y={polygon.points[0].y}
+                  width={window.innerWidth-200} // Ancho fijo del cuadro contenedor
+                  height={polygon.points[3].y - polygon.points[0].y}
+                  stroke="white"
+                  strokeWidth={1}
+                  opacity={0.5}
+                />
+              {/* Añade los vértices faltantes para cerrar el cuadro */}
+              <Line
+                points={[
+                  polygon.points[0].x, polygon.points[0].y,
+                  polygon.points[0].x + window.innerWidth-200, polygon.points[0].y, // Extremo derecho del cuadro fijo
+                  polygon.points[0].x + window.innerWidth-200, polygon.points[3].y,
+                  polygon.points[0].x, polygon.points[3].y,
+                  polygon.points[0].x, polygon.points[0].y
+                ]}
+                closed
+                stroke="white"
+                strokeWidth={2}
+                opacity={0.5}
+              />
+                
+                {/* Polígono */}
+                  {/*<Line
+                  points={polygon.points.flatMap((p) => [p.x, p.y])}
+                  closed
+                  fillPatternImage={polygon.image} 
+                  strokeWidth={2}
+                  stroke={polygonIndex === selectedPolygonIndex ? "blue" : "red"} // Cambia el color del trazo
+                  onClick={(e) => {handlePolygonClick(polygonIndex);
+                    handleAddPoint(e, polygonIndex)
+                  }}
+                />*/}
+                
+               <Polygon 
+                  x1={100} 
+                  x2={200} 
+                  y1={100} 
+                  y2={200} 
+                  ColorFill={"red"} 
+                  ColorStroke={"black"} 
+                  File={selectedFileName} 
+                  onClick={null} 
+                  onDrag={null}/>
+
+              {polygon.points.map((point, pointIndex) => (
+                  <DraggableCircle
+                    key={`${polygonIndex}-${pointIndex}`}
+                    x={point.x}
+                    y={point.y}
+                    radius={6}
+                    fill={point.movable ? 'blue' : 'green'}
+                    onDragEnd={(e) => handleDragEnd(polygonIndex, pointIndex, e)}
+                  />
+                ))}
+              </React.Fragment>
+            ))}
+          </Layer>
+          <Layer>
+            {polygons.map((polygon, polygonIndex) => (
+              <React.Fragment key={polygonIndex}>
+                <Rect
+                  x={polygon.points[0].x} // Empieza desde el lado izquierdo del polígono
+                  y={Math.min(...polygon.points.map((p) => p.y))}
+                  width={25}
+                  height={polygon.points[3].y - polygon.points[0].y}
+                  fill="yellow"
+                  opacity={0.5}
+                  draggable
+                  onDragStart={(e) => setLastPositionY(e.target.y())}
+                  onDragMove={(e) => {
+                    const posY = Math.round(e.target.y() / blockSnapSize) * blockSnapSize;
+                    e.target.y(posY);
+                    handleContainerDrag(polygonIndex, e); 
+                  }}
+                  onDragEnd={(e) => handleContainerDrag(polygonIndex, e)}
+                  dragBoundFunc={(pos) => ({
+                    x: 100,
+                    y: pos.y, 
+                  })}
+                />
+              </React.Fragment>
+            ))}
+          </Layer>
+        </Stage>
+        
+      </div>
+    
     </DndProvider>
   );
+  
 };
 
 interface DraggableCircleProps {

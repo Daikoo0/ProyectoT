@@ -121,8 +121,7 @@ const Polygon = ({ColorFill, ColorStroke, File, onClick, onDrag}) => {
       console.log(json)
     
     }*/
-
-
+    
     return (
           <>
             <Line

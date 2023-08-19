@@ -4,6 +4,7 @@ import { useRef,useState, useEffect } from 'react';
 import useImage from 'use-image';
 
 const ShapeComponent = ({ x, y, ColorFill, ColorStroke, File, onClick, onDrag }) => {
+    
     const shapeRef = useRef(null);
 
     const [svgContent, setSvgContent] = useState('');
@@ -54,12 +55,11 @@ const ShapeComponent = ({ x, y, ColorFill, ColorStroke, File, onClick, onDrag })
             ref={shapeRef}
             x={x}
             y={y}
-            width={100}
-            height={100}
+            width={500}
+            height={400}
             //fill={ColorFill}
             stroke={'black'}
             fillPatternImage={image}
-            shadowBlur={5}
             onClick={onClick}
             dragBoundFunc = {onDrag}
             draggable 
