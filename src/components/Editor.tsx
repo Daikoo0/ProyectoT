@@ -5,6 +5,7 @@ import ShapeComponent from './shape';
 //import Konva from './konva';
 import Json from '../lithologic.json';
 import Polygon from './Polygon';
+import Grids from './Grids';
 
 const CoordinateInputs: React.FC = () => {
 
@@ -187,8 +188,13 @@ const CoordinateInputs: React.FC = () => {
             <button onClick={handleAddShape}>Agregar Figura</button>
         </div>
         <div>
+       
+       
+        <Grids polygons={shapes} />
         <Stage width={window.innerWidth} height={window.innerHeight}>
+     
         <Layer>
+        
             {shapes.map((shape, index) => (
                 <Polygon
                   key={index}

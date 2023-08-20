@@ -118,6 +118,9 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
         };
       };
 
+    const minX = 200;
+    const maxX = 450;
+
     return(
         <>
             <Line
@@ -125,7 +128,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
                 closed
                 fillPatternImage={image} 
                 strokeWidth={2.5}
-                stroke={ColorStroke}
+                stroke={'black'}
                 onClick = {handlePolygonClick}
                 /*stroke={selectedPolygonIndex ? "blue" : "red"}
                 onClick={(e) => {handlePolygonClick(polygonIndex);
@@ -141,7 +144,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
                 stroke="#ff0000"
                 strokeWidth={1}
                 draggable ={circle.movable}
-                dragBoundFunc={(pos) => ({ x: pos.x, y: circle.y })}
+                dragBoundFunc={(pos) => ({ x: Math.max(Math.min(pos.x, maxX), minX), y: circle.y })}
                 {...addEventToCircle(index)}
               />
             ))}
