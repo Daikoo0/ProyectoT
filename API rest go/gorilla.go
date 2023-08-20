@@ -37,13 +37,10 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	// Obtener el nombre de la sala desde los parámetros de la URL
 	roomName := r.URL.Query().Get("room")
 
-	// Obtener o crear la sala correspondiente
 	room := getOrCreateRoom(roomName)
 
-	// Agregar el cliente a la sala
 	room.clients[conn] = true
 	log.Println("Cliente conectado a la sala:", roomName)
 	message := []byte(fmt.Sprintf("Te has conectado a la sala %s", roomName))
@@ -56,17 +53,13 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		// Enviar el mensaje a todos los clientes de la sala
 		room.broadcast(message)
 	}
-	// Eliminar el cliente de la sala al cerrar la conexión
 	delete(room.clients, conn)
 }
 
-// Mapa para almacenar las salas existentes
 var rooms = make(map[string]*Room)
 
-// Obtener o crear una sala
 func getOrCreateRoom(name string) *Room {
 	if room, ok := rooms[name]; ok {
 		return room
