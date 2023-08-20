@@ -4,6 +4,7 @@ import './index.css'
 //import App from './App.tsx'
 import EditablePolygon from './components/PruebaKonva.tsx'
 import Editor from './components/Editor.tsx'
+import Socket from './components/Socket.tsx'
 //import Example from './components/example.tsx'
 //import Ruler from './components/Ruler.tsx'
 
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: "/editor",
     element: <Editor />,
+  },
+  {
+    path: "/socket/:room",
+    element: <Socket />,
   },
   /*{
     path: "/example",

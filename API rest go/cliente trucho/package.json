@@ -1,0 +1,14 @@
+{
+  "name": "cliente-trucho",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js  --port 3002"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io-client": "^1.7.3"
+  }
+}
