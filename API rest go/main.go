@@ -1,27 +1,55 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/rs/cors"
+
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
-//convierte una peticion http en Websocket, permitido para cualquier origen
+type Message struct {
+	ID      string `bson:"_id,omitempty"`
+	Room    string `bson:"room"`
+	Message string `bson:"message"`
+}
+
+func connectToMongoDB() (*mongo.Client, error) {
+	clientOptions := options.Client().ApplyURI("mongodb+srv://Hexzzard:homerochino@cluster0.6iqmxms.mongodb.net/")
+	client, err := mongo.Connect(context.Background(), clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return client, err
+}
+
+func insertMessage(client *mongo.Client, message Message) error {
+	collection := client.Database("chat").Collection("messages")
+	_, err := collection.InsertOne(context.Background(), message)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return err
+}
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
 }
-type Room struct { //objeto room
+
+type Room struct {
 	name    string
 	clients map[*websocket.Conn]bool
 }
 
-var rooms = make(map[string]*Room) //almacena los rooms
+var rooms = make(map[string]*Room)
 
-//obtiene el room a trabajar, lo crea si no existe
 func getOrCreateRoom(name string) *Room {
 	room, ok := rooms[name]
 	if !ok {
@@ -34,11 +62,21 @@ func getOrCreateRoom(name string) *Room {
 	return room
 }
 
-//enviar un mensaje a los participantes de la sala
-func sendMessageToRoom(room *Room, message []byte) {
+func sendMessageToRoom(room *Room, message []byte, client *mongo.Client) {
+	// Guardar el mensaje en MongoDB con el nombre de la sala como ID
+	msg := Message{
+		ID:      room.name,
+		Room:    room.name,
+		Message: string(message),
+	}
+	err := insertMessage(client, msg)
+	if err != nil {
+		log.Println("Error al guardar el mensaje en MongoDB:", err)
+	}
+
+	// Enviar el mensaje a todos los clientes de la sala
 	for client := range room.clients {
 		err := client.WriteMessage(websocket.TextMessage, message)
-		log.Println(string(message)) //debug
 		if err != nil {
 			log.Println("Error al enviar mensaje al cliente:", err)
 			delete(room.clients, client)
@@ -46,8 +84,21 @@ func sendMessageToRoom(room *Room, message []byte) {
 	}
 }
 
-//funcion que maneja el Websocket
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	// Obtener el nombre de la sala de chat de la URL
+	roomName := r.URL.Query().Get("room")
+
+	// Conectarse a MongoDB
+	client, err := connectToMongoDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(context.Background())
+
+	// Obtener o crear la sala de chat correspondiente
+	room := getOrCreateRoom(roomName)
+
+	// Actualizar la conexión HTTP a una conexión WebSocket
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Error al actualizar la conexión:", err)
@@ -55,32 +106,61 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
-	//obtener el proyecto a trabajar, operando bajo la logica de rooms
-	roomName := r.URL.Query().Get("room")
-	room := getOrCreateRoom(roomName)
+	// Obtener el último mensaje almacenado en la base de datos
+	collection := client.Database("chat").Collection("messages")
+	filter := bson.M{"room": roomName}
+	cursor, err := collection.Find(context.Background(), filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer cursor.Close(context.Background())
 
-	room.clients[conn] = true //conectar el cliente
+	// Enviar los mensajes almacenados en la base de datos al cliente
+	for cursor.Next(context.Background()) {
+		var message Message
+		err := cursor.Decode(&message)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = conn.WriteMessage(websocket.TextMessage, []byte(message.Message))
+		if err != nil {
+			log.Println("Error al enviar mensaje al cliente:", err)
+			return
+		}
+	}
+	// Agregar el cliente a la sala de chat
+	room.clients[conn] = true
 	log.Println("Cliente conectado a la sala:", roomName)
 
-	for { //enviar un mensaje a todos los miembros de la room
-		_, message, err := conn.ReadMessage() 
+	// Escuchar mensajes entrantes
+	for {
+		// Leer un mensaje del cliente
+		messageType, p, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Error al leer el mensaje:", err)
 			break
 		}
-		sendMessageToRoom(room, message)
+
+		// Insertar el mensaje en MongoDB y enviarlo a todos los clientes de la sala
+		sendMessageToRoom(room, p, client)
+
+		// Enviar un mensaje de respuesta al cliente
+		err = conn.WriteMessage(messageType, p)
+		if err != nil {
+			log.Println("Error al enviar el mensaje:", err)
+			break
+		}
 	}
 
-	//eliminar al cliente de la sala si se cierra la conexion
+	// Eliminar al cliente de la sala si se cierra la conexión
 	delete(room.clients, conn)
 }
 
 func main() {
 	http.HandleFunc("/ws", handleWebSocket)
 
-	//CORS Websocket lo pide debido a que vite no opera bajo localhost
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://127.0.0.1:3000"},
+		AllowedOrigins: []string{"http://localhost:3000"},
 	})
 
 	handler := c.Handler(http.DefaultServeMux)
