@@ -38,14 +38,11 @@ func connectToMongoDB() (*mongo.Client, error) {
 //guarda un mensaje en la base de datos
 func insertMessage(client *mongo.Client, message Message) error {
 	collection := client.Database("chat").Collection("messages")
-	filter := bson.M{"_id": message.Room}
-    updateOptions := options.Update().SetUpsert(true)
-	update := bson.M{"$set": bson.M{"message": message.Message, "room": message.Room}}
-    _, err := collection.UpdateOne(context.Background(), filter,update, updateOptions)
-    if err != nil {
-        return err
-    }
-	return nil
+	_, err := collection.InsertOne(context.Background(), message)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return err
 }
 
 //transforma una peticion http en un websocket, permitido para todos los origenes
@@ -129,7 +126,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 		err = conn.WriteMessage(websocket.TextMessage, []byte(message.Message))
 		if err != nil {
-			log.Println("Error al cargar la informacion de la sala:", err)
+			log.Println("Error al enviar mensaje al cliente:", err)
 			return
 		}
 	}
@@ -141,7 +138,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Error al cargar el mensaje:", err)
+			log.Println("Error al leer el mensaje:", err)
 			break
 		}
 
