@@ -15,6 +15,8 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
 
     const [svgContent, setSvgContent] = useState('');
 
+
+    // Modificar esta webada
     useEffect(() => {
         if(File === 0){
             setSvgContent('');
@@ -28,8 +30,9 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
         .then(svgText => {
             
             const manipulatedSvg = svgText
-            .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'") // Cambia el color del stroke
-            .replace(/fill='[^']+'/g, "fill='"+ColorFill+"'"); // Cambia el color del fill
+            .replace(/fill='[^']+'/g, "fill='"+ColorFill+"'")
+            .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'"); 
+            
             
             setSvgContent(manipulatedSvg);
         
@@ -37,7 +40,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
 
     }, [File]);
 
-
+    // Modficar esta otra webada
     useEffect(() => {
           if(File === 0){
               setSvgContent('');
@@ -45,15 +48,15 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
           }
 
           setSvgContent(svgContent
-              .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'") // Cambia el color del stroke
-              .replace(/fill='[^']+'/g, "fill='"+ColorFill+"'")); // Cambia el color del fill
+            .replace(/fill='[^']+'/g, "fill='"+ColorFill+"'")
+            .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'")); 
+              
               
 
     }, [ColorFill, ColorStroke]);
 
     const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
-    
     useEffect(() => {
       const deltaX = x1 - circles[0]?.x || 0;
       const deltaY = y1 - circles[0]?.y || 0;

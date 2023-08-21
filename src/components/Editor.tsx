@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
 
-import ShapeComponent from './shape';
+//import ShapeComponent from './shape';
 //import Konva from './konva';
 import Json from '../lithologic.json';
 import Polygon from './Polygon';
 import Grids from './Grids';
+import './Editor.css'
 
 const CoordinateInputs: React.FC = () => {
 
@@ -159,7 +160,9 @@ const CoordinateInputs: React.FC = () => {
       };
 
     return (
-        <div>
+      <div id="Editor">
+         <div id="sidebar">
+         <div id="controls">
         <div>
             <label>Pos X: </label>
             <input type="number" value={x} onChange={handleXChange} />
@@ -187,12 +190,12 @@ const CoordinateInputs: React.FC = () => {
         <div>
             <button onClick={handleAddShape}>Agregar Figura</button>
         </div>
-        <div>
-       
-       
-        <Grids polygons={shapes} />
+        </div>
+        </div>
+        <div id="gridContainer">
+
         <Stage width={window.innerWidth} height={window.innerHeight}>
-     
+        <Grids polygons={shapes} />
         <Layer>
         
             {shapes.map((shape, index) => (
@@ -262,6 +265,7 @@ const CoordinateInputs: React.FC = () => {
         </Layer>
         </Stage>
         </div>
+        
         </div>
     );
 };

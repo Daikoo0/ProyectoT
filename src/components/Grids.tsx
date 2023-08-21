@@ -1,7 +1,14 @@
 import React from 'react';
+import { Rect, Layer, Text } from 'react-konva';
+
+interface Polygon {
+  x1: number;
+  y1: number;
+  x2: number;
+}
 
 interface GridsProps {
-  polygons: [];
+  polygons: Polygon[];
 }
 
 const Grids: React.FC<GridsProps> = ({ polygons }) => {
@@ -10,71 +17,100 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
   const polygonColumnWidth = 450; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
 
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateRows: `repeat(${numRows}, ${cellSize}px)`,
-    gridTemplateColumns: `${polygonColumnWidth}px repeat(4, auto)`, // Una columna fija para los polígonos, luego 4 columnas adicionales
-    width: `calc(100% + ${marginLeft}px)`, // Expandir al ancho total con margen a la derecha
-    position: 'absolute',
-    zIndex: -1,
-    pointerEvents: 'none', // Para que no interfiera con la interacción de las figuras
-    marginLeft: `${marginLeft}px`, // Agregar margen a la izquierda
-  };
-
-
-  const cellStyle: React.CSSProperties = {
-    border: '1px solid grey',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
   const cells = [];
 
+ 
   // Agregar encabezado en la primera fila
   cells.push(
-    <div key={`header`} style={{ ...cellStyle, width: `${polygonColumnWidth}px` }}>
-      {'Litología'}
-    </div>
+    <Rect
+      key={`header`}
+      x={marginLeft}
+      y={0}
+      width={polygonColumnWidth}
+      height={cellSize}
+      fill="grey"
+      stroke="black"
+    />
   );
 
-  // Agregar encabezado de las columnas adicionales
-  const additionalColumns = ['arcilla', 'limo', 'arena', 'grava'];
+  const additionalColumns = ['Arcilla', 'Limo', 'Arena', 'Grava'];
+  let xOffset = marginLeft + polygonColumnWidth;
   additionalColumns.forEach(column => {
     cells.push(
-      <div key={`header-${column}`} style={cellStyle}>
-        {column}
-      </div>
+      <Rect
+        key={`header-${column}`}
+        x={xOffset}
+        y={0}
+        width={cellSize}
+        height={cellSize}
+        fill="grey"
+        stroke="black"
+      />
     );
+
+    // Agregar el texto de la columna
+    cells.push(
+      <Text
+        key={`text-${column}`}
+        x={xOffset + cellSize / 2} // Alineación horizontal en el centro de la celda
+        y={cellSize / 2} // Alineación vertical en el centro de la celda
+        text={column}
+        align="center" // Alineación del texto
+       // verticalAlign="middle"
+        fontSize={14}
+        fill="black"
+      />
+      
+      // Incrementar el desplazamiento x
+      
+      
+    );
+    xOffset += cellSize;
+
+    
   });
 
-  // Agregar las celdas de la cuadrícula en las filas restantes
   for (let row = 1; row < numRows; row++) {
+    const y = row * cellSize;
     const polygon = polygons[row - 1];
     const cellWidth = polygon ? polygon.x2 - polygon.x1 : cellSize;
 
     cells.push(
-      <div
+      <Rect
         key={`row-${row}`}
-        style={{
-          ...cellStyle,
-          width: `450px`,
-        }}
-      >
-      </div>
+        x={marginLeft}
+        y={y}
+        width={polygonColumnWidth}
+        height={cellSize}
+        fill="white"
+        stroke="black"
+      />
     );
 
+    xOffset = marginLeft + polygonColumnWidth;
     // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
     additionalColumns.forEach(column => {
       cells.push(
-        <div key={`row-${row}-${column}`} style={cellStyle}>
-          {polygon ? '' : ''}
-        </div>
+        <Rect
+          key={`row-${row}-${column}`}
+          x={xOffset}
+          y={y}
+          width={cellSize}
+          height={cellSize}
+          fill="white"
+          stroke="black"
+        />
       );
+      xOffset += cellSize;
     });
   }
+  
 
-  return <div style={gridStyle}>{cells}</div>;
+  return (
+    <Layer>
+      {cells}
+    </Layer>
+  );
 };
 
 export default Grids;
