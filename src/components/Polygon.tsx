@@ -124,6 +124,29 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
     const minX = 200;
     const maxX = 450;
 
+    const handleSceneFunc = (ctx, shape) => {
+          const points = shape.points();
+        
+          ctx.beginPath();
+          ctx.moveTo(points[0], points[1]);
+        
+          for (let n = 0; n < points.length - 2; n += 2) {
+            const currentPoint = { x: points[n], y: points[n + 1] };
+            const nextPoint = { x: points[n + 2], y: points[n + 3] };
+        
+            const controlPoint = {
+              x: currentPoint.x + (nextPoint.x - currentPoint.x) / 2,
+              y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2,
+            };
+        
+            ctx.quadraticCurveTo(currentPoint.x, currentPoint.y, controlPoint.x, controlPoint.y);
+          }
+          ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+          ctx.lineTo(points[0], points[1]);
+          ctx.strokeShape(shape);
+        };
+        
+
     return(
         <>
             <Line
@@ -133,10 +156,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
                 strokeWidth={2.5}
                 stroke={'black'}
                 onClick = {handlePolygonClick}
-                /*stroke={selectedPolygonIndex ? "blue" : "red"}
-                onClick={(e) => {handlePolygonClick(polygonIndex);
-                handleAddPoint(e, polygonIndex)
-                }}*/
+                sceneFunc={handleSceneFunc}
             />
             {circles.map((circle, index) => (
               <Circle
