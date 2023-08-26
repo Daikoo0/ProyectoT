@@ -33,10 +33,37 @@ const CoordinateInputs: React.FC = () => {
     // Posicion Poligono
     const [lastPositionSI, setLastPositionSI] = useState({ x: 100, y:100 })
     const [lastPositionID, setLastPositionID] = useState({ x: 200, y:200 });
+
+    // alto de la capa
+    const [initialHeight] = useState(100);
+    const [height, setHeight] = useState<number>(initialHeight);
    
-    // const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
+    //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
     const blockSnapSize = 100;
 
+    // barra slider
+    const [sliderZoom, setSliderZoom] = useState(100);
+
+    const handleSliderZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSliderZoom(Number(event.target.value));
+        if (selectedShapeIndex !== null) {
+          const updatedShapes = [...shapes];
+          updatedShapes[selectedShapeIndex].zoom = Number(event.target.value);
+          setShapes(updatedShapes);
+        }
+    };
+
+    const [sliderRotation, setSliderRotation] = useState(0);
+
+    const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSliderRotation(Number(event.target.value));
+        if (selectedShapeIndex !== null) {
+          const updatedShapes = [...shapes];
+          updatedShapes[selectedShapeIndex].rotation = Number(event.target.value);
+          setShapes(updatedShapes);
+        }
+    };
+  
     // Cambios en los inputs
     const handleXChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setX(Number(event.target.value));
@@ -74,17 +101,29 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
+    const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
+      setHeight(Number(event.target.value));
+      if (selectedShapeIndex !== null) {
+        const updatedShapes = [...shapes];
+        updatedShapes[selectedShapeIndex].height = Number(event.target.value);
+        setShapes(updatedShapes);
+      }
+    }
+
     // Agregar Figura, se genera una posicion aleatoria, se agrega al array de figuras
     const handleAddShape = () => {
-        
         
         setShapes(prevShapes => [...prevShapes, 
             {   x1: lastPositionSI.x, y1: lastPositionSI.y, 
                 x2: lastPositionID.x, y2: lastPositionID.y,  
                 colorfill: initialColorFill, 
                 colorstroke: initialColorStroke, 
+                zoom: sliderZoom,
+                rotation: sliderRotation,
                 file: Json[selectedOption], 
-                fileOption:selectedOption }]);
+                fileOption:selectedOption,
+                height : initialHeight
+              }]);
 
         setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y + 100 })
         setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y + 100 })
@@ -98,6 +137,10 @@ const CoordinateInputs: React.FC = () => {
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
         setSelectedOption(shapes[index].fileOption);
+        setHeight(shapes[index].height);
+        setSliderZoom(shapes[index].zoom);
+        setSliderRotation(shapes[index].rotation);
+        
     };
 
     const handleShapeonDrag = ( index, pos) => {
@@ -108,8 +151,10 @@ const CoordinateInputs: React.FC = () => {
         setSelectedShapeIndex(index);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
-
         setSelectedOption(shapes[index].fileOption);
+        setHeight(shapes[index].height);
+        setSliderZoom(shapes[index].zoom);
+        setSliderRotation(shapes[index].rotation);
 
     };
 
@@ -142,7 +187,7 @@ const CoordinateInputs: React.FC = () => {
         //console.log(updatedPolygons)
  
         
-        setShapes(updatedPolygons);
+        setShapes(updatedPolygons); 
 
         const coordA = shapes.reduce((maxCoords, objeto) => {
             return {
@@ -190,6 +235,31 @@ const CoordinateInputs: React.FC = () => {
         <div>
             <button onClick={handleAddShape}>Agregar Figura</button>
         </div>
+        <div>
+            <label>Cambiar alto de capa seleccionada: </label>
+            <input type="number" value={height} onChange={handleChangeHeight} />
+        </div>
+        <div>
+          <p>Valor Zoom: {sliderZoom}</p>
+          <input
+            type="range"
+            min={50}
+            max={300}
+            value={sliderZoom}
+            onChange={handleSliderZoom}
+          />
+        </div>
+        <div>
+          <p>Valor Rotacion: {sliderRotation}</p>
+          <input
+            type="range"
+            min={0}
+            max={180}
+            value={sliderRotation}
+            onChange={handleSliderRotation}
+          />
+        </div>
+
         </div>
         </div>
         <div id="gridContainer">
@@ -207,7 +277,10 @@ const CoordinateInputs: React.FC = () => {
                   y2={shape.y2}
                   ColorFill={shape.colorfill}
                   ColorStroke={shape.colorstroke}
+                  Zoom = {shape.zoom}
+                  Rotation = {shape.rotation}
                   File = {shape.file}
+                  height={shape.height}
                   onClick={() => handleShapeClick(index)}
                   onDrag={(pos) => {handleShapeonDrag(index, pos)}}
                 />
@@ -220,12 +293,13 @@ const CoordinateInputs: React.FC = () => {
                   //y={shape.y1}
                   x={shape.x1}
                   y={shape.y1}
-                  width={25}
-                  height={100}
+                  width={80}
+                  height={shape.height}
                  // height={shape.x2-shape.x1}
-                  fill="yellow"
-                  opacity={0.5}
+                //  fill="yellow"
+                  opacity={0}
                   draggable
+                  onClick = {() => handleShapeClick(index)}
                   onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
                   onDragMove={(e) => {
                     const posY = Math.round(e.target.y() / blockSnapSize) * blockSnapSize;

@@ -6,14 +6,10 @@ import EditablePolygon from './components/PruebaKonva.tsx'
 import Editor from './components/Editor.tsx'
 //import Example from './components/example.tsx'
 //import Ruler from './components/Ruler.tsx'
-import CustomLine from './components/CustomLine.tsx'
 
 const router = createBrowserRouter([
 
-  {
-    path: "/",
-    element: <CustomLine />,
-  },
+  
   {
     path: "/editor",
     element: <Editor />,

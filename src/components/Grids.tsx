@@ -5,6 +5,7 @@ interface Polygon {
   x1: number;
   y1: number;
   x2: number;
+  y2: number;
 }
 
 interface GridsProps {
@@ -73,7 +74,7 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
   for (let row = 1; row < numRows; row++) {
     const y = row * cellSize;
     const polygon = polygons[row - 1];
-    const cellWidth = polygon ? polygon.x2 - polygon.x1 : cellSize;
+    const cellHeigth = polygon ? polygon.y2 - polygon.y1 : cellSize;
 
     cells.push(
       <Rect
@@ -81,7 +82,7 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
         x={marginLeft}
         y={y}
         width={polygonColumnWidth}
-        height={cellSize}
+        height={cellHeigth}
         fill="white"
         stroke="black"
       />
@@ -96,7 +97,7 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
           x={xOffset}
           y={y}
           width={cellSize}
-          height={cellSize}
+          height={cellHeigth}
           fill="white"
           stroke="black"
         />

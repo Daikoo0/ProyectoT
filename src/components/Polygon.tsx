@@ -1,8 +1,10 @@
+import Konva from 'konva';
 import { useState, useEffect } from 'react';
-import { Line, Circle } from 'react-konva';
+import { Line, Circle, Shape } from 'react-konva';
 import useImage from 'use-image';
 
-const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}) => {
+const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, height, onClick, onDrag}) => {
+
 
     // Puntos Iniciales del Poligono
     const [circles, setCircles] = useState([
@@ -15,8 +17,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
 
     const [svgContent, setSvgContent] = useState('');
 
-
-    // Modificar esta webada
+    // Cambio SVG 
     useEffect(() => {
         if(File === 0){
             setSvgContent('');
@@ -29,31 +30,67 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
         .then(response => response.text())
         .then(svgText => {
             
-            const manipulatedSvg = svgText
-            .replace(/fill='[^']+'/g, "fill='"+ColorFill+"'")
-            .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'"); 
-            
-            
-            setSvgContent(manipulatedSvg);
+          const lines = svgText.split('\n');
+          const updatedLines = lines.map((line) => {
+            if (line.includes('<rect') && line.includes('fill=')) {
+              return line.replace(/fill='[^']+'/g, `fill='${ColorFill}'`);
+            } else if (line.includes('<g') && line.includes('stroke=')) {
+              return line.replace(/stroke='[^']+'/g, `stroke='${ColorStroke}'`);
+            }
+            return line;
+          });
+
+          const updatedSvgContent = updatedLines.join('\n');
+          setSvgContent(updatedSvgContent);
         
         });
 
     }, [File]);
 
-    // Modficar esta otra webada
+    // Cambio Color Con svg Cargado 
     useEffect(() => {
           if(File === 0){
               setSvgContent('');
               return;
           }
 
-          setSvgContent(svgContent
-            .replace(/fill='[^']+'/g, "fill='"+ColorFill+"'")
-            .replace(/stroke='[^']+'/g, "stroke='"+ColorStroke+"'")); 
-              
-              
+          const lines = svgContent.split('\n');
+          const updatedLines = lines.map((line) => {
+            if (line.includes('<rect') && line.includes('fill=')) {
+              return line.replace(/fill='[^']+'/g, `fill='${ColorFill}'`);
+            } else if (line.includes('<g') && line.includes('stroke=')) {
+              return line.replace(/stroke='[^']+'/g, `stroke='${ColorStroke}'`);
+            }
+            return line;
+            });
+
+          const updatedSvgContent = updatedLines.join('\n');
+          setSvgContent(updatedSvgContent);
 
     }, [ColorFill, ColorStroke]);
+
+    // Cambio SVG Zoom
+    useEffect(() => {
+      console.log(typeof(Zoom))
+          if(File === 0){
+            setSvgContent('');
+            return;
+          }
+
+          const lines = svgContent.split('\n');
+          const updatedLines = lines.map((line) => {
+          if (line.includes('<svg') && line.includes('width=') && line.includes('height=')) {
+            return line.replace(/width="[^"]*"/g, `width="${Zoom}"`)
+                 .replace(/height="[^"]*"/g, `height="${Zoom}"`);
+          }
+          return line;
+          });
+  
+          const updatedSvgContent = updatedLines.join('\n');
+          setSvgContent(updatedSvgContent);
+
+
+    }, [Zoom]);
 
     const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
@@ -68,10 +105,21 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
                 movable: circle.movable,
             })),
         ]);
-        setCircles(updatedCircles)
-        setPolygonPoints(circlesToPoints(updatedCircles));
+      setCircles(updatedCircles)
+      setPolygonPoints(circlesToPoints(updatedCircles));
 
     }, [x1, y1, x2, y2]);
+    
+    useEffect(() => {
+      const updatedCircles = [
+          { x: x1, y: y1, radius: 5, movable: false },
+          { x: x2, y: y1, radius: 5, movable: false },
+          { x: x2, y: y2 + height - 100, radius: 5, movable: false }, // Adjust y2 based on height change
+          { x: x1, y: y2 + height - 100, radius: 5, movable: false }, // Adjust y2 based on height change
+      ];
+      setCircles(updatedCircles);
+      setPolygonPoints(circlesToPoints(updatedCircles));
+  }, [height]);
   
 
     // Pasamos las coordenas de los circulos a x, y
@@ -83,31 +131,39 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
-        onClick();
-        const mousePos = e.target.getStage().getPointerPosition();
-        const x = mousePos.x;
-        const y = mousePos.y;
-        const points = polygonPoints;
-        for (let i = 0; i < points.length / 2; i++) {
-          const s_x = points[i * 2];
-          const s_y = points[i * 2 + 1];
-          const e_x = points[(i * 2 + 2) % points.length];
-          const e_y = points[(i * 2 + 3) % points.length];
-  
-          if (
-            ((s_x <= x && x <= e_x) || (e_x <= x && x <= s_x)) &&
-            ((s_y <= y && y <= e_y) || (e_y <= y && y <= s_y))
-          ) {
-            const point = { x, y, radius: 5, movable: true };
-            const updatedCircles = [...circles];
-            updatedCircles.splice(i + 1, 0, point);
-            setCircles(updatedCircles);
-            setPolygonPoints(circlesToPoints(updatedCircles));
-            break;
-          }
+      console.log(Rotation)
+      onClick();
+      const mousePos = e.target.getStage().getPointerPosition();
+      const x = mousePos.x;
+      const y = mousePos.y;
+    
+      const updatedCircles = [...circles]; 
+      let insertIndex = -1;
+    
+      for (let i = 0; i < updatedCircles.length - 1; i++) {
+        const s_x = updatedCircles[i].x;
+        const s_y = updatedCircles[i].y;
+        const e_x = updatedCircles[i + 1].x;
+        const e_y = updatedCircles[i + 1].y;
+    
+        if (
+          ((s_x <= x && x <= e_x) || (e_x <= x && x <= s_x)) &&
+          ((s_y <= y && y <= e_y) || (e_y <= y && y <= s_y))
+        ) {
+          insertIndex = i + 1;
+          break;
         }
+      }
+    
+      if (insertIndex !== -1) {
+        const point = { x, y, radius: 5, movable: true };
+        updatedCircles.splice(insertIndex, 0, point);
+    
+        setCircles(updatedCircles);
+        setPolygonPoints(circlesToPoints(updatedCircles));
+      }
     };
-
+    
     // Todos los eventos de los circulos
     const addEventToCircle = (index) => {
         return {
@@ -126,24 +182,37 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
 
     const handleSceneFunc = (ctx, shape) => {
           const points = shape.points();
-        
           ctx.beginPath();
           ctx.moveTo(points[0], points[1]);
-        
+
           for (let n = 0; n < points.length - 2; n += 2) {
             const currentPoint = { x: points[n], y: points[n + 1] };
             const nextPoint = { x: points[n + 2], y: points[n + 3] };
         
             const controlPoint = {
               x: currentPoint.x + (nextPoint.x - currentPoint.x) / 2,
-              y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2,
+              y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2 ,
             };
         
-            ctx.quadraticCurveTo(currentPoint.x, currentPoint.y, controlPoint.x, controlPoint.y);
+            ctx.quadraticCurveTo(currentPoint.x, currentPoint.y , controlPoint.x, controlPoint.y );
           }
           ctx.lineTo(points[points.length - 2], points[points.length - 1]);
           ctx.lineTo(points[0], points[1]);
+    
+          if(image){
+              ctx.fillStyle = ctx.createPattern(image, 'repeat');
+              
+              const radians = (Rotation * Math.PI) / 180;
+          
+              ctx.rotate(radians);
+
+          }else{
+              ctx.fillStyle = 'white';
+          }
+         
+          ctx.fill();
           ctx.strokeShape(shape);
+          
         };
         
 
@@ -152,12 +221,14 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, File, onClick, onDrag}
             <Line
                 points={polygonPoints}
                 closed
-                fillPatternImage={image} 
                 strokeWidth={2.5}
                 stroke={'black'}
+                //fillPatternImage={image}
+                //fillPatternRotation={Rotation}
                 onClick = {handlePolygonClick}
                 sceneFunc={handleSceneFunc}
             />
+
             {circles.map((circle, index) => (
               <Circle
                 key={index}
