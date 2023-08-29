@@ -44,6 +44,8 @@ const CoordinateInputs: React.FC = () => {
     // barra slider
     const [sliderZoom, setSliderZoom] = useState(100);
 
+
+
     const handleSliderZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSliderZoom(Number(event.target.value));
         if (selectedShapeIndex !== null) {
@@ -174,19 +176,18 @@ const CoordinateInputs: React.FC = () => {
       
             // Check if polygons are adjacent without any gap
             if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) {
-              const adjustment = dragOffsetY > 0 ? -blockSnapSize : blockSnapSize;
+              const adjustment = dragOffsetY > 0 ? -updatedPolygons[polygonIndex].height : updatedPolygons[polygonIndex].height;
+              const aux = dragOffsetY > 0 ? updatedPolygons[i].height : -updatedPolygons[i].height;
             
               updatedPolygons[i].y1 += adjustment;
               updatedPolygons[i].y2 += adjustment;
+
+              updatedPolygons[polygonIndex].y1 += aux
+              updatedPolygons[polygonIndex].y2 += aux
             
             }
           }
         }
-        updatedPolygons[polygonIndex].y1 += dragOffsetY;
-        updatedPolygons[polygonIndex].y2 += dragOffsetY;
-        //console.log(updatedPolygons)
- 
-        
         setShapes(updatedPolygons); 
 
         const coordA = shapes.reduce((maxCoords, objeto) => {
@@ -237,7 +238,7 @@ const CoordinateInputs: React.FC = () => {
         </div>
         <div>
             <label>Cambiar alto de capa seleccionada: </label>
-            <input type="number" value={height} onChange={handleChangeHeight} />
+            <input type="number" value={height} onChange={handleChangeHeight}/>
         </div>
         <div>
           <p>Valor Zoom: {sliderZoom}</p>
@@ -302,7 +303,7 @@ const CoordinateInputs: React.FC = () => {
                   onClick = {() => handleShapeClick(index)}
                   onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
                   onDragMove={(e) => {
-                    const posY = Math.round(e.target.y() / blockSnapSize) * blockSnapSize;
+                    const posY = Math.round(e.target.y() / 10) * 10;
                     e.target.y(posY);
                     handleContainerDrag(index, e); 
                   }}

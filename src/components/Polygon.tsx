@@ -111,12 +111,11 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
     }, [x1, y1, x2, y2]);
     
     useEffect(() => {
-      const updatedCircles = [
-          { x: x1, y: y1, radius: 5, movable: false },
-          { x: x2, y: y1, radius: 5, movable: false },
-          { x: x2, y: y2 + height - 100, radius: 5, movable: false }, // Adjust y2 based on height change
-          { x: x1, y: y2 + height - 100, radius: 5, movable: false }, // Adjust y2 based on height change
-      ];
+  
+      const updatedCircles = [...circles]; 
+      updatedCircles[updatedCircles.length - 2].y = y2 + height - 100;
+      updatedCircles[updatedCircles.length - 1].y = y2 + height - 100;
+
       setCircles(updatedCircles);
       setPolygonPoints(circlesToPoints(updatedCircles));
   }, [height]);
