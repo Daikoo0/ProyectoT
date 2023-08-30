@@ -9,8 +9,8 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
     // Puntos Iniciales del Poligono
     const [circles, setCircles] = useState([
         { x: x1, y: y1, radius: 5, movable: false},
-        { x: x2, y: y1, radius: 5, movable: false},
-        { x: x2, y: y2, radius: 5, movable: false},
+        { x: x2, y: y1, radius: 5, movable: true},
+        { x: x2, y: y2, radius: 5, movable: true},
         { x: x1, y: y2, radius: 5, movable: false},
       
     ])
@@ -71,7 +71,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
 
     // Cambio SVG Zoom
     useEffect(() => {
-      console.log(typeof(Zoom))
+     
           if(File === 0){
             setSvgContent('');
             return;
@@ -94,6 +94,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
 
     const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
+    
     useEffect(() => {
       const deltaX = x1 - circles[0]?.x || 0;
       const deltaY = y1 - circles[0]?.y || 0;
@@ -108,17 +109,18 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
       setCircles(updatedCircles)
       setPolygonPoints(circlesToPoints(updatedCircles));
 
-    }, [x1, y1, x2, y2]);
+    }, [x1,y1]);
     
     useEffect(() => {
   
       const updatedCircles = [...circles]; 
-      updatedCircles[updatedCircles.length - 2].y = y2 + height - 100;
-      updatedCircles[updatedCircles.length - 1].y = y2 + height - 100;
+      updatedCircles[updatedCircles.length - 2].y = y2 
+      updatedCircles[updatedCircles.length - 1].y = y2 
 
       setCircles(updatedCircles);
       setPolygonPoints(circlesToPoints(updatedCircles));
-  }, [height]);
+      
+    }, [y2]);
   
 
     // Pasamos las coordenas de los circulos a x, y
@@ -130,7 +132,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
-      console.log(Rotation)
+      
       onClick();
       const mousePos = e.target.getStage().getPointerPosition();
       const x = mousePos.x;

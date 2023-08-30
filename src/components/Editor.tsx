@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
 
 //import ShapeComponent from './shape';
@@ -10,42 +10,73 @@ import './Editor.css'
 
 const CoordinateInputs: React.FC = () => {
 
-    //Figuras 
+
+  //---------------// POLIGONOS //---------------//
+    //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
-
-    // Coordenadas
-    const [x, setX] = useState<number>(0);
-    const [y, setY] = useState<number>(0);
   
-    // Opciones de Pattern
-    const [selectedOption, setSelectedOption] = useState<string>(Object.keys(Json)[0]);
-
-    // Color 
-    const [initialColorFill] = useState('#ffffff'); 
-    const [initialColorStroke] = useState('#000000');
-
-    const [ColorFill, setColorFill] = useState(initialColorFill);
-    const [ColorStroke, setColorStroke] = useState(initialColorStroke);
-
-    // Index Figura
-    const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); 
+    // Index de la Figura / Poligono
+    const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); // 0,1,2,3...
     
-    // Posicion Poligono
-    const [lastPositionSI, setLastPositionSI] = useState({ x: 100, y:100 })
+    // Ultima posicion Poligono // ARREGLAR 
+    const [lastPositionSI, setLastPositionSI] = useState({ x: 100, y:100 });
     const [lastPositionID, setLastPositionID] = useState({ x: 200, y:200 });
 
-    // alto de la capa
+
+  //---------------// CAPAS Y GRID //---------------//
+    // Alto de la capa
     const [initialHeight] = useState(100);
     const [height, setHeight] = useState<number>(initialHeight);
    
     //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
+
+    // Drag para la cuadrado de arrastre, movimiento variable en 100. / Posible Solucion: Cambiarlo a medidas de las grid
     const blockSnapSize = 100;
 
-    // barra slider
-    const [sliderZoom, setSliderZoom] = useState(100);
 
+  //---------------// PATRONES Y EDICION //---------------//
 
+    // Seleccion de patron / Pattern
+    const [selectedOption, setSelectedOption] = useState<string>(Object.keys(Json)[0]);
 
+    // Colores Base 
+    const [initialColorFill] = useState('#ffffff'); 
+    const [initialColorStroke] = useState('#000000');
+
+    // Cambio de Colores de los poligonos 
+    const [ColorFill, setColorFill] = useState(initialColorFill); // Relleno 
+    const [ColorStroke, setColorStroke] = useState(initialColorStroke); // Trazo 
+
+    // Slider barras
+    const [sliderZoom, setSliderZoom] = useState(100); // Zoom
+    const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
+
+    
+    useEffect(() => {
+      
+      if(shapes.length>0){
+
+        const coordA = shapes.reduce((maxCoords, objeto) => {
+          return {
+           x1: Math.max(maxCoords.x1, objeto.x1),
+            x2: Math.max(maxCoords.x2, objeto.x2),
+            y1: Math.max(maxCoords.y1, objeto.y1),
+            y2: Math.max(maxCoords.y2, objeto.y2),
+          };
+        }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
+
+    //    console.log('Useeffedd',coordA)
+        
+        //const lastPolygon = shapes[shapes.length-1];  
+        //const lastPolygon = shapes.find(objeto => objeto.y2 === coordA.y2);
+        setLastPositionSI({ x: coordA.x1, y: coordA.y2  }) //arreglar
+        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
+      }
+      
+    },[shapes]);
+  
+    //---------------// EVENTOS //---------------//
+    // Evento del slider de zoom 
     const handleSliderZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSliderZoom(Number(event.target.value));
         if (selectedShapeIndex !== null) {
@@ -55,8 +86,7 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
-    const [sliderRotation, setSliderRotation] = useState(0);
-
+    // Evento de slider de rotacion
     const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSliderRotation(Number(event.target.value));
         if (selectedShapeIndex !== null) {
@@ -66,15 +96,7 @@ const CoordinateInputs: React.FC = () => {
         }
     };
   
-    // Cambios en los inputs
-    const handleXChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setX(Number(event.target.value));
-    };
-
-    const handleYChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setY(Number(event.target.value));
-    };
-
+    // Evento de seleccion de patron
     const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedOption(event.target.value);
         if (selectedShapeIndex !== null) {
@@ -85,6 +107,7 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
+    // Evento de cambio color de relleno
     const handleColorChangeFill = (event: React.ChangeEvent<HTMLInputElement>) => {
         setColorFill(event.target.value);
         if (selectedShapeIndex !== null) {
@@ -94,6 +117,7 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
+    // Evento de cambio color de trazo 
     const handleColorChangeStroke = (event: React.ChangeEvent<HTMLInputElement>) => {
         setColorStroke(event.target.value);
         if (selectedShapeIndex !== null) {
@@ -103,39 +127,61 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
+    // Evento del cambio del tamaño del poligono
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
+      console.log('Se ejecuto')
       setHeight(Number(event.target.value));
       if (selectedShapeIndex !== null) {
-        const updatedShapes = [...shapes];
-        updatedShapes[selectedShapeIndex].height = Number(event.target.value);
-        setShapes(updatedShapes);
+        var updatedShapes = [...shapes];
+        const medidaActual = updatedShapes[selectedShapeIndex].y2 - updatedShapes[selectedShapeIndex].y1 
+        console.log(medidaActual)
+        const nuevaDistancia = Number(event.target.value) + medidaActual
+        
+       //updatedShapes[selectedShapeIndex].y2 = nuevaDistancia;
+
+        // updatedShapes = ([
+        //   ...updatedShapes.map(data => ({
+        //     ...data,
+        //     y1: data.y1 > shapes[selectedShapeIndex].y1 ? Number(event.target.value) - (data.y2 - data.y1) : data.y1,
+        //     y2: data.y2 >= shapes[selectedShapeIndex].y2 ? Number(event.target.value) - (data.y2 - data.y1)  : data.y2,
+             
+        // })),
+        
+      //]);
+      updatedShapes[selectedShapeIndex].y2 = nuevaDistancia;
+      
+      console.log(updatedShapes)
+      setShapes(updatedShapes);
+
       }
     }
 
-    // Agregar Figura, se genera una posicion aleatoria, se agrega al array de figuras
+    // Generacion de figuras 
     const handleAddShape = () => {
-        
+
         setShapes(prevShapes => [...prevShapes, 
-            {   x1: lastPositionSI.x, y1: lastPositionSI.y, 
+            {   
+                x1: lastPositionSI.x, y1: lastPositionSI.y, 
                 x2: lastPositionID.x, y2: lastPositionID.y,  
                 colorfill: initialColorFill, 
                 colorstroke: initialColorStroke, 
                 zoom: sliderZoom,
                 rotation: sliderRotation,
-                file: Json[selectedOption], 
-                fileOption:selectedOption,
+                file: 0, 
+                fileOption: 0,
                 height : initialHeight
               }]);
 
-        setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y + 100 })
-        setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y + 100 })
-      
+
+      setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y + 100  })
+      setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y + 100 }) //arreglar
+            
     };
     
+    // Cambia en el editor las configuraciones del poligno seleccionado 
     const handleShapeClick = (index) => {
+        console.log(shapes)
         setSelectedShapeIndex(index);
-        setX(shapes[index].x);
-        setY(shapes[index].y);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
         setSelectedOption(shapes[index].fileOption);
@@ -145,11 +191,8 @@ const CoordinateInputs: React.FC = () => {
         
     };
 
-    const handleShapeonDrag = ( index, pos) => {
-        shapes[index].x = pos.x;
-        shapes[index].y = pos.y;
-        setX(pos.x);
-        setY(pos.y);
+    // Cambia en el editor las configuraciones del poligno seleccionado 
+    const handleShapeonDrag = ( index) => {
         setSelectedShapeIndex(index);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
@@ -160,37 +203,41 @@ const CoordinateInputs: React.FC = () => {
 
     };
 
+    //Movimiento de la barra Drag, poligono
     const handleContainerDrag = (polygonIndex: number, e: any) => {
+        //console.log(shapes)
         const updatedPolygons = [...shapes];
        // const shape = updatedPolygons[polygonIndex];
         const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
 
-        // Check for collision with the dragged area
         const dragMaxY = updatedPolygons[polygonIndex].y2 + dragOffsetY;
         const dragMinY = updatedPolygons[polygonIndex].y1 + dragOffsetY;
-      
+   
         for (let i = 0; i < updatedPolygons.length; i++) {
-          if (i !== polygonIndex) {
+          if (i !== polygonIndex) { 
             const minY = updatedPolygons[i].y1;
             const maxY = updatedPolygons[i].y2;
       
-            // Check if polygons are adjacent without any gap
-            if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) {
+            if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) { // comprobar si el poligono esta al lado
+             
               const adjustment = dragOffsetY > 0 ? -updatedPolygons[polygonIndex].height : updatedPolygons[polygonIndex].height;
               const aux = dragOffsetY > 0 ? updatedPolygons[i].height : -updatedPolygons[i].height;
-            
+
               updatedPolygons[i].y1 += adjustment;
               updatedPolygons[i].y2 += adjustment;
 
               updatedPolygons[polygonIndex].y1 += aux
               updatedPolygons[polygonIndex].y2 += aux
-            
+
+
+             
             }
           }
         }
+        //console.log(updatedPolygons)
         setShapes(updatedPolygons); 
 
-        const coordA = shapes.reduce((maxCoords, objeto) => {
+        /*const coordA = shapes.reduce((maxCoords, objeto) => {
             return {
               x1: Math.max(maxCoords.x1, objeto.x1),
               x2: Math.max(maxCoords.x2, objeto.x2),
@@ -199,9 +246,10 @@ const CoordinateInputs: React.FC = () => {
             };
           }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
 
-        
-        setLastPositionSI({ x: coordA.x1, y: coordA.y1+100 })
-        setLastPositionID({ x: coordA.x2, y: coordA.y2+100 })
+        //console.log(coordA.x1, coordA.y1)
+        //console.log(coordA.x2, coordA.y2)
+        setLastPositionSI({ x: coordA.x1, y: coordA.y1 +100 }) //arreglar
+        setLastPositionID({ x: coordA.x2, y: coordA.y2 +100 })*/
 
       };
 
@@ -209,14 +257,6 @@ const CoordinateInputs: React.FC = () => {
       <div id="Editor">
          <div id="sidebar">
          <div id="controls">
-        <div>
-            <label>Pos X: </label>
-            <input type="number" value={x} onChange={handleXChange} />
-        </div>
-        <div>
-            <label>Pos Y: </label>
-            <input type="number" value={y} onChange={handleYChange} />
-        </div>
         <div>
             <label>Seleccionar opción de Pattern: </label>
             <select value={selectedOption} onChange={handleOptionChange}>
@@ -283,7 +323,7 @@ const CoordinateInputs: React.FC = () => {
                   File = {shape.file}
                   height={shape.height}
                   onClick={() => handleShapeClick(index)}
-                  onDrag={(pos) => {handleShapeonDrag(index, pos)}}
+                  onDrag={() => {handleShapeonDrag(index)}}
                 />
                 
             ))} 
@@ -295,19 +335,19 @@ const CoordinateInputs: React.FC = () => {
                   x={shape.x1}
                   y={shape.y1}
                   width={80}
-                  height={shape.height}
+                  height={shape.y2 - shape.y1}
                  // height={shape.x2-shape.x1}
-                //  fill="yellow"
-                  opacity={0}
+                  fill="yellow"
+                  opacity={0.5}
                   draggable
                   onClick = {() => handleShapeClick(index)}
                   onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
                   onDragMove={(e) => {
-                    const posY = Math.round(e.target.y() / 10) * 10;
+                    const posY = Math.round(e.target.y() / 100) * 100; // arreglar
                     e.target.y(posY);
                     handleContainerDrag(index, e); 
                   }}
-              //   onDragEnd={(e) => handleContainerDrag(index, e)}
+                  //onDragEnd={(e) => handleContainerDrag(index, e)}
                   dragBoundFunc={(pos) => ({
                         x: 100,
                         y: pos.y, 

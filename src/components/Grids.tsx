@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Rect, Layer, Text } from 'react-konva';
 
 interface Polygon {
@@ -19,7 +19,6 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
   const marginLeft = 100; // Margen a la izquierda de la tabla
 
   const cells = [];
-
  
   // Agregar encabezado en la primera fila
   cells.push(
@@ -71,40 +70,44 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
     
   });
 
-  for (let row = 1; row < numRows; row++) {
-    const y = row * cellSize;
-    const polygon = polygons[row - 1];
-    const cellHeigth = polygon ? polygon.y2 - polygon.y1 : cellSize;
+ // useEffect(() => {
+      for (let row = 1; row < numRows; row++) {
+     //   const y = row * cellSize;
+        const polygon = polygons[row - 1];
+        const cellHeight = polygon ? polygon.y2-polygon.y1 : cellSize;
 
-    cells.push(
-      <Rect
-        key={`row-${row}`}
-        x={marginLeft}
-        y={y}
-        width={polygonColumnWidth}
-        height={cellHeigth}
-        fill="white"
-        stroke="black"
-      />
-    );
+        cells.push(
+          <Rect
+            key={`row-${row}`}
+            x={marginLeft}
+            y={polygon.y1}
+           // y={y}
+            width={polygonColumnWidth}
+            height={cellHeight}
+            fill="white"
+            stroke="black"
+          />
+        );
 
-    xOffset = marginLeft + polygonColumnWidth;
-    // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
-    additionalColumns.forEach(column => {
-      cells.push(
-        <Rect
-          key={`row-${row}-${column}`}
-          x={xOffset}
-          y={y}
-          width={cellSize}
-          height={cellHeigth}
-          fill="white"
-          stroke="black"
-        />
-      );
-      xOffset += cellSize;
-    });
-  }
+        xOffset = marginLeft + polygonColumnWidth;
+        // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
+        additionalColumns.forEach(column => {
+          cells.push(
+            <Rect
+              key={`row-${row}-${column}`}
+              x={xOffset}
+              y={polygon.y1}
+              width={cellSize}
+              height={cellHeight}
+              fill="white"
+              stroke="black"
+            />
+          );
+          xOffset += cellSize;
+        });
+      }
+
+ // },[polygons]);
   
 
   return (
