@@ -1,6 +1,5 @@
-import Konva from 'konva';
 import { useState, useEffect } from 'react';
-import { Line, Circle, Shape } from 'react-konva';
+import { Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 
 const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, height, onClick, onDrag}) => {
@@ -94,23 +93,26 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
 
     const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
-    
-    useEffect(() => {
-      const deltaX = x1 - circles[0]?.x || 0;
-      const deltaY = y1 - circles[0]?.y || 0;
-      const updatedCircles = ([
-            ...circles.map(circle => ({
-                x: circle.x + deltaX,
-                y: circle.y + deltaY,
-                radius: circle.radius,
-                movable: circle.movable,
-            })),
-        ]);
-      setCircles(updatedCircles)
-      setPolygonPoints(circlesToPoints(updatedCircles));
+    // Si vas a probar la webada, usa los useEffect por separado
 
-    }, [x1,y1]);
+    //  Traslado del poligono completo 
+    useEffect(() => {
+     const deltaX = x1 - circles[0]?.x || 0;
+     const deltaY = y1 - circles[0]?.y || 0;
+     const updatedCircles = ([
+           ...circles.map(circle => ({
+               x: circle.x + deltaX,
+               y: circle.y + deltaY,
+               radius: circle.radius,
+               movable: circle.movable,
+           })),
+       ]);
+     setCircles(updatedCircles)
+     setPolygonPoints(circlesToPoints(updatedCircles));
+
+    }, [x1,y1, x2, y2]);
     
+    // Cambio de altura del poligono
     useEffect(() => {
   
       const updatedCircles = [...circles]; 

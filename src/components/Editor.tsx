@@ -70,7 +70,7 @@ const CoordinateInputs: React.FC = () => {
         //const lastPolygon = shapes[shapes.length-1];  
         //const lastPolygon = shapes.find(objeto => objeto.y2 === coordA.y2);
         setLastPositionSI({ x: coordA.x1, y: coordA.y2  }) //arreglar
-        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
+        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 200 })
       }
       
     },[shapes]);
@@ -131,26 +131,27 @@ const CoordinateInputs: React.FC = () => {
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
       console.log('Se ejecuto')
       setHeight(Number(event.target.value));
+      const newHeight = Number(event.target.value);
       if (selectedShapeIndex !== null) {
-        var updatedShapes = [...shapes];
-        const medidaActual = updatedShapes[selectedShapeIndex].y2 - updatedShapes[selectedShapeIndex].y1 
-        console.log(medidaActual)
-        const nuevaDistancia = Number(event.target.value) + medidaActual
-        
-       //updatedShapes[selectedShapeIndex].y2 = nuevaDistancia;
+        const updatedShapes = shapes.map((shape, index) => {
+          const deltaY = newHeight - (shape.y2 - shape.y1);
+          if (index === selectedShapeIndex) {
+            // Modificar la capa seleccionada
+            return {
+              ...shape,
+              y2: shape.y2 + deltaY,
+            };
+          } else if (index > selectedShapeIndex) {
+            // Ajustar las capas por debajo
+            return {
+              ...shape,
+              y1: shape.y1 + deltaY,
+              y2: shape.y2 + deltaY,
+            };
+          }
+          return shape; // No se modifica
+        });
 
-        // updatedShapes = ([
-        //   ...updatedShapes.map(data => ({
-        //     ...data,
-        //     y1: data.y1 > shapes[selectedShapeIndex].y1 ? Number(event.target.value) - (data.y2 - data.y1) : data.y1,
-        //     y2: data.y2 >= shapes[selectedShapeIndex].y2 ? Number(event.target.value) - (data.y2 - data.y1)  : data.y2,
-             
-        // })),
-        
-      //]);
-      updatedShapes[selectedShapeIndex].y2 = nuevaDistancia;
-      
-      console.log(updatedShapes)
       setShapes(updatedShapes);
 
       }
@@ -173,8 +174,8 @@ const CoordinateInputs: React.FC = () => {
               }]);
 
 
-      setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y + 100  })
-      setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y + 100 }) //arreglar
+      //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
+      //setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y  }) //arreglar
             
     };
     
@@ -219,9 +220,12 @@ const CoordinateInputs: React.FC = () => {
             const maxY = updatedPolygons[i].y2;
       
             if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) { // comprobar si el poligono esta al lado
-             
-              const adjustment = dragOffsetY > 0 ? -updatedPolygons[polygonIndex].height : updatedPolygons[polygonIndex].height;
-              const aux = dragOffsetY > 0 ? updatedPolygons[i].height : -updatedPolygons[i].height;
+              const heightIndex = updatedPolygons[polygonIndex].y2 - updatedPolygons[polygonIndex].y1;
+              const heightI = updatedPolygons[i].y2 - updatedPolygons[i].y1;
+
+              const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
+              
+              const aux = dragOffsetY > 0 ? heightI : -heightI;
 
               updatedPolygons[i].y1 += adjustment;
               updatedPolygons[i].y2 += adjustment;
@@ -229,6 +233,7 @@ const CoordinateInputs: React.FC = () => {
               updatedPolygons[polygonIndex].y1 += aux
               updatedPolygons[polygonIndex].y2 += aux
 
+              console.log(adjustment, aux)
 
              
             }
