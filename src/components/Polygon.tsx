@@ -97,32 +97,53 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
 
     //  Traslado del poligono completo 
     useEffect(() => {
-     const deltaX = x1 - circles[0]?.x || 0;
-     const deltaY = y1 - circles[0]?.y || 0;
-     const updatedCircles = ([
-           ...circles.map(circle => ({
-               x: circle.x + deltaX,
-               y: circle.y + deltaY,
-               radius: circle.radius,
-               movable: circle.movable,
-           })),
-       ]);
-     setCircles(updatedCircles)
-     setPolygonPoints(circlesToPoints(updatedCircles));
+     
+      const deltaX = x1 - circles[0]?.x || 0;
+      const deltaY = y1 - circles[0]?.y || 0;
+
+      const deltaY2 = y2 - circles[circles.length - 1]?.y || 0;
+      
+      if(deltaY == deltaY2){
+     
+        const updatedCircles = ([
+            ...circles.map(circle => ({
+                x: circle.x + deltaX,
+                y: circle.y + deltaY,
+                radius: circle.radius,
+                movable: circle.movable,
+            })),
+        ]);
+       
+        setCircles(updatedCircles)
+        setPolygonPoints(circlesToPoints(updatedCircles));
+
+      }else{
+
+        const updatedCircles = [...circles]; 
+      
+        updatedCircles[updatedCircles.length - 2].y = y2 
+        updatedCircles[updatedCircles.length - 1].y = y2 
+        console.log(y2)
+      
+        setCircles(updatedCircles);
+        setPolygonPoints(circlesToPoints(updatedCircles));
+      }
 
     }, [x1,y1, x2, y2]);
     
     // Cambio de altura del poligono
-    useEffect(() => {
-  
-      const updatedCircles = [...circles]; 
-      updatedCircles[updatedCircles.length - 2].y = y2 
-      updatedCircles[updatedCircles.length - 1].y = y2 
-
-      setCircles(updatedCircles);
-      setPolygonPoints(circlesToPoints(updatedCircles));
+    // useEffect(() => {
+    //   const deltaY2 = y2 - circles[circles.length - 1]?.y || 0;
+    //   console.log('altura y2',deltaY2)
+    //   const updatedCircles = [...circles]; 
       
-    }, [y2]);
+    //   updatedCircles[updatedCircles.length - 2].y = y2 
+    //   updatedCircles[updatedCircles.length - 1].y = y2 
+     
+    //   setCircles(updatedCircles);
+    //   setPolygonPoints(circlesToPoints(updatedCircles));
+      
+    // }, [y2]);
   
 
     // Pasamos las coordenas de los circulos a x, y
@@ -194,7 +215,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         
             const controlPoint = {
               x: currentPoint.x + (nextPoint.x - currentPoint.x) / 2,
-              y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2 ,
+              y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2,
             };
         
             ctx.quadraticCurveTo(currentPoint.x, currentPoint.y , controlPoint.x, controlPoint.y );

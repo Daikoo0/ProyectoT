@@ -70,7 +70,7 @@ const CoordinateInputs: React.FC = () => {
         //const lastPolygon = shapes[shapes.length-1];  
         //const lastPolygon = shapes.find(objeto => objeto.y2 === coordA.y2);
         setLastPositionSI({ x: coordA.x1, y: coordA.y2  }) //arreglar
-        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 200 })
+        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
       }
       
     },[shapes]);
@@ -133,25 +133,27 @@ const CoordinateInputs: React.FC = () => {
       setHeight(Number(event.target.value));
       const newHeight = Number(event.target.value);
       if (selectedShapeIndex !== null) {
+        const selectedShape = shapes[selectedShapeIndex];
+        const deltaY = newHeight - (selectedShape.y2 - selectedShape.y1);
+    
         const updatedShapes = shapes.map((shape, index) => {
-          const deltaY = newHeight - (shape.y2 - shape.y1);
           if (index === selectedShapeIndex) {
-            // Modificar la capa seleccionada
+            const newY2 = shape.y1 + newHeight;
             return {
               ...shape,
-              y2: shape.y2 + deltaY,
+              y2: newY2,
             };
           } else if (index > selectedShapeIndex) {
-            // Ajustar las capas por debajo
             return {
               ...shape,
               y1: shape.y1 + deltaY,
               y2: shape.y2 + deltaY,
             };
           }
-          return shape; // No se modifica
+    
+          return shape;
         });
-
+    
       setShapes(updatedShapes);
 
       }
@@ -232,8 +234,6 @@ const CoordinateInputs: React.FC = () => {
 
               updatedPolygons[polygonIndex].y1 += aux
               updatedPolygons[polygonIndex].y2 += aux
-
-              console.log(adjustment, aux)
 
              
             }
