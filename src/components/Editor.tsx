@@ -207,56 +207,103 @@ const CoordinateInputs: React.FC = () => {
     };
 
     //Movimiento de la barra Drag, poligono
-    const handleContainerDrag = (polygonIndex: number, e: any) => {
-        //console.log(shapes)
-        const updatedPolygons = [...shapes];
-       // const shape = updatedPolygons[polygonIndex];
-        const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
+    // const handleContainerDrag = (polygonIndex: number, e: any) => {
+    //     //console.log(shapes)
+    //     const updatedPolygons = [...shapes];
+    //    // const shape = updatedPolygons[polygonIndex];
+    //     const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
 
-        const dragMaxY = updatedPolygons[polygonIndex].y2 + dragOffsetY;
-        const dragMinY = updatedPolygons[polygonIndex].y1 + dragOffsetY;
+    //     const dragMaxY = updatedPolygons[polygonIndex].y2 + dragOffsetY;
+    //     const dragMinY = updatedPolygons[polygonIndex].y1 + dragOffsetY;
    
-        for (let i = 0; i < updatedPolygons.length; i++) {
-          if (i !== polygonIndex) { 
-            const minY = updatedPolygons[i].y1;
-            const maxY = updatedPolygons[i].y2;
+    //     for (let i = 0; i < updatedPolygons.length; i++) {
+    //       if (i !== polygonIndex) { 
+    //         const minY = updatedPolygons[i].y1;
+    //         const maxY = updatedPolygons[i].y2;
       
-            if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) { // comprobar si el poligono esta al lado
-              const heightIndex = updatedPolygons[polygonIndex].y2 - updatedPolygons[polygonIndex].y1;
-              const heightI = updatedPolygons[i].y2 - updatedPolygons[i].y1;
+    //         if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) { // comprobar si el poligono esta al lado
+    //           const heightIndex = updatedPolygons[polygonIndex].y2 - updatedPolygons[polygonIndex].y1;
+    //           const heightI = updatedPolygons[i].y2 - updatedPolygons[i].y1;
 
-              const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
+    //           const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
               
-              const aux = dragOffsetY > 0 ? heightI : -heightI;
+    //           const aux = dragOffsetY > 0 ? heightI : -heightI;
 
-              updatedPolygons[i].y1 += adjustment;
-              updatedPolygons[i].y2 += adjustment;
+    //           updatedPolygons[i].y1 += adjustment;
+    //           updatedPolygons[i].y2 += adjustment;
 
-              updatedPolygons[polygonIndex].y1 += aux
-              updatedPolygons[polygonIndex].y2 += aux
+    //           updatedPolygons[polygonIndex].y1 += aux
+    //           updatedPolygons[polygonIndex].y2 += aux
 
              
+    //         }
+    //       }
+    //     }
+    //     //console.log(updatedPolygons)
+    //     setShapes(updatedPolygons); 
+
+    //     /*const coordA = shapes.reduce((maxCoords, objeto) => {
+    //         return {
+    //           x1: Math.max(maxCoords.x1, objeto.x1),
+    //           x2: Math.max(maxCoords.x2, objeto.x2),
+    //           y1: Math.max(maxCoords.y1, objeto.y1),
+    //           y2: Math.max(maxCoords.y2, objeto.y2),
+    //         };
+    //       }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
+
+    //     //console.log(coordA.x1, coordA.y1)
+    //     //console.log(coordA.x2, coordA.y2)
+    //     setLastPositionSI({ x: coordA.x1, y: coordA.y1 +100 }) //arreglar
+    //     setLastPositionID({ x: coordA.x2, y: coordA.y2 +100 })*/
+
+    //   };
+
+
+    //Movimiento de la barra Drag, poligono
+    
+    const handleContainerDrag = (polygonIndex: number, e: any) => {
+      const updatedPolygons = [...shapes];
+      const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
+
+      if (dragOffsetY !== 0) {
+        const draggedPolygon = updatedPolygons[polygonIndex];
+
+        for (let i = 0; i < updatedPolygons.length; i++) {
+          if (i !== polygonIndex) {
+            const targetPolygon = updatedPolygons[i];
+            const heightIndex = draggedPolygon.y2 - draggedPolygon.y1;
+            const heightI = targetPolygon.y2 - targetPolygon.y1;
+            const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
+            const aux = dragOffsetY > 0 ? heightI : -heightI;
+    //arriba
+    const dragOffsetY2 = e.target.y() - targetPolygon.y1;
+            if (dragOffsetY2 < 0  && 
+              draggedPolygon.y1 >= targetPolygon.y1
+            ) {
+               
+                targetPolygon.y1 += adjustment;
+                targetPolygon.y2 += adjustment;
+
+                draggedPolygon.y1 += aux;
+                draggedPolygon.y2 += aux;
+    //abajo
+            } else if (dragOffsetY2 > 0 && 
+              targetPolygon.y2 >= draggedPolygon.y2  
+           ) {
+             
+                targetPolygon.y1 += adjustment;
+                targetPolygon.y2 += adjustment;
+        
+                draggedPolygon.y1 += aux;
+                draggedPolygon.y2 += aux;
+
             }
           }
         }
-        //console.log(updatedPolygons)
-        setShapes(updatedPolygons); 
 
-        /*const coordA = shapes.reduce((maxCoords, objeto) => {
-            return {
-              x1: Math.max(maxCoords.x1, objeto.x1),
-              x2: Math.max(maxCoords.x2, objeto.x2),
-              y1: Math.max(maxCoords.y1, objeto.y1),
-              y2: Math.max(maxCoords.y2, objeto.y2),
-            };
-          }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
-
-        //console.log(coordA.x1, coordA.y1)
-        //console.log(coordA.x2, coordA.y2)
-        setLastPositionSI({ x: coordA.x1, y: coordA.y1 +100 }) //arreglar
-        setLastPositionID({ x: coordA.x2, y: coordA.y2 +100 })*/
-
-      };
+        setShapes(updatedPolygons);
+      }
+};
 
     return (
       <div id="Editor">
@@ -348,11 +395,11 @@ const CoordinateInputs: React.FC = () => {
                   onClick = {() => handleShapeClick(index)}
                   onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
                   onDragMove={(e) => {
-                    const posY = Math.round(e.target.y() / 100) * 100; // arreglar
-                    e.target.y(posY);
+                   // const posY = Math.round(e.target.y() / 100) * 100; // arreglar
+                   // e.target.y(posY);
                     handleContainerDrag(index, e); 
                   }}
-                  //onDragEnd={(e) => handleContainerDrag(index, e)}
+                //  onDragEnd={(e) => handleContainerDrag(index, e)}
                   dragBoundFunc={(pos) => ({
                         x: 100,
                         y: pos.y, 
