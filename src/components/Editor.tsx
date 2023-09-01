@@ -188,9 +188,10 @@ const CoordinateInputs: React.FC = () => {
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
         setSelectedOption(shapes[index].fileOption);
-        setHeight(shapes[index].height);
+        setHeight(shapes[index].y2 - shapes[index].y1);
         setSliderZoom(shapes[index].zoom);
         setSliderRotation(shapes[index].rotation);
+
         
     };
 
@@ -200,7 +201,7 @@ const CoordinateInputs: React.FC = () => {
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
         setSelectedOption(shapes[index].fileOption);
-        setHeight(shapes[index].height);
+        setHeight(shapes[index].y2 - shapes[index].y1);
         setSliderZoom(shapes[index].zoom);
         setSliderRotation(shapes[index].rotation);
 
@@ -395,11 +396,13 @@ const CoordinateInputs: React.FC = () => {
                   onClick = {() => handleShapeClick(index)}
                   onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
                   onDragMove={(e) => {
-                   // const posY = Math.round(e.target.y() / 100) * 100; // arreglar
-                   // e.target.y(posY);
                     handleContainerDrag(index, e); 
+                    e.target.y(shape.y1);
                   }}
                 //  onDragEnd={(e) => handleContainerDrag(index, e)}
+                onDragEnd={(e) => {
+                  e.target.y(shapes[index].y1);
+                }}
                   dragBoundFunc={(pos) => ({
                         x: 100,
                         y: pos.y, 

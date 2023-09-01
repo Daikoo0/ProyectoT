@@ -204,39 +204,83 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
     const minX = 200;
     const maxX = 450;
 
-    const handleSceneFunc = (ctx, shape) => {
+    // const handleSceneFunc = (ctx, shape) => {
+    //       const points = shape.points();
+    //       ctx.beginPath();
+    //       ctx.moveTo(points[0], points[1]);
+
+    //       for (let n = 0; n < points.length - 2; n += 2) {
+    //         const currentPoint = { x: points[n], y: points[n + 1] };
+    //         const nextPoint = { x: points[n + 2], y: points[n + 3] };
+        
+    //         const controlPoint = {
+    //           x: currentPoint.x + (nextPoint.x - currentPoint.x) / 2,
+    //           y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2,
+    //         };
+        
+    //         ctx.quadraticCurveTo(currentPoint.x, currentPoint.y , controlPoint.x, controlPoint.y );
+    //       }
+    //       ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+    //       ctx.lineTo(points[0], points[1]);
+    
+    //       if(image){
+    //           ctx.fillStyle = ctx.createPattern(image, 'repeat');
+              
+    //           const radians = (Rotation * Math.PI) / 180;
+          
+    //           ctx.rotate(radians);
+
+    //       }else{
+    //           ctx.fillStyle = 'white';
+    //       }
+         
+    //       ctx.fill();
+    //       ctx.strokeShape(shape);
+          
+    //     };
+
+        const handleSceneFunc = (ctx, shape) => {
+    
+          const tension = 1;
           const points = shape.points();
           ctx.beginPath();
           ctx.moveTo(points[0], points[1]);
-
+          ctx.lineTo(points[2], points[3]);
+        
           for (let n = 0; n < points.length - 2; n += 2) {
-            const currentPoint = { x: points[n], y: points[n + 1] };
-            const nextPoint = { x: points[n + 2], y: points[n + 3] };
-        
-            const controlPoint = {
-              x: currentPoint.x + (nextPoint.x - currentPoint.x) / 2,
-              y: currentPoint.y + (nextPoint.y - currentPoint.y) / 2,
-            };
-        
-            ctx.quadraticCurveTo(currentPoint.x, currentPoint.y , controlPoint.x, controlPoint.y );
+              const prevPoint = { x: points[n - 2], y: points[n - 1] };
+              const currentPoint = { x: points[n], y: points[n + 1] };
+              const nextPoint = { x: points[n + 2], y: points[n + 3] };
+              const afterNextPoint = { x: points[n + 4], y: points[n + 5] };
+          
+              const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * tension;
+              const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * tension;
+          
+              const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * tension;
+              const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * tension;
+              
+              ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
           }
+      
           ctx.lineTo(points[points.length - 2], points[points.length - 1]);
           ctx.lineTo(points[0], points[1]);
-    
+          ctx.fill();
+          ctx.strokeShape(shape);
+
           if(image){
-              ctx.fillStyle = ctx.createPattern(image, 'repeat');
+            ctx.fillStyle = ctx.createPattern(image, 'repeat');
               
-              const radians = (Rotation * Math.PI) / 180;
+            const radians = (Rotation * Math.PI) / 180;
           
-              ctx.rotate(radians);
+            ctx.rotate(radians);
 
           }else{
-              ctx.fillStyle = 'white';
+            ctx.fillStyle = 'white';
           }
          
           ctx.fill();
           ctx.strokeShape(shape);
-          
+            
         };
         
 
