@@ -1,0 +1,62 @@
+#Editor {
+    display: flex;
+    background-color: #B4BEC9;
+    /*background-color: #1f1f29;*/
+  }
+  
+  #sidebar {
+    width: 300px;
+    padding: 20px;
+    color: white;
+    background-color: #1f1f29;
+    position: fixed;
+    top: 0;
+    right: 0; /* Cambiado de "left" a "right" para que el sidebar se muestre en la derecha */
+    width: 300px; /* Cambia el ancho según sea necesario */
+    height: 100vh;
+    /*border-right: 1px solid #ccc;*/
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1; /* Asegura que el sidebar esté por encima del contenido */
+  }
+  
+  #gridContainer {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  #controls {
+    margin-top: 20px;
+  }
+  
+  #controls label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  #controls input[type="number"],
+  #controls select,
+  #controls input[type="color"],
+  #controls button {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: none;
+    background-color: #2b2b3b;
+    color: white;
+  }
+  
+  #controls button {
+    background-color: #4caf50;
+    cursor: pointer;
+  }
+  
+  #controls input[type="number"],
+  #controls select,
+  #controls input[type="color"] {
+    border: 1px solid #555;
+  }
+  
