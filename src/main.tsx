@@ -2,17 +2,18 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider} from 'react-router-dom'
 import './index.css'
 //import App from './App.tsx'
-import EditablePolygon from './components/PruebaKonva.tsx'
+import Line from './components/LineTest.tsx'
 import Editor from './components/Editor.tsx'
 import Socket from './components/Socket.tsx'
 //import Example from './components/example.tsx'
 //import Ruler from './components/Ruler.tsx'
+import Login from './components/Login.tsx'
 
 const router = createBrowserRouter([
 
   {
     path: "/",
-    element: <EditablePolygon />,
+    element: <Login />,
   },
   {
     path: "/editor",
