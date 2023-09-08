@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 
-const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, height, onClick, onDrag}) => {
+const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, circles, setCircles, onClick, onDrag}) => {
 
 
-    // Puntos Iniciales del Poligono
-    const [circles, setCircles] = useState([
-        { x: x1, y: y1, radius: 5, movable: false},
-        { x: x2, y: y1, radius: 5, movable: true},
-        { x: x2, y: y2, radius: 5, movable: true},
-        { x: x1, y: y2, radius: 5, movable: false},
-      
-    ])
+    // Puntos del Poligono
+    //const [circles, setCircles] = useState(circlesA);
 
     const [svgContent, setSvgContent] = useState('');
+
+    const circlesToPoints = (circles) => {
+      return circles.map((circle) => [circle.x, circle.y]).flat();
+    };
+    
+    const [polygonPoints, setPolygonPoints] = useState(circlesToPoints(circles));
 
     // Cambio SVG 
     useEffect(() => {
@@ -93,7 +93,6 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
 
     const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
-    // Si vas a probar la webada, usa los useEffect por separado
 
     //  Traslado del poligono completo 
     useEffect(() => {
@@ -147,15 +146,11 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
   
 
     // Pasamos las coordenas de los circulos a x, y
-    const circlesToPoints = (circles) => {
-        return circles.map((circle) => [circle.x, circle.y]).flat();
-    };
+   
 
-    const [polygonPoints, setPolygonPoints] = useState(circlesToPoints(circles));
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
-      
       onClick();
       const mousePos = e.target.getStage().getPointerPosition();
       const x = mousePos.x;
@@ -296,10 +291,10 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
                 onClick = {handlePolygonClick}
                 sceneFunc={handleSceneFunc}
             />
-
             {circles.map((circle, index) => (
               <Circle
-                key={index}
+              //  key={index}
+                key={`circle-${index}`}
                 x={circle.x}
                 y={circle.y}
                 radius={circle.radius}

@@ -10,7 +10,6 @@ import './Editor.css'
 
 const CoordinateInputs: React.FC = () => {
 
-
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
@@ -127,6 +126,13 @@ const CoordinateInputs: React.FC = () => {
         }
     };
 
+    const setCircles = (index, circles) => {
+      const updatedShapes = [...shapes];
+      updatedShapes[index].circles = circles;
+      setShapes(updatedShapes);
+      
+    }
+
     // Evento del cambio del tamaño del poligono
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
       console.log('Se ejecuto')
@@ -172,7 +178,14 @@ const CoordinateInputs: React.FC = () => {
                 rotation: sliderRotation,
                 file: 0, 
                 fileOption: 0,
-                height : initialHeight
+                height : initialHeight,
+                circles : [
+                  { x: lastPositionSI.x, y: lastPositionSI.y, radius: 5, movable: false},
+                  { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true},
+                  { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true},
+                  { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
+                
+              ]
               }]);
 
 
@@ -371,10 +384,11 @@ const CoordinateInputs: React.FC = () => {
                   y2={shape.y2}
                   ColorFill={shape.colorfill}
                   ColorStroke={shape.colorstroke}
-                  Zoom = {shape.zoom}
-                  Rotation = {shape.rotation}
-                  File = {shape.file}
-                  height={shape.height}
+                  Zoom={shape.zoom}
+                  Rotation={shape.rotation}
+                  File={shape.file}
+                  circles={shape.circles}
+                  setCircles={(circles) => setCircles(index, circles)}
                   onClick={() => handleShapeClick(index)}
                   onDrag={() => {handleShapeonDrag(index)}}
                 />
