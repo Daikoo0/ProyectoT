@@ -293,6 +293,9 @@ const CoordinateInputs: React.FC = () => {
 
 
     //Movimiento de la barra Drag, poligono
+
+    const [tPolygon, setTarget] = useState(null);
+    const [tIndex, setTargetIndex] = useState(null);
     
     const handleContainerDrag = (polygonIndex: number, e: any) => {
       const updatedPolygons = [...shapes];
@@ -304,6 +307,8 @@ const CoordinateInputs: React.FC = () => {
         for (let i = 0; i < updatedPolygons.length; i++) {
           if (i !== polygonIndex) {
             const targetPolygon = updatedPolygons[i];
+            setTarget(targetPolygon);
+            setTargetIndex(i);
             const heightIndex = draggedPolygon.y2 - draggedPolygon.y1;
             const heightI = targetPolygon.y2 - targetPolygon.y1;
             const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
@@ -432,10 +437,25 @@ const CoordinateInputs: React.FC = () => {
                     handleContainerDrag(index, e); 
                     e.target.y(shape.y1);
                   }}
-                //  onDragEnd={(e) => handleContainerDrag(index, e)}
-                onDragEnd={(e) => {
-                  e.target.y(shapes[index].y1);
-                }}
+                  onDragEnd={(e) => {
+                    const updatedPolygons = [...shapes]
+                    e.target.y(shape.y1);
+                    const tShape = tPolygon;
+                    const i = tIndex;
+                    if(shape.y2>tShape.y2){
+                      updatedPolygons.splice(index,1,tShape)
+                      updatedPolygons.splice(i,1,shape) 
+                   }else
+                   // if(tShape.y2<shape.y2)
+                    {
+                      updatedPolygons.splice(i,1,shape)
+                      updatedPolygons.splice(index,1,tShape)   
+                    } 
+                    setShapes(updatedPolygons);
+                    setTarget(null);
+                    setTargetIndex(null);
+                    console.log(updatedPolygons);
+                  }}
                   dragBoundFunc={(pos) => ({
                         x: 100,
                         y: pos.y, 
