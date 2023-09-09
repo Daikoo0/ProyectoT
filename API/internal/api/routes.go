@@ -12,22 +12,23 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 
 	users.POST("/register", a.RegisterUser) // users/register
 	users.POST("/login", a.LoginUser) 		// users/login
-	
-	e.POST("/ws", func(c echo.Context) error { //websocker
-		room := c.FormValue("room")
+
+	e.GET("/ws", func(c echo.Context) error {
+		room := c.QueryParam("room") 
 		upgrader := websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
 			},
 		}
-
+	
 		conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 		if err != nil {
 			return err
 		}
-	
-		handleWebSocket(conn, c, room)
 
+		handleWebSocket(a, conn, c, room)
+	
 		return nil
 	})
+	
 }

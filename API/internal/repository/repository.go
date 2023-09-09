@@ -16,6 +16,8 @@ type Repository interface { //comunicaciones con la base de datos
 	RemoveUserRole(ctx context.Context, userEmail string, roleID int64) error
 	GetUserRoles(ctx context.Context, email string) ([]entity.UserRole, error)
 
+	SaveProject(ctx context.Context, data string, name string) error
+
 
 	//se reciben y se devuelven interfaces
 	//no trabajo en funcion de structs por que el main recibe interfaces
