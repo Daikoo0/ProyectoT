@@ -2,12 +2,14 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider} from 'react-router-dom'
 import './index.css'
 //import App from './App.tsx'
-import Line from './components/LineTest.tsx'
+//import Line from './components/LineTest.tsx'
 import Editor from './components/Editor.tsx'
-import Socket from './components/Socket.tsx'
+//import Socket from './components/Socket.tsx'
 //import Example from './components/example.tsx'
 //import Ruler from './components/Ruler.tsx'
 import Login from './components/Login.tsx'
+import Register from './components/Register.tsx'
+import Home from './components/Home.tsx'
 
 const router = createBrowserRouter([
 
@@ -16,12 +18,16 @@ const router = createBrowserRouter([
     element: <Login />,
   },
   {
-    path: "/editor",
+    path: "/editor/:project",
     element: <Editor />,
   },
   {
-    path: "/socket/:room",
-    element: <Socket />,
+    path: "/register",
+    element: <Register />,
+  },
+  {
+    path: "/Home",
+    element: <Home />,
   },
   /*{
     path: "/example",

@@ -42,6 +42,9 @@
         socket.addEventListener("open", function() {
           socket.send(mensaje);
         });
+        socket.onmessage = function(event) {
+          console.log(event.data);
+        };
       });
     </script>
   </body>

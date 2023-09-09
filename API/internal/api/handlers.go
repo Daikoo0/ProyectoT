@@ -84,8 +84,7 @@ func (a *API) LoginUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"success": "true"})
 }
 
-func handleWebSocket(conn *websocket.Conn, c echo.Context) {
-	var name = " "
+func handleWebSocket(conn *websocket.Conn, c echo.Context, room string) {
 	cookies := c.Cookies()
 	token, _ := jwt.Parse(cookies[0].Value, func(token *jwt.Token) (interface{}, error) {
 		return []byte("01234567890123456789012345678901"), nil
@@ -108,8 +107,9 @@ func handleWebSocket(conn *websocket.Conn, c echo.Context) {
 		}
 
 		log.Printf("%s: %s. (data obtenida de la cookie fuiste hackeado)\n",name,string(msg))
+		
 
-		err = conn.WriteMessage(websocket.TextMessage, []byte("ola"))
+		err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
 		if err != nil {
 			break
 		}

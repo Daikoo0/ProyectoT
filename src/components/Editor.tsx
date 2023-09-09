@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
+import { useParams } from 'react-router-dom';
 
 //import ShapeComponent from './shape';
 //import Konva from './konva';
 import Json from '../lithologic.json';
 import Polygon from './Polygon';
 import Grids from './Grids';
-import './Editor.css'
+import './Editor.css';
 
 const CoordinateInputs: React.FC = () => {
 
@@ -30,7 +31,7 @@ const CoordinateInputs: React.FC = () => {
     //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
 
     // Drag para la cuadrado de arrastre, movimiento variable en 100. / Posible Solucion: Cambiarlo a medidas de las grid
-    const blockSnapSize = 100;
+    //const blockSnapSize = 100;
 
 
   //---------------// PATRONES Y EDICION //---------------//
@@ -50,14 +51,32 @@ const CoordinateInputs: React.FC = () => {
     const [sliderZoom, setSliderZoom] = useState(100); // Zoom
     const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
 
-    
+    const { project } = useParams();
+    //const socket = new WebSocket(`ws://localhost:3001/ws/${project}`);
+    const socket = new WebSocket("ws://localhost:3001/ws");
+
     useEffect(() => {
+      socket.addEventListener("message", function(event) {
+        console.log("recibe")
+        console.log("Message from server:", event.data);
+     //   setShapes(JSON.parse(event.data));
+    });
       
+    },[socket]);
+
+    useEffect(() => {
+
+      // Enviar shapes al backend  
+      socket.addEventListener("open", function() {
+          console.log("envio")
+          socket.send(JSON.stringify(shapes));
+      });
+
       if(shapes.length>0){
 
         const coordA = shapes.reduce((maxCoords, objeto) => {
           return {
-           x1: Math.max(maxCoords.x1, objeto.x1),
+            x1: Math.max(maxCoords.x1, objeto.x1),
             x2: Math.max(maxCoords.x2, objeto.x2),
             y1: Math.max(maxCoords.y1, objeto.y1),
             y2: Math.max(maxCoords.y2, objeto.y2),
@@ -186,7 +205,7 @@ const CoordinateInputs: React.FC = () => {
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
                 
               ]
-              }]);
+            }]);
 
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
@@ -196,7 +215,7 @@ const CoordinateInputs: React.FC = () => {
     
     // Cambia en el editor las configuraciones del poligno seleccionado 
     const handleShapeClick = (index) => {
-        console.log(shapes)
+        //console.log(shapes)
         setSelectedShapeIndex(index);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);

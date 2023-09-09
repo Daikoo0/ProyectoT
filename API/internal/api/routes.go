@@ -13,7 +13,8 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 	users.POST("/register", a.RegisterUser) // users/register
 	users.POST("/login", a.LoginUser) 		// users/login
 	
-	e.GET("/ws", func(c echo.Context) error { //websocket
+	e.POST("/ws", func(c echo.Context) error { //websocker
+		room := c.FormValue("room")
 		upgrader := websocket.Upgrader{
 			CheckOrigin: func(r *http.Request) bool {
 				return true
@@ -25,7 +26,7 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 			return err
 		}
 	
-		handleWebSocket(conn, c)
+		handleWebSocket(conn, c, room)
 
 		return nil
 	})
