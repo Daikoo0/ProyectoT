@@ -101,3 +101,19 @@ func (r *repo) GetUserRoles(ctx context.Context, email string) ([]entity.UserRol
 	}
 	return roles, nil
 }
+
+func (r *repo) SaveProject(ctx context.Context, data string, name string) error {
+	project := entity.Project{
+		Name:    name,
+		Data:    data,
+	}
+
+	projects := r.db.Collection("projects")
+	_, err := projects.InsertOne(ctx, project)
+	if err != nil {
+		log.Println("Error saving project:", err)
+		return err
+	}
+
+	return nil
+}

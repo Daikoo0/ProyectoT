@@ -61,7 +61,7 @@ func (a *API) LoginUser(c echo.Context) error {
 	u, err := a.serv.LoginUser(ctx, params.Email, params.Password)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"})
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Invalid Credentials"})
 	}
 
 	token, err := encryption.SignedLoginToken(u)
@@ -84,37 +84,85 @@ func (a *API) LoginUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"success": "true"})
 }
 
-func handleWebSocket(conn *websocket.Conn, c echo.Context, room string) {
-	cookies := c.Cookies()
-	token, _ := jwt.Parse(cookies[0].Value, func(token *jwt.Token) (interface{}, error) {
-		return []byte("01234567890123456789012345678901"), nil
-	})
-	if token.Valid {
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			log.Println("inreadeable token")
-			return
-		}
-		name = claims["name"].(string)
-	} else {
-		log.Println("invalid token")
-	}
+var rooms = make(map[string]*Room)
 
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			break
-		}
-
-		log.Printf("%s: %s. (data obtenida de la cookie fuiste hackeado)\n",name,string(msg))
-		
-
-		err = conn.WriteMessage(websocket.TextMessage, []byte(msg))
-		if err != nil {
-			break
-		}
-	}
-
-	conn.Close()
+type Room struct {
+    Name     string
+    Clients  []*websocket.Conn
+    Messages []string
 }
 
+func handleWebSocket(a *API, conn *websocket.Conn, c echo.Context, roomName string) {
+	ctx := c.Request().Context()
+    room := getOrCreateRoom(roomName)
+	user := ""
+	cookie, err := c.Cookie("Authorization")
+	if err != nil {
+		conn.WriteMessage(websocket.TextMessage, []byte("Invalid Session"))
+		conn.WriteMessage(websocket.TextMessage, []byte("Mi loco inicie sesion"))
+		return 
+	}
+
+    token, _ := jwt.Parse(cookie.Value, func(token *jwt.Token) (interface{}, error) {
+        return []byte("01234567890123456789012345678901"), nil
+    })
+
+	log.Println("piola3")
+    if token.Valid {
+        claims, ok := token.Claims.(jwt.MapClaims)
+        if !ok {
+            log.Println("inreadeable token")
+            return
+        }
+        user, ok = claims["name"].(string)
+        if !ok {
+            log.Println("invalid name claim")
+            return
+        }
+	} else {
+			log.Println("Invalid Session")
+			conn.WriteMessage(websocket.TextMessage, []byte("Error: User not authenticated"))
+			conn.Close()
+			return
+		}
+
+    room.Clients = append(room.Clients, conn)
+
+    for {
+        _, msg, err := conn.ReadMessage()
+        if err != nil {
+            break
+        }
+
+        log.Printf("usuario %s a actualizado el archivo:\n. %s\n", user, string(msg))
+
+        room.Messages = append(room.Messages, string(msg)) //temporal pal ctrl Z
+
+		err = a.serv.SaveProject(ctx, string(msg), roomName )
+		if err != nil {
+			log.Println("No se guardo la data")
+		}
+
+        for _, client := range room.Clients {
+            err = client.WriteMessage(websocket.TextMessage, []byte(msg))
+            if err != nil {
+                break
+            }
+        }
+    }
+
+    conn.Close()
+}
+
+func getOrCreateRoom(roomName string) *Room {
+    room, exists := rooms[roomName] //revisar la bd tambien (crear service y repository para el caso)
+    if !exists {
+        room = &Room{
+            Name:     roomName,
+            Clients:  make([]*websocket.Conn, 0),
+            Messages: make([]string, 0),
+        }
+        rooms[roomName] = room
+    }
+    return room
+}

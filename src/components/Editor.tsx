@@ -51,20 +51,31 @@ const CoordinateInputs: React.FC = () => {
     const [sliderZoom, setSliderZoom] = useState(100); // Zoom
     const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
 
+    // websocket instanciacion
     const { project } = useParams();
-    //const socket = new WebSocket(`ws://localhost:3001/ws/${project}`);
-    const socket = new WebSocket("ws://localhost:3001/ws");
+    console.log(project)
+    const socket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
 
     useEffect(() => {
-      socket.addEventListener("message", function(event) {
-        console.log("recibe")
-        console.log("Message from server:", event.data);
-     //   setShapes(JSON.parse(event.data));
-    });
       
-    },[socket]);
+      socket.onopen = () => {
+        console.log('conexion establecida');
+      };
+      
+      socket.onmessage = (event) => {
+        console.log('msg:', event.data); //info recibida (hacer que actualice el form de ustedes)
+        //vean por que chucha se ejecuta tantas veces la wea 
+        //se ejecuta 2 veces no se que chucha
+        //hay un bug pero no se por que si se recarga la pagina ya no puede recibir mensajes
+        //problema del front, el back si le manda info
 
-    useEffect(() => {
+        //PD: mencionaron algo de desconectarse y conectarse a cada rato
+        //no se que wea pero creo que es eso que hace que aparescan mensajes raros, o no se tengo sueño son las 7 am ayuda
+      };
+      
+      socket.onclose = () => {
+        console.log('close connection');
+      };
 
       // Enviar shapes al backend  
       socket.addEventListener("open", function() {

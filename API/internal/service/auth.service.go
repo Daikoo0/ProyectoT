@@ -93,3 +93,9 @@ func (s *serv) RemoveUserRole(ctx context.Context, userEmail string, roleID int6
 	}
 	return s.repo.RemoveUserRole(ctx, userEmail, roleID)
 }
+
+func (s *serv) SaveProject(ctx context.Context, data string, name string,) error {
+	//implementar logica de procesamiento del temporal
+	//por ahora es raw
+	return s.repo.SaveProject(ctx, data, name)
+}

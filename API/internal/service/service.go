@@ -16,6 +16,8 @@ type Service interface {
 	
 	AddUserRole(ctx context.Context, userEmail string, roleID int64) error
 	RemoveUserRole(ctx context.Context, userEmail string, roleID int64) error
+
+	SaveProject(ctx context.Context, data string, name string) error
 }
 
 type serv struct {
