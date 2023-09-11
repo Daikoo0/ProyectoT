@@ -10,6 +10,7 @@ import Editor from './components/Editor.tsx'
 import Login from './components/Login.tsx'
 import Register from './components/Register.tsx'
 import Home from './components/Home.tsx'
+import A from './components/ea.tsx'
 
 const router = createBrowserRouter([
 
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
     path: "/Home",
     element: <Home />,
   },
+ 
   /*{
     path: "/example",
     element: <Example />,
