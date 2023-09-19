@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import './Login.css';
 
-function Login() {
+function Register() {
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUserName] = useState('');
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -14,17 +15,22 @@ function Login() {
     setPassword(e.target.value);
   };
 
+  const handleUserNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserName(e.target.value);
+  };
+
   async function handleLogin() {
    
-    const response = await fetch("http://localhost:3001/users/login", {
+    const response = await fetch("http://localhost:3001/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         credentials: "include",
         body: JSON.stringify({
-       //   email: "hex@mail.com",
+     //  email: "hex@mail.com",
          email : Correo,
+         name : username,
          password : password,
      //  password: "12345678",
         }),
@@ -49,6 +55,16 @@ function Login() {
           />
         </div>
         <div className="form-group">
+          <label htmlFor="password">Nombre de usuario:</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={username}
+            onChange={handleUserNameChange}
+          />
+        </div>
+        <div className="form-group">
           <label htmlFor="password">Contraseña:</label>
           <input
             type="password"
@@ -66,4 +82,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;

@@ -5,13 +5,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 //import myPatternImage from '../assets/601.png'
 //import Ruler from './Ruler.tsx'
 import Json from '../lithologic.json';
-import { io } from 'socket.io-client';
 //import useImage from 'use-image';
 //import Konva from 'konva';
 import Polygon from './Polygon.tsx';
-
-const port = 3001
-const socket = io(`http://localhost:${port}`)
 
 interface Point {
   x: number;
@@ -47,17 +43,6 @@ const EditablePolygon: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const opcionesArray = Object.keys(Json).map((key) => ({ value: key, label: Json[key] }));
 
-  useEffect(() => {
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('polygons', (data => { 
-      console.log(data.polygons)
-      setPolygons(data.polygons);
-    }))
-    return () => {
-      socket.off('connect');
-      socket.off('polygons');
-    }
-  }, [])
 /*
   useEffect(() => {
     image.onload = () => {

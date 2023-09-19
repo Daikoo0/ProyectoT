@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Rect } from 'react-konva';
+import { useParams } from 'react-router-dom';
 
 //import ShapeComponent from './shape';
 //import Konva from './konva';
 import Json from '../lithologic.json';
 import Polygon from './Polygon';
 import Grids from './Grids';
-import './Editor.css'
+import './Editor.css';
 
 const CoordinateInputs: React.FC = () => {
 
@@ -30,7 +31,7 @@ const CoordinateInputs: React.FC = () => {
     //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
 
     // Drag para la cuadrado de arrastre, movimiento variable en 100. / Posible Solucion: Cambiarlo a medidas de las grid
-    const blockSnapSize = 100;
+    //const blockSnapSize = 100;
 
 
   //---------------// PATRONES Y EDICION //---------------//
@@ -50,14 +51,43 @@ const CoordinateInputs: React.FC = () => {
     const [sliderZoom, setSliderZoom] = useState(100); // Zoom
     const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
 
-    
+    // websocket instanciacion
+    const { project } = useParams();
+    console.log(project)
+    const socket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
+
     useEffect(() => {
       
+      socket.onopen = () => {
+        console.log('conexion establecida');
+      };
+      
+      socket.onmessage = (event) => {
+        console.log('msg:', event.data); //info recibida (hacer que actualice el form de ustedes)
+        //vean por que chucha se ejecuta tantas veces la wea 
+        //se ejecuta 2 veces no se que chucha
+        //hay un bug pero no se por que si se recarga la pagina ya no puede recibir mensajes
+        //problema del front, el back si le manda info
+
+        //PD: mencionaron algo de desconectarse y conectarse a cada rato
+        //no se que wea pero creo que es eso que hace que aparescan mensajes raros, o no se tengo sueño son las 7 am ayuda
+      };
+      
+      socket.onclose = () => {
+        console.log('close connection');
+      };
+
+      // Enviar shapes al backend  
+      socket.addEventListener("open", function() {
+          console.log("envio")
+          socket.send(JSON.stringify(shapes));
+      });
+
       if(shapes.length>0){
 
         const coordA = shapes.reduce((maxCoords, objeto) => {
           return {
-           x1: Math.max(maxCoords.x1, objeto.x1),
+            x1: Math.max(maxCoords.x1, objeto.x1),
             x2: Math.max(maxCoords.x2, objeto.x2),
             y1: Math.max(maxCoords.y1, objeto.y1),
             y2: Math.max(maxCoords.y2, objeto.y2),
@@ -186,7 +216,7 @@ const CoordinateInputs: React.FC = () => {
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
                 
               ]
-              }]);
+            }]);
 
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
@@ -196,7 +226,7 @@ const CoordinateInputs: React.FC = () => {
     
     // Cambia en el editor las configuraciones del poligno seleccionado 
     const handleShapeClick = (index) => {
-        console.log(shapes)
+        //console.log(shapes)
         setSelectedShapeIndex(index);
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
@@ -208,7 +238,7 @@ const CoordinateInputs: React.FC = () => {
         
     };
 
-    // Cambia en el editor las configuraciones del poligno seleccionado 
+//    Cambia en el editor las configuraciones del poligno seleccionado 
     const handleShapeonDrag = ( index) => {
         setSelectedShapeIndex(index);
         setColorFill(shapes[index].colorfill);
@@ -220,71 +250,28 @@ const CoordinateInputs: React.FC = () => {
 
     };
 
-    //Movimiento de la barra Drag, poligono
-    // const handleContainerDrag = (polygonIndex: number, e: any) => {
-    //     //console.log(shapes)
-    //     const updatedPolygons = [...shapes];
-    //    // const shape = updatedPolygons[polygonIndex];
-    //     const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
+    const dragItem = useRef(null);
+    const dragOverItem = useRef(null);
 
-    //     const dragMaxY = updatedPolygons[polygonIndex].y2 + dragOffsetY;
-    //     const dragMinY = updatedPolygons[polygonIndex].y1 + dragOffsetY;
-   
-    //     for (let i = 0; i < updatedPolygons.length; i++) {
-    //       if (i !== polygonIndex) { 
-    //         const minY = updatedPolygons[i].y1;
-    //         const maxY = updatedPolygons[i].y2;
-      
-    //         if ((maxY >= dragMinY && maxY <= dragMaxY) && (minY >= dragMinY && minY <= dragMaxY)) { // comprobar si el poligono esta al lado
-    //           const heightIndex = updatedPolygons[polygonIndex].y2 - updatedPolygons[polygonIndex].y1;
-    //           const heightI = updatedPolygons[i].y2 - updatedPolygons[i].y1;
-
-    //           const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
-              
-    //           const aux = dragOffsetY > 0 ? heightI : -heightI;
-
-    //           updatedPolygons[i].y1 += adjustment;
-    //           updatedPolygons[i].y2 += adjustment;
-
-    //           updatedPolygons[polygonIndex].y1 += aux
-    //           updatedPolygons[polygonIndex].y2 += aux
-
-             
-    //         }
-    //       }
-    //     }
-    //     //console.log(updatedPolygons)
-    //     setShapes(updatedPolygons); 
-
-    //     /*const coordA = shapes.reduce((maxCoords, objeto) => {
-    //         return {
-    //           x1: Math.max(maxCoords.x1, objeto.x1),
-    //           x2: Math.max(maxCoords.x2, objeto.x2),
-    //           y1: Math.max(maxCoords.y1, objeto.y1),
-    //           y2: Math.max(maxCoords.y2, objeto.y2),
-    //         };
-    //       }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
-
-    //     //console.log(coordA.x1, coordA.y1)
-    //     //console.log(coordA.x2, coordA.y2)
-    //     setLastPositionSI({ x: coordA.x1, y: coordA.y1 +100 }) //arreglar
-    //     setLastPositionID({ x: coordA.x2, y: coordA.y2 +100 })*/
-
-    //   };
-
+    const dragStart = (e, position) => {
+      console.log('start: ',position)
+      dragItem.current = position;
+      //e.dataTransfer.setData('text/plain', e.target.innerHTML);
+    };
 
     //Movimiento de la barra Drag, poligono
     
-    const handleContainerDrag = (polygonIndex: number, e: any) => {
+   const handleContainerDrag = (polygonIndex: number, e: any) => {
       const updatedPolygons = [...shapes];
       const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
 
       if (dragOffsetY !== 0) {
         const draggedPolygon = updatedPolygons[polygonIndex];
-
         for (let i = 0; i < updatedPolygons.length; i++) {
+          
           if (i !== polygonIndex) {
             const targetPolygon = updatedPolygons[i];
+           
             const heightIndex = draggedPolygon.y2 - draggedPolygon.y1;
             const heightI = targetPolygon.y2 - targetPolygon.y1;
             const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
@@ -295,16 +282,19 @@ const CoordinateInputs: React.FC = () => {
               draggedPolygon.y1 >= targetPolygon.y1
             ) {
                
+          dragOverItem.current = i;
                 targetPolygon.y1 += adjustment;
                 targetPolygon.y2 += adjustment;
 
                 draggedPolygon.y1 += aux;
                 draggedPolygon.y2 += aux;
+
     //abajo
             } else if (dragOffsetY2 > 0 && 
               targetPolygon.y2 >= draggedPolygon.y2  
            ) {
-             
+            
+          dragOverItem.current = i;
                 targetPolygon.y1 += adjustment;
                 targetPolygon.y2 += adjustment;
         
@@ -314,8 +304,8 @@ const CoordinateInputs: React.FC = () => {
             }
           }
         }
-
         setShapes(updatedPolygons);
+        
       }
 };
 
@@ -390,7 +380,9 @@ const CoordinateInputs: React.FC = () => {
                   circles={shape.circles}
                   setCircles={(circles) => setCircles(index, circles)}
                   onClick={() => handleShapeClick(index)}
-                  onDrag={() => {handleShapeonDrag(index)}}
+                  onDrag={() => {
+                    handleShapeonDrag(index)
+                  }}
                 />
                 
             ))} 
@@ -404,18 +396,29 @@ const CoordinateInputs: React.FC = () => {
                   width={80}
                   height={shape.y2 - shape.y1}
                  // height={shape.x2-shape.x1}
-                  fill="yellow"
+                 // fill="yellow"
                   opacity={0.5}
                   draggable
                   onClick = {() => handleShapeClick(index)}
-                  onDragStart={(e) => setLastPositionID({ x: lastPositionID.x, y: e.target.y() })}
-                  onDragMove={(e) => {
+                //   onDragStart={(e) => {setLastPositionID({ x: lastPositionID.x, y: e.target.y() })
+                //   setLastPositionSI({ x: lastPositionSI.x, y: e.target.y() })
+                // }}
+                onDragStart={(e) => dragStart(e, index)}
+                onDragMove={(e) => {
                     handleContainerDrag(index, e); 
                     e.target.y(shape.y1);
-                  }}
-                //  onDragEnd={(e) => handleContainerDrag(index, e)}
+                }}
                 onDragEnd={(e) => {
-                  e.target.y(shapes[index].y1);
+                  if(dragItem.current !== dragOverItem.current)  
+                    {
+                      const copyListItems = [...shapes];
+                      const dragItemContent = copyListItems[dragItem.current];
+                      copyListItems.splice(dragItem.current, 1);
+                      copyListItems.splice(dragOverItem.current, 0, dragItemContent);
+                      setShapes(copyListItems);
+                      dragItem.current = null;
+                      dragOverItem.current = null;
+                    }
                 }}
                   dragBoundFunc={(pos) => ({
                         x: 100,
