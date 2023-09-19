@@ -7,6 +7,12 @@ import Editor from './components/Editor.tsx'
 //import Example from './components/example.tsx'
 //import Ruler from './components/Ruler.tsx'
 import Login from './components/Login.tsx'
+<<<<<<< Updated upstream
+=======
+import Register from './components/Register.tsx'
+import Home from './components/Home.tsx'
+import KonvaSocket from './components/KonvaSocket.tsx'
+>>>>>>> Stashed changes
 
 const router = createBrowserRouter([
 

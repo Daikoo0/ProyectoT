@@ -29,8 +29,11 @@ const CoordinateInputs: React.FC = () => {
    
     //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
 
+<<<<<<< Updated upstream
     // Drag para la cuadrado de arrastre, movimiento variable en 100. / Posible Solucion: Cambiarlo a medidas de las grid
     const blockSnapSize = 100;
+=======
+>>>>>>> Stashed changes
 
 
   //---------------// PATRONES Y EDICION //---------------//
@@ -50,9 +53,45 @@ const CoordinateInputs: React.FC = () => {
     const [sliderZoom, setSliderZoom] = useState(100); // Zoom
     const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
 
+<<<<<<< Updated upstream
     
     useEffect(() => {
       
+=======
+    // websocket instanciacion
+    const { project } = useParams();
+    //console.log(project)
+    const socket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
+
+
+    useEffect(() => {
+      //Recibe la informacion del socket 
+      socket.onmessage = (event) => {
+          console.log(event.data);
+          const shapes = JSON.parse(event.data);
+          setShapes(currentShapes => {
+              const existingShapeIndex = currentShapes.findIndex(s => s.id === shapes.id);
+              if (existingShapeIndex !== -1) {
+                  // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
+                  const updatedSquares = [...currentShapes];
+                  updatedSquares[existingShapeIndex] = shapes;
+                  return updatedSquares;
+              } else {
+                  // Si el cuadrado no existe, lo agregamos al estado
+                  return [...currentShapes, shapes];
+              }
+          });
+      };
+      
+      // Limpiar la conexión WebSocket cuando el componente se desmonta
+      return () => {
+        socket.close();
+      };
+  }, []);
+
+    useEffect(() => {
+
+>>>>>>> Stashed changes
       if(shapes.length>0){
 
         const coordA = shapes.reduce((maxCoords, objeto) => {
@@ -81,7 +120,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].zoom = Number(event.target.value);
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
@@ -91,7 +131,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].rotation = Number(event.target.value);
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
   
@@ -102,7 +143,8 @@ const CoordinateInputs: React.FC = () => {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].file = Json[event.target.value];
           updatedShapes[selectedShapeIndex].fileOption = event.target.value;
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
@@ -112,7 +154,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].colorfill = event.target.value;
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
@@ -122,13 +165,16 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].colorstroke = event.target.value;
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
+    // Crea los circulos de los poligonos
     const setCircles = (index, circles) => {
       const updatedShapes = [...shapes];
       updatedShapes[index].circles = circles;
+      //socket.send(JSON.stringify(updatedShapes[index]));
       setShapes(updatedShapes);
       
     }
@@ -145,10 +191,23 @@ const CoordinateInputs: React.FC = () => {
         const updatedShapes = shapes.map((shape, index) => {
           if (index === selectedShapeIndex) {
             const newY2 = shape.y1 + newHeight;
+            if(newY2 < shape.y2){
+              
+              const filteredCircles = shape.circles.filter((circle, index) => {
+                return !(circle.y > newY2 && circle.movable && index > 1);
+              });
+              
+              return {
+                ...shape,
+                y2: newY2,
+                circles : filteredCircles,
+              };
+
+            }else{
             return {
               ...shape,
               y2: newY2,
-            };
+            };}
           } else if (index > selectedShapeIndex) {
             return {
               ...shape,
@@ -165,11 +224,14 @@ const CoordinateInputs: React.FC = () => {
       }
     }
 
-    // Generacion de figuras 
+
+    //////////////-----------MODIFICADO-----------------//////////////
+    // Generacion de figuras, envio a backend 
     const handleAddShape = () => {
 
-        setShapes(prevShapes => [...prevShapes, 
+      const NewShape =
             {   
+                id: shapes.length,
                 x1: lastPositionSI.x, y1: lastPositionSI.y, 
                 x2: lastPositionID.x, y2: lastPositionID.y,  
                 colorfill: initialColorFill, 
@@ -186,8 +248,14 @@ const CoordinateInputs: React.FC = () => {
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
                 
               ]
+<<<<<<< Updated upstream
               }]);
 
+=======
+            }
+      
+      socket.send(JSON.stringify(NewShape));
+>>>>>>> Stashed changes
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
       //setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y  }) //arreglar
