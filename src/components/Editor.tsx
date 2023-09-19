@@ -30,8 +30,6 @@ const CoordinateInputs: React.FC = () => {
    
     //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
 
-    // Drag para la cuadrado de arrastre, movimiento variable en 100. / Posible Solucion: Cambiarlo a medidas de las grid
-    //const blockSnapSize = 100;
 
 
   //---------------// PATRONES Y EDICION //---------------//
@@ -53,35 +51,36 @@ const CoordinateInputs: React.FC = () => {
 
     // websocket instanciacion
     const { project } = useParams();
-    console.log(project)
+    //console.log(project)
     const socket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
 
+
     useEffect(() => {
-      
-      socket.onopen = () => {
-        console.log('conexion establecida');
-      };
-      
+      //Recibe la informacion del socket 
       socket.onmessage = (event) => {
-        console.log('msg:', event.data); //info recibida (hacer que actualice el form de ustedes)
-        //vean por que chucha se ejecuta tantas veces la wea 
-        //se ejecuta 2 veces no se que chucha
-        //hay un bug pero no se por que si se recarga la pagina ya no puede recibir mensajes
-        //problema del front, el back si le manda info
-
-        //PD: mencionaron algo de desconectarse y conectarse a cada rato
-        //no se que wea pero creo que es eso que hace que aparescan mensajes raros, o no se tengo sueño son las 7 am ayuda
+          console.log(event.data);
+          const shapes = JSON.parse(event.data);
+          setShapes(currentShapes => {
+              const existingShapeIndex = currentShapes.findIndex(s => s.id === shapes.id);
+              if (existingShapeIndex !== -1) {
+                  // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
+                  const updatedSquares = [...currentShapes];
+                  updatedSquares[existingShapeIndex] = shapes;
+                  return updatedSquares;
+              } else {
+                  // Si el cuadrado no existe, lo agregamos
+                  return [...currentShapes, shapes];
+              }
+          });
       };
       
-      socket.onclose = () => {
-        console.log('close connection');
+      // Limpiar la conexión WebSocket cuando el componente se desmonta
+      return () => {
+        socket.close();
       };
+  }, []);
 
-      // Enviar shapes al backend  
-      socket.addEventListener("open", function() {
-          console.log("envio")
-          socket.send(JSON.stringify(shapes));
-      });
+    useEffect(() => {
 
       if(shapes.length>0){
 
@@ -111,7 +110,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].zoom = Number(event.target.value);
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
@@ -121,7 +121,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].rotation = Number(event.target.value);
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
   
@@ -132,7 +133,8 @@ const CoordinateInputs: React.FC = () => {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].file = Json[event.target.value];
           updatedShapes[selectedShapeIndex].fileOption = event.target.value;
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
@@ -142,7 +144,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].colorfill = event.target.value;
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
@@ -152,13 +155,16 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].colorstroke = event.target.value;
-          setShapes(updatedShapes);
+          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          //setShapes(updatedShapes);
         }
     };
 
+    // Crea los circulos de los poligonos
     const setCircles = (index, circles) => {
       const updatedShapes = [...shapes];
       updatedShapes[index].circles = circles;
+      //socket.send(JSON.stringify(updatedShapes[index]));
       setShapes(updatedShapes);
       
     }
@@ -175,10 +181,23 @@ const CoordinateInputs: React.FC = () => {
         const updatedShapes = shapes.map((shape, index) => {
           if (index === selectedShapeIndex) {
             const newY2 = shape.y1 + newHeight;
+            if(newY2 < shape.y2){
+              
+              const filteredCircles = shape.circles.filter((circle, index) => {
+                return !(circle.y > newY2 && circle.movable && index > 1);
+              });
+              
+              return {
+                ...shape,
+                y2: newY2,
+                circles : filteredCircles,
+              };
+
+            }else{
             return {
               ...shape,
               y2: newY2,
-            };
+            };}
           } else if (index > selectedShapeIndex) {
             return {
               ...shape,
@@ -195,11 +214,14 @@ const CoordinateInputs: React.FC = () => {
       }
     }
 
-    // Generacion de figuras 
+
+    //////////////-----------MODIFICADO-----------------//////////////
+    // Generacion de figuras, envio a backend 
     const handleAddShape = () => {
 
-        setShapes(prevShapes => [...prevShapes, 
+      const NewShape =
             {   
+                id: shapes.length,
                 x1: lastPositionSI.x, y1: lastPositionSI.y, 
                 x2: lastPositionID.x, y2: lastPositionID.y,  
                 colorfill: initialColorFill, 
@@ -216,8 +238,9 @@ const CoordinateInputs: React.FC = () => {
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
                 
               ]
-            }]);
-
+            }
+      
+      socket.send(JSON.stringify(NewShape));
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
       //setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y  }) //arreglar
