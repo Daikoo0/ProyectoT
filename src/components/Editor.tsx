@@ -52,33 +52,44 @@ const CoordinateInputs: React.FC = () => {
     // websocket instanciacion
     const { project } = useParams();
     //console.log(project)
-    const socket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
+    const [socket, setSocket] = useState<WebSocket | null>(null);
 
+  // Instancia del socket cuando se monta el componente
+  useEffect(() => {
+    const newSocket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
+    setSocket(newSocket);
 
-    useEffect(() => {
-      //Recibe la informacion del socket 
+    return () => {
+      newSocket.close();
+    };
+  }, [project]);
+
+  useEffect(() => {
+    if (socket) { 
+      // Recibe la información del socket
       socket.onmessage = (event) => {
-          console.log(event.data);
-          const shapes = JSON.parse(event.data);
-          setShapes(currentShapes => {
-              const existingShapeIndex = currentShapes.findIndex(s => s.id === shapes.id);
-              if (existingShapeIndex !== -1) {
-                  // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
-                  const updatedSquares = [...currentShapes];
-                  updatedSquares[existingShapeIndex] = shapes;
-                  return updatedSquares;
-              } else {
-                  // Si el cuadrado no existe, lo agregamos
-                  return [...currentShapes, shapes];
-              }
-          });
+        console.log(event.data);
+        const shapes = JSON.parse(event.data);
+        setShapes(currentShapes => {
+          const existingShapeIndex = currentShapes.findIndex(s => s.id === shapes.id);
+          if (existingShapeIndex !== -1) {
+            // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
+            const updatedSquares = [...currentShapes];
+            updatedSquares[existingShapeIndex] = shapes;
+            return updatedSquares;
+          } else {
+            // Si el cuadrado no existe, lo agregamos
+            return [...currentShapes, shapes];
+          }
+        });
       };
-      
+
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
         socket.close();
       };
-  }, []);
+    }
+  }, [socket]);
 
     useEffect(() => {
 
@@ -104,14 +115,15 @@ const CoordinateInputs: React.FC = () => {
     },[shapes]);
   
     //---------------// EVENTOS //---------------//
+    //---------// SLIDER //---------//
     // Evento del slider de zoom 
     const handleSliderZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSliderZoom(Number(event.target.value));
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].zoom = Number(event.target.value);
-          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
-          //setShapes(updatedShapes);
+          //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          setShapes(updatedShapes);
         }
     };
 
@@ -121,8 +133,8 @@ const CoordinateInputs: React.FC = () => {
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
           updatedShapes[selectedShapeIndex].rotation = Number(event.target.value);
-          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
-          //setShapes(updatedShapes);
+          //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          setShapes(updatedShapes);
         }
     };
   
@@ -161,16 +173,21 @@ const CoordinateInputs: React.FC = () => {
     };
 
     // Crea los circulos de los poligonos
-    const setCircles = (index, circles,socket) => {
+    const setCircles = (index, circles, send, socket) => {
       const updatedShapes = [...shapes];
       updatedShapes[index].circles = circles;
-       socket.onopen = () =>
-      socket.send(JSON.stringify(updatedShapes[index]));
       setShapes(updatedShapes);
-      
+      if(send){
+        socket.send(JSON.stringify(updatedShapes[index]));
+      }
     }
 
-
+    // Envía la información al soltar el control deslizante
+    const SliderDrop = () => {
+      if (selectedShapeIndex !== null) {
+        socket.send(JSON.stringify(shapes[selectedShapeIndex]));
+      }
+    };
 
     // Evento del cambio del tamaño del poligono
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,6 +387,7 @@ const CoordinateInputs: React.FC = () => {
             max={300}
             value={sliderZoom}
             onChange={handleSliderZoom}
+            onMouseUp={SliderDrop}
           />
         </div>
         <div>
@@ -380,6 +398,7 @@ const CoordinateInputs: React.FC = () => {
             max={180}
             value={sliderRotation}
             onChange={handleSliderRotation}
+            onMouseUp={SliderDrop}
           />
         </div>
 
@@ -404,7 +423,7 @@ const CoordinateInputs: React.FC = () => {
                   Rotation={shape.rotation}
                   File={shape.file}
                   circles={shape.circles}
-                  setCircles={(circles) => setCircles(index, circles, socket)}
+                  setCircles={(circles, send) => setCircles(index, circles,send, socket)}
                   onClick={() => handleShapeClick(index)}
                   onDrag={() => {
                     handleShapeonDrag(index)

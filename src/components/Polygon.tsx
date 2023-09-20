@@ -113,7 +113,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
             })),
         ]);
        
-        setCircles(updatedCircles)
+        setCircles(updatedCircles, true)
         //setPolygonPoints(circlesToPoints(updatedCircles));
 
       }else{
@@ -124,7 +124,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         updatedCircles[updatedCircles.length - 1].y = y2 
         console.log(y2)
       
-        setCircles(updatedCircles);
+        setCircles(updatedCircles, true);
      //   setPolygonPoints(circlesToPoints(updatedCircles));
       }
 
@@ -184,7 +184,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         const point = { x, y, radius: 5, movable: true };
         updatedCircles.splice(insertIndex, 0, point);
     
-        setCircles(updatedCircles);
+        setCircles(updatedCircles, true);
         setPolygonPoints(circlesToPoints(updatedCircles));
       }
     };
@@ -192,13 +192,18 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
     // Todos los eventos de los circulos
     const addEventToCircle = (index) => {
         return {
+          onMouseLeave: () => {
+            const updatedCircles = [...circles];
+            setCircles(updatedCircles, true);
+          },
           ondragMove: (e) => {
             const updatedCircles = [...circles];
             updatedCircles[index].x = e.target.x();
-            setCircles(updatedCircles);
+            setCircles(updatedCircles, false);
             setPolygonPoints(circlesToPoints(updatedCircles));
             
           },
+          
         };
       };
 
