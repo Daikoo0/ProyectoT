@@ -114,7 +114,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         ]);
        
         setCircles(updatedCircles)
-        setPolygonPoints(circlesToPoints(updatedCircles));
+        //setPolygonPoints(circlesToPoints(updatedCircles));
 
       }else{
 
@@ -125,10 +125,16 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         console.log(y2)
       
         setCircles(updatedCircles);
-        setPolygonPoints(circlesToPoints(updatedCircles));
+     //   setPolygonPoints(circlesToPoints(updatedCircles));
       }
 
     }, [x1,y1, x2, y2]);
+
+    useEffect(() => {
+
+      setPolygonPoints(circlesToPoints(circles));
+
+    },[circles]);
     
     // Cambio de altura del poligono
     // useEffect(() => {
@@ -235,7 +241,6 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
     //     };
 
         const handleSceneFunc = (ctx, shape) => {
-    
           const tension = 1;
           const points = shape.points();
           ctx.beginPath();

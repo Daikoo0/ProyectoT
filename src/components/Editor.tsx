@@ -161,13 +161,16 @@ const CoordinateInputs: React.FC = () => {
     };
 
     // Crea los circulos de los poligonos
-    const setCircles = (index, circles) => {
+    const setCircles = (index, circles,socket) => {
       const updatedShapes = [...shapes];
       updatedShapes[index].circles = circles;
-      //socket.send(JSON.stringify(updatedShapes[index]));
+       socket.onopen = () =>
+      socket.send(JSON.stringify(updatedShapes[index]));
       setShapes(updatedShapes);
       
     }
+
+
 
     // Evento del cambio del tamaño del poligono
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -401,7 +404,7 @@ const CoordinateInputs: React.FC = () => {
                   Rotation={shape.rotation}
                   File={shape.file}
                   circles={shape.circles}
-                  setCircles={(circles) => setCircles(index, circles)}
+                  setCircles={(circles) => setCircles(index, circles, socket)}
                   onClick={() => handleShapeClick(index)}
                   onDrag={() => {
                     handleShapeonDrag(index)
