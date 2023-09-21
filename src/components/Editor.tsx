@@ -282,21 +282,21 @@ const CoordinateInputs: React.FC = () => {
     };
 
 //    Cambia en el editor las configuraciones del poligno seleccionado 
-    const handleShapeonDrag = ( index) => {
-        setSelectedShapeIndex(index);
-        setColorFill(shapes[index].colorfill);
-        setColorStroke(shapes[index].colorstroke);
-        setSelectedOption(shapes[index].fileOption);
-        setHeight(shapes[index].y2 - shapes[index].y1);
-        setSliderZoom(shapes[index].zoom);
-        setSliderRotation(shapes[index].rotation);
+    // const handleShapeonDrag = ( index) => {
+    //     setSelectedShapeIndex(index);
+    //     setColorFill(shapes[index].colorfill);
+    //     setColorStroke(shapes[index].colorstroke);
+    //     setSelectedOption(shapes[index].fileOption);
+    //     setHeight(shapes[index].y2 - shapes[index].y1);
+    //     setSliderZoom(shapes[index].zoom);
+    //     setSliderRotation(shapes[index].rotation);
 
-    };
+    // };
 
     const dragItem = useRef(null);
     const dragOverItem = useRef(null);
 
-    const dragStart = (e, position) => {
+    const dragStart = (position) => {
       console.log('start: ',position)
       dragItem.current = position;
       //e.dataTransfer.setData('text/plain', e.target.innerHTML);
@@ -425,9 +425,9 @@ const CoordinateInputs: React.FC = () => {
                   circles={shape.circles}
                   setCircles={(circles, send) => setCircles(index, circles,send, socket)}
                   onClick={() => handleShapeClick(index)}
-                  onDrag={() => {
-                    handleShapeonDrag(index)
-                  }}
+                  //onDrag={() => {
+                  //  handleShapeonDrag(index)
+                  //}}
                 />
                 
             ))} 
@@ -448,12 +448,12 @@ const CoordinateInputs: React.FC = () => {
                 //   onDragStart={(e) => {setLastPositionID({ x: lastPositionID.x, y: e.target.y() })
                 //   setLastPositionSI({ x: lastPositionSI.x, y: e.target.y() })
                 // }}
-                onDragStart={(e) => dragStart(e, index)}
+                onDragStart={() => dragStart(index)}
                 onDragMove={(e) => {
                     handleContainerDrag(index, e); 
                     e.target.y(shape.y1);
                 }}
-                onDragEnd={(e) => {
+                onDragEnd={() => {
                   if(dragItem.current !== dragOverItem.current)  
                     {
                       const copyListItems = [...shapes];

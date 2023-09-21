@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 
-const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, circles, setCircles, onClick, onDrag}) => {
+const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, circles, setCircles, onClick}) => {
 
 
     // Puntos del Poligono

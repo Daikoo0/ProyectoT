@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 
-const Polygon = ({ColorFill, ColorStroke, File, onClick, onDrag}) => {
+const Polygon = ({ColorFill, ColorStroke, File, onClick}) => {
     
     const [svgContent, setSvgContent] = useState('');
 
