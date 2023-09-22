@@ -10,6 +10,18 @@ import Grids from './Grids';
 import './Editor.css';
 
 const CoordinateInputs: React.FC = () => {
+//ola gente soi yo de nuevo me pitie el socket o eso creo
+//no se que paso pero andava viendo y como vamos a definir el traslado de la info
+//lo que yo tenia puesto eran dos cosas,
+//yo estaba compartiendo entre todos los participantes de la room el ultimo mensaje enviado
+//creo que modificaron la forma en que llaman eso por que nada funciona
+//o sea con eso me refiero a que es el ultimo cuadro editado
+//tambien tenia algo que era el historial de cambios y eso era lo que guardaba en la bd
+//creo que confundieron esas cosas y por eso se bugeo
+//en fin de ahi hablamos eso
+
+//PD: no se como pero me dieron las 6 AM terminando esto, corte FNAF sadasjdjasdjajs
+//deje comentarios en varios archivos, no se como pero modifique mas de 20 archivos 💀💀 
 
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
@@ -56,7 +68,7 @@ const CoordinateInputs: React.FC = () => {
 
   // Instancia del socket cuando se monta el componente
   useEffect(() => {
-    const newSocket = new WebSocket(`ws://localhost:3001/ws?room=${project}`);
+    const newSocket = new WebSocket(`ws://localhost:3001/ws/${project}`);
     setSocket(newSocket);
 
     return () => {

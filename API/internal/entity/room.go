@@ -1,9 +1,9 @@
 package entity
-import(
-	"github.com/gorilla/websocket"
-)
 
-type Room struct { //clase room
-	name    string
-	clients map[*websocket.Conn]bool
+import "github.com/ProyectoT/api/internal/models"
+
+type Room struct {
+	Name    string
+	Clients map[string]models.Role
+	Data    string
 }

@@ -1,3 +1,4 @@
+#cuidado cabros docker anda intenso 💀💀
 FROM node:20.6
 
 WORKDIR /app
