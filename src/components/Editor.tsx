@@ -60,6 +60,7 @@ const CoordinateInputs: React.FC = () => {
     // Slider barras
     const [sliderZoom, setSliderZoom] = useState(100); // Zoom
     const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
+    const [sliderTension, setSliderTension] = useState(1); // Tension de lineas
 
     // websocket instanciacion
     const { project } = useParams();
@@ -149,7 +150,18 @@ const CoordinateInputs: React.FC = () => {
           setShapes(updatedShapes);
         }
     };
-  
+
+    // Evento de slider de tension
+    const handleSliderTension = (event: React.ChangeEvent<HTMLInputElement>) => {
+      setSliderTension(Number(event.target.value));
+      if (selectedShapeIndex !== null) {
+        const updatedShapes = [...shapes];
+        updatedShapes[selectedShapeIndex].tension = Number(event.target.value);
+        //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+        setShapes(updatedShapes);
+      }
+    }
+
     // Evento de seleccion de patron
     const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedOption(event.target.value);
@@ -190,6 +202,7 @@ const CoordinateInputs: React.FC = () => {
       updatedShapes[index].circles = circles;
       setShapes(updatedShapes);
       if(send){
+        console.log("Send: Circulos")
         socket.send(JSON.stringify(updatedShapes[index]));
       }
     }
@@ -208,15 +221,18 @@ const CoordinateInputs: React.FC = () => {
       const newHeight = Number(event.target.value);
       if (selectedShapeIndex !== null) {
         const selectedShape = shapes[selectedShapeIndex];
+
         const deltaY = newHeight - (selectedShape.y2 - selectedShape.y1);
     
         const updatedShapes = shapes.map((shape, index) => {
+          // Cambio de la altura del poligono seleccionado
           if (index === selectedShapeIndex) {
             const newY2 = shape.y1 + newHeight;
+            
             if(newY2 < shape.y2){
               
               const filteredCircles = shape.circles.filter((circle, index) => {
-                return !(circle.y > newY2 && circle.movable && index > 1);
+                return index < 2 || index >= shape.circles.length - 2 || circle.y <= newY2;
               });
               
               return {
@@ -226,10 +242,13 @@ const CoordinateInputs: React.FC = () => {
               };
 
             }else{
-            return {
-              ...shape,
-              y2: newY2,
-            };}
+              return {
+                ...shape,
+                y2: newY2,
+              };
+            }
+
+          //Cambio de posicion del resto de figuras
           } else if (index > selectedShapeIndex) {
             return {
               ...shape,
@@ -260,6 +279,7 @@ const CoordinateInputs: React.FC = () => {
                 colorstroke: initialColorStroke, 
                 zoom: sliderZoom,
                 rotation: sliderRotation,
+                tension: sliderTension,
                 file: 0, 
                 fileOption: 0,
                 height : initialHeight,
@@ -271,7 +291,7 @@ const CoordinateInputs: React.FC = () => {
                 
               ]
             }
-      
+      console.log("Send: Añadir")
       socket.send(JSON.stringify(NewShape));
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
@@ -315,7 +335,6 @@ const CoordinateInputs: React.FC = () => {
     };
 
     //Movimiento de la barra Drag, poligono
-    
    const handleContainerDrag = (polygonIndex: number, e: any) => {
       const updatedPolygons = [...shapes];
       const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
@@ -413,6 +432,18 @@ const CoordinateInputs: React.FC = () => {
             onMouseUp={SliderDrop}
           />
         </div>
+        <div>
+          <p>Tension de lineas: {sliderTension}</p>
+          <input
+            type="range"
+            min={0}
+            max={2.5}
+            step={0.1}
+            value={sliderTension}
+            onChange={handleSliderTension}
+            onMouseUp={SliderDrop}
+          />
+        </div>
 
         </div>
         </div>
@@ -433,6 +464,7 @@ const CoordinateInputs: React.FC = () => {
                   ColorStroke={shape.colorstroke}
                   Zoom={shape.zoom}
                   Rotation={shape.rotation}
+                  Tension={shape.tension}
                   File={shape.file}
                   circles={shape.circles}
                   setCircles={(circles, send) => setCircles(index, circles,send, socket)}

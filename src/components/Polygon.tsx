@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import useImage from 'use-image';
 
-const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, circles, setCircles, onClick}) => {
+const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, Tension, File, circles, setCircles, onClick}) => {
 
 
     // Puntos del Poligono
@@ -103,19 +103,20 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
       const deltaY2 = y2 - circles[circles.length - 1]?.y || 0;
       
       if(deltaY == deltaY2){
-     
-        const updatedCircles = ([
-            ...circles.map(circle => ({
-                x: circle.x + deltaX,
-                y: circle.y + deltaY,
-                radius: circle.radius,
-                movable: circle.movable,
-            })),
-        ]);
-       
-        setCircles(updatedCircles, true)
+        if(deltaY != 0 || deltaX != 0){
+          const updatedCircles = ([
+              ...circles.map(circle => ({
+                  x: circle.x + deltaX,
+                  y: circle.y + deltaY,
+                  radius: circle.radius,
+                  movable: circle.movable,
+              })),
+          ]);
+          console.log("traslado")
+          setCircles(updatedCircles, true)
+        }
         //setPolygonPoints(circlesToPoints(updatedCircles));
-
+      // condicion para cambiar la altura del poligono
       }else{
 
         const updatedCircles = [...circles]; 
@@ -124,6 +125,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         updatedCircles[updatedCircles.length - 1].y = y2 
         console.log(y2)
       
+        console.log("altura")
         setCircles(updatedCircles, true);
      //   setPolygonPoints(circlesToPoints(updatedCircles));
       }
@@ -183,7 +185,8 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
       if (insertIndex !== -1) {
         const point = { x, y, radius: 5, movable: true };
         updatedCircles.splice(insertIndex, 0, point);
-    
+        
+        console.log("Creacion de puntos")
         setCircles(updatedCircles, true);
         setPolygonPoints(circlesToPoints(updatedCircles));
       }
@@ -194,11 +197,14 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
         return {
           onMouseLeave: () => {
             const updatedCircles = [...circles];
+            console.log("Soltar punto")
             setCircles(updatedCircles, true);
           },
           ondragMove: (e) => {
             const updatedCircles = [...circles];
             updatedCircles[index].x = e.target.x();
+
+            console.log("Movimiento de puntos")
             setCircles(updatedCircles, false);
             setPolygonPoints(circlesToPoints(updatedCircles));
             
@@ -246,7 +252,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
     //     };
 
         const handleSceneFunc = (ctx, shape) => {
-          const tension = 1;
+          //const tension = 1;
           const points = shape.points();
           ctx.beginPath();
           ctx.moveTo(points[0], points[1]);
@@ -258,11 +264,11 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, File, 
               const nextPoint = { x: points[n + 2], y: points[n + 3] };
               const afterNextPoint = { x: points[n + 4], y: points[n + 5] };
           
-              const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * tension;
-              const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * tension;
+              const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * Tension;
+              const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * Tension;
           
-              const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * tension;
-              const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * tension;
+              const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * Tension;
+              const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * Tension;
               
               ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
           }
