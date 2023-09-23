@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './Form.css';
 
 const ParticipantForm = () => {
   //esta ruta lo que hace es generar una nueva room
@@ -7,6 +8,7 @@ const ParticipantForm = () => {
   //con esta ruta se crea un room y puse la opcion de añadir participantes para comenzar, todo esta guardado en la bd
   const [roomName, setRoomName] = useState('');
   const [participants, setParticipants] = useState([{ email: '', role: 0 }]);
+  const [message, setMessage] = useState('')
 
   const addParticipant = () => {
     setParticipants([...participants, { email: '', role: 0 }]);
@@ -44,10 +46,20 @@ const ParticipantForm = () => {
     });
 
     const data = await response.json();
-    console.log(data);
+    console.log(response.status, data);
+
+    if(response.status===200){
+      setMessage("Sala creada con éxito")
+    }
+    else
+    if(response.status===500){
+      
+      setMessage("Error al crear la sala")
+    }
   }
 
   return (
+    <div className="login-container">
     <form>
       <div style={{ marginBottom: '10px' }}>
         <label htmlFor="roomName">Nombre de la sala:</label>
@@ -92,7 +104,9 @@ const ParticipantForm = () => {
       <button type="button" onClick={handleSubmit}>
         Enviar
       </button>
+      <p>{message}</p>
     </form>
+    </div>
   );
 };
 

@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import './Login.css';
+import './Form.css';
 
 function Login() {
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -23,15 +24,21 @@ function Login() {
         },
         credentials: "include",
         body: JSON.stringify({
-       //   email: "hex@mail.com",
          email : Correo,
          password : password,
-     //  password: "12345678",
         }),
       });
 
       const data = await response.json();
-      console.log(data);
+      console.log(response.status, data);
+
+      if(response.status===200){
+        setMessage("Sesión iniciada")
+      }
+      else{
+        setMessage("Usuario o contraseña incorrecta")
+      }
+   
   };
 
   return (
@@ -61,6 +68,7 @@ function Login() {
         <button type="button" onClick={handleLogin}>
           Iniciar Sesión
         </button>
+        <p>{message}</p>
       </form>
     </div>
   );

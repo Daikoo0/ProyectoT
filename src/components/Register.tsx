@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import './Login.css';
+import './Form.css';
 
 function Register() {
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUserName] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -28,21 +29,35 @@ function Register() {
         },
         credentials: "include",
         body: JSON.stringify({
-     //  email: "hex@mail.com",
-         email : Correo,
-         name : username,
-         password : password,
-     //  password: "12345678",
+          email : Correo,
+          name : username,
+          password : password,
         }),
       });
 
       const data = await response.json();
-      console.log(data);
+
+      if(response.status===201){
+        setMessage("Usuario creado")
+      }else
+      if(response.status===409){
+        setMessage("Este usuario ya existe")
+      }else
+      if(response.status===400  && data.message==="Key: 'RegisterUser.Email' Error:Field validation for 'Email' failed on the 'email' tag"){
+        setMessage("Email inválido")
+      }else
+      if(response.status===400  && data.message==="Key: 'RegisterUser.Password' Error:Field validation for 'Password' failed on the 'min' tag"){
+        setMessage("Contraseña muy corta")
+      }else 
+      if(response.status===400){
+        setMessage("Email y contraseña incorrectos")
+      }
+      console.log(response.status, data)
   };
 
   return (
     <div className="login-container">
-      <h2>Iniciar Sesión</h2>
+      <h2>Registrarse</h2>
       <form>
         <div className="form-group">
           <label htmlFor="Correo">Correo:</label>
@@ -57,7 +72,6 @@ function Register() {
         <div className="form-group">
           <label htmlFor="password">Nombre de usuario:</label>
           <input
-            type="password"
             id="password"
             name="password"
             value={username}
@@ -75,8 +89,9 @@ function Register() {
           />
         </div>
         <button type="button" onClick={handleLogin}>
-          Iniciar Sesión
+          Crear mi usuario
         </button>
+        <p>{message}</p>
       </form>
     </div>
   );

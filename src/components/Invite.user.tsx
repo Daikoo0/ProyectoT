@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './Form.css';
 
 const AddUserToRoom = () => {
   //esta ruta lo que hace es invitar un usuario a la room
@@ -8,6 +9,7 @@ const AddUserToRoom = () => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [room, setRoom] = useState('');
+  const [message, setMessage] = useState('');
 
   async function handleAddUser() {
    
@@ -24,11 +26,21 @@ const AddUserToRoom = () => {
       });
 
       const data = await response.json();
-      console.log(data);
+      console.log(response.status, data);
+
+      if(response.status===200){
+        setMessage("Usuario agregado con éxito")
+      }else
+      if(response.status===400){
+        setMessage("Sala no existe")
+      }else
+      if(response.status===403){
+        setMessage("No estás autorizado para invitar personas a esta sala")
+      }
   };
 
   return (
-    <div>
+    <div className="login-container">
       <h2>Agregar Usuario a Sala</h2>
       <input
         type="text"
@@ -49,6 +61,7 @@ const AddUserToRoom = () => {
         onChange={(e) => setRole(e.target.value)}
       />
       <button onClick={handleAddUser}>Agregar Usuario</button>
+      <p>{message}</p>
     </div>
   );
 };
