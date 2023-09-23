@@ -9,4 +9,5 @@ type User struct {
 	Email    string             `bson:"email"`
 	Name     string             `bson:"name"`
 	Password string             `bson:"password"`
+	Proyects []string           `bson:"proyects"`
 }

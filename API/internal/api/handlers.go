@@ -232,6 +232,10 @@ func (a *API) HandleInviteUser(c echo.Context) error {
     //agregar el usuario al room
     proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
 
+	err = a.serv.AddUser(ctx, inviteRequest.Email, room) //actualizar el registro de usuario
+	if err != nil {
+        return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
+    }
     err = a.serv.SaveUsers(ctx, proyect)
     if err != nil {
         return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
@@ -292,4 +296,34 @@ func (a *API) HandleCreateProyect(c echo.Context) error {
     }
 
     return c.JSON(http.StatusOK, responseMessage{Message: "Room created successfully"})
+}
+
+func (a *API) proyects(c echo.Context) error {
+
+	ctx := c.Request().Context()
+	cookie, err := c.Cookie("Authorization")
+
+	//validar datos
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+	claims, err := encryption.ParseLoginJWT(cookie.Value)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+    user := claims["email"].(string)
+	type responseProyects struct {
+		Proyects []string
+	}
+
+	proyects, err := a.serv.GetProyects(ctx, user)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
+	}
+	
+    return c.JSON(http.StatusOK, responseProyects{Proyects: proyects})
 }

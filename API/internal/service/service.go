@@ -21,6 +21,9 @@ type Service interface {
 	SaveProject(ctx context.Context, data string, name string) error
 	SaveRoom(ctx context.Context, data string, roomName string) error
 	SaveUsers(ctx context.Context, room *models.Room) error
+
+	GetProyects(ctx context.Context, user string) ([]string, error)
+	AddUser(ctx context.Context, user string,roomName string) error
 }
 
 type serv struct {
