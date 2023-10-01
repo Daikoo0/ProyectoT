@@ -94,11 +94,18 @@ const CoordinateInputs: React.FC = () => {
             return [...currentShapes, shapes];
           }
         });
+        
       };
-
+      //use efect mio detecta si se presiona el control Z
+      const handleKeyDown = (event) => {
+        if (event.ctrlKey && event.key === "z") {
+          HandleUndo();
+        }
+      };
+      document.addEventListener("keydown", handleKeyDown);
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
-        socket.close();
+        socket.close(), document.removeEventListener("keydown", handleKeyDown);;
       };
     }
   }, [socket]);
@@ -138,6 +145,20 @@ const CoordinateInputs: React.FC = () => {
           setShapes(updatedShapes);
         }
     };
+
+      // Evento mio sjdjsjda es pal control Z
+        const HandleUndo = () => {
+          console.log("deshacer")
+          socket.send("undo");
+          
+      };
+
+      // Evento mio sjdjsjda es para guardar los cambios
+        const HandleSave = () => {
+          console.log("guardando..")
+          socket.send("save");
+          
+      };
 
     // Evento de slider de rotacion
     const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -412,6 +433,12 @@ const CoordinateInputs: React.FC = () => {
             onChange={handleSliderRotation}
             onMouseUp={SliderDrop}
           />
+        </div>
+        <div>
+          <button onClick={HandleUndo}>Deshacer</button>
+        </div>
+        <div>
+          <button onClick={HandleSave}>Guardar Cambios</button>
         </div>
 
         </div>

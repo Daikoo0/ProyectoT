@@ -37,7 +37,7 @@ func (s *serv) CreateRoom(ctx context.Context, roomName string, user string, par
 	return s.repo.CreateRoom(ctx, roomName, user, participants)
 }
 
-func (s *serv) SaveRoom(ctx context.Context, data string, roomName string) error {
+func (s *serv) SaveRoom(ctx context.Context, data []string, roomName string) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
 	return s.repo.SaveRoom(ctx, data, roomName)
