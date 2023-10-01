@@ -23,6 +23,15 @@ const CoordinateInputs: React.FC = () => {
 //PD: no se como pero me dieron las 6 AM terminando esto, corte FNAF sadasjdjasdjajs
 //deje comentarios en varios archivos, no se como pero modifique mas de 20 archivos 💀💀 
 
+
+//ola soi yo otra vez
+//hay que exsorcisar su front, como que convulsiona cuando va a recibir los datos que se han guardado
+//probe desde el back y se manda todo piola, creo que no aguanta tantos datos
+//modifique los guardados, ahora no son automaticos y para guardar hay que presionar el boton grande que dice guardar
+//pude hacer el control Z, toi feliz al fin me salio la wea, todo piola hasta que julio se entere de la forma nefasta de como hice la wea
+//y eso, ahi vemos que pasa 💀💀
+//PD: muere levano 💀💀 
+
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
