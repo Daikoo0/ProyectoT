@@ -9,6 +9,7 @@ import Home from './components/Home.tsx'
 
 import AddUserToRoom from "./components/Invite.user.tsx"
 import ParticipantForm from "./components/create.proyect.tsx"
+import UserProjects from "./components/proyects.tsx"
 const router = createBrowserRouter([
 
   {
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
   {
     path: "/create",
     element: <ParticipantForm />,
+  },
+  {
+    path: "/proyects",
+    element: <UserProjects />,
   },
  
   /*{

@@ -8,6 +8,7 @@ import (
 	"github.com/ProyectoT/api/internal/entity"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (r *repo) SaveUser(ctx context.Context, email, name, password string) error {
@@ -15,6 +16,7 @@ func (r *repo) SaveUser(ctx context.Context, email, name, password string) error
 		Email:    email,
 		Name:     name,
 		Password: password,
+		Proyects: []string{},
 	}
 
 	users := r.db.Collection("users")
@@ -49,5 +51,20 @@ func (r *repo) GetUserByEmail(ctx context.Context, email string) (*entity.User, 
 
 	return &user, nil
 }
+
+func (r *repo) AddUser(ctx context.Context, email string, roomName string) error {
+	users := r.db.Collection("users")
+	filter := bson.M{"email": email}
+	update := bson.M{"$push": bson.M{"proyects": roomName}}
+	opts := options.Update().SetUpsert(true)
+	_, err := users.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		log.Println("Error updating room:", err)
+		return err
+	}
+
+	return nil
+}
+
 
 

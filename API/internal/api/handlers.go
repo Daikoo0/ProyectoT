@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -20,8 +21,13 @@ type Room struct {
 	Name     string
 	Active   []*websocket.Conn
 	Clients  map[string]models.Role
-	Data     string
-	//Data 	 []string
+	Data     []string
+	Temp     Stack
+}
+
+type Operation struct {
+	Action string `json:"action"`
+	ID     int    `json:"id"`
 }
 
 var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
@@ -131,6 +137,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	//validar aun mas datos (forma parte de la sala)
 	room, err := a.serv.GetRoom(ctx, roomName)
     if err != nil {
+		log.Println(err)
 		errMessage := "Error: Room not found"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
@@ -148,37 +155,100 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	//conectar a la sala
 	proyect := instanceRoom(roomName, room.Clients, room.Data)
 	proyect.Active = append(proyect.Active, conn)
-	log.Printf("user %s: Permission %d", user, permission)
 	
-	for {
-        _, msg, err := conn.ReadMessage()
-        if err != nil {
-            break
-        }
-
-		if permission != 2{
-			log.Printf("usuario %s a actualizado el archivo:\n. %s\n", user, string(msg))
-
-        	//proyect.Data = append(proyect.Data, string(msg)) //temporal pal ctrl Z
-
-			err = a.serv.SaveRoom(ctx, string(msg), roomName)
-			if err != nil {
-				log.Println("No se guardo la data")
-			}
-        	for _, client := range proyect.Active {
-           		err = client.WriteMessage(websocket.TextMessage, []byte(msg))
-            	if err != nil {
-                	break
-            	}
-			}
-        }else{
-			errMessage := "Error: Don't have permission to edit this document"
-			err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+	//enviar los datos que hay en la base de datos
+	for i, row := range room.Data{
+		log.Println(i)
+		if err != nil {
+			errMessage := "Error: Cannot read this document"
+			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+			break
 		}
-    }
-		
-        
+		conn.WriteMessage(websocket.TextMessage, []byte(row))
+	}
 
+	if err == nil {
+		//enviar datos actuales (no se que chucha con su front)
+		//conn.WriteMessage(websocket.TextMessage, []byte(dataBytes))
+		log.Printf("user %s: Permission %d", user, permission)
+	
+		for {
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				break
+			}
+
+			if permission != 2{
+				log.Println(string(msg))
+				if string(msg) == "undo" {
+					log.Println("deshacer")
+					for _, client := range proyect.Active {
+						tempMsg := rooms[roomName].Temp.Pop()
+						log.Println(tempMsg)
+						err = client.WriteMessage(websocket.TextMessage, []byte(tempMsg))
+						if err != nil {
+							log.Println(err)
+							break
+						}
+					}
+
+				}else if string(msg) == "save"{
+					log.Println("guardar")
+					log.Println(room.Data)
+					err = a.serv.SaveRoom(ctx, room.Data, roomName)
+					if err != nil {
+						log.Println("No se guardo la data")
+					}
+
+				}else{
+					
+					var dataMap map[string]interface{}
+					err := json.Unmarshal([]byte(msg), &dataMap)
+					if err != nil {
+						log.Fatal(err)
+					}
+					id := int(dataMap["id"].(float64))
+					operation := Operation{
+						Action: "delete",
+						ID:     id,
+					}
+
+					if len(room.Data) == id{
+						room.Data = append(room.Data, string(msg))
+						operationJSON, err := json.Marshal(operation)
+						if err != nil {
+							log.Println("Error al convertir a JSON:", err)
+						}
+						rooms[roomName].Temp.Push(string(operationJSON))
+						
+					}else{
+						log.Println("actualizar")
+						rooms[roomName].Temp.Push(room.Data[id])
+						room.Data[id] = string(msg)
+					}
+					log.Printf("usuario %s a actualizado el archivo", user)
+
+					log.Println(rooms[roomName].Temp)
+
+					//err = a.serv.SaveRoom(ctx, string(msg), roomName)
+					if err != nil {
+						log.Println("No se guardo la data")
+					}
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, msg)
+						if err != nil {
+							break
+						}
+					}
+				}
+				
+			}else{
+				errMessage := "Error: Don't have permission to edit this document"
+				err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+			}
+		}
+	}	
+        
     conn.Close()
 	return nil
 }
@@ -232,6 +302,10 @@ func (a *API) HandleInviteUser(c echo.Context) error {
     //agregar el usuario al room
     proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
 
+	err = a.serv.AddUser(ctx, inviteRequest.Email, room) //actualizar el registro de usuario
+	if err != nil {
+        return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
+    }
     err = a.serv.SaveUsers(ctx, proyect)
     if err != nil {
         return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
@@ -241,7 +315,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 }
 
 
-func instanceRoom(roomName string, Clients map[string]models.Role, data string) *Room {
+func instanceRoom(roomName string, Clients map[string]models.Role, data []string) *Room {
     room, exists := rooms[roomName] //instancia el room con los datos de la bd
     if !exists {
         room = &Room{
@@ -252,6 +326,7 @@ func instanceRoom(roomName string, Clients map[string]models.Role, data string) 
         }
         rooms[roomName] = room
     }
+	
     return room
 }
 
@@ -292,4 +367,54 @@ func (a *API) HandleCreateProyect(c echo.Context) error {
     }
 
     return c.JSON(http.StatusOK, responseMessage{Message: "Room created successfully"})
+}
+
+func (a *API) proyects(c echo.Context) error {
+
+	ctx := c.Request().Context()
+	cookie, err := c.Cookie("Authorization")
+
+	//validar datos
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+	claims, err := encryption.ParseLoginJWT(cookie.Value)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+    user := claims["email"].(string)
+	type responseProyects struct {
+		Proyects []string
+	}
+
+	proyects, err := a.serv.GetProyects(ctx, user)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
+	}
+	
+    return c.JSON(http.StatusOK, responseProyects{Proyects: proyects})
+}
+
+//codigo de una pila, (pila de cambios, del control Z)
+type Stack []string
+
+func (s *Stack) Push(v string) {
+	*s = append(*s, v)
+
+	// Pila de tamaño 10
+	if len(*s) > 10 {
+		*s = (*s)[1:]
+	}
+}
+
+func (s *Stack) Pop() string {
+	index := len(*s) - 1
+	element := (*s)[index]
+	*s = (*s)[:index]
+
+	return element
 }

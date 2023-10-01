@@ -18,10 +18,13 @@ type Repository interface { //comunicaciones con la base de datos
 	GetRoom(ctx context.Context, roomName string) (*models.Room, error)
 
 	SaveProject(ctx context.Context, data string, name string) error
-	SaveRoom(ctx context.Context, roomName string, data string) error
+	SaveRoom(ctx context.Context, data []string, name string) error
 	
 	SaveUsers(ctx context.Context, room *models.Room) error
 	CreateRoom(ctx context.Context, roomName string, owner string, participants map[string]models.Role) error
+
+	GetProyects(ctx context.Context, email string) ([]string, error)
+	AddUser(ctx context.Context, email string, roomName string) error
 
 	//se reciben y se devuelven interfaces
 	//no trabajo en funcion de structs por que el main recibe interfaces

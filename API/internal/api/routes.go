@@ -10,6 +10,7 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
  
 	users.POST("/register", a.RegisterUser) // users/register
 	users.POST("/login", a.LoginUser) 		// users/login
+	users.GET("/", a.proyects)             // users
 
 	e.GET("/ws/:room", a.HandleWebSocket)   //ws/sala
 	e.POST("/rooms/:room/invite", a.HandleInviteUser) //rooms/sala/usuario

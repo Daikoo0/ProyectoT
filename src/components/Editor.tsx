@@ -23,6 +23,15 @@ const CoordinateInputs: React.FC = () => {
 //PD: no se como pero me dieron las 6 AM terminando esto, corte FNAF sadasjdjasdjajs
 //deje comentarios en varios archivos, no se como pero modifique mas de 20 archivos 💀💀 
 
+
+//ola soi yo otra vez
+//hay que exsorcisar su front, como que convulsiona cuando va a recibir los datos que se han guardado
+//probe desde el back y se manda todo piola, creo que no aguanta tantos datos
+//modifique los guardados, ahora no son automaticos y para guardar hay que presionar el boton grande que dice guardar
+//pude hacer el control Z, toi feliz al fin me salio la wea, todo piola hasta que julio se entere de la forma nefasta de como hice la wea
+//y eso, ahi vemos que pasa 💀💀
+//PD: muere levano 💀💀 
+
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
@@ -95,11 +104,18 @@ const CoordinateInputs: React.FC = () => {
             return [...currentShapes, shapes];
           }
         });
+        
       };
-
+      //use efect mio detecta si se presiona el control Z
+      const handleKeyDown = (event) => {
+        if (event.ctrlKey && event.key === "z") {
+          HandleUndo();
+        }
+      };
+      document.addEventListener("keydown", handleKeyDown);
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
-        socket.close();
+        socket.close(), document.removeEventListener("keydown", handleKeyDown);;
       };
     }
   }, [socket]);
@@ -139,6 +155,20 @@ const CoordinateInputs: React.FC = () => {
           setShapes(updatedShapes);
         }
     };
+
+      // Evento mio sjdjsjda es pal control Z
+        const HandleUndo = () => {
+          console.log("deshacer")
+          socket.send("undo");
+          
+      };
+
+      // Evento mio sjdjsjda es para guardar los cambios
+        const HandleSave = () => {
+          console.log("guardando..")
+          socket.send("save");
+          
+      };
 
     // Evento de slider de rotacion
     const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -443,6 +473,10 @@ const CoordinateInputs: React.FC = () => {
             onChange={handleSliderTension}
             onMouseUp={SliderDrop}
           />
+          <button onClick={HandleUndo}>Deshacer</button>
+        </div>
+        <div>
+          <button onClick={HandleSave}>Guardar Cambios</button>
         </div>
 
         </div>

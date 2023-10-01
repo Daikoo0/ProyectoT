@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	"github.com/ProyectoT/api/internal/entity"
@@ -17,18 +18,7 @@ func (r *repo) ConnectRoom(ctx context.Context, roomName string, user string) (*
 	var room models.Room
 	err := rooms.FindOne(ctx, bson.M{"name": roomName}).Decode(&room)
 	if err == mongo.ErrNoDocuments {
-		/*
-		room, err := r.CreateRoom(ctx, roomName, user)
-		if err != nil {
-			return nil, err
-		}
-		log.Println(room)
-		return room, nil
-
-	} else if err != nil {
-
 		return nil, err
-		*/
 	}
 	log.Println(room)
 	
@@ -53,19 +43,34 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, pa
     room := &models.Room{
         Name:    roomName,
         Clients: participants,
-		Data: "",
-		}
-    
+		Data: []string{},
+	}
 
-	_, err := rooms.InsertOne(ctx, room)
+	var existingRoom models.Room
+	err := rooms.FindOne(ctx, bson.M{"name": roomName}).Decode(&existingRoom)
+	if err != mongo.ErrNoDocuments {
+		if err != nil {
+			log.Println("Error checking project existence:", err)
+			return err
+		}
+		return errors.New("room with this name already exists")
+	}
+
+	_, err = rooms.InsertOne(ctx, room)
 	if err != nil {
 		log.Println("Error creating room:", err)
 		return err
 	}
 
+	//actualizar los documentos de los usuarios
+	for p := range participants {
+		r.AddUser(ctx, p, roomName)
+	}
+
+
 	return nil
 }
-func (r *repo) SaveRoom(ctx context.Context, data string, roomName string,) error {
+func (r *repo) SaveRoom(ctx context.Context, data []string, roomName string,) error {
 	filter := bson.M{"name": roomName}
 	update := bson.M{"$set": bson.M{
 		"data": data,
