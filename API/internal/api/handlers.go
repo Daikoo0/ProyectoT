@@ -213,8 +213,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						ID:     id,
 					}
 
-					if len(room.Data) == id{
-						room.Data = append(room.Data, string(msg))
+					if len(rooms[roomName].Data) == id{
+						rooms[roomName].Data = append(rooms[roomName].Data, string(msg))
 						operationJSON, err := json.Marshal(operation)
 						if err != nil {
 							log.Println("Error al convertir a JSON:", err)
@@ -223,12 +223,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						
 					}else{
 						log.Println("actualizar")
-						rooms[roomName].Temp.Push(room.Data[id])
-						room.Data[id] = string(msg)
+						log.Println(rooms[roomName].Data[id])
+						log.Println("hola")
+						rooms[roomName].Temp.Push(rooms[roomName].Data[id])
+						rooms[roomName].Data[id] = string(msg)
 					}
 					log.Printf("usuario %s a actualizado el archivo", user)
-
-					log.Println(rooms[roomName].Temp)
 
 					//err = a.serv.SaveRoom(ctx, string(msg), roomName)
 					if err != nil {
@@ -318,6 +318,8 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 func instanceRoom(roomName string, Clients map[string]models.Role, data []string) *Room {
     room, exists := rooms[roomName] //instancia el room con los datos de la bd
     if !exists {
+		log.Println("hola")
+		log.Println(data)
         room = &Room{
             Name:     roomName,
             Clients:  Clients,

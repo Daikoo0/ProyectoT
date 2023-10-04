@@ -43,15 +43,12 @@ const CoordinateInputs: React.FC = () => {
     const [lastPositionSI, setLastPositionSI] = useState({ x: 100, y:100 });
     const [lastPositionID, setLastPositionID] = useState({ x: 200, y:200 });
 
-
   //---------------// CAPAS Y GRID //---------------//
     // Alto de la capa
     const [initialHeight] = useState(100);
     const [height, setHeight] = useState<number>(initialHeight);
    
     //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
-
-
 
   //---------------// PATRONES Y EDICION //---------------//
 
@@ -94,7 +91,7 @@ const CoordinateInputs: React.FC = () => {
         const shapes = JSON.parse(event.data);
         setShapes(currentShapes => {
           const existingShapeIndex = currentShapes.findIndex(s => s.id === shapes.id);
-          if (existingShapeIndex !== -1) {
+          if (existingShapeIndex > -1) {
             // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
             const updatedSquares = [...currentShapes];
             updatedSquares[existingShapeIndex] = shapes;
@@ -115,7 +112,8 @@ const CoordinateInputs: React.FC = () => {
       document.addEventListener("keydown", handleKeyDown);
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
-        socket.close(), document.removeEventListener("keydown", handleKeyDown);;
+        socket.close() , document.removeEventListener("keydown", handleKeyDown);
+
       };
     }
   }, [socket]);
@@ -321,8 +319,14 @@ const CoordinateInputs: React.FC = () => {
                 
               ]
             }
+      setShapes([...shapes, NewShape]);
+
+      const copia = [...shapes]
+      socket.onopen = () =>
+      
+      socket.send(JSON.stringify(copia[copia.length-1]));
+    //  socket.send(JSON.stringify(NewShape));
       console.log("Send: Añadir")
-      socket.send(JSON.stringify(NewShape));
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
       //setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y  }) //arreglar
@@ -363,6 +367,7 @@ const CoordinateInputs: React.FC = () => {
       dragItem.current = position;
       //e.dataTransfer.setData('text/plain', e.target.innerHTML);
     };
+
 
     //Movimiento de la barra Drag, poligono
    const handleContainerDrag = (polygonIndex: number, e: any) => {
@@ -417,6 +422,10 @@ const CoordinateInputs: React.FC = () => {
       <div id="Editor">
          <div id="sidebar">
          <div id="controls">
+         <div>
+          <button onClick={HandleSave}>Guardar Cambios</button>
+           <button onClick={HandleUndo}>Deshacer</button>
+        </div>
         <div>
             <label>Seleccionar opción de Pattern: </label>
             <select value={selectedOption} onChange={handleOptionChange}>
@@ -473,11 +482,9 @@ const CoordinateInputs: React.FC = () => {
             onChange={handleSliderTension}
             onMouseUp={SliderDrop}
           />
-          <button onClick={HandleUndo}>Deshacer</button>
+         
         </div>
-        <div>
-          <button onClick={HandleSave}>Guardar Cambios</button>
-        </div>
+       
 
         </div>
         </div>
