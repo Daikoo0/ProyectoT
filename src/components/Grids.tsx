@@ -1,25 +1,73 @@
 import React from 'react';
 import { Rect, Layer, Text } from 'react-konva';
+import { useRef } from 'react';
+import Konva from 'konva';
 
-interface Polygon {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
 
-interface GridsProps {
-  polygons: Polygon[];
-}
-
-const Grids: React.FC<GridsProps> = ({ polygons }) => {
-  const numRows = polygons.length + 1; // Número total de filas en la tabla de cuadrícula (incluyendo el encabezado)
+const Grid = ({ polygon, index, setText, text}) => {
   const cellSize = 100; // Tamaño de cada celda de la cuadrícula
-  const polygonColumnWidth = 450; // Ancho de la columna de polígonos
+  const polygonColumnWidth = 400; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
+  const cellHeight = polygon ? polygon.y2 - polygon.y1 : cellSize;
 
   const cells = [];
- 
+
+  const arcillaRef = useRef<Konva.Text | null>(null);
+
+  const handleDoubleClick = (textRef) => {
+    if (textRef.current) {
+      textRef.current.hide();
+      const stage = textRef.current.getStage();
+      if (!stage) return;
+
+      const textPosition = textRef.current.getAbsolutePosition();
+      const stageBox = stage.container().getBoundingClientRect();
+      const areaPosition = {
+        x: stageBox.left + textPosition.x,
+        y: stageBox.top + textPosition.y,
+      };
+
+      const textarea = document.createElement('textarea');
+      document.body.appendChild(textarea);
+
+      textarea.value = textRef.current.text();
+      textarea.style.position = 'absolute';
+      textarea.style.top = areaPosition.y + 'px';
+      textarea.style.left = areaPosition.x + 'px';
+      textarea.style.width = cellSize+'px';
+      textarea.style.height = cellHeight+'px';
+      textarea.style.fontSize = textRef.current.fontSize() + 'px';
+      textarea.style.border = 'none';
+      textarea.style.padding = '0px';
+      textarea.style.margin = '0px';
+      textarea.style.overflow = 'hidden';
+      textarea.style.background = 'none';
+      textarea.style.overflow = 'auto';
+      textarea.style.outline = 'none';
+      textarea.style.resize = 'none';
+      textarea.style.fontFamily = textRef.current.fontFamily();
+      textarea.style.transformOrigin = 'left top';
+      textarea.style.textAlign = textRef.current.align();
+      textarea.style.color = textRef.current.fill();
+
+      textarea.focus();
+
+      textarea.addEventListener('keydown', (e) => {
+        if (e.keyCode === 13) {
+          
+          const copia = { ...text };
+          copia[0].arcilla = textarea.value;
+          console.log(textRef.current.text());
+          setText(copia,true);
+          textRef.current!.text(textarea.value);
+          document.body.removeChild(textarea);
+          textRef.current.show();
+          stage.batchDraw();
+        }
+      });
+    }
+  };
+
   // Agregar encabezado en la primera fila
   cells.push(
     <Rect
@@ -27,28 +75,27 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
       x={marginLeft}
       y={0}
       width={polygonColumnWidth}
-      height={cellSize}
+      height={cellHeight}
       fill="grey"
       stroke="black"
     />
   );
 
-  const additionalColumns = ['Arcilla', 'Limo', 'Arena', 'Grava'];
+  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Espesor(m)','Litología','Arcilla', 'Limo', 'Arena', 'Grava','Estructuras \n y/o fósiles','Facie','Ambiente \n depositacional','Descripción'];
   let xOffset = marginLeft + polygonColumnWidth;
-  additionalColumns.forEach(column => {
+  additionalColumns.forEach((column, index) => {
     cells.push(
       <Rect
         key={`header-${column}`}
         x={xOffset}
         y={0}
         width={cellSize}
-        height={cellSize}
+        height={cellHeight}
         fill="grey"
         stroke="black"
       />
     );
 
-    // Agregar el texto de la columna
     cells.push(
       <Text
         key={`text-${column}`}
@@ -58,57 +105,68 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
         align="center" // Alineación del texto
        // verticalAlign="middle"
         fontSize={14}
-        fill="black"
-      />
-      
-      // Incrementar el desplazamiento x
-      
-      
+        fill="black"></Text>
     );
-    xOffset += cellSize;
+  
 
+    // Agregar el texto de la columna
+    cells.push(
+      <Rect
+        key={`row-${index}-${column}`}
+        x={xOffset}
+        y={polygon.y1}
+        width={cellSize}
+        height={polygon.y2-polygon.y1}
+        fill="white"
+        stroke="black"
+      />
+    );
     
+    xOffset += cellSize;
   });
 
- // useEffect(() => {
-      for (let row = 1; row < numRows; row++) {
-     //   const y = row * cellSize;
-        const polygon = polygons[row - 1];
-        const cellHeight = polygon ? polygon.y2-polygon.y1 : cellSize;
-
-        cells.push(
-          <Rect
-            key={`row-${row}`}
-            x={marginLeft}
-            y={polygon.y1}
-           // y={y}
-            width={polygonColumnWidth}
-            height={cellHeight}
-            fill="white"
-            stroke="black"
-          />
-        );
-
-        xOffset = marginLeft + polygonColumnWidth;
-        // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
-        additionalColumns.forEach(column => {
-          cells.push(
-            <Rect
-              key={`row-${row}-${column}`}
-              x={xOffset}
-              y={polygon.y1}
-              width={cellSize}
-              height={cellHeight}
-              fill="white"
-              stroke="black"
-            />
-          );
-          xOffset += cellSize;
-        });
-      }
-
- // },[polygons]);
   
+
+  cells.push(
+    <Rect
+      key={`row-1`}
+      x={marginLeft}
+      y={polygon.y1}
+      width={polygonColumnWidth}
+      height={cellHeight}
+      fill="white"
+      stroke="black"
+    />
+  );
+
+
+  xOffset = marginLeft + polygonColumnWidth;
+
+
+  // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
+  additionalColumns.forEach((column) => {
+    if (column === 'Arcilla') {
+
+      cells.push(
+        <div >
+          <Text 
+            ref={arcillaRef}
+            x={xOffset}
+            y={polygon.y1}
+            rotation={0}
+            height={cellHeight}
+            width={cellSize}
+            text={text[0].arcilla}
+            fontSize={18}
+            onDblClick={(e) => handleDoubleClick(arcillaRef)}
+            onTap={(e) => handleDoubleClick(arcillaRef)}
+        />
+      </div>
+      );
+      }
+    xOffset += cellSize;
+      
+  });
 
   return (
     <Layer>
@@ -117,4 +175,4 @@ const Grids: React.FC<GridsProps> = ({ polygons }) => {
   );
 };
 
-export default Grids;
+export default Grid;

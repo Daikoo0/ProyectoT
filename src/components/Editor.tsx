@@ -6,31 +6,10 @@ import { useParams } from 'react-router-dom';
 //import Konva from './konva';
 import Json from '../lithologic.json';
 import Polygon from './Polygon';
-import Grids from './Grids';
+import Grid from './Grids';
 import './Editor.css';
 
 const CoordinateInputs: React.FC = () => {
-//ola gente soi yo de nuevo me pitie el socket o eso creo
-//no se que paso pero andava viendo y como vamos a definir el traslado de la info
-//lo que yo tenia puesto eran dos cosas,
-//yo estaba compartiendo entre todos los participantes de la room el ultimo mensaje enviado
-//creo que modificaron la forma en que llaman eso por que nada funciona
-//o sea con eso me refiero a que es el ultimo cuadro editado
-//tambien tenia algo que era el historial de cambios y eso era lo que guardaba en la bd
-//creo que confundieron esas cosas y por eso se bugeo
-//en fin de ahi hablamos eso
-
-//PD: no se como pero me dieron las 6 AM terminando esto, corte FNAF sadasjdjasdjajs
-//deje comentarios en varios archivos, no se como pero modifique mas de 20 archivos 💀💀 
-
-
-//ola soi yo otra vez
-//hay que exsorcisar su front, como que convulsiona cuando va a recibir los datos que se han guardado
-//probe desde el back y se manda todo piola, creo que no aguanta tantos datos
-//modifique los guardados, ahora no son automaticos y para guardar hay que presionar el boton grande que dice guardar
-//pude hacer el control Z, toi feliz al fin me salio la wea, todo piola hasta que julio se entere de la forma nefasta de como hice la wea
-//y eso, ahi vemos que pasa 💀💀
-//PD: muere levano 💀💀 
 
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
@@ -47,8 +26,8 @@ const CoordinateInputs: React.FC = () => {
     // Alto de la capa
     const [initialHeight] = useState(100);
     const [height, setHeight] = useState<number>(initialHeight);
-   
-    //const blockSnapSize =  initialPoints[2].y - initialPoints[0].y;
+
+    const [text, setTexts] = useState({ arcilla: "a", limo: "l", arena: "a", grava: "g"})
 
   //---------------// PATRONES Y EDICION //---------------//
 
@@ -70,7 +49,7 @@ const CoordinateInputs: React.FC = () => {
 
     // websocket instanciacion
     const { project } = useParams();
-    //console.log(project)
+   
     const [socket, setSocket] = useState<WebSocket | null>(null);
 
   // Instancia del socket cuando se monta el componente
@@ -235,6 +214,17 @@ const CoordinateInputs: React.FC = () => {
       }
     }
 
+     // Crea los textos de los poligonos
+     const setText = (index, text, send, socket) => {
+      const updatedShapes = [...shapes];
+      updatedShapes[index].text = text;
+      setShapes(updatedShapes);
+      if(send){
+        console.log("Send: text")
+        socket.send(JSON.stringify(updatedShapes[index]));
+      }
+    }
+
     // Envía la información al soltar el control deslizante
     const SliderDrop = () => {
       if (selectedShapeIndex !== null) {
@@ -317,15 +307,15 @@ const CoordinateInputs: React.FC = () => {
                   { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true},
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
                 
-              ]
+              ],
+                text : [
+                  {arcilla : "vacío"},
+                  {limo : "vacio"},
+                  {arena : "vacío"},
+                  {grava : "vacío"}]
             }
-      setShapes([...shapes, NewShape]);
-
-      const copia = [...shapes]
-      socket.onopen = () =>
-      
-      socket.send(JSON.stringify(copia[copia.length-1]));
-    //  socket.send(JSON.stringify(NewShape));
+    //  setShapes([...shapes, NewShape]);
+      socket.send(JSON.stringify(NewShape));
       console.log("Send: Añadir")
 
       //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
@@ -343,8 +333,6 @@ const CoordinateInputs: React.FC = () => {
         setHeight(shapes[index].y2 - shapes[index].y1);
         setSliderZoom(shapes[index].zoom);
         setSliderRotation(shapes[index].rotation);
-
-        
     };
 
 //    Cambia en el editor las configuraciones del poligno seleccionado 
@@ -488,12 +476,22 @@ const CoordinateInputs: React.FC = () => {
 
         </div>
         </div>
+    
         <div id="gridContainer">
 
         <Stage width={window.innerWidth} height={window.innerHeight}>
-        <Grids polygons={shapes} />
+      {shapes.map((shape,index) => (
+
+          <Grid 
+            polygon={shape} 
+            index={index} 
+            text={shape.text}
+            setText={(text, send) => setText(index, text, send, socket)}
+          />
+          
+      ))}
         <Layer>
-        
+          
             {shapes.map((shape, index) => (
                 <Polygon
                   key={index}

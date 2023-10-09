@@ -49,7 +49,7 @@ const ParticipantForm = () => {
     console.log(response.status, data);
 
     if(response.status===200){
-      setMessage("Sala creada con éxito")
+      setMessage("Sala "+roomName+" creada con éxito")
     }
     else
     if(response.status===500){
