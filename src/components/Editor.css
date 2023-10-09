@@ -4,20 +4,16 @@
     /*background-color: #1f1f29;*/
   }
   
-  #sidebar {
+  /* #sidebar {
     width: 300px;
     padding: 20px;
     color: white;
     background-color: #1f1f29;
     position: fixed;
     top: 0;
-    right: 0; /* Cambiado de "left" a "right" para que el sidebar se muestre en la derecha */
-    width: 300px; /* Cambia el ancho según sea necesario */
-    height: 100vh;
-    /*border-right: 1px solid #ccc;*/
-    padding: 20px;
+    height: 20vh;
     box-sizing: border-box;
-    z-index: 1; /* Asegura que el sidebar esté por encima del contenido */
+    z-index: 1; 
   }
   
   #gridContainer {
@@ -26,7 +22,30 @@
     justify-content: center;
     align-items: center;
     padding: 20px;
+  } */
+
+  #sidebar {
+    /* width: 100%;
+    height: 150px; */
+    right: 0;
+    padding: 20px;
+    color: white;
+    background-color: #1f1f29;
+    position: fixed;
+    top: 0;
+    box-sizing: border-box;
+    z-index: 1;
   }
+  
+  #gridContainer {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin-top: 20vh;
+  }
+  
   
   #controls {
     margin-top: 20px;

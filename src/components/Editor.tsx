@@ -9,7 +9,7 @@ import Polygon from './Polygon';
 import Grid from './Grids';
 import './Editor.css';
 
-const CoordinateInputs: React.FC = () => {
+const CoordinateInputs: React.FC = () => {   // hola
 
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
