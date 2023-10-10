@@ -158,8 +158,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	
 	//enviar los datos que hay en la base de datos
 	for i, row := range room.Data{
-		log.Println(i)
 		if err != nil {
+			log.Println(i)
 			errMessage := "Error: Cannot read this document"
 			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 			break
@@ -179,29 +179,89 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 			}
 
 			if permission != 2{
-				log.Println(string(msg))
-				if string(msg) == "undo" {
-					log.Println("deshacer")
+				var dataMap map[string]interface{}
+					err := json.Unmarshal([]byte(msg), &dataMap)
+					if err != nil {
+						log.Fatal(err)
+					}
+				if dataMap["action"] == "delete"{
+					id := int(dataMap["id"].(float64))
+					log.Println("Borrando capa %s", id)
+					rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
+
+					operation := Operation{
+						Action: "delete",
+						ID:     id,
+					}
+					operationJSON, err := json.Marshal(operation)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+					
 					for _, client := range proyect.Active {
-						tempMsg := rooms[roomName].Temp.Pop()
-						log.Println(tempMsg)
-						err = client.WriteMessage(websocket.TextMessage, []byte(tempMsg))
+						err = client.WriteMessage(websocket.TextMessage, []byte(operationJSON))
 						if err != nil {
 							log.Println(err)
 							break
 						}
 					}
 
-				}else if string(msg) == "save"{
-					log.Println("guardar")
-					log.Println(room.Data)
-					err = a.serv.SaveRoom(ctx, room.Data, roomName)
+
+				}
+				if dataMap["action"] == "undo"{
+					log.Println("deshacer")
+					tempMsg := rooms[roomName].Temp.Pop()
+					log.Println(tempMsg)
+					
+					var tempMap map[string]interface{}
+					err := json.Unmarshal([]byte(tempMsg), &tempMap)
+					if err != nil {
+						log.Fatal(err)
+					}
+					id := int(tempMap["id"].(float64))
+					if tempMap["action"]== "delete"{
+						rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
+						operation := Operation{
+							Action: "delete",
+							ID:     id,
+						}
+						operationJSON, err := json.Marshal(operation)
+						if err != nil {
+							log.Println("Error al convertir a JSON:", err)
+						}
+						
+						for _, client := range proyect.Active {
+							err = client.WriteMessage(websocket.TextMessage, []byte(operationJSON))
+							if err != nil {
+								log.Println(err)
+								break
+							}
+						}
+					}else{
+						for _, client := range proyect.Active {
+							err = client.WriteMessage(websocket.TextMessage, []byte(tempMsg))
+							if err != nil {
+								log.Println(err)
+								break
+							}
+						}
+					}
+
+					
+					
+
+				}
+				if dataMap["action"] == "save"{
+					log.Println("guardando..")
+					log.Println(rooms[roomName].Data)
+					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
 
-				}else{
-					
+				}
+				if dataMap["action"] == "añadir"{
+					log.Println("cambios")
 					var dataMap map[string]interface{}
 					err := json.Unmarshal([]byte(msg), &dataMap)
 					if err != nil {
@@ -212,8 +272,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						Action: "delete",
 						ID:     id,
 					}
-
+					log.Println("id %s ", id)
 					if len(rooms[roomName].Data) == id{
+						log.Println("añadir")
 						rooms[roomName].Data = append(rooms[roomName].Data, string(msg))
 						operationJSON, err := json.Marshal(operation)
 						if err != nil {
@@ -223,23 +284,18 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						
 					}else{
 						log.Println("actualizar")
-						log.Println(rooms[roomName].Data[id])
-						log.Println("hola")
 						rooms[roomName].Temp.Push(rooms[roomName].Data[id])
 						rooms[roomName].Data[id] = string(msg)
 					}
-					log.Printf("usuario %s a actualizado el archivo", user)
+					log.Println("usuario %s a actualizado el archivo", user)
 
-					//err = a.serv.SaveRoom(ctx, string(msg), roomName)
-					if err != nil {
-						log.Println("No se guardo la data")
-					}
 					for _, client := range proyect.Active {
 						err = client.WriteMessage(websocket.TextMessage, msg)
 						if err != nil {
 							break
 						}
 					}
+					log.Println(rooms[roomName].Data)
 				}
 				
 			}else{
@@ -318,8 +374,6 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 func instanceRoom(roomName string, Clients map[string]models.Role, data []string) *Room {
     room, exists := rooms[roomName] //instancia el room con los datos de la bd
     if !exists {
-		log.Println("hola")
-		log.Println(data)
         room = &Room{
             Name:     roomName,
             Clients:  Clients,

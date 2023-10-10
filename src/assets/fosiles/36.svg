@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="14.092"
+   height="21.840948"
+   viewBox="0 0 14.092 21.840948"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath240">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-377.29401,-277.198)"
+         id="path240" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath242">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-370.34601,-274.597)"
+         id="path242" />
+    </clipPath>
+  </defs>
+  <g
+     id="g1"
+     style="display:inline"
+     transform="translate(-492.472,-685.35372)">
+    <g
+       id="g644">
+      <path
+         id="path239"
+         d="m 0,0 c 1.469,-1.46 2.449,-4.095 2.449,-7.1 0,-4.592 -2.285,-8.314 -5.104,-8.314 -2.82,0 -5.105,3.722 -5.105,8.314 0,3.005 0.978,5.64 2.447,7.099 0.773,0.772 1.684,0.588 2.658,0.588 C -1.682,0.587 -0.773,0.771 0,0 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,503.05867,686.40267)"
+         clip-path="url(#clipPath240)" />
+      <path
+         id="path241"
+         d="M 0,0 C 1.348,0 5.706,1.953 6.192,3.076 M -0.69,-2.698 c 4.087,0 8.05,2.925 8.513,4.206 M 1.301,-11.237 c 3.981,0 7.177,2.258 7.662,3.383 M 0.297,-9.669 c 3.956,0.07 8.61,3.573 9.089,4.686 M -0.795,-5.192 c 4.104,0 9.07,3.345 9.586,4.62 M -0.45,-7.574 c 3.829,0 9.198,3.697 9.715,4.973 M 8.579,0.005 c -1.47,0 -5.75,1.927 -6.237,3.05 m 6.936,-5.781 c -3.98,0 -8.094,2.975 -8.552,4.174 m 6.556,-12.685 c -3.737,0 -6.834,1.992 -7.598,3.165 m 8.6,-1.598 c -3.836,0.037 -8.352,3.335 -9.082,4.561 M 9.378,-5.192 c -4.287,0 -9.053,3.288 -9.606,4.551 m 9.262,-6.935 c -3.882,0 -9.198,3.659 -9.714,4.933"
+         style="fill:none;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,493.79467,689.87067)"
+         clip-path="url(#clipPath242)" />
+    </g>
+  </g>
+</svg>

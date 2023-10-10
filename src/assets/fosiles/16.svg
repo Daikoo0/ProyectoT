@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="21.821333"
+   height="21.818666"
+   viewBox="0 0 21.821333 21.818666"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath202">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-209.12301,-213.748)"
+         id="path202" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath204">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-201.32701,-214.19701)"
+         id="path204" />
+    </clipPath>
+  </defs>
+  <g
+     id="g1"
+     style="display:inline"
+     transform="translate(-257.24934,-760.09334)">
+    <g
+       id="g630">
+      <path
+         id="path201"
+         d="m 0,0 c 0,-4.422 -3.585,-8.002 -8.004,-8.002 -4.42,0 -8.002,3.58 -8.002,8.002 0,4.416 3.582,8.002 8.002,8.002 C -3.585,8.002 0,4.416 0,0 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,278.83067,771.00267)"
+         clip-path="url(#clipPath202)" />
+      <path
+         id="path203"
+         d="M 0,0 C 0,0 1.882,3.763 0.43,4.946 M -0.43,0 c 0,0 -1.88,3.763 -0.43,4.946 m -0.054,-6.685 c 0,0 -3.991,-1.33 -3.802,-3.194 m 4.106,2.888 c 0,0 -1.33,-3.991 -3.193,-3.799 m 4.091,3.855 c 0,0 1.33,-3.989 3.194,-3.802 m -2.89,4.108 c 0,0 3.992,-1.332 3.8,-3.196 m -3.276,4.051 c 0,0 3.764,-1.883 4.947,-0.432 m -4.947,0.862 c 0,0 3.764,1.88 4.947,0.427 m -7.595,-0.857 c 0,0 -3.762,-1.883 -4.944,-0.432 m 4.944,0.862 c 0,0 -3.762,1.88 -4.944,0.427"
+         style="fill:none;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,268.436,770.404)"
+         clip-path="url(#clipPath204)" />
+    </g>
+  </g>
+</svg>

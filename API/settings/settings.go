@@ -2,7 +2,6 @@ package settings
 
 import (
 	_ "embed"
-	"log"
 
 	"gopkg.in/yaml.v3"
 )
@@ -17,7 +16,6 @@ type Settings struct{
 	Key string `yaml:"key"`
 }
 func New() (*Settings, error){
-	log.Println("hola desde settings")
 	var s Settings
 
 	err := yaml.Unmarshal(settingsFile, &s)

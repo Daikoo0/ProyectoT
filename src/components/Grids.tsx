@@ -4,17 +4,16 @@ import { useRef } from 'react';
 import Konva from 'konva';
 
 
-const Grid = ({ polygon, index, setText, text}) => {
+const Grid = ({ polygon, setText, text}) => {
   const cellSize = 100; // Tamaño de cada celda de la cuadrícula
-  const polygonColumnWidth = 400; // Ancho de la columna de polígonos
+  const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
   const cellHeight = polygon ? polygon.y2 - polygon.y1 : cellSize;
 
   const cells = [];
+  const columnRefs = {};
 
-  const arcillaRef = useRef<Konva.Text | null>(null);
-
-  const handleDoubleClick = (textRef) => {
+  const handleDoubleClick = (textRef,column,vertical) => {
     if (textRef.current) {
       textRef.current.hide();
       const stage = textRef.current.getStage();
@@ -22,10 +21,19 @@ const Grid = ({ polygon, index, setText, text}) => {
 
       const textPosition = textRef.current.getAbsolutePosition();
       const stageBox = stage.container().getBoundingClientRect();
-      const areaPosition = {
-        x: stageBox.left + textPosition.x,
-        y: stageBox.top + textPosition.y,
-      };
+      var areaPosition;
+
+      if(vertical){
+         areaPosition = {
+          x: stageBox.left + textPosition.x,
+          y: stageBox.top + textPosition.y-100,
+        };
+      }else{
+        areaPosition = {
+          x: stageBox.left + textPosition.x,
+          y: stageBox.top + textPosition.y,
+        };
+      }
 
       const textarea = document.createElement('textarea');
       document.body.appendChild(textarea);
@@ -52,18 +60,17 @@ const Grid = ({ polygon, index, setText, text}) => {
 
       textarea.focus();
 
-      textarea.addEventListener('keydown', (e) => {
-        if (e.keyCode === 13) {
-          
+      textarea.addEventListener('blur', (e) => {
+        if(vertical){
+          textarea.style.transform = 'rotate(270deg)';
+          textarea.style.top = areaPosition.y + cellSize-1 + 'px';
+        }
           const copia = { ...text };
-          copia[0].arcilla = textarea.value;
+          copia[column] = textarea.value;
           console.log(textRef.current.text());
           setText(copia,true);
           textRef.current!.text(textarea.value);
-          document.body.removeChild(textarea);
-          textRef.current.show();
           stage.batchDraw();
-        }
       });
     }
   };
@@ -81,7 +88,8 @@ const Grid = ({ polygon, index, setText, text}) => {
     />
   );
 
-  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Espesor(m)','Litología','Arcilla', 'Limo', 'Arena', 'Grava','Estructuras \n y/o fósiles','Facie','Ambiente \n depositacional','Descripción'];
+  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Arcilla', 'Limo', 'Arena', 'Grava','Estructuras y/o fósiles','Facie','Ambiente depositacional','Descripción'];
+
   let xOffset = marginLeft + polygonColumnWidth;
   additionalColumns.forEach((column, index) => {
     cells.push(
@@ -102,7 +110,6 @@ const Grid = ({ polygon, index, setText, text}) => {
         x={xOffset + cellSize / 2} // Alineación horizontal en el centro de la celda
         y={cellSize / 2} // Alineación vertical en el centro de la celda
         text={column}
-        align="center" // Alineación del texto
        // verticalAlign="middle"
         fontSize={14}
         fill="black"></Text>
@@ -145,28 +152,57 @@ const Grid = ({ polygon, index, setText, text}) => {
 
   // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
   additionalColumns.forEach((column) => {
-    if (column === 'Arcilla') {
+  
+   console.log(text[column].content) 
+   if (!columnRefs[column]) {
+    columnRefs[column] = useRef(null);
+   }
 
+  if(text[column].vertical && text[column].enabled){
       cells.push(
-        <div >
           <Text 
-            ref={arcillaRef}
-            x={xOffset}
-            y={polygon.y1}
-            rotation={0}
+            ref={columnRefs[column]}
+            x={xOffset+1}
+            y={polygon.y1+cellHeight}
+            rotation={270}
             height={cellHeight}
             width={cellSize}
-            text={text[0].arcilla}
+            text={text[column].content}
             fontSize={18}
-            onDblClick={(e) => handleDoubleClick(arcillaRef)}
-            onTap={(e) => handleDoubleClick(arcillaRef)}
+            onDblClick={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
+            onTap={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
         />
-      </div>
       );
-      }
+  
     xOffset += cellSize;
+
+  }
+  
+  if(!text[column].vertical && text[column].enabled){
+
+    cells.push(
+      <Text 
+        ref={columnRefs[column]}
+        x={xOffset+1}
+        y={polygon.y1}
+        rotation={0}
+        height={cellHeight}
+        width={cellSize}
+        text={text[column].content}
+        fontSize={18}
+        onDblClick={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
+        onTap={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
+    />
+  );
+
+  xOffset += cellSize;
+  }
       
-  });
+  }
+  
+  
+  
+  );
 
   return (
     <Layer>

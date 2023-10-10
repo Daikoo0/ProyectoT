@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Stage, Layer, Rect } from 'react-konva';
+import { Stage, Layer, Rect, Shape } from 'react-konva';
 import { useParams } from 'react-router-dom';
 
 //import ShapeComponent from './shape';
@@ -9,15 +9,20 @@ import Polygon from './Polygon';
 import Grid from './Grids';
 import './Editor.css';
 
-const CoordinateInputs: React.FC = () => {   // hola
+const CoordinateInputs: React.FC = () => { 
+
+  // RECORDATORIO
+  // NECESITO UNA FUNCION DEL BACKEND PARA ACTUALIZAR SOLO EL TEXT DE CADA SHAPE DESDE EL FRONTEND 
+  // NECESITO SHAPE.Y1 Y SHAPE.Y2 DESDE EL BACK
 
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
   
-    // Index de la Figura / Poligono
+    // Index / ID de la Figura / Poligono
     const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); // 0,1,2,3...
-    
+    const [selectedShapeID, setSelectedShapeID] = useState(null); 
+
     // Ultima posicion Poligono // ARREGLAR 
     const [lastPositionSI, setLastPositionSI] = useState({ x: 100, y:100 });
     const [lastPositionID, setLastPositionID] = useState({ x: 200, y:200 });
@@ -27,7 +32,22 @@ const CoordinateInputs: React.FC = () => {   // hola
     const [initialHeight] = useState(100);
     const [height, setHeight] = useState<number>(initialHeight);
 
-    const [text, setTexts] = useState({ arcilla: "a", limo: "l", arena: "a", grava: "g"})
+    // contenido inicial de las columnas
+    const [initialTexts] = useState({
+      'Arcilla' :   { content: "vacío", optional : false, vertical : false, enabled : true},
+      'Limo' :      { content: "vacío", optional : false, vertical : false, enabled : true},
+      'Arena' :     { content: "vacío", optional : false, vertical : false, enabled : true},
+      'Grava' :     { content: "vacío", optional : false, vertical : false, enabled : true},
+      'Sistema' :   { content: "vacío", optional : true, vertical : true, enabled : true},
+      'Edad' :      { content: "vacío", optional : true, vertical : true, enabled : true},
+      'Formación' : { content: "vacío", optional : true, vertical : true, enabled : true},
+      'Miembro' :   { content: "vacío", optional : true, vertical : true, enabled : true},
+      'Estructuras y/o fósiles': { content: "vacío", optional : true, vertical : false, enabled : true},
+      'Facie' :     { content: "vacío", optional : true, vertical : false, enabled : true},
+      'Ambiente depositacional': { content: "vacío", optional : true, vertical : false, enabled : true},
+      'Descripción':{ content: "vacío", optional : true, vertical : false, enabled : true}
+    });
+
 
   //---------------// PATRONES Y EDICION //---------------//
 
@@ -67,20 +87,45 @@ const CoordinateInputs: React.FC = () => {   // hola
       // Recibe la información del socket
       socket.onmessage = (event) => {
         console.log(event.data);
-        const shapes = JSON.parse(event.data);
-        setShapes(currentShapes => {
-          const existingShapeIndex = currentShapes.findIndex(s => s.id === shapes.id);
-          if (existingShapeIndex > -1) {
-            // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
-            const updatedSquares = [...currentShapes];
-            updatedSquares[existingShapeIndex] = shapes;
-            return updatedSquares;
-          } else {
-            // Si el cuadrado no existe, lo agregamos
-            return [...currentShapes, shapes];
-          }
-        });
+        const shapeN = JSON.parse(event.data);
+
+        if(shapeN.action !== "delete"){
+          setShapes(currentShapes => {
+            const existingShapeIndex = currentShapes.findIndex(s => s.id === shapeN.id);
+            if (existingShapeIndex > -1) {
+              // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
+              const updatedSquares = [...currentShapes];
+              updatedSquares[existingShapeIndex] = shapeN;
+              return updatedSquares;
+            } else {
+              // Si el cuadrado no existe, lo agregamos
+              return [...currentShapes, shapeN];
+            }
+          });
+
+        }else{
+          // Eliminar la figura
+          setShapes((currentShapes) => {
+            // Elimina el polígono seleccionado
+            const remainingShapes = currentShapes.filter((s) => s.id !== shapeN.id);
+
+            // NECESITO SHAPE.Y1 Y SHAPE.Y2
+            const shapeHeight = shapeN.y2 - shapeN.y1;
+            
+            const adjustedShapes = remainingShapes.map((shape) => {
+              if (shape.y1 > shapeN.y1) {
+                shape.y1 -= shapeHeight;
+              }
+              if (shape.y2 > shapeN.y1) {
+                shape.y2 -= shapeHeight;
+              }
+              return shape;
+            });
         
+            return adjustedShapes;
+          });
+          
+        }
       };
       //use efect mio detecta si se presiona el control Z
       const handleKeyDown = (event) => {
@@ -133,19 +178,24 @@ const CoordinateInputs: React.FC = () => {   // hola
         }
     };
 
-      // Evento mio sjdjsjda es pal control Z
-        const HandleUndo = () => {
-          console.log("deshacer")
-          socket.send("undo");
-          
-      };
+    // Evento mio sjdjsjda es pal control Z
+    const HandleUndo = () => {
+      console.log("deshacer")
+      socket.send(JSON.stringify({action:"undo"}));  
+    };
 
-      // Evento mio sjdjsjda es para guardar los cambios
-        const HandleSave = () => {
-          console.log("guardando..")
-          socket.send("save");
-          
-      };
+    // Evento mio sjdjsjda es para guardar los cambios
+    const HandleSave = () => {
+      console.log("guardando..")
+      socket.send(JSON.stringify({action:"save"}));
+      //socket.send(JSON.stringify({action:"delete", id: selectedShapeID}));
+    };
+
+    // Evento para eliminar
+    const HandleDelete = () => {
+      socket.send(JSON.stringify({action:"delete", id: selectedShapeID} ));
+      
+    }
 
     // Evento de slider de rotacion
     const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,40 +284,38 @@ const CoordinateInputs: React.FC = () => {   // hola
 
     // Evento del cambio del tamaño del poligono
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
-      console.log('Se ejecuto')
       setHeight(Number(event.target.value));
       const newHeight = Number(event.target.value);
-      if (selectedShapeIndex !== null) {
-        const selectedShape = shapes[selectedShapeIndex];
 
-        const deltaY = newHeight - (selectedShape.y2 - selectedShape.y1);
+      if (selectedShapeIndex !== null) {
+        const selectedShapeId = shapes[selectedShapeIndex].id;
     
-        const updatedShapes = shapes.map((shape, index) => {
-          // Cambio de la altura del poligono seleccionado
-          if (index === selectedShapeIndex) {
+        const deltaY = newHeight - (shapes[selectedShapeIndex].y2 - shapes[selectedShapeIndex].y1);
+    
+        const updatedShapes = shapes.map((shape) => {
+          // Cambio de la altura del polígono seleccionado
+          if (shape.id === selectedShapeId) {
             const newY2 = shape.y1 + newHeight;
-            
-            if(newY2 < shape.y2){
-              
+    
+            if (newY2 < shape.y2) {
+
               const filteredCircles = shape.circles.filter((circle, index) => {
                 return index < 2 || index >= shape.circles.length - 2 || circle.y <= newY2;
               });
-              
+    
               return {
                 ...shape,
                 y2: newY2,
-                circles : filteredCircles,
+                circles: filteredCircles,
               };
-
-            }else{
+            } else {
               return {
                 ...shape,
                 y2: newY2,
               };
             }
-
-          //Cambio de posicion del resto de figuras
-          } else if (index > selectedShapeIndex) {
+          } else if (shape.y1 >= shapes[selectedShapeIndex].y2) {
+            // Cambio de posición del resto de figuras por debajo
             return {
               ...shape,
               y1: shape.y1 + deltaY,
@@ -278,10 +326,9 @@ const CoordinateInputs: React.FC = () => {   // hola
           return shape;
         });
     
-      setShapes(updatedShapes);
-
+        setShapes(updatedShapes);
       }
-    }
+    };
 
 
     //////////////-----------MODIFICADO-----------------//////////////
@@ -290,6 +337,8 @@ const CoordinateInputs: React.FC = () => {   // hola
 
       const NewShape =
             {   
+                //id: uuidv4(),
+                action: "añadir",
                 id: shapes.length,
                 x1: lastPositionSI.x, y1: lastPositionSI.y, 
                 x2: lastPositionID.x, y2: lastPositionID.y,  
@@ -303,23 +352,14 @@ const CoordinateInputs: React.FC = () => {   // hola
                 height : initialHeight,
                 circles : [
                   { x: lastPositionSI.x, y: lastPositionSI.y, radius: 5, movable: false},
-                  { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true},
-                  { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true},
+                  { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true },
+                  { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true },
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
-                
               ],
-                text : [
-                  {arcilla : "vacío"},
-                  {limo : "vacio"},
-                  {arena : "vacío"},
-                  {grava : "vacío"}]
+              text : initialTexts
             }
-    //  setShapes([...shapes, NewShape]);
-      socket.send(JSON.stringify(NewShape));
-      console.log("Send: Añadir")
 
-      //setLastPositionID({ x: lastPositionID.x, y: lastPositionID.y  })
-      //setLastPositionSI({ x: lastPositionSI.x, y: lastPositionSI.y  }) //arreglar
+      socket.send(JSON.stringify(NewShape));
             
     };
     
@@ -327,6 +367,7 @@ const CoordinateInputs: React.FC = () => {   // hola
     const handleShapeClick = (index) => {
         //console.log(shapes)
         setSelectedShapeIndex(index);
+        setSelectedShapeID(shapes[index].id)
         setColorFill(shapes[index].colorfill);
         setColorStroke(shapes[index].colorstroke);
         setSelectedOption(shapes[index].fileOption);
@@ -348,7 +389,7 @@ const CoordinateInputs: React.FC = () => {   // hola
     // };
 
     const dragItem = useRef(null);
-    const dragOverItem = useRef(null);
+    //const dragOverItem = useRef(null);
 
     const dragStart = (position) => {
       console.log('start: ',position)
@@ -357,110 +398,89 @@ const CoordinateInputs: React.FC = () => {   // hola
     };
 
 
-    //Movimiento de la barra Drag, poligono
-   const handleContainerDrag = (polygonIndex: number, e: any) => {
-      const updatedPolygons = [...shapes];
-      const dragOffsetY = e.target.y() - updatedPolygons[polygonIndex].y1;
-
+   //Movimiento de la barra Drag, poligono
+   const handleContainerDrag = (polygonId: number, e: any) => {
+    const updatedPolygons = [...shapes];
+    const draggedPolygon = updatedPolygons.find(polygon => polygon.id === polygonId);
+  
+    if (draggedPolygon) {
+      const dragOffsetY = e.target.y() - draggedPolygon.y1;
+  
       if (dragOffsetY !== 0) {
-        const draggedPolygon = updatedPolygons[polygonIndex];
-        for (let i = 0; i < updatedPolygons.length; i++) {
-          
-          if (i !== polygonIndex) {
-            const targetPolygon = updatedPolygons[i];
-           
+        for (const targetPolygon of updatedPolygons) {
+          if (targetPolygon.id !== polygonId) {
             const heightIndex = draggedPolygon.y2 - draggedPolygon.y1;
             const heightI = targetPolygon.y2 - targetPolygon.y1;
             const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
             const aux = dragOffsetY > 0 ? heightI : -heightI;
-    //arriba
-    const dragOffsetY2 = e.target.y() - targetPolygon.y1;
-            if (dragOffsetY2 < 0  && 
-              draggedPolygon.y1 >= targetPolygon.y1
-            ) {
-               
-          dragOverItem.current = i;
-                targetPolygon.y1 += adjustment;
-                targetPolygon.y2 += adjustment;
-
-                draggedPolygon.y1 += aux;
-                draggedPolygon.y2 += aux;
-
-    //abajo
-            } else if (dragOffsetY2 > 0 && 
-              targetPolygon.y2 >= draggedPolygon.y2  
-           ) {
-            
-          dragOverItem.current = i;
-                targetPolygon.y1 += adjustment;
-                targetPolygon.y2 += adjustment;
-        
-                draggedPolygon.y1 += aux;
-                draggedPolygon.y2 += aux;
-
+  
+            // Arriba
+            const dragOffsetY2 = e.target.y() - targetPolygon.y1;
+            if (dragOffsetY2 < 0 && draggedPolygon.y1 >= targetPolygon.y1) {
+              console.log("Cambio", targetPolygon.id);
+  
+              targetPolygon.y1 += adjustment;
+              targetPolygon.y2 += adjustment;
+  
+              draggedPolygon.y1 += aux;
+              draggedPolygon.y2 += aux;
+            }
+            // Abajo
+            else if (dragOffsetY2 > 0 && targetPolygon.y2 >= draggedPolygon.y2) {
+              console.log("Cambio", targetPolygon.id);
+  
+              targetPolygon.y1 += adjustment;
+              targetPolygon.y2 += adjustment;
+  
+              draggedPolygon.y1 += aux;
+              draggedPolygon.y2 += aux;
             }
           }
         }
         setShapes(updatedPolygons);
-        
       }
-};
+    }
+  };
+
+  const handleCheckBox = (e,column) => {
+
+      const copia = [...shapes]
+    
+      for(var index in copia){
+        console.log(copia[index].text[column].enabled);
+        console.log(e.target.checked)
+        copia[index].text[column].enabled = e.target.checked;
+        socket.send(JSON.stringify(copia[index]));  
+        // socket.send(JSON.stringify(copia[index].text));  
+      }
+      
+  }
 
     return (
       <div id="Editor">
          <div id="sidebar">
          <div id="controls">
-         <div>
-          <button onClick={HandleSave}>Guardar Cambios</button>
-           <button onClick={HandleUndo}>Deshacer</button>
+         <div className='a'>
+                <button onClick={HandleSave}>Guardar Cambios</button><br></br>
+                <button onClick={handleAddShape}>Agregar Figura</button><br></br>
+                <button onClick={HandleUndo}>Deshacer</button>
+                <button onClick={HandleDelete}>Eliminar</button>
         </div>
-        <div>
+        <div className='a'>
             <label>Seleccionar opción de Pattern: </label>
             <select value={selectedOption} onChange={handleOptionChange}>
             {Object.keys(Json).map(option => (
                 <option key={option} value={option}>{option}</option>
             ))}
             </select>
-        </div>
-        <div>
             <label>Seleccionar color Fill: </label>
             <input type="color" value={ColorFill} onChange={handleColorChangeFill} />
-        </div>
-        <div>
             <label>Seleccionar color Stroke: </label>
             <input type="color" value={ColorStroke} onChange={handleColorChangeStroke} />
         </div>
-        <div>
-            <button onClick={handleAddShape}>Agregar Figura</button>
-        </div>
-        <div>
-            <label>Cambiar alto de capa seleccionada: </label>
-            <input type="number" value={height} onChange={handleChangeHeight}/>
-        </div>
-        <div>
-          <p>Valor Zoom: {sliderZoom}</p>
-          <input
-            type="range"
-            min={50}
-            max={300}
-            value={sliderZoom}
-            onChange={handleSliderZoom}
-            onMouseUp={SliderDrop}
-          />
-        </div>
-        <div>
-          <p>Valor Rotacion: {sliderRotation}</p>
-          <input
-            type="range"
-            min={0}
-            max={180}
-            value={sliderRotation}
-            onChange={handleSliderRotation}
-            onMouseUp={SliderDrop}
-          />
-        </div>
-        <div>
-          <p>Tension de lineas: {sliderTension}</p>
+        
+        <div className='a'>
+        <p>Tension de lineas: {sliderTension}</p>
           <input
             type="range"
             min={0}
@@ -471,25 +491,75 @@ const CoordinateInputs: React.FC = () => {   // hola
             onMouseUp={SliderDrop}
           />
          
+            <label>Cambiar alto de capa seleccionada: </label>
+            <input type="number" value={height} onChange={handleChangeHeight}/>
         </div>
+        <div className='a'>
+          <p>Valor Zoom: {sliderZoom}</p>
+          <input
+            type="range"
+            min={50}
+            max={300}
+            value={sliderZoom}
+            onChange={handleSliderZoom}
+            onMouseUp={SliderDrop}
+          />
        
-
+          <p>Valor Rotacion: {sliderRotation}</p>
+          <input
+            type="range"
+            min={0}
+            max={180}
+            value={sliderRotation}
+            onChange={handleSliderRotation}
+            onMouseUp={SliderDrop}
+          />
+        
+        </div>
+         <div className='a'>
+              {
+              
+              Object.keys(initialTexts).map((key) => {
+                if(shapes.length>0)
+            {      const item = initialTexts[key];
+                  if (item.optional) {
+                    return (
+                      <div key={key} style={{display:'flex'}}>
+                        <label htmlFor={key} style={{ whiteSpace: 'nowrap'}}>{key}</label>
+                        <input type="checkbox" id={key} name={key} checked={shapes[0].text.enabled} onChange={(e) => handleCheckBox(e,key)}/>
+                      </div>
+                    );
+                  }
+                  return null; // No renderizar el checkbox si optional es false}
+            }else{
+              const item = initialTexts[key];
+              if (item.optional) {
+                return (
+                  <div key={key} style={{display:'flex'}}>
+                    <label htmlFor={key} style={{ whiteSpace: 'nowrap'}}>{key}</label>
+                    <input type="checkbox" id={key} name={key} />
+                  </div>
+                );
+              }
+              return null; 
+              
+            }
+          })}
+        </div> 
         </div>
         </div>
     
         <div id="gridContainer">
 
-        <Stage width={window.innerWidth} height={window.innerHeight}>
-      {shapes.map((shape,index) => (
-
-          <Grid 
-            polygon={shape} 
-            index={index} 
-            text={shape.text}
-            setText={(text, send) => setText(index, text, send, socket)}
-          />
-          
-      ))}
+        <Stage width={2000} height={window.innerHeight}>
+            {shapes.map((shape,index) => (
+                <Grid
+                  key={index} 
+                  polygon={shape} 
+                  text={shape.text}
+                  setText={(text, send) => setText(index, text, send, socket)}
+                />
+            ))}
         <Layer>
           
             {shapes.map((shape, index) => (
@@ -516,43 +586,40 @@ const CoordinateInputs: React.FC = () => {   // hola
             ))} 
             {shapes.map((shape, index) => (
                 <Rect
-                  key={index}
-                  //x={shape.x1} // lado izquerdo poligono
-                  //y={shape.y1}
-                  x={shape.x1}
-                  y={shape.y1}
-                  width={80}
-                  height={shape.y2 - shape.y1}
-                 // height={shape.x2-shape.x1}
-                 // fill="yellow"
-                  opacity={0.5}
-                  draggable
-                  onClick = {() => handleShapeClick(index)}
-                //   onDragStart={(e) => {setLastPositionID({ x: lastPositionID.x, y: e.target.y() })
-                //   setLastPositionSI({ x: lastPositionSI.x, y: e.target.y() })
-                // }}
-                onDragStart={() => dragStart(index)}
+                key={index}
+                //x={shape.x1} // lado izquerdo poligono
+                //y={shape.y1}
+                x={shape.x1}
+                y={shape.y1}
+                width={80}
+                height={shape.y2 - shape.y1}
+               // height={shape.x2-shape.x1}
+               // fill="yellow"
+                opacity={0.5}
+                draggable
+                onClick = {() => handleShapeClick(index)}
+                onDragStart={() => dragStart(shape.id)}
                 onDragMove={(e) => {
-                    handleContainerDrag(index, e); 
+                    handleContainerDrag(shape.id, e); 
                     e.target.y(shape.y1);
                 }}
-                onDragEnd={() => {
-                  if(dragItem.current !== dragOverItem.current)  
-                    {
-                      const copyListItems = [...shapes];
-                      const dragItemContent = copyListItems[dragItem.current];
-                      copyListItems.splice(dragItem.current, 1);
-                      copyListItems.splice(dragOverItem.current, 0, dragItemContent);
-                      setShapes(copyListItems);
-                      dragItem.current = null;
-                      dragOverItem.current = null;
-                    }
-                }}
-                  dragBoundFunc={(pos) => ({
-                        x: 100,
-                        y: pos.y, 
-                  })}
-                />
+                // onDragEnd={() => {
+                //   if(dragItem.current !== dragOverItem.current)  
+                //     {
+                //       const copyListItems = [...shapes];
+                //       const dragItemContent = copyListItems[dragItem.current];
+                //       copyListItems.splice(dragItem.current, 1);
+                //       copyListItems.splice(dragOverItem.current, 0, dragItemContent);
+                //       setShapes(copyListItems);
+                //       dragItem.current = null;
+                //       dragOverItem.current = null;
+                //     }
+                // }}
+                dragBoundFunc={(pos) => ({
+                    x: 100,
+                    y: pos.y, 
+                })}
+              />
             ))} 
             
            {/* {shapes.map((shape, index) => (

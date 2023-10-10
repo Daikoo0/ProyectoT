@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="25.078547"
+   height="8.2405653"
+   viewBox="0 0 25.078547 8.2405653"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath318">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-382.91901,-548.61101)"
+         id="path318" />
+    </clipPath>
+  </defs>
+  <g
+     id="g1"
+     style="display:inline"
+     transform="translate(-487.86314,-320.39131)">
+    <g
+       id="g634">
+      <path
+         id="path317"
+         d="m 0,0 c 0,0 2.54,-1.235 1.236,-2.54 -1.308,-1.307 -3.048,1.305 -3.048,1.305 h -11.609 c 0,0 -1.741,-2.612 -3.049,-1.305 -1.305,1.305 1.236,2.54 1.236,2.54 v 0.011 c 0,0 -2.541,1.235 -1.236,2.54 1.308,1.306 3.049,-1.305 3.049,-1.305 h 11.609 c 0,0 1.74,2.611 3.048,1.305 C 2.54,1.246 0,0.011 0,0.011 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,510.55867,324.51867)"
+         clip-path="url(#clipPath318)" />
+    </g>
+  </g>
+</svg>

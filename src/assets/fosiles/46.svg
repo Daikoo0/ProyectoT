@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="21.701511"
+   height="17.685169"
+   viewBox="0 0 21.701511 17.685169"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath358">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-539.26501,-602.19202)"
+         id="path358" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath360">
+      <path
+         d="M 14,14 H 598 V 778 H 14 Z"
+         transform="translate(-540.84701,-599.20402)"
+         id="path360" />
+    </clipPath>
+  </defs>
+  <g
+     id="g1"
+     style="display:inline"
+     transform="translate(-718.65312,-241.67551)">
+    <g
+       id="g669">
+      <path
+         id="path357"
+         d="m 0,0 c 0.308,-0.57 2.329,-4.525 2.329,-4.525 l 7.207,0.482 c 0,0 4.557,3.998 5.669,6.328 0.928,1.943 0.528,4.307 0.528,4.307 0,0 -1.055,-2.209 -2.066,-3.076 -0.742,-0.635 -1.89,-1.1 -1.89,-1.1 0,0 -0.483,1.715 -1.01,2.682 -0.528,0.966 -1.626,2.373 -1.626,2.373 0,0 0.351,-2.198 -0.176,-3.077 C 8.438,3.516 7.559,2.725 7.559,2.725 c 0,0 -2.066,2.767 -3.516,3.91 -1.45,1.144 -3.779,1.627 -3.779,1.627 0,0 3.34,-3.649 3.032,-5.67 C 2.988,0.572 0,0 0,0 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,719.02,253.07733)"
+         clip-path="url(#clipPath358)" />
+      <path
+         id="path359"
+         d="M 0,0 C 1.788,0.455 2.549,2.591 3.78,2.636 5.01,2.681 7.583,0.528 7.979,-1.011"
+         style="fill:none;stroke:#000000;stroke-width:0.36;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(1.3333333,0,0,-1.3333333,721.12933,257.06133)"
+         clip-path="url(#clipPath360)" />
+    </g>
+  </g>
+</svg>
