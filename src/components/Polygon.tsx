@@ -214,7 +214,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, Tensio
       };
 
     const minX = 200;
-    const maxX = 450;
+    const maxX = 350;
 
     // const handleSceneFunc = (ctx, shape) => {
     //       const points = shape.points();

@@ -64,6 +64,7 @@ const Grid = ({ polygon, setText, text}) => {
         if(vertical){
           textarea.style.transform = 'rotate(270deg)';
           textarea.style.top = areaPosition.y + cellSize-1 + 'px';
+          textarea.style.width = polygon.height
         }
           const copia = { ...text };
           copia[column] = textarea.value;
@@ -88,10 +89,14 @@ const Grid = ({ polygon, setText, text}) => {
     />
   );
 
-  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Arcilla', 'Limo', 'Arena', 'Grava','Estructuras y/o fósiles','Facie','Ambiente depositacional','Descripción'];
+  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Arcilla', 'Limo', 'Arena', 'Grava','Facie','Ambiente depositacional','Descripción','Estructuras y/o fósiles'];
+
+//  const additionalColumns = Object.keys(text).filter(key => text[key].enabled === true);
 
   let xOffset = marginLeft + polygonColumnWidth;
   additionalColumns.forEach((column, index) => {
+
+   if(text[column].enabled){ 
     cells.push(
       <Rect
         key={`header-${column}`}
@@ -130,10 +135,12 @@ const Grid = ({ polygon, setText, text}) => {
     );
     
     xOffset += cellSize;
-  });
+  } 
+}
+
+);
 
   
-
   cells.push(
     <Rect
       key={`row-1`}
@@ -199,8 +206,6 @@ const Grid = ({ polygon, setText, text}) => {
   }
       
   }
-  
-  
   
   );
 

@@ -356,7 +356,7 @@ const CoordinateInputs: React.FC = () => {
                   { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true },
                   { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
               ],
-              text : initialTexts
+                text : initialTexts
             }
 
       socket.send(JSON.stringify(NewShape));
@@ -448,8 +448,11 @@ const CoordinateInputs: React.FC = () => {
     
       for(var index in copia){
         console.log(copia[index].text[column].enabled);
-        console.log(e.target.checked)
-        copia[index].text[column].enabled = e.target.checked;
+        if(e.target.checked){
+        copia[index].text[column].enabled = true;
+      }else{
+        copia[index].text[column].enabled = false;
+      }
         socket.send(JSON.stringify(copia[index]));  
         // socket.send(JSON.stringify(copia[index].text));  
       }
@@ -463,7 +466,7 @@ const CoordinateInputs: React.FC = () => {
          <div className='a'>
                 <button onClick={HandleSave}>Guardar Cambios</button><br></br>
                 <button onClick={handleAddShape}>Agregar Figura</button><br></br>
-                <button onClick={HandleUndo}>Deshacer</button>
+                <button onClick={HandleUndo}>Deshacer</button><br></br>
                 <button onClick={HandleDelete}>Eliminar</button>
         </div>
         <div className='a'>
@@ -526,7 +529,8 @@ const CoordinateInputs: React.FC = () => {
                     return (
                       <div key={key} style={{display:'flex'}}>
                         <label htmlFor={key} style={{ whiteSpace: 'nowrap'}}>{key}</label>
-                        <input type="checkbox" id={key} name={key} checked={shapes[0].text.enabled} onChange={(e) => handleCheckBox(e,key)}/>
+                        <input type="checkbox" id={key} name={key} checked={shapes[0].text.enabled}
+                        onChange={(e) => handleCheckBox(e,key)}/>
                       </div>
                     );
                   }
@@ -537,7 +541,7 @@ const CoordinateInputs: React.FC = () => {
                 return (
                   <div key={key} style={{display:'flex'}}>
                     <label htmlFor={key} style={{ whiteSpace: 'nowrap'}}>{key}</label>
-                    <input type="checkbox" id={key} name={key} />
+                    <input type="checkbox" id={key} name={key} checked={true} />
                   </div>
                 );
               }

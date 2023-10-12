@@ -6,6 +6,7 @@ import Editor from './components/Editor.tsx'
 import Login from './components/Login.tsx'
 import Register from './components/Register.tsx'
 import Home from './components/Home.tsx'
+import Shape from './components/shape.tsx'
 
 import AddUserToRoom from "./components/Invite.user.tsx"
 import ParticipantForm from "./components/create.proyect.tsx"
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
     path: "/proyects",
     element: <UserProjects />,
   },
+  {
+    path: "/image",
+    element: <Shape />,
+  }
  
   /*{
     path: "/example",
