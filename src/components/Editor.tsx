@@ -109,7 +109,9 @@ const CoordinateInputs: React.FC = () => {
             // Elimina el polígono seleccionado
             const remainingShapes = currentShapes.filter((s) => s.id !== shapeN.id);
 
-            // NECESITO SHAPE.Y1 Y SHAPE.Y2
+            console.log(shapes[selectedShapeIndex].y1)
+            console.log(shapeN.y1, shapeN.y2)
+
             const shapeHeight = shapeN.y2 - shapeN.y1;
             
             const adjustedShapes = remainingShapes.map((shape) => {
@@ -193,8 +195,8 @@ const CoordinateInputs: React.FC = () => {
 
     // Evento para eliminar
     const HandleDelete = () => {
-      socket.send(JSON.stringify({action:"delete", id: selectedShapeID} ));
-      
+      socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].y1, y2: shapes[selectedShapeIndex].y2} ));
+  
     }
 
     // Evento de slider de rotacion

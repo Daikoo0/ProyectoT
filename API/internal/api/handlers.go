@@ -28,6 +28,8 @@ type Room struct {
 type Operation struct {
 	Action string `json:"action"`
 	ID     int    `json:"id"`
+	y1	   int    `json:"y1"`
+	y2	   int    `json:"y2"`
 }
 
 var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
@@ -188,10 +190,14 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					id := int(dataMap["id"].(float64))
 					log.Println("Borrando capa %s", id)
 					rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
-
+					
+					y1 := int(dataMap["y1"].(float64))
+					y2 := int(dataMap["y2"].(float64))
 					operation := Operation{
 						Action: "delete",
 						ID:     id,
+						y1:     y1,
+						y2:     y2,
 					}
 					operationJSON, err := json.Marshal(operation)
 					if err != nil {
@@ -221,6 +227,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					id := int(tempMap["id"].(float64))
 					if tempMap["action"]== "delete"{
 						rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
+						
 						operation := Operation{
 							Action: "delete",
 							ID:     id,
@@ -268,11 +275,15 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Fatal(err)
 					}
 					id := int(dataMap["id"].(float64))
+					y1 := int(dataMap["y1"].(float64))
+					y2 := int(dataMap["y2"].(float64))
 					operation := Operation{
 						Action: "delete",
 						ID:     id,
+						y1:     y1,
+						y2:     y2,
 					}
-					log.Println("id %s ", id)
+					log.Println("operation %s ", operation)
 					if len(rooms[roomName].Data) == id{
 						log.Println("añadir")
 						rooms[roomName].Data = append(rooms[roomName].Data, string(msg))
