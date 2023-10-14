@@ -25,13 +25,6 @@ type Room struct {
 	Temp     Stack
 }
 
-type Operation struct {
-	Action string `json:"action"`
-	ID     int    `json:"id"`
-	y1	   int    `json:"y1"`
-	y2	   int    `json:"y2"`
-}
-
 var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
 
 func (a *API) RegisterUser(c echo.Context) error {
@@ -157,11 +150,11 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	//conectar a la sala
 	proyect := instanceRoom(roomName, room.Clients, room.Data)
 	proyect.Active = append(proyect.Active, conn)
+	log.Println(proyect)
 	
 	//enviar los datos que hay en la base de datos
-	for i, row := range room.Data{
+	for _, row := range room.Data{
 		if err != nil {
-			log.Println(i)
 			errMessage := "Error: Cannot read this document"
 			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 			break
@@ -184,6 +177,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				var dataMap map[string]interface{}
 					err := json.Unmarshal([]byte(msg), &dataMap)
 					if err != nil {
+						log.Println("le falta el id a la wea")
 						log.Fatal(err)
 					}
 				if dataMap["action"] == "delete"{
@@ -191,21 +185,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Println("Borrando capa %s", id)
 					rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
 					
-					y1 := int(dataMap["y1"].(float64))
-					y2 := int(dataMap["y2"].(float64))
-					operation := Operation{
-						Action: "delete",
-						ID:     id,
-						y1:     y1,
-						y2:     y2,
-					}
-					operationJSON, err := json.Marshal(operation)
+					response := make(map[string]interface{})
+					response["Action"] = "delete"
+					response["ID"] = id
+
+					responseJSON, err := json.Marshal(response)
 					if err != nil {
 						log.Println("Error al convertir a JSON:", err)
 					}
 					
 					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, []byte(operationJSON))
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON,))
 						if err != nil {
 							log.Println(err)
 							break
@@ -214,6 +204,60 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 
 				}
+				if dataMap["action"] == "text"{
+					id := int(dataMap["id"].(float64))
+					log.Println("editando shape capa %s", id)
+					
+					var data map[string]interface{}
+					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
+					data["text"] = dataMap["text"]
+					response := make(map[string]interface{})
+					response["Action"] = "shapes"
+					response["ID"] = id
+					response["shapes"] = dataMap["shapes"]
+
+					responseJSON, err := json.Marshal(response)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+					
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+						if err != nil {
+							log.Println(err)
+							break
+						}
+					}
+				}
+
+				if dataMap["action"] == "polygon"{
+					id := int(dataMap["id"].(float64))
+					log.Println("Editando polygon capa %s", id)
+					var data map[string]interface{}
+					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
+					data["polygon"] = dataMap["polygon"]
+
+					response := make(map[string]interface{})
+					response["Action"] = "polygon"
+					response["ID"] = id
+					response["polygon"] = dataMap["polygon"]
+
+					responseJSON, err := json.Marshal(response)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+					
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+						if err != nil {
+							log.Println(err)
+							break
+						}
+					}
+
+
+				}
+
 				if dataMap["action"] == "undo"{
 					log.Println("deshacer")
 					tempMsg := rooms[roomName].Temp.Pop()
@@ -228,17 +272,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					if tempMap["action"]== "delete"{
 						rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
 						
-						operation := Operation{
-							Action: "delete",
-							ID:     id,
-						}
-						operationJSON, err := json.Marshal(operation)
+						response := make(map[string]interface{})
+						response["Action"] = "delete"
+						response["ID"] = id
+
+						responseJSON, err := json.Marshal(response)
 						if err != nil {
 							log.Println("Error al convertir a JSON:", err)
 						}
 						
 						for _, client := range proyect.Active {
-							err = client.WriteMessage(websocket.TextMessage, []byte(operationJSON))
+							err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 							if err != nil {
 								log.Println(err)
 								break
@@ -260,7 +304,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				}
 				if dataMap["action"] == "save"{
 					log.Println("guardando..")
-					log.Println(rooms[roomName].Data)
 					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
@@ -269,44 +312,39 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				}
 				if dataMap["action"] == "añadir"{
 					log.Println("cambios")
-					var dataMap map[string]interface{}
-					err := json.Unmarshal([]byte(msg), &dataMap)
-					if err != nil {
-						log.Fatal(err)
-					}
+
 					id := int(dataMap["id"].(float64))
-					y1 := int(dataMap["y1"].(float64))
-					y2 := int(dataMap["y2"].(float64))
-					operation := Operation{
-						Action: "delete",
-						ID:     id,
-						y1:     y1,
-						y2:     y2,
+					response := make(map[string]interface{})
+					response["Action"] = "delete"
+					response["ID"] = id
+
+					jsonBytes, err := json.Marshal(dataMap)
+					if err != nil {
+    					log.Fatalf("Error al convertir el mapa a JSON: %v", err)
 					}
-					log.Println("operation %s ", operation)
+					
 					if len(rooms[roomName].Data) == id{
 						log.Println("añadir")
-						rooms[roomName].Data = append(rooms[roomName].Data, string(msg))
-						operationJSON, err := json.Marshal(operation)
+						rooms[roomName].Data = append(rooms[roomName].Data, string(jsonBytes))
+						responseJSON, err := json.Marshal(response)
 						if err != nil {
 							log.Println("Error al convertir a JSON:", err)
 						}
-						rooms[roomName].Temp.Push(string(operationJSON))
+						rooms[roomName].Temp.Push(string(responseJSON))
 						
 					}else{
 						log.Println("actualizar")
 						rooms[roomName].Temp.Push(rooms[roomName].Data[id])
-						rooms[roomName].Data[id] = string(msg)
+						rooms[roomName].Data[id] = string(jsonBytes)
 					}
 					log.Println("usuario %s a actualizado el archivo", user)
 
 					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, msg)
+						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
 						if err != nil {
 							break
 						}
 					}
-					log.Println(rooms[roomName].Data)
 				}
 				
 			}else{

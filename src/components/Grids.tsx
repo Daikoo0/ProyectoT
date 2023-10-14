@@ -8,10 +8,11 @@ const Grid = ({ polygon, setText, text}) => {
   const cellSize = 100; // Tamaño de cada celda de la cuadrícula
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
-  const cellHeight = polygon ? polygon.y2 - polygon.y1 : cellSize;
+  const cellHeight = polygon ? polygon.polygon.y2 - polygon.polygon.y1 : cellSize;
 
   const cells = [];
   const columnRefs = {};
+  console.log(text)
 
   const handleDoubleClick = (textRef,column,vertical) => {
     if (textRef.current) {
@@ -64,7 +65,7 @@ const Grid = ({ polygon, setText, text}) => {
         if(vertical){
           textarea.style.transform = 'rotate(270deg)';
           textarea.style.top = areaPosition.y + cellSize-1 + 'px';
-          textarea.style.width = polygon.height
+          textarea.style.width = polygon.polygon.height
         }
           const copia = { ...text };
           copia[column] = textarea.value;
@@ -126,9 +127,9 @@ const Grid = ({ polygon, setText, text}) => {
       <Rect
         key={`row-${index}-${column}`}
         x={xOffset}
-        y={polygon.y1}
+        y={polygon.polygon.y1}
         width={cellSize}
-        height={polygon.y2-polygon.y1}
+        height={polygon.polygon.y2-polygon.polygon.y1}
         fill="white"
         stroke="black"
       />
@@ -145,7 +146,7 @@ const Grid = ({ polygon, setText, text}) => {
     <Rect
       key={`row-1`}
       x={marginLeft}
-      y={polygon.y1}
+      y={polygon.polygon.y1}
       width={polygonColumnWidth}
       height={cellHeight}
       fill="white"
@@ -160,7 +161,6 @@ const Grid = ({ polygon, setText, text}) => {
   // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
   additionalColumns.forEach((column) => {
   
-   console.log(text[column].content) 
    if (!columnRefs[column]) {
     columnRefs[column] = useRef(null);
    }
@@ -170,7 +170,7 @@ const Grid = ({ polygon, setText, text}) => {
           <Text 
             ref={columnRefs[column]}
             x={xOffset+1}
-            y={polygon.y1+cellHeight}
+            y={polygon.polygon.y1+cellHeight}
             rotation={270}
             height={cellHeight}
             width={cellSize}
@@ -191,7 +191,7 @@ const Grid = ({ polygon, setText, text}) => {
       <Text 
         ref={columnRefs[column]}
         x={xOffset+1}
-        y={polygon.y1}
+        y={polygon.polygon.y1}
         rotation={0}
         height={cellHeight}
         width={cellSize}

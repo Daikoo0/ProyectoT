@@ -11,10 +11,7 @@ import './Editor.css';
 
 const CoordinateInputs: React.FC = () => { 
 
-  // RECORDATORIO
-  // NECESITO UNA FUNCION DEL BACKEND PARA ACTUALIZAR SOLO EL TEXT DE CADA SHAPE DESDE EL FRONTEND 
-  // NECESITO SHAPE.Y1 Y SHAPE.Y2 DESDE EL BACK
-
+ 
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
@@ -88,46 +85,76 @@ const CoordinateInputs: React.FC = () => {
       socket.onmessage = (event) => {
         console.log(event.data);
         const shapeN = JSON.parse(event.data);
+        console.log(shapeN)
 
-        if(shapeN.action !== "delete"){
-          setShapes(currentShapes => {
-            const existingShapeIndex = currentShapes.findIndex(s => s.id === shapeN.id);
-            if (existingShapeIndex > -1) {
-              // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
-              const updatedSquares = [...currentShapes];
-              updatedSquares[existingShapeIndex] = shapeN;
-              return updatedSquares;
-            } else {
-              // Si el cuadrado no existe, lo agregamos
-              return [...currentShapes, shapeN];
-            }
-          });
-
-        }else{
-          // Eliminar la figura
-          setShapes((currentShapes) => {
-            // Elimina el polígono seleccionado
-            const remainingShapes = currentShapes.filter((s) => s.id !== shapeN.id);
-
-            console.log(shapes[selectedShapeIndex].y1)
-            console.log(shapeN.y1, shapeN.y2)
-
-            const shapeHeight = shapeN.y2 - shapeN.y1;
-            
-            const adjustedShapes = remainingShapes.map((shape) => {
-              if (shape.y1 > shapeN.y1) {
-                shape.y1 -= shapeHeight;
-              }
-              if (shape.y2 > shapeN.y1) {
-                shape.y2 -= shapeHeight;
-              }
-              return shape;
-            });
-        
-            return adjustedShapes;
-          });
+        // action='añadir', id, polygon, text
+        if(shapeN.action === 'añadir'){
           
+          setShapes(prevShapes => [...prevShapes, shapeN]);
+        
+        // action='polygon', id, polygon
+        }else if(shapeN.action === 'polygon' ){
+          setShapes(prevShapes => 
+            prevShapes.map(shape => 
+                shape.id === shapeN.id ? { ...shape, polygon: shapeN.polygon } : shape
+            )
+          );
+          
+        // action='text', id, text
+        }else if(shapeN.action === 'text'){
+          setShapes(prevShapes => 
+            prevShapes.map(shape => 
+                shape.id === shapeN.id ? { ...shape, text: shapeN.text } : shape
+            )
+          );
+
+        // action='delete', id, 
+        }else if(shapeN.action === 'delete'){
+          setShapes(prevShapes => 
+            prevShapes.filter(shape => shape.id !== shapeN.id)
+        );
         }
+
+
+        // if(shapeN.action !== "delete"){
+        //   setShapes(currentShapes => {
+        //     const existingShapeIndex = currentShapes.findIndex(s => s.id === shapeN.id);
+        //     if (existingShapeIndex > -1) {
+        //       // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
+        //       const updatedSquares = [...currentShapes];
+        //       updatedSquares[existingShapeIndex] = shapeN;
+        //       return updatedSquares;
+        //     } else {
+        //       // Si el cuadrado no existe, lo agregamos
+        //       return [...currentShapes, shapeN];
+        //     }
+        //   });
+
+        // }else{
+        //   // Eliminar la figura
+        //   setShapes((currentShapes) => {
+        //     // Elimina el polígono seleccionado
+        //     const remainingShapes = currentShapes.filter((s) => s.id !== shapeN.id);
+
+        //     console.log(shapes[selectedShapeIndex].polygon.y1)
+        //     console.log(shapeN.polygon.y1, shapeN.polygon.y2)
+
+        //     const shapeHeight = shapeN.polygon.y2 - shapeN.polygon.y1;
+            
+        //     const adjustedShapes = remainingShapes.map((shape) => {
+        //       if (shape.polygon.y1 > shapeN.polygon.y1) {
+        //         shape.polygon.y1 -= shapeHeight;
+        //       }
+        //       if (shape.polygon.y2 > shapeN.polygon.y1) {
+        //         shape.polygon.y2 -= shapeHeight;
+        //       }
+        //       return shape;
+        //     });
+        
+        //     return adjustedShapes;
+        //   });
+          
+        // }
       };
       //use efect mio detecta si se presiona el control Z
       const handleKeyDown = (event) => {
@@ -138,7 +165,7 @@ const CoordinateInputs: React.FC = () => {
       document.addEventListener("keydown", handleKeyDown);
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
-        socket.close() , document.removeEventListener("keydown", handleKeyDown);
+        socket.close(), socket.send(JSON.stringify({action:'close'})), document.removeEventListener("keydown", handleKeyDown);
 
       };
     }
@@ -150,10 +177,10 @@ const CoordinateInputs: React.FC = () => {
 
         const coordA = shapes.reduce((maxCoords, objeto) => {
           return {
-            x1: Math.max(maxCoords.x1, objeto.x1),
-            x2: Math.max(maxCoords.x2, objeto.x2),
-            y1: Math.max(maxCoords.y1, objeto.y1),
-            y2: Math.max(maxCoords.y2, objeto.y2),
+            x1: Math.max(maxCoords.x1, objeto.polygon.x1),
+            x2: Math.max(maxCoords.x2, objeto.polygon.x2),
+            y1: Math.max(maxCoords.y1, objeto.polygon.y1),
+            y2: Math.max(maxCoords.y2, objeto.polygon.y2),
           };
         }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
 
@@ -174,7 +201,7 @@ const CoordinateInputs: React.FC = () => {
         setSliderZoom(Number(event.target.value));
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
-          updatedShapes[selectedShapeIndex].zoom = Number(event.target.value);
+          updatedShapes[selectedShapeIndex].polygon.zoom = Number(event.target.value);
           //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
           setShapes(updatedShapes);
         }
@@ -195,7 +222,7 @@ const CoordinateInputs: React.FC = () => {
 
     // Evento para eliminar
     const HandleDelete = () => {
-      socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].y1, y2: shapes[selectedShapeIndex].y2} ));
+      socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
   
     }
 
@@ -204,7 +231,7 @@ const CoordinateInputs: React.FC = () => {
         setSliderRotation(Number(event.target.value));
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
-          updatedShapes[selectedShapeIndex].rotation = Number(event.target.value);
+          updatedShapes[selectedShapeIndex].polygon.rotation = Number(event.target.value);
           //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
           setShapes(updatedShapes);
         }
@@ -215,9 +242,10 @@ const CoordinateInputs: React.FC = () => {
       setSliderTension(Number(event.target.value));
       if (selectedShapeIndex !== null) {
         const updatedShapes = [...shapes];
-        updatedShapes[selectedShapeIndex].tension = Number(event.target.value);
-        //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
-        setShapes(updatedShapes);
+        updatedShapes[selectedShapeIndex].polygon.tension = Number(event.target.value);
+        // //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+        // setShapes(updatedShapes);
+        sendSocket("polygon",selectedShapeIndex);
       }
     }
 
@@ -226,10 +254,10 @@ const CoordinateInputs: React.FC = () => {
         setSelectedOption(event.target.value);
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
-          updatedShapes[selectedShapeIndex].file = Json[event.target.value];
-          updatedShapes[selectedShapeIndex].fileOption = event.target.value;
-          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
-          //setShapes(updatedShapes);
+          updatedShapes[selectedShapeIndex].polygon.file = Json[event.target.value];
+          updatedShapes[selectedShapeIndex].polygon.fileOption = event.target.value;
+          
+          sendSocket("polygon",selectedShapeIndex);
         }
     };
 
@@ -238,8 +266,10 @@ const CoordinateInputs: React.FC = () => {
         setColorFill(event.target.value);
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
-          updatedShapes[selectedShapeIndex].colorfill = event.target.value;
-          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          updatedShapes[selectedShapeIndex].polygon.colorfill = event.target.value;
+          
+          sendSocket("polygon",selectedShapeIndex);
+          //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
           //setShapes(updatedShapes);
         }
     };
@@ -249,8 +279,9 @@ const CoordinateInputs: React.FC = () => {
         setColorStroke(event.target.value);
         if (selectedShapeIndex !== null) {
           const updatedShapes = [...shapes];
-          updatedShapes[selectedShapeIndex].colorstroke = event.target.value;
-          socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+          updatedShapes[selectedShapeIndex].polygon.colorstroke = event.target.value;
+          sendSocket("polygon",selectedShapeIndex);
+          //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
           //setShapes(updatedShapes);
         }
     };
@@ -258,29 +289,61 @@ const CoordinateInputs: React.FC = () => {
     // Crea los circulos de los poligonos
     const setCircles = (index, circles, send, socket) => {
       const updatedShapes = [...shapes];
-      updatedShapes[index].circles = circles;
+      updatedShapes[index].polygon.circles = circles;
       setShapes(updatedShapes);
       if(send){
         console.log("Send: Circulos")
-        socket.send(JSON.stringify(updatedShapes[index]));
+        sendSocket("polygon",index);
+        //socket.send(JSON.stringify(updatedShapes[index]));
       }
     }
 
-     // Crea los textos de los poligonos
-     const setText = (index, text, send, socket) => {
+    // Crea los textos de los poligonos
+    const setText = (index, text, send, socket) => {
       const updatedShapes = [...shapes];
       updatedShapes[index].text = text;
       setShapes(updatedShapes);
       if(send){
         console.log("Send: text")
-        socket.send(JSON.stringify(updatedShapes[index]));
+
+        sendSocket("text", index);
+  
+        //socket.send(JSON.stringify(updatedShapes[index]));
       }
+    }
+
+    const sendSocket = (send, index) => {
+      const updatedPolygons = [...shapes]; 
+      const {text, ...polygonsintext} = updatedPolygons[index]
+      //console.log(polygonsintext)
+      //console.log(text)
+      if(send === "polygon"){
+        const send = {
+          action: "polygon",
+          ...polygonsintext,
+        }
+        //console.log(send)
+        socket.send(JSON.stringify(send));
+      }
+      else if(send === "text"){
+        const send ={
+          action: "text",
+          id: updatedPolygons[index].id,
+          text: updatedPolygons[index].text,
+        }
+        //console.log(send)
+        socket.send(JSON.stringify(send));
+      }
+
     }
 
     // Envía la información al soltar el control deslizante
     const SliderDrop = () => {
       if (selectedShapeIndex !== null) {
-        socket.send(JSON.stringify(shapes[selectedShapeIndex]));
+        //socket.send(JSON.stringify(shapes[selectedShapeIndex]));
+
+        sendSocket("polygon",selectedShapeIndex);
+      
       }
     };
 
@@ -292,36 +355,46 @@ const CoordinateInputs: React.FC = () => {
       if (selectedShapeIndex !== null) {
         const selectedShapeId = shapes[selectedShapeIndex].id;
     
-        const deltaY = newHeight - (shapes[selectedShapeIndex].y2 - shapes[selectedShapeIndex].y1);
+        const deltaY = newHeight - (shapes[selectedShapeIndex].polygon.y2 - shapes[selectedShapeIndex].polygon.y1);
     
         const updatedShapes = shapes.map((shape) => {
           // Cambio de la altura del polígono seleccionado
           if (shape.id === selectedShapeId) {
-            const newY2 = shape.y1 + newHeight;
+            const newY2 = shape.polygon.y1 + newHeight;
     
-            if (newY2 < shape.y2) {
+            if (newY2 < shape.polygon.y2) {
 
-              const filteredCircles = shape.circles.filter((circle, index) => {
-                return index < 2 || index >= shape.circles.length - 2 || circle.y <= newY2;
+              const filteredCircles = shape.polygon.circles.filter((circle, index) => {
+                return index < 2 || index >= shape.polygon.circles.length - 2 || circle.y <= newY2;
               });
     
               return {
                 ...shape,
-                y2: newY2,
-                circles: filteredCircles,
-              };
+                polygon: {
+                    ...shape.polygon,
+                    y2: newY2,
+                    circles: filteredCircles,
+                }
+            };
+              
             } else {
               return {
                 ...shape,
-                y2: newY2,
-              };
+                polygon: {
+                    ...shape.polygon,
+                    y2: newY2,
+                }
+            };
             }
-          } else if (shape.y1 >= shapes[selectedShapeIndex].y2) {
+          } else if (shape.polygon.y1 >= shapes[selectedShapeIndex].polygon.y2) {
             // Cambio de posición del resto de figuras por debajo
             return {
               ...shape,
-              y1: shape.y1 + deltaY,
-              y2: shape.y2 + deltaY,
+              polygon: {
+                  ...shape.polygon,
+                  y1: shape.polygon.y1 + deltaY,
+                  y2: shape.polygon.y2 + deltaY,
+              }
             };
           }
     
@@ -339,29 +412,31 @@ const CoordinateInputs: React.FC = () => {
 
       const NewShape =
             {   
-                //id: uuidv4(),
                 action: "añadir",
                 id: shapes.length,
-                x1: lastPositionSI.x, y1: lastPositionSI.y, 
-                x2: lastPositionID.x, y2: lastPositionID.y,  
-                colorfill: initialColorFill, 
-                colorstroke: initialColorStroke, 
-                zoom: sliderZoom,
-                rotation: sliderRotation,
-                tension: sliderTension,
-                file: 0, 
-                fileOption: 0,
-                height : initialHeight,
-                circles : [
-                  { x: lastPositionSI.x, y: lastPositionSI.y, radius: 5, movable: false},
-                  { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true },
-                  { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true },
-                  { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
-              ],
-                text : initialTexts
+                polygon: {
+                  x1: lastPositionSI.x, y1: lastPositionSI.y, 
+                  x2: lastPositionID.x, y2: lastPositionID.y,  
+                  colorfill: initialColorFill, 
+                  colorstroke: initialColorStroke, 
+                  zoom: sliderZoom,
+                  rotation: sliderRotation,
+                  tension: sliderTension,
+                  file: 0, 
+                  fileOption: 0,
+                  height : initialHeight,
+                  circles : [
+                    { x: lastPositionSI.x, y: lastPositionSI.y, radius: 5, movable: false},
+                    { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true },
+                    { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true },
+                    { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false},
+                  ]
+                },
+                text: initialTexts
             }
 
       socket.send(JSON.stringify(NewShape));
+    
             
     };
     
@@ -370,12 +445,12 @@ const CoordinateInputs: React.FC = () => {
         //console.log(shapes)
         setSelectedShapeIndex(index);
         setSelectedShapeID(shapes[index].id)
-        setColorFill(shapes[index].colorfill);
-        setColorStroke(shapes[index].colorstroke);
-        setSelectedOption(shapes[index].fileOption);
-        setHeight(shapes[index].y2 - shapes[index].y1);
-        setSliderZoom(shapes[index].zoom);
-        setSliderRotation(shapes[index].rotation);
+        setColorFill(shapes[index].polygon.colorfill);
+        setColorStroke(shapes[index].polygon.colorstroke);
+        setSelectedOption(shapes[index].polygon.fileOption);
+        setHeight(shapes[index].polygon.y2 - shapes[index].polygon.y1);
+        setSliderZoom(shapes[index].polygon.zoom);
+        setSliderRotation(shapes[index].polygon.rotation);
     };
 
 //    Cambia en el editor las configuraciones del poligno seleccionado 
@@ -406,36 +481,36 @@ const CoordinateInputs: React.FC = () => {
     const draggedPolygon = updatedPolygons.find(polygon => polygon.id === polygonId);
   
     if (draggedPolygon) {
-      const dragOffsetY = e.target.y() - draggedPolygon.y1;
+      const dragOffsetY = e.target.y() - draggedPolygon.polygon.y1;
   
       if (dragOffsetY !== 0) {
         for (const targetPolygon of updatedPolygons) {
           if (targetPolygon.id !== polygonId) {
-            const heightIndex = draggedPolygon.y2 - draggedPolygon.y1;
-            const heightI = targetPolygon.y2 - targetPolygon.y1;
+            const heightIndex = draggedPolygon.polygon.y2 - draggedPolygon.polygon.y1;
+            const heightI = targetPolygon.polygon.y2 - targetPolygon.polygon.y1;
             const adjustment = dragOffsetY > 0 ? -heightIndex : heightIndex;
             const aux = dragOffsetY > 0 ? heightI : -heightI;
   
             // Arriba
-            const dragOffsetY2 = e.target.y() - targetPolygon.y1;
-            if (dragOffsetY2 < 0 && draggedPolygon.y1 >= targetPolygon.y1) {
+            const dragOffsetY2 = e.target.y() - targetPolygon.polygon.y1;
+            if (dragOffsetY2 < 0 && draggedPolygon.polygon.y1 >= targetPolygon.polygon.y1) {
               console.log("Cambio", targetPolygon.id);
   
-              targetPolygon.y1 += adjustment;
-              targetPolygon.y2 += adjustment;
+              targetPolygon.polygon.y1 += adjustment;
+              targetPolygon.polygon.y2 += adjustment;
   
-              draggedPolygon.y1 += aux;
-              draggedPolygon.y2 += aux;
+              draggedPolygon.polygon.y1 += aux;
+              draggedPolygon.polygon.y2 += aux;
             }
             // Abajo
-            else if (dragOffsetY2 > 0 && targetPolygon.y2 >= draggedPolygon.y2) {
+            else if (dragOffsetY2 > 0 && targetPolygon.polygon.y2 >= draggedPolygon.polygon.y2) {
               console.log("Cambio", targetPolygon.id);
   
-              targetPolygon.y1 += adjustment;
-              targetPolygon.y2 += adjustment;
+              targetPolygon.polygon.y1 += adjustment;
+              targetPolygon.polygon.y2 += adjustment;
   
-              draggedPolygon.y1 += aux;
-              draggedPolygon.y2 += aux;
+              draggedPolygon.polygon.y1 += aux;
+              draggedPolygon.polygon.y2 += aux;
             }
           }
         }
@@ -455,7 +530,17 @@ const CoordinateInputs: React.FC = () => {
       }else{
         copia[index].text[column].enabled = false;
       }
-        socket.send(JSON.stringify(copia[index]));  
+        //socket.send(JSON.stringify(copia[index]));  
+        sendSocket("text", index);
+
+      //   {   
+      //     action: "Shapes",
+      //     id: shapes.length,
+      //     shapes: {
+      //       text : initialTexts
+      //   }
+      //  }
+
         // socket.send(JSON.stringify(copia[index].text));  
       }
       
@@ -567,21 +652,21 @@ const CoordinateInputs: React.FC = () => {
                 />
             ))}
         <Layer>
-          
             {shapes.map((shape, index) => (
+             
                 <Polygon
                   key={index}
-                  x1={shape.x1}
-                  y1={shape.y1}
-                  x2={shape.x2}
-                  y2={shape.y2}
-                  ColorFill={shape.colorfill}
-                  ColorStroke={shape.colorstroke}
-                  Zoom={shape.zoom}
-                  Rotation={shape.rotation}
-                  Tension={shape.tension}
-                  File={shape.file}
-                  circles={shape.circles}
+                  x1={shape.polygon.x1}
+                  y1={shape.polygon.y1}
+                  x2={shape.polygon.x2}
+                  y2={shape.polygon.y2}
+                  ColorFill={shape.polygon.colorfill}
+                  ColorStroke={shape.polygon.colorstroke}
+                  Zoom={shape.polygon.zoom}
+                  Rotation={shape.polygon.rotation}
+                  Tension={shape.polygon.tension}
+                  File={shape.polygon.file}
+                  circles={shape.polygon.circles}
                   setCircles={(circles, send) => setCircles(index, circles,send, socket)}
                   onClick={() => handleShapeClick(index)}
                   //onDrag={() => {
@@ -595,10 +680,10 @@ const CoordinateInputs: React.FC = () => {
                 key={index}
                 //x={shape.x1} // lado izquerdo poligono
                 //y={shape.y1}
-                x={shape.x1}
-                y={shape.y1}
+                x={shape.polygon.x1}
+                y={shape.polygon.y1}
                 width={80}
-                height={shape.y2 - shape.y1}
+                height={shape.polygon.y2 - shape.polygon.y1}
                // height={shape.x2-shape.x1}
                // fill="yellow"
                 opacity={0.5}
@@ -607,7 +692,7 @@ const CoordinateInputs: React.FC = () => {
                 onDragStart={() => dragStart(shape.id)}
                 onDragMove={(e) => {
                     handleContainerDrag(shape.id, e); 
-                    e.target.y(shape.y1);
+                    e.target.y(shape.polygon.y1);
                 }}
                 // onDragEnd={() => {
                 //   if(dragItem.current !== dragOverItem.current)  
