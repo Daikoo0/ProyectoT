@@ -79,8 +79,19 @@ const CoordinateInputs: React.FC = () => {
   useEffect(() => {
     const newSocket = new WebSocket(`ws://localhost:3001/ws/${project}`);
     setSocket(newSocket);
+    newSocket.onopen = () => {
+      console.log('WebSocket is open');
+    };
+
+    newSocket.onclose = () => {
+      console.log('WebSocket is closed. Reconnect will be attempted in 1 second.');
+      setTimeout(() => {
+        setSocket(new WebSocket(`ws://localhost:3001/ws/${project}`));
+      }, 1000);
+    };
 
     return () => {
+
       newSocket.close();
     };
   }, [project]);
