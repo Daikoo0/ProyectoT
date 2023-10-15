@@ -186,7 +186,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
 					
 					response := make(map[string]interface{})
-					response["Action"] = "delete"
+					response["action"] = "delete"
 					response["ID"] = id
 
 					responseJSON, err := json.Marshal(response)
@@ -198,7 +198,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON,))
 						if err != nil {
 							log.Println(err)
-							break
 						}
 					}
 
@@ -212,7 +211,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
 					data["text"] = dataMap["text"]
 					response := make(map[string]interface{})
-					response["Action"] = "shapes"
+					response["action"] = "shapes"
 					response["ID"] = id
 					response["shapes"] = dataMap["shapes"]
 
@@ -225,7 +224,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						if err != nil {
 							log.Println(err)
-							break
 						}
 					}
 				}
@@ -238,7 +236,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					data["polygon"] = dataMap["polygon"]
 
 					response := make(map[string]interface{})
-					response["Action"] = "polygon"
+					response["action"] = "polygon"
 					response["ID"] = id
 					response["polygon"] = dataMap["polygon"]
 
@@ -251,7 +249,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						if err != nil {
 							log.Println(err)
-							break
 						}
 					}
 
@@ -273,7 +270,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
 						
 						response := make(map[string]interface{})
-						response["Action"] = "delete"
+						response["action"] = "delete"
 						response["ID"] = id
 
 						responseJSON, err := json.Marshal(response)
@@ -285,7 +282,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 							if err != nil {
 								log.Println(err)
-								break
 							}
 						}
 					}else{
@@ -293,7 +289,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							err = client.WriteMessage(websocket.TextMessage, []byte(tempMsg))
 							if err != nil {
 								log.Println(err)
-								break
+	
 							}
 						}
 					}
@@ -315,7 +311,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					id := int(dataMap["id"].(float64))
 					response := make(map[string]interface{})
-					response["Action"] = "delete"
+					response["action"] = "delete"
 					response["ID"] = id
 
 					jsonBytes, err := json.Marshal(dataMap)
