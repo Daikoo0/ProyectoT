@@ -77,7 +77,7 @@ const CoordinateInputs: React.FC = () => {
     newSocket.onclose = () => {
       console.log('reconecting... Reconnect will be attempted in 1 second.');
       setTimeout(() => {
-        setSocket(new WebSocket('ws://your-websocket-url'));
+        setSocket(new WebSocket(`ws://localhost:3001/ws/${project}`));
       }, 1000);
     };
 
@@ -90,9 +90,9 @@ const CoordinateInputs: React.FC = () => {
     if (socket) { 
       // Recibe la información del socket
       socket.onmessage = (event) => {
-        console.log(event.data);
+        //console.log(event.data);
         const shapeN = JSON.parse(event.data);
-        console.log(shapeN)
+        //console.log(shapeN)
 
         // action='añadir', id, polygon, text
         if(shapeN.action === 'añadir'){
@@ -108,7 +108,7 @@ const CoordinateInputs: React.FC = () => {
           );
           
         // action='text', id, text
-        }else if(shapeN.action === 'text'){
+        }else if(shapeN.action === 'text'){ 
           setShapes(prevShapes => 
             prevShapes.map(shape => 
                 shape.id === shapeN.id ? { ...shape, text: shapeN.text } : shape
@@ -119,49 +119,8 @@ const CoordinateInputs: React.FC = () => {
         }else if(shapeN.action === 'delete'){
           setShapes(prevShapes => 
             prevShapes.filter(shape => shape.id !== shapeN.id)
-        );
+          );
         }
-
-
-        // if(shapeN.action !== "delete"){
-        //   setShapes(currentShapes => {
-        //     const existingShapeIndex = currentShapes.findIndex(s => s.id === shapeN.id);
-        //     if (existingShapeIndex > -1) {
-        //       // Si el cuadrado ya existe, actualizamos su posición en lugar de agregar un nuevo cuadrado
-        //       const updatedSquares = [...currentShapes];
-        //       updatedSquares[existingShapeIndex] = shapeN;
-        //       return updatedSquares;
-        //     } else {
-        //       // Si el cuadrado no existe, lo agregamos
-        //       return [...currentShapes, shapeN];
-        //     }
-        //   });
-
-        // }else{
-        //   // Eliminar la figura
-        //   setShapes((currentShapes) => {
-        //     // Elimina el polígono seleccionado
-        //     const remainingShapes = currentShapes.filter((s) => s.id !== shapeN.id);
-
-        //     console.log(shapes[selectedShapeIndex].polygon.y1)
-        //     console.log(shapeN.polygon.y1, shapeN.polygon.y2)
-
-        //     const shapeHeight = shapeN.polygon.y2 - shapeN.polygon.y1;
-            
-        //     const adjustedShapes = remainingShapes.map((shape) => {
-        //       if (shape.polygon.y1 > shapeN.polygon.y1) {
-        //         shape.polygon.y1 -= shapeHeight;
-        //       }
-        //       if (shape.polygon.y2 > shapeN.polygon.y1) {
-        //         shape.polygon.y2 -= shapeHeight;
-        //       }
-        //       return shape;
-        //     });
-        
-        //     return adjustedShapes;
-        //   });
-          
-        // }
       };
       //use efect mio detecta si se presiona el control Z
       const handleKeyDown = (event) => {
@@ -190,8 +149,6 @@ const CoordinateInputs: React.FC = () => {
             y2: Math.max(maxCoords.y2, objeto.polygon.y2),
           };
         }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
-
-    //    console.log('Useeffedd',coordA)
         
         //const lastPolygon = shapes[shapes.length-1];  
         //const lastPolygon = shapes.find(objeto => objeto.y2 === coordA.y2);
@@ -202,6 +159,26 @@ const CoordinateInputs: React.FC = () => {
     },[shapes]);
   
     //---------------// EVENTOS //---------------//
+    // Evento de save undo delete
+    // Evento undo
+    const HandleUndo = () => {
+      console.log("deshacer")
+      socket.send(JSON.stringify({action:"undo"}));  
+    };
+
+    // Evento save
+    const HandleSave = () => {
+      console.log("guardando..")
+      socket.send(JSON.stringify({action:"save"}));
+      //socket.send(JSON.stringify({action:"delete", id: selectedShapeID}));
+    };
+
+    // Evento delete
+    const HandleDelete = () => {
+      socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
+  
+    }
+
     //---------// SLIDER //---------//
     // Evento del slider de zoom 
     const handleSliderZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,25 +190,6 @@ const CoordinateInputs: React.FC = () => {
           setShapes(updatedShapes);
         }
     };
-
-    // Evento mio sjdjsjda es pal control Z
-    const HandleUndo = () => {
-      console.log("deshacer")
-      socket.send(JSON.stringify({action:"undo"}));  
-    };
-
-    // Evento mio sjdjsjda es para guardar los cambios
-    const HandleSave = () => {
-      console.log("guardando..")
-      socket.send(JSON.stringify({action:"save"}));
-      //socket.send(JSON.stringify({action:"delete", id: selectedShapeID}));
-    };
-
-    // Evento para eliminar
-    const HandleDelete = () => {
-      socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
-  
-    }
 
     // Evento de slider de rotacion
     const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,12 +283,10 @@ const CoordinateInputs: React.FC = () => {
       //console.log(polygonsintext)
       //console.log(text)
       if(send === "polygon"){
-        const send = {
-          action: "polygon",
-          ...polygonsintext,
-        }
-        //console.log(send)
-        socket.send(JSON.stringify(send));
+        polygonsintext.action = "polygon"
+
+        console.log(polygonsintext)
+        socket.send(JSON.stringify(polygonsintext));
       }
       else if(send === "text"){
         const send ={
@@ -449,7 +405,7 @@ const CoordinateInputs: React.FC = () => {
     
     // Cambia en el editor las configuraciones del poligno seleccionado 
     const handleShapeClick = (index) => {
-        //console.log(shapes)
+        console.log(shapes)
         setSelectedShapeIndex(index);
         setSelectedShapeID(shapes[index].id)
         setColorFill(shapes[index].polygon.colorfill);

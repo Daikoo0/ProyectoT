@@ -187,7 +187,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					
 					response := make(map[string]interface{})
 					response["action"] = "delete"
-					response["ID"] = id
+					response["id"] = id
 
 					responseJSON, err := json.Marshal(response)
 					if err != nil {
@@ -201,7 +201,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						}
 					}
 
-
 				}
 				if dataMap["action"] == "text"{
 					id := int(dataMap["id"].(float64))
@@ -211,9 +210,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
 					data["text"] = dataMap["text"]
 					response := make(map[string]interface{})
-					response["action"] = "shapes"
-					response["ID"] = id
-					response["shapes"] = dataMap["shapes"]
+					response["action"] = "text"
+					response["id"] = id
+					response["text"] = dataMap["text"]
+					//log.Println(dataMap["text"])
 
 					responseJSON, err := json.Marshal(response)
 					if err != nil {
@@ -229,15 +229,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				}
 
 				if dataMap["action"] == "polygon"{
+					log.Println("olaa")
 					id := int(dataMap["id"].(float64))
 					log.Println("Editando polygon capa %s", id)
 					var data map[string]interface{}
 					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
 					data["polygon"] = dataMap["polygon"]
+					log.Println(data["polygon"])
 
 					response := make(map[string]interface{})
 					response["action"] = "polygon"
-					response["ID"] = id
+					response["id"] = id
 					response["polygon"] = dataMap["polygon"]
 
 					responseJSON, err := json.Marshal(response)
@@ -245,8 +247,16 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("Error al convertir a JSON:", err)
 					}
 					
+					tempJSON, err := json.Marshal(data)
+						if err != nil {
+							log.Println("Error al convertir a JSON:", err)
+						}
+					rooms[roomName].Data[id] = string(tempJSON)
+					log.Println(rooms[roomName].Data[id])
+					
 					for _, client := range proyect.Active {
 						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+						log.Println(string(responseJSON))
 						if err != nil {
 							log.Println(err)
 						}
@@ -337,9 +347,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					for _, client := range proyect.Active {
 						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-						if err != nil {
-							break
-						}
 					}
 				}
 				

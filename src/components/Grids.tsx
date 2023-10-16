@@ -12,7 +12,7 @@ const Grid = ({ polygon, setText, text}) => {
 
   const cells = [];
   const columnRefs = {};
-  console.log(text)
+  //console.log(text)
 
   const handleDoubleClick = (textRef,column,vertical) => {
     if (textRef.current) {
