@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Stage, Layer, Rect, Shape } from 'react-konva';
+import { Stage, Layer, Rect, Shape, Image } from 'react-konva';
 import { useParams } from 'react-router-dom';
 
 //import ShapeComponent from './shape';
@@ -8,6 +8,8 @@ import Json from '../lithologic.json';
 import Polygon from './Polygon';
 import Grid from './Grids';
 import './Editor.css';
+import useImage from 'use-image';
+import fosilJson from '../fossil.json';
 
 const CoordinateInputs: React.FC = () => { 
 
@@ -68,6 +70,73 @@ const CoordinateInputs: React.FC = () => {
     const { project } = useParams();
    
     const [socket, setSocket] = useState<WebSocket | null>(null);
+
+    const Sidebar = () => {
+      const [isOpen, setIsOpen] = useState(false);
+    
+      const toggleSidebar = () => {
+        setIsOpen(!isOpen);
+      };
+    
+      return (
+        <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+          
+          <button id="toggle" className={`btn btn-toggle btn-primary`} onClick={toggleSidebar}>
+            <img src={`../src/assets/fosiles/3.svg`} alt=''></img>
+          </button>
+
+          <div id="controls-sidebar">
+            <p>Seleccionar opción de Pattern: </p>
+            <select value={selectedOption} onChange={handleOptionChange}>
+            {Object.keys(Json).map(option => (
+                <option key={option} value={option}>{option}</option>
+            ))}
+            </select>
+            
+            <p>Seleccionar color Fill: </p>
+            <input type="color" value={ColorFill} onChange={handleColorChangeFill} />
+            <p>Seleccionar color Stroke: </p>
+            <input type="color" value={ColorStroke} onChange={handleColorChangeStroke} />
+        
+        <p>Tension de lineas: {sliderTension}</p>
+          <input
+            type="range"
+            min={0}
+            max={2.5}
+            step={0.1}
+            value={sliderTension}
+            onChange={handleSliderTension}
+            onMouseUp={SliderDrop}
+          />
+         
+            <p>Cambiar alto de capa seleccionada: </p>
+            <input type="number" value={height} onChange={handleChangeHeight}/>
+     
+          <p>Valor Zoom: {sliderZoom}</p>
+          <input
+            type="range"
+            min={50}
+            max={300}
+            value={sliderZoom}
+            onChange={handleSliderZoom}
+            onMouseUp={SliderDrop}
+          />
+       
+          <p>Valor Rotacion: {sliderRotation}</p>
+          <input
+            type="range"
+            min={0}
+            max={180}
+            value={sliderRotation}
+            onChange={handleSliderRotation}
+            onMouseUp={SliderDrop}
+          />
+        
+            
+        </div>
+        </div>
+      );
+    };
 
   // Instancia del socket cuando se monta el componente
   useEffect(() => {
@@ -506,103 +575,148 @@ const CoordinateInputs: React.FC = () => {
 
         // socket.send(JSON.stringify(copia[index].text));  
       }
+    }
+
+      const [isListOpen, setIsListOpen] = useState(false);
+
+  const handleListToggle = () => {
+    setIsListOpen(!isListOpen);
+  };
+
+  const URLImage = ({ image }) => {
+    const [img] = useImage(image.src);
+    return (
+      <Image
+        image={img}
+        x={image.x}
+        y={image.y}
+        offsetX={img ? img.width / 2 : 0}
+        offsetY={img ? img.height / 2 : 0}
+        width={50}
+        height={60}
+        draggable
+      />
+    );
+  };
+  
+    const dragUrl = React.useRef(null);
+    const stageRef = React.useRef(null);
+    const [imageFosils, setImageFosils] = React.useState([]);
+  
+    // Seleccion de patron / Pattern
+    const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
+  
+    const handleOptionChangeF = (event: React.ChangeEvent<HTMLSelectElement>) => {
+      setSelectedFosil(String(event.target.value));
+      console.log(event.target.value)
+    };
       
-  }
+  
 
     return (
       <div id="Editor">
-         <div id="sidebar">
+         <Sidebar/>
+         <div id="sidebar-top">
          <div id="controls">
-         <div className='a'>
-                <button onClick={HandleSave}>Guardar Cambios</button><br></br>
-                <button onClick={handleAddShape}>Agregar Figura</button><br></br>
-                <button onClick={HandleUndo}>Deshacer</button><br></br>
-                <button onClick={HandleDelete}>Eliminar</button>
-        </div>
-        <div className='a'>
-            <label>Seleccionar opción de Pattern: </label>
-            <select value={selectedOption} onChange={handleOptionChange}>
-            {Object.keys(Json).map(option => (
-                <option key={option} value={option}>{option}</option>
-            ))}
-            </select>
-            <label>Seleccionar color Fill: </label>
-            <input type="color" value={ColorFill} onChange={handleColorChangeFill} />
-            <label>Seleccionar color Stroke: </label>
-            <input type="color" value={ColorStroke} onChange={handleColorChangeStroke} />
-        </div>
-        
-        <div className='a'>
-        <p>Tension de lineas: {sliderTension}</p>
-          <input
-            type="range"
-            min={0}
-            max={2.5}
-            step={0.1}
-            value={sliderTension}
-            onChange={handleSliderTension}
-            onMouseUp={SliderDrop}
-          />
-         
-            <label>Cambiar alto de capa seleccionada: </label>
-            <input type="number" value={height} onChange={handleChangeHeight}/>
-        </div>
-        <div className='a'>
-          <p>Valor Zoom: {sliderZoom}</p>
-          <input
-            type="range"
-            min={50}
-            max={300}
-            value={sliderZoom}
-            onChange={handleSliderZoom}
-            onMouseUp={SliderDrop}
-          />
-       
-          <p>Valor Rotacion: {sliderRotation}</p>
-          <input
-            type="range"
-            min={0}
-            max={180}
-            value={sliderRotation}
-            onChange={handleSliderRotation}
-            onMouseUp={SliderDrop}
-          />
-        
-        </div>
-         <div className='a'>
-              {
-              
-              Object.keys(initialTexts).map((key) => {
+
+         <div className='a'> <button onClick={HandleSave}>Guardar Cambios</button></div>
+          <div className='a'> <button onClick={handleAddShape}>Agregar Figura</button> </div>
+          <div className='a'> <button onClick={HandleUndo}>Deshacer</button></div>
+          <div className='a'><button onClick={HandleDelete}>Eliminar</button></div>
+          <div className='a'>
+          <button onClick={handleListToggle}>
+            {isListOpen ? 'Cerrar' : 'Abrir Lista'}
+          </button>
+          {isListOpen && (
+            <ul>
+              {Object.keys(initialTexts).map((key) => {
+                const item = initialTexts[key];
                 if(shapes.length>0)
-            {      const item = initialTexts[key];
+                { 
+                if (item.optional) {
+                  return (
+                    <li key={key}>
+                      <div style={{ display: 'flex' }}>
+                        <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
+                          {key}
+                        </label>
+                        <input
+                          type="checkbox"
+                          id={key}
+                          name={key}
+                          checked={shapes[0].text[key].enabled}
+                          onChange={(e) => handleCheckBox(e, key)}
+                        />
+                      </div>
+                    </li>
+                  );
+                }
+                return null;}else{
+                  const item = initialTexts[key];
                   if (item.optional) {
                     return (
-                      <div key={key} style={{display:'flex'}}>
-                        <label htmlFor={key} style={{ whiteSpace: 'nowrap'}}>{key}</label>
-                        <input type="checkbox" id={key} name={key} checked={shapes[0].text.enabled}
-                        onChange={(e) => handleCheckBox(e,key)}/>
-                      </div>
+                      <li key={key}>
+                        <div style={{ display: 'flex' }}>
+                          <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
+                            {key}
+                          </label>
+                          <input
+                            type="checkbox"
+                            id={key}
+                            name={key}
+                            defaultChecked={true}
+                            onChange={(e) => handleCheckBox(e, key)}
+                          />
+                        </div>
+                      </li>
                     );
                   }
-                  return null; // No renderizar el checkbox si optional es false}
-            }else{
-              const item = initialTexts[key];
-              if (item.optional) {
-                return (
-                  <div key={key} style={{display:'flex'}}>
-                    <label htmlFor={key} style={{ whiteSpace: 'nowrap'}}>{key}</label>
-                    <input type="checkbox" id={key} name={key} checked={true} />
-                  </div>
-                );
-              }
-              return null; 
-              
-            }
-          })}
-        </div> 
+                  return null; 
+                  
+                }
+              })}
+            </ul>
+          )}
+          </div>
+
+          <div className='a'>
+          <label>Seleccionar opción de fósil: </label>
+        <select value={selectedFosil} onChange={handleOptionChangeF}>
+        {Object.keys(fosilJson).map(option => (
+            <option key={option} value={option}>{option}</option>
+        ))}
+        </select>
+      
+      
+      <img
+        alt="lion"
+        src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`}
+        draggable="true"
+        onDragStart={(e) => {
+            
+          dragUrl.current = "../src/assets/fosiles/"+fosilJson[selectedFosil]+".svg";
+          console.log(selectedFosil)
+        }}
+      />
+      </div>
+      <div
+        onDrop={(e) => {
+          e.preventDefault();
+          stageRef.current.setPointersPositions(e);
+          setImageFosils(
+            imageFosils.concat([
+              {
+                ...stageRef.current.getPointerPosition(),
+                src: dragUrl.current,
+              },
+            ])
+          );
+        }}
+        onDragOver={(e) => e.preventDefault()}
+      >
+      </div>
         </div>
         </div>
-    
         <div id="gridContainer">
 
         <Stage width={2000} height={window.innerHeight}>
@@ -657,47 +771,12 @@ const CoordinateInputs: React.FC = () => {
                     handleContainerDrag(shape.id, e); 
                     e.target.y(shape.polygon.y1);
                 }}
-                // onDragEnd={() => {
-                //   if(dragItem.current !== dragOverItem.current)  
-                //     {
-                //       const copyListItems = [...shapes];
-                //       const dragItemContent = copyListItems[dragItem.current];
-                //       copyListItems.splice(dragItem.current, 1);
-                //       copyListItems.splice(dragOverItem.current, 0, dragItemContent);
-                //       setShapes(copyListItems);
-                //       dragItem.current = null;
-                //       dragOverItem.current = null;
-                //     }
-                // }}
                 dragBoundFunc={(pos) => ({
                     x: 100,
                     y: pos.y, 
                 })}
               />
             ))} 
-            
-           {/* {shapes.map((shape, index) => (
-                <ShapeComponent
-                  key={index}
-                  x={shape.x}
-                  y={shape.y}
-                  ColorFill={shape.colorfill}
-                  ColorStroke={shape.colorstroke}
-                  File = {shape.file}
-                  onClick={() => handleShapeClick(index)}
-                  onDrag={(pos) => {handleShapeonDrag(index, pos)}}
-                />
-            ))}    */}
-           {/* {shapes.map((shape, index) => (
-                <Konva
-                  key={index}
-                  ColorFill={shape.colorfill}
-                  ColorStroke={shape.colorstroke}
-                  File = {shape.file}
-                  onClick={() => handleShapeClick(index)}
-                  onDrag={(pos) => {handleShapeonDrag(index, pos)}}
-                />
-            ))} */}
         </Layer>
         </Stage>
         </div>
