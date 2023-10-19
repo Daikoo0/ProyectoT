@@ -1,7 +1,7 @@
 #Editor {
   display: flex;
   left: 0;
-  background-color: #B4BEC9;
+
   /*background-color: #1f1f29;*/
 }
 
@@ -31,31 +31,9 @@
 }
 
 
-#controls input[type="number"],
-#controls select,
-#controls input[type="color"],
-#controls button,
-#controls input[type="number"],
-#controls select,
-#controls input[type="range"],
-#controls input[type="color"],
-#controls input[type="checkbox"] 
-{
-  width: 150px;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: none;
-}
-
 #controls label {
   display: block;
   color: white;
-}
-
-#controls button {
-  background-color: #4caf50;
-  cursor: pointer;
-  margin-left: 5px;
 }
 
  

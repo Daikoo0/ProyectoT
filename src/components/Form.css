@@ -1,12 +1,9 @@
-/* src/styles.css */
-
 body {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
   margin: 0;
-  background-color: #ffffff; /* Fondo blanco */
 }
 
 .login-container {
@@ -47,20 +44,6 @@ input {
   color: #000; /* Color de texto negro */
 }
 
-button {
-  margin-top: 10px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  color: #fff; /* Color de texto blanco */
-}
-
-button:hover {
-  background-color: #0056b3;
-}
 
 
 

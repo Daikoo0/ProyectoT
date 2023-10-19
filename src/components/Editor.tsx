@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Rect, Shape, Image } from 'react-konva';
 import { useParams } from 'react-router-dom';
-
+import {useTheme} from '../Context/theme-context';
 //import ShapeComponent from './shape';
 //import Konva from './konva';
 import Json from '../lithologic.json';
@@ -13,7 +13,7 @@ import fosilJson from '../fossil.json';
 
 const CoordinateInputs: React.FC = () => { 
 
- 
+  const { isDarkMode, toggleTheme } = useTheme();
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
@@ -616,7 +616,9 @@ const CoordinateInputs: React.FC = () => {
          <Sidebar/>
          <div id="sidebar-top">
          <div id="controls">
-
+         <div> 
+          <button onClick={toggleTheme}>Cambiar a {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
+         </div>
          <div className='a'> <button onClick={HandleSave}>Guardar Cambios</button></div>
           <div className='a'> <button onClick={handleAddShape}>Agregar Figura</button> </div>
           <div className='a'> <button onClick={HandleUndo}>Deshacer</button></div>
