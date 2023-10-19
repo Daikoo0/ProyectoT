@@ -33,10 +33,7 @@ const CoordinateInputs: React.FC = () => {
 
     // contenido inicial de las columnas
     const [initialTexts] = useState({
-      'Arcilla' :   { content: "vacío", optional : false, vertical : false, enabled : true},
-      'Limo' :      { content: "vacío", optional : false, vertical : false, enabled : true},
-      'Arena' :     { content: "vacío", optional : false, vertical : false, enabled : true},
-      'Grava' :     { content: "vacío", optional : false, vertical : false, enabled : true},
+      'Arcilla-Limo-Arena-Grava' :     { content: "vacío", optional : false, vertical : false, enabled : true},
       'Sistema' :   { content: "vacío", optional : true, vertical : true, enabled : true},
       'Edad' :      { content: "vacío", optional : true, vertical : true, enabled : true},
       'Formación' : { content: "vacío", optional : true, vertical : true, enabled : true},
@@ -81,11 +78,12 @@ const CoordinateInputs: React.FC = () => {
       return (
         <div className={`sidebar ${isOpen ? 'open' : ''}`}>
           
+         
+
+          <div id="controls-sidebar">
           <button id="toggle" className={`btn btn-toggle btn-primary`} onClick={toggleSidebar}>
             <img src={`../src/assets/fosiles/3.svg`} alt=''></img>
           </button>
-
-          <div id="controls-sidebar">
             <p>Seleccionar opción de Pattern: </p>
             <select value={selectedOption} onChange={handleOptionChange}>
             {Object.keys(Json).map(option => (
@@ -717,9 +715,9 @@ const CoordinateInputs: React.FC = () => {
       </div>
         </div>
         </div>
-        <div id="gridContainer">
+        <div id="gridContainer" >
 
-        <Stage width={2000} height={window.innerHeight}>
+        <Stage width={window.innerWidth} height={window.innerHeight}>
             {shapes.map((shape,index) => (
                 <Grid
                   key={index} 

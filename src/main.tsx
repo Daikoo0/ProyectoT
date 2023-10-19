@@ -1,12 +1,15 @@
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider} from 'react-router-dom'
-import './index.css'
+//import './index.css'
 
 import Editor from './components/Editor.tsx'
 import Login from './components/Login.tsx'
 import Register from './components/Register.tsx'
 import Home from './components/Home.tsx'
 import Shape from './components/shape.tsx'
+import App from './App.tsx'
+import { ThemeProvider } from './Context/theme-context.tsx'
+
 
 import AddUserToRoom from "./components/Invite.user.tsx"
 import ParticipantForm from "./components/create.proyect.tsx"
@@ -44,20 +47,18 @@ const router = createBrowserRouter([
   {
     path: "/image",
     element: <Shape />,
+  },
+  {
+    path: "/app",
+    element: <App />,
   }
  
-  /*{
-    path: "/example",
-    element: <Example />,
-  }*/
-
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-//  <React.StrictMode>
-<div>
-   
-    <RouterProvider router={router} />
-    </div>
-  //</React.StrictMode>,
+  <div>
+    <ThemeProvider> 
+      <RouterProvider router={router}/>
+    </ThemeProvider>
+  </div>
 )

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './Form.css';
+//import './Form.css';
 
 const ParticipantForm = () => {
   //esta ruta lo que hace es generar una nueva room

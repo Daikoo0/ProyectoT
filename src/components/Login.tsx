@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
+import {useTheme} from '../Context/theme-context';
 import './Form.css';
 
 function Login() {
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -43,6 +45,9 @@ function Login() {
 
   return (
     <div className="login-container">
+      <div> 
+      <button onClick={toggleTheme}>Cambiar a {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
+      </div>
       <h2>Iniciar Sesión</h2>
       <form>
         <div className="form-group">

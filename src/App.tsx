@@ -1,14 +1,20 @@
-import './App.css'
+import React from 'react';
+import { useTheme } from './Context/theme-context';
+//import './App.css'; 
 
-function App() {
+const App: React.FC = () => {
+
+  const { isDarkMode, toggleTheme } = useTheme();
 
   return (
-    <>
-      <p className="read-the-docs">
-        Vite and React 
-      </p>
-    </>
-  )
+    <div className="App">
+      <header className="App-header">
+        <div> 
+          <button onClick={toggleTheme}>Cambiar a {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
+        </div>
+      </header>
+    </div>
+  );
 }
 
-export default App
+export default App;

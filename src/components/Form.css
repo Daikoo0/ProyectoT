@@ -6,7 +6,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: 0;
-  background-color: #fff; /* Fondo blanco */
+  background-color: #ffffff; /* Fondo blanco */
 }
 
 .login-container {
@@ -61,3 +61,6 @@ button {
 button:hover {
   background-color: #0056b3;
 }
+
+
+

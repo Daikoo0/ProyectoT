@@ -1,6 +1,6 @@
 import React from 'react';
 import { Rect, Layer, Text } from 'react-konva';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Konva from 'konva';
 
 
@@ -12,7 +12,6 @@ const Grid = ({ polygon, setText, text}) => {
 
   const cells = [];
   const columnRefs = {};
-  //console.log(text)
 
   const handleDoubleClick = (textRef,column,vertical) => {
     if (textRef.current) {
@@ -22,57 +21,50 @@ const Grid = ({ polygon, setText, text}) => {
 
       const textPosition = textRef.current.getAbsolutePosition();
       const stageBox = stage.container().getBoundingClientRect();
+      console.log(stageBox,textPosition);
       var areaPosition;
 
       if(vertical){
          areaPosition = {
-          x: stageBox.left + textPosition.x,
+          x: stageBox.left + textPosition.x +150,
           y: stageBox.top + textPosition.y-100,
         };
       }else{
         areaPosition = {
-          x: stageBox.left + textPosition.x,
+          x: stageBox.left + textPosition.x+150,
           y: stageBox.top + textPosition.y,
         };
       }
 
+
       const textarea = document.createElement('textarea');
       document.body.appendChild(textarea);
-
-      textarea.value = textRef.current.text();
-      textarea.style.position = 'absolute';
-      textarea.style.top = areaPosition.y + 'px';
-      textarea.style.left = areaPosition.x + 'px';
-      textarea.style.width = cellSize+'px';
-      textarea.style.height = cellHeight+'px';
-      textarea.style.fontSize = textRef.current.fontSize() + 'px';
-      textarea.style.border = 'none';
-      textarea.style.padding = '0px';
-      textarea.style.margin = '0px';
-      textarea.style.overflow = 'hidden';
-      textarea.style.background = 'none';
-      textarea.style.overflow = 'auto';
-      textarea.style.outline = 'none';
-      textarea.style.resize = 'none';
-      textarea.style.fontFamily = textRef.current.fontFamily();
-      textarea.style.transformOrigin = 'left top';
-      textarea.style.textAlign = textRef.current.align();
-      textarea.style.color = textRef.current.fill();
-
-      textarea.focus();
+       textarea.value = textRef.current.text();
+       textarea.style.position = 'absolute';
+       textarea.style.top = stageBox.top + polygon.polygon.y1+ 'px';
+       textarea.style.left =  stageBox.left + textRef.current.getAbsolutePosition().x + 'px';
+       textarea.style.width = cellSize -2 +'px';
+       textarea.style.height = cellHeight -2 +'px';
+       textarea.style.background = 'none';
+       textarea.style.overflow = 'auto';
+       textarea.style.color = textRef.current.fill();
+       if(vertical){
+        textarea.style.transform = 'rotate(270deg)';
+       // textarea.style.top = areaPosition.y + cellSize-1 + 'px';
+        textarea.style.width = polygon.polygon.height
+      }
+     textarea.focus();
 
       textarea.addEventListener('blur', (e) => {
-        if(vertical){
-          textarea.style.transform = 'rotate(270deg)';
-          textarea.style.top = areaPosition.y + cellSize-1 + 'px';
-          textarea.style.width = polygon.polygon.height
-        }
+          
           const copia = { ...text };
-          copia[column] = textarea.value;
+          copia[column].content = textarea.value;
           console.log(textRef.current.text());
           setText(copia,true);
           textRef.current!.text(textarea.value);
           stage.batchDraw();
+          document.body.removeChild(textarea);
+          textRef.current.show();
       });
     }
   };
@@ -90,9 +82,9 @@ const Grid = ({ polygon, setText, text}) => {
     />
   );
 
-  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Arcilla', 'Limo', 'Arena', 'Grava','Facie','Ambiente depositacional','Descripción','Estructuras y/o fósiles'];
+  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Arcilla-Limo-Arena-Grava','Facie','Ambiente depositacional','Descripción','Estructuras y/o fósiles'];
 
-//  const additionalColumns = Object.keys(text).filter(key => text[key].enabled === true);
+  //const additionalColumns = Object.keys(text).filter(key => text[key].enabled === true);
 
   let xOffset = marginLeft + polygonColumnWidth;
   additionalColumns.forEach((column, index) => {
@@ -160,12 +152,15 @@ const Grid = ({ polygon, setText, text}) => {
 
   // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
   additionalColumns.forEach((column) => {
+
   
    if (!columnRefs[column]) {
     columnRefs[column] = useRef(null);
    }
 
-  if(text[column].vertical && text[column].enabled){
+   if(text[column].enabled){
+
+  if(text[column].vertical){
       cells.push(
           <Text 
             ref={columnRefs[column]}
@@ -185,7 +180,7 @@ const Grid = ({ polygon, setText, text}) => {
 
   }
   
-  if(!text[column].vertical && text[column].enabled){
+  if(!text[column].vertical){
 
     cells.push(
       <Text 
@@ -203,10 +198,10 @@ const Grid = ({ polygon, setText, text}) => {
   );
 
   xOffset += cellSize;
+  }   
   }
-      
-  }
-  
+}
+
   );
 
   return (

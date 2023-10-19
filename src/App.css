@@ -40,3 +40,15 @@
 .read-the-docs {
   color: #888;
 }
+
+body.light-mode {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  /* otros estilos para el tema claro */
+}
+
+body.dark-mode {
+  --background-color: #000000;
+  --text-color: #ffffff;
+  /* otros estilos para el tema oscuro */
+}
