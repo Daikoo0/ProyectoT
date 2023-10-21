@@ -1,45 +1,59 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
     
-    const [proyectos] = useState([]);
+    const [proyectos, setProyectos] = useState([]);
+    const navigate = useNavigate();
 
     async function fetchData() {
-     /*   try {
-                const response = await fetch("http://localhost:3001/Users", {
-                method: "GET",
-                headers: {
-                "Content-Type": "application/json"
-        },
-        credentials: "include",
-      });
-
-        const data = await response.json();
-        setProyectos(data); // Actualiza el estado con los datos obtenidos
-        } catch (error) {
-        console.error('Error al obtener datos:', error);
-        }*/
-    };
-
+      try {
+          const response = await fetch("http://localhost:3001/users/", {
+              method: "GET",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              credentials: "include",
+          });
+  
+          const result = await response.json(); 
+          console.log('Datos recibidos:', result);
+  
+          if (result.Proyects && Array.isArray(result.Proyects)) {
+              setProyectos(result.Proyects);
+          } else {
+              throw new Error("No se encontraron proyectos o los datos no están en el formato esperado.");
+          }
+      } catch (error) {
+          console.error('Error al obtener datos:', error);
+          
+      }
+  };
+  
+  
     useEffect(() => {
          fetchData();
-    },[proyectos]);
-  
+    },[]);
 
-  return (
-    <div>
-      <h1> Proyectos del usuario</h1>
-      <ul>
-        {proyectos.map((proyecto) => (
-          <li key={proyecto.id}>
-            <h2>{proyecto.nombre}</h2>
-            <p>{proyecto.descripcion}</p>
-          </li>
+    const handleEdit = (sala) => {
+      navigate(`/editor/${sala}`); 
+    };
+  
+    return (
+      <div>
+      <h1>Proyectos del usuario</h1>
+      <div className="contenedor-proyectos-scroll">
+        {proyectos.map((proyecto, index) => (
+          <div key={index} className="proyecto">
+            <span>{proyecto}</span>
+            <button onClick={() => handleEdit(proyecto)}>Editar</button>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
-  );
-};
+    );
+  };
+
 
 export default Home;

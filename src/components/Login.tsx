@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import {useTheme} from '../Context/theme-context';
+import { useNavigate } from "react-router-dom";
 import './Form.css';
 
 function Login() {
@@ -8,6 +8,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const { isDarkMode, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -35,7 +36,8 @@ function Login() {
       console.log(response.status, data);
 
       if(response.status===200){
-        setMessage("Sesión iniciada")
+        setMessage("Sesión iniciada");
+        navigate('/home'); 
       }
       else{
         setMessage("Usuario o contraseña incorrecta")

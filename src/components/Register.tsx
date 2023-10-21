@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 //import './Form.css';
 
 function Register() {
@@ -7,6 +8,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [username, setUserName] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -39,6 +41,7 @@ function Register() {
 
       if(response.status===201){
         setMessage("Usuario creado")
+        navigate('/');
       }else
       if(response.status===409){
         setMessage("Este usuario ya existe")
