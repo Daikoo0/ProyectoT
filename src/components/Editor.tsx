@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Stage, Layer, Rect, Shape, Image } from 'react-konva';
+import { Stage, Layer, Rect,Image, Group, Text, Line} from 'react-konva';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../Context/theme-context';
 //import ShapeComponent from './shape';
@@ -11,9 +11,54 @@ import './Editor.css';
 import useImage from 'use-image';
 import fosilJson from '../fossil.json';
 
-const CoordinateInputs: React.FC = () => { 
+const VerticalRuler = ({ x, y, height, unit, scale }) => {
+  // El número total de marcas basado en la altura y la unidad de cada marca
+  const numberOfMarks = height / unit;
 
-  const { isDarkMode, toggleTheme } = useTheme();
+  const marks = [];
+  for (let i = 0; i <= numberOfMarks; i++) {
+    const yPos = i * unit;
+    const isMajorMark = i % scale === 0;
+
+    marks.push(
+      <Line
+        key={`mark-${i}`}
+        points={[x, y + yPos, x - (isMajorMark ? 20 : 10), y + yPos]}
+        stroke="black"
+      />
+    );
+
+    if (isMajorMark) {
+      
+      const realValueLabel = i * unit / scale; 
+
+      marks.push(
+        <Text
+          key={`label-${i}`}
+          x={x - 50}
+          y={y + yPos - 5}
+          text={`${realValueLabel}`}
+          fontSize={15}
+        />
+      );
+    }
+  }
+
+  return (
+    <Group>
+      <Line points={[x, y, x, y + height]} stroke="black" strokeWidth={2} />
+      {marks}
+    </Group>
+  );
+};
+
+
+const CoordinateInputs: React.FC = () => { 
+  //---------------// Regla //---------------//
+    const unit = 10; // La distancia en la pantalla entre marcas
+    const scale = 10; // Cómo se traducen las unidades de pantalla a unidades reales (por ejemplo, 1:10 para cm a mm)
+
+    const { isDarkMode, toggleTheme } = useTheme();
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
@@ -68,8 +113,9 @@ const CoordinateInputs: React.FC = () => {
    
     const [socket, setSocket] = useState<WebSocket | null>(null);
 
+    const [isOpen, setIsOpen] = useState(false);
+
     const Sidebar = () => {
-      const [isOpen, setIsOpen] = useState(false);
     
       const toggleSidebar = () => {
         setIsOpen(!isOpen);
@@ -77,13 +123,13 @@ const CoordinateInputs: React.FC = () => {
     
       return (
         <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-          
+          <button id="toggle" className={`btn btn-toggle btn-primary`} onClick={toggleSidebar}>
+            <img src={`../src/assets/fosiles/3.svg`} alt=''></img>
+          </button>  
          
 
           <div id="controls-sidebar">
-          <button id="toggle" className={`btn btn-toggle btn-primary`} onClick={toggleSidebar}>
-            <img src={`../src/assets/fosiles/3.svg`} alt=''></img>
-          </button>
+        
             <p>Seleccionar opción de Pattern: </p>
             <select value={selectedOption} onChange={handleOptionChange}>
             {Object.keys(Json).map(option => (
@@ -777,7 +823,7 @@ const CoordinateInputs: React.FC = () => {
                   File={shape.polygon.file}
                   circles={shape.polygon.circles}
                   setCircles={(circles, send) => setCircles(index, circles,send, socket)}
-                  onClick={() => handleShapeClick(index)}
+                  onClick={() => {handleShapeClick(index); setIsOpen(true);}}
                   //onDrag={() => {
                   //  handleShapeonDrag(index)
                   //}}
@@ -797,7 +843,7 @@ const CoordinateInputs: React.FC = () => {
                // fill="yellow"
                 opacity={0.5}
                 draggable
-                onClick = {() => handleShapeClick(index)}
+                onClick = {() => {handleShapeClick(index); setIsOpen(true);}}
                 onDragStart={() => dragStart(shape.id)}
                 onDragMove={(e) => {
                     handleContainerDrag(shape.id, e); 
@@ -809,6 +855,11 @@ const CoordinateInputs: React.FC = () => {
                 })}
               />
             ))} 
+            {shapes.length > 0 && (
+            
+              <VerticalRuler x={100} y={100} height={lastPositionID.y-200} unit={unit} scale={scale} />
+            
+            )}
         </Layer>        
         </Stage>
 
