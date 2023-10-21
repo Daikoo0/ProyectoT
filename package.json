@@ -21,6 +21,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.2.0",
     "react-konva": "^18.2.10",
+    "react-konva-utils": "^1.0.5",
     "react-router-dom": "^6.15.0",
     "serve": "^14.2.1",
     "socket.io": "^4.7.2",

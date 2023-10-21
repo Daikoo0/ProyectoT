@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Rect, Shape, Image } from 'react-konva';
 import { useParams } from 'react-router-dom';
-import {useTheme} from '../Context/theme-context';
+import { useTheme } from '../Context/theme-context';
 //import ShapeComponent from './shape';
 //import Konva from './konva';
 import Json from '../lithologic.json';
@@ -38,7 +38,7 @@ const CoordinateInputs: React.FC = () => {
       'Edad' :      { content: "vacío", optional : true, vertical : true, enabled : true},
       'Formación' : { content: "vacío", optional : true, vertical : true, enabled : true},
       'Miembro' :   { content: "vacío", optional : true, vertical : true, enabled : true},
-      'Estructuras y/o fósiles': { content: "vacío", optional : true, vertical : false, enabled : true},
+      'Estructuras y/o fósiles': { content: [{ x: '0', y : '0', src: ''}], optional : true, vertical : false, enabled : true},
       'Facie' :     { content: "vacío", optional : true, vertical : false, enabled : true},
       'Ambiente depositacional': { content: "vacío", optional : true, vertical : false, enabled : true},
       'Descripción':{ content: "vacío", optional : true, vertical : false, enabled : true}
@@ -599,7 +599,7 @@ const CoordinateInputs: React.FC = () => {
   
     const dragUrl = React.useRef(null);
     const stageRef = React.useRef(null);
-    const [imageFosils, setImageFosils] = React.useState([]);
+    //const [imageFosils, setImageFosils] = React.useState([]);
   
     // Seleccion de patron / Pattern
     const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
@@ -697,29 +697,59 @@ const CoordinateInputs: React.FC = () => {
           dragUrl.current = "../src/assets/fosiles/"+fosilJson[selectedFosil]+".svg";
           console.log(selectedFosil)
         }}
+
       />
       </div>
-      <div
-        onDrop={(e) => {
+      
+
+        </div>
+        </div>
+
+        <div id="gridContainer" 
+         onDrop={(e) => {
           e.preventDefault();
           stageRef.current.setPointersPositions(e);
-          setImageFosils(
-            imageFosils.concat([
-              {
-                ...stageRef.current.getPointerPosition(),
-                src: dragUrl.current,
-              },
-            ])
-          );
-        }}
-        onDragOver={(e) => e.preventDefault()}
-      >
-      </div>
-        </div>
-        </div>
-        <div id="gridContainer" >
 
-        <Stage width={window.innerWidth} height={window.innerHeight}>
+          const copia = [...shapes]
+          for (let shape of copia) {
+            const { y1, y2 } = shape.polygon;
+        
+            // Comprobar si el punto 'y' está entre 'y1' e 'y2'
+            if (stageRef.current.getPointerPosition().y >= Math.min(y1, y2) 
+            && stageRef.current.getPointerPosition().y <= Math.max(y1, y2)
+            &&  stageRef.current.getPointerPosition().x > 499 
+            &&  stageRef.current.getPointerPosition().x < 601
+            ) {
+              if (copia[shape.id].text['Estructuras y/o fósiles']) {
+
+                // const shapeToUpdate = { ...copia[shape.index] }
+                copia[shape.id].text['Estructuras y/o fósiles'].content.push(
+               {'x' :  stageRef.current.getPointerPosition().x,
+                'y' : stageRef.current.getPointerPosition().y,
+                'src' : dragUrl.current})
+
+                //copia[shape.id] = shape;
+                setShapes(copia);
+            //    sendSocket("text",shape.id);
+                socket.send(JSON.stringify({
+                  action: "text",
+                  id: copia[shape.id].id,
+                  text: copia[shape.id].text,
+                }))
+                } 
+
+              // Retornar el shape actual
+              return shape;
+            }
+          }
+        
+          // Si no se encuentra ningún shape, retorna null 
+          return null;
+        }}
+        onDragOver={(e) => e.preventDefault()}>
+
+        <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
+      
             {shapes.map((shape,index) => (
                 <Grid
                   key={index} 
@@ -728,7 +758,9 @@ const CoordinateInputs: React.FC = () => {
                   setText={(text, send) => setText(index, text, send, socket)}
                 />
             ))}
+
         <Layer>
+  
             {shapes.map((shape, index) => (
              
                 <Polygon
@@ -777,8 +809,9 @@ const CoordinateInputs: React.FC = () => {
                 })}
               />
             ))} 
-        </Layer>
+        </Layer>        
         </Stage>
+
         </div>
         
         </div>

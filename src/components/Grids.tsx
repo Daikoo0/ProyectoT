@@ -1,17 +1,45 @@
 import React from 'react';
-import { Rect, Layer, Text } from 'react-konva';
+import { Rect, Layer, Text, Image } from 'react-konva';
 import { useRef, useState } from 'react';
 import Konva from 'konva';
+import useImage from 'use-image';
 
 
 const Grid = ({ polygon, setText, text}) => {
-  const cellSize = 100; // Tamaño de cada celda de la cuadrícula
+  const cellSize = 110; // Tamaño de cada celda de la cuadrícula
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
   const cellHeight = polygon ? polygon.polygon.y2 - polygon.polygon.y1 : cellSize;
 
   const cells = [];
   const columnRefs = {};
+  console.log(text['Estructuras y/o fósiles'], polygon.id);
+  const URLImage = ({ image }) => {
+    const [img] = useImage(image.src);
+    return (
+      <Image
+        image={img}
+        x={image.x}
+        y={image.y}
+        offsetX={img ? img.width / 2 : 0}
+        offsetY={img ? img.height / 2 : 0}
+        width={50}
+        height={60}
+        draggable
+        // onDragEnd = {(e) =>
+        //   {  const x = e.target.x();
+        //      const y = e.target.y();
+
+        //      const copia = { ...text };
+        //      copia['Estructuras y/o fósiles'].content = textarea.value;
+        //     // console.log(textRef.current.text());
+        //      setText(copia,true);
+            
+        //   }
+        // }
+      />
+    );
+  };
 
   const handleDoubleClick = (textRef,column,vertical) => {
     if (textRef.current) {
@@ -21,7 +49,7 @@ const Grid = ({ polygon, setText, text}) => {
 
       const textPosition = textRef.current.getAbsolutePosition();
       const stageBox = stage.container().getBoundingClientRect();
-      console.log(stageBox,textPosition);
+      //console.log(stageBox,textPosition);
       var areaPosition;
 
       if(vertical){
@@ -59,7 +87,7 @@ const Grid = ({ polygon, setText, text}) => {
           
           const copia = { ...text };
           copia[column].content = textarea.value;
-          console.log(textRef.current.text());
+        //  console.log(textRef.current.text());
           setText(copia,true);
           textRef.current!.text(textarea.value);
           stage.batchDraw();
@@ -77,27 +105,28 @@ const Grid = ({ polygon, setText, text}) => {
       y={0}
       width={polygonColumnWidth}
       height={cellHeight}
-      fill="grey"
+      fill="white"
       stroke="black"
     />
   );
 
-  const additionalColumns = ['Sistema','Edad','Formación','Miembro','Arcilla-Limo-Arena-Grava','Facie','Ambiente depositacional','Descripción','Estructuras y/o fósiles'];
+  const additionalColumns = ['Arcilla-Limo-Arena-Grava','Estructuras y/o fósiles','Sistema','Edad','Formación','Miembro','Facie','Ambiente depositacional','Descripción'];
 
   //const additionalColumns = Object.keys(text).filter(key => text[key].enabled === true);
 
   let xOffset = marginLeft + polygonColumnWidth;
   additionalColumns.forEach((column, index) => {
 
-   if(text[column].enabled){ 
-    cells.push(
+   if(text[column].enabled){
+    
+ cells.push(
       <Rect
         key={`header-${column}`}
         x={xOffset}
         y={0}
         width={cellSize}
         height={cellHeight}
-        fill="grey"
+        fill="white"
         stroke="black"
       />
     );
@@ -159,46 +188,38 @@ const Grid = ({ polygon, setText, text}) => {
    }
 
    if(text[column].enabled){
-
-  if(text[column].vertical){
+    if(column==='Estructuras y/o fósiles'){
       cells.push(
-          <Text 
-            ref={columnRefs[column]}
-            x={xOffset+1}
-            y={polygon.polygon.y1+cellHeight}
-            rotation={270}
-            height={cellHeight}
-            width={cellSize}
-            text={text[column].content}
-            fontSize={18}
-            onDblClick={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
-            onTap={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
-        />
-      );
-  
-    xOffset += cellSize;
-
-  }
-  
-  if(!text[column].vertical){
-
-    cells.push(
-      <Text 
-        ref={columnRefs[column]}
-        x={xOffset+1}
-        y={polygon.polygon.y1}
-        rotation={0}
-        height={cellHeight}
-        width={cellSize}
-        text={text[column].content}
-        fontSize={18}
-        onDblClick={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
-        onTap={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
-    />
-  );
+      <>  
+      {text[column].content.map((image) => {
+          console.log(text[column].content);
+          return <URLImage image={image} />;
+        })} 
+        </>
+    );
 
   xOffset += cellSize;
-  }   
+
+    }else{
+            cells.push(
+                <Text 
+                  ref={columnRefs[column]}
+                  x={xOffset+1}
+                  y={text[column].vertical ? polygon.polygon.y1+cellHeight : polygon.polygon.y1}
+                  rotation={text[column].vertical ? 270 : 0}
+                  height={cellHeight}
+                  width={cellSize}
+                  text={text[column].content}
+                  fontSize={18}
+                  onDblClick={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
+                  onTap={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
+              />
+            );
+        
+          xOffset += cellSize;
+
+        }
+           
   }
 }
 

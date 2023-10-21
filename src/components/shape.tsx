@@ -60,7 +60,11 @@ const App = () => {
         onDrop={(e) => {
           e.preventDefault();
           // register event position
+          
           stageRef.current.setPointersPositions(e);
+          console.log(stageRef.current.getPointerPosition())
+          
+          
           // add image
           setImages(
             images.concat([
@@ -81,6 +85,7 @@ const App = () => {
         >
           <Layer>
             {images.map((image) => {
+              console.log(image);
               return <URLImage image={image} />;
             })}
           </Layer>
