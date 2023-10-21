@@ -6,7 +6,6 @@ import (
 	"github.com/ProyectoT/api/internal/models"
 )
 
-
 func (s *serv) ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error) {
 
 	room, err := s.repo.ConnectRoom(ctx, roomName, user)
@@ -16,10 +15,10 @@ func (s *serv) ConnectRoom(ctx context.Context, roomName string, user string) (*
 
 	// Guardar la información en la base de datos
 	/*
-	err = s.repo.SaveRoom(ctx, room)
-	if err != nil {
-		return nil, err
-	}
+		err = s.repo.SaveRoom(ctx, room)
+		if err != nil {
+			return nil, err
+		}
 	*/
 	// Realizar otras operaciones necesarias con la conexión y la sala
 
@@ -37,7 +36,7 @@ func (s *serv) CreateRoom(ctx context.Context, roomName string, user string, par
 	return s.repo.CreateRoom(ctx, roomName, user, participants)
 }
 
-func (s *serv) SaveRoom(ctx context.Context, data []string, roomName string) error {
+func (s *serv) SaveRoom(ctx context.Context, data []map[string]interface{}, roomName string) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
 	return s.repo.SaveRoom(ctx, data, roomName)
@@ -49,9 +48,8 @@ func (s *serv) SaveUsers(ctx context.Context, room *models.Room) error {
 	return s.repo.SaveUsers(ctx, room)
 }
 
-func (s *serv) SaveProject(ctx context.Context, data string, name string,) error {
+func (s *serv) SaveProject(ctx context.Context, data string, name string) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
 	return s.repo.SaveProject(ctx, data, name)
 }
-

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -19,15 +20,11 @@ type responseMessage struct {
 
 type Room struct {
 	Name    string
+	Config  map[string]interface{}
 	Active  []*websocket.Conn
 	Clients map[string]models.Role
-	Data    []string
+	Data    []map[string]interface{}
 	Temp    Stack
-}
-
-type Operation struct {
-	Action string `json:"action"`
-	ID     int    `json:"id"`
 }
 
 var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
@@ -137,7 +134,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	//validar aun mas datos (forma parte de la sala)
 	room, err := a.serv.GetRoom(ctx, roomName)
 	if err != nil {
-		log.Println(err)
 		errMessage := "Error: Room not found"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
@@ -155,16 +151,20 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	//conectar a la sala
 	proyect := instanceRoom(roomName, room.Clients, room.Data)
 	proyect.Active = append(proyect.Active, conn)
-	log.Println(proyect.Active)
 
 	//enviar los datos que hay en la base de datos
-	for _, row := range room.Data {
+	for _, row := range proyect.Data {
 		if err != nil {
 			errMessage := "Error: Cannot read this document"
 			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 			break
 		}
-		conn.WriteMessage(websocket.TextMessage, []byte(row))
+		rowBytes, err := json.Marshal(row)
+		if err != nil {
+			errMessage := "Error: Incorrect format"
+			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		}
+		conn.WriteMessage(websocket.TextMessage, rowBytes)
 	}
 
 	if err == nil {
@@ -179,63 +179,125 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 			}
 
 			if permission != 2 {
-				log.Println(string(msg))
-				if string(msg) == "undo" {
+				var dataMap map[string]interface{}
+				err := json.Unmarshal([]byte(msg), &dataMap)
+				if err != nil {
+					log.Println("le falta el id a la wea")
+					log.Fatal(err)
+				}
+				if dataMap["action"] == "undo" {
 					log.Println("deshacer")
+					temp, err := rooms[roomName].Temp.Pop()
+					log.Println(temp)
+					if err != nil {
+						errMessage := "Error: la pila esta vacia"
+						log.Println(errMessage)
+					} else {
+						dataMap = temp
+					}
+				}
+				log.Println(dataMap)
+
+				if dataMap["action"] == "delete" {
+					id := int(dataMap["id"].(float64))
+					log.Printf("Borrando capa %s", string(rune(id)))
+
+					rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
+
+					responseJSON, err := json.Marshal(dataMap)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+
 					for _, client := range proyect.Active {
-						log.Println(client)
-						tempMsg := rooms[roomName].Temp.Pop()
-						log.Println(tempMsg)
-						err = client.WriteMessage(websocket.TextMessage, []byte(tempMsg))
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						if err != nil {
 							log.Println(err)
-							break
 						}
 					}
 
-				} else if string(msg) == "save" {
-					log.Println("guardar")
-					log.Println(room.Data)
-					err = a.serv.SaveRoom(ctx, room.Data, roomName)
-					if err != nil {
-						log.Println("No se guardo la data")
-					}
-
-				} else {
-
-					var dataMap map[string]interface{}
-					err := json.Unmarshal([]byte(msg), &dataMap)
-					if err != nil {
-						log.Fatal(err)
-					}
+				}
+				if dataMap["action"] == "text" {
 					id := int(dataMap["id"].(float64))
-					operation := Operation{
-						Action: "delete",
-						ID:     id,
+					log.Printf("Editando texto capa %s", string(rune(id)))
+
+					temporal := make(map[string]interface{})
+					temporal["action"] = "text"
+					temporal["id"] = float64(id)
+					temporal["text"] = rooms[roomName].Data[id]["text"]
+
+					rooms[roomName].Temp.Push(temporal)
+					rooms[roomName].Data[id]["text"] = dataMap["text"]
+
+					responseJSON, err := json.Marshal(dataMap)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
 					}
 
-					if len(room.Data) == id {
-						room.Data = append(room.Data, string(msg))
-						operationJSON, err := json.Marshal(operation)
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						if err != nil {
-							log.Println("Error al convertir a JSON:", err)
+							log.Println(err)
 						}
-						rooms[roomName].Temp.Push(string(operationJSON))
-
-					} else {
-						log.Println("actualizar")
-						rooms[roomName].Temp.Push(room.Data[id])
-						room.Data[id] = string(msg)
 					}
-					log.Printf("usuario %s a actualizado el archivo", user)
+				}
 
-					//err = a.serv.SaveRoom(ctx, string(msg), roomName)
+				if dataMap["action"] == "polygon" {
+					id := int(dataMap["id"].(float64))
+					log.Printf("Editando polygon capa %s", string(rune(id)))
+
+					temporal := make(map[string]interface{})
+					temporal["action"] = "polygon"
+					temporal["id"] = float64(id)
+					temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
+					log.Println(temporal)
+
+					rooms[roomName].Temp.Push(temporal)
+					rooms[roomName].Data[id]["polygon"] = dataMap["polygon"]
+
+					responseJSON, err := json.Marshal(dataMap)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+						log.Println(string(responseJSON))
+						if err != nil {
+							log.Println(err)
+						}
+					}
+				}
+
+				if dataMap["action"] == "añadir" {
+					id := int(dataMap["id"].(float64))
+					log.Printf("Añadiendo capa %s", string(rune(id)))
+
+					temp := make(map[string]interface{})
+					temp["action"] = "delete"
+					temp["id"] = float64(id)
+
+					rooms[roomName].Data = append(rooms[roomName].Data, dataMap)
+					rooms[roomName].Temp.Push(temp)
+
+					jsonBytes, err := json.Marshal(dataMap)
+					if err != nil {
+						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+						if err != nil {
+							log.Println(err)
+						}
+					}
+				}
+
+				if dataMap["action"] == "save" {
+					log.Println("guardando...")
+					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
-					}
-					//log.Println(proyect.Active[len(proyect.Active)-1].WriteMessage(websocket.TextMessage, msg))
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, msg)
 					}
 				}
 
@@ -281,6 +343,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 
 	//obtener el room
 	proyect, err := a.serv.GetRoom(ctx, room)
+	log.Println(proyect)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
 	}
@@ -297,7 +360,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 
 	//agregar el usuario al room
 	proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
-	log.Println(proyect)
+
 	err = a.serv.AddUser(ctx, inviteRequest.Email, room) //actualizar el registro de usuario
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
@@ -310,7 +373,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(roomName string, Clients map[string]models.Role, data []string) *Room {
+func instanceRoom(roomName string, Clients map[string]models.Role, data []map[string]interface{}) *Room {
 	room, exists := rooms[roomName] //instancia el room con los datos de la bd
 	if !exists {
 		room = &Room{
@@ -395,9 +458,9 @@ func (a *API) proyects(c echo.Context) error {
 }
 
 // codigo de una pila, (pila de cambios, del control Z)
-type Stack []string
+type Stack []map[string]interface{}
 
-func (s *Stack) Push(v string) {
+func (s *Stack) Push(v map[string]interface{}) {
 	*s = append(*s, v)
 
 	// Pila de tamaño 10
@@ -406,10 +469,13 @@ func (s *Stack) Push(v string) {
 	}
 }
 
-func (s *Stack) Pop() string {
+func (s *Stack) Pop() (map[string]interface{}, error) {
+	if len(*s) == 0 {
+		return nil, errors.New("La pila esta vacia")
+	}
 	index := len(*s) - 1
 	element := (*s)[index]
 	*s = (*s)[:index]
 
-	return element
+	return element, nil
 }
