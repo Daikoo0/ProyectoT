@@ -21,7 +21,7 @@ func (r *repo) ConnectRoom(ctx context.Context, roomName string, user string) (*
 		return nil, err
 	}
 	log.Println(room)
-	
+
 	return &room, nil
 }
 
@@ -32,7 +32,7 @@ func (r *repo) GetRoom(ctx context.Context, roomName string) (*models.Room, erro
 	err := rooms.FindOne(ctx, bson.M{"name": roomName}).Decode(&room)
 	if err != nil {
 		return nil, err
-	} 
+	}
 
 	return &room, nil
 }
@@ -40,10 +40,10 @@ func (r *repo) GetRoom(ctx context.Context, roomName string) (*models.Room, erro
 func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, participants map[string]models.Role) error {
 	rooms := r.db.Collection("rooms")
 	participants[owner] = models.Owner
-    room := &models.Room{
-        Name:    roomName,
-        Clients: participants,
-		Data: []string{},
+	room := &models.Room{
+		Name:    roomName,
+		Clients: participants,
+		Data:    []map[string]interface{}{},
 	}
 
 	var existingRoom models.Room
@@ -67,10 +67,9 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, pa
 		r.AddUser(ctx, p, roomName)
 	}
 
-
 	return nil
 }
-func (r *repo) SaveRoom(ctx context.Context, data []string, roomName string,) error {
+func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, roomName string) error {
 	filter := bson.M{"name": roomName}
 	update := bson.M{"$set": bson.M{
 		"data": data,
@@ -106,8 +105,8 @@ func (r *repo) SaveUsers(ctx context.Context, room *models.Room) error {
 }
 func (r *repo) SaveProject(ctx context.Context, data string, name string) error {
 	project := entity.Project{
-		Name:    name,
-		Data:    data,
+		Name: name,
+		Data: data,
 	}
 
 	projects := r.db.Collection("projects")

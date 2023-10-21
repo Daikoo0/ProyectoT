@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -18,11 +19,12 @@ type responseMessage struct {
 }
 
 type Room struct {
-	Name     string
-	Active   []*websocket.Conn
-	Clients  map[string]models.Role
-	Data     []string
-	Temp     Stack
+	Name    string
+	Config  map[string]interface{}
+	Active  []*websocket.Conn
+	Clients map[string]models.Role
+	Data    []map[string]interface{}
+	Temp    Stack
 }
 
 var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
@@ -126,100 +128,112 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		conn.Close()
 		return nil
 	}
-	
-    user := claims["email"].(string)
+
+	user := claims["email"].(string)
 
 	//validar aun mas datos (forma parte de la sala)
 	room, err := a.serv.GetRoom(ctx, roomName)
-    if err != nil {
-		log.Println(err)
+	if err != nil {
 		errMessage := "Error: Room not found"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
-    }
+	}
 
 	permission, exists := room.Clients[user]
-    if !exists {
+	if !exists {
 		errMessage := "Error: Unauthorized"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
-        return nil
-    }
+		return nil
+	}
 
 	//conectar a la sala
 	proyect := instanceRoom(roomName, room.Clients, room.Data)
 	proyect.Active = append(proyect.Active, conn)
-	log.Println(proyect)
-	
+
 	//enviar los datos que hay en la base de datos
-	for _, row := range room.Data{
+	for _, row := range proyect.Data {
 		if err != nil {
 			errMessage := "Error: Cannot read this document"
 			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 			break
 		}
-		conn.WriteMessage(websocket.TextMessage, []byte(row))
+		rowBytes, err := json.Marshal(row)
+		if err != nil {
+			errMessage := "Error: Incorrect format"
+			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		}
+		conn.WriteMessage(websocket.TextMessage, rowBytes)
 	}
 
 	if err == nil {
 		//enviar datos actuales (no se que chucha con su front)
 		//conn.WriteMessage(websocket.TextMessage, []byte(dataBytes))
 		log.Printf("user %s: Permission %d", user, permission)
-	
+
 		for {
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				break
 			}
 
-			if permission != 2{
+			if permission != 2 {
 				var dataMap map[string]interface{}
-					err := json.Unmarshal([]byte(msg), &dataMap)
+				err := json.Unmarshal([]byte(msg), &dataMap)
+				if err != nil {
+					log.Println("le falta el id a la wea")
+					log.Fatal(err)
+				}
+				if dataMap["action"] == "undo" {
+					log.Println("deshacer")
+					temp, err := rooms[roomName].Temp.Pop()
+					log.Println(temp)
 					if err != nil {
-						log.Println("le falta el id a la wea")
-						log.Fatal(err)
+						errMessage := "Error: la pila esta vacia"
+						log.Println(errMessage)
+					} else {
+						dataMap = temp
 					}
-				if dataMap["action"] == "delete"{
-					id := int(dataMap["id"].(float64))
-					log.Println("Borrando capa %s", id)
-					rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
-					
-					response := make(map[string]interface{})
-					response["action"] = "delete"
-					response["id"] = id
+				}
+				log.Println(dataMap)
 
-					responseJSON, err := json.Marshal(response)
+				if dataMap["action"] == "delete" {
+					id := int(dataMap["id"].(float64))
+					log.Printf("Borrando capa %s", string(rune(id)))
+
+					rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
+
+					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
 						log.Println("Error al convertir a JSON:", err)
 					}
-					
+
 					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON,))
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						if err != nil {
 							log.Println(err)
 						}
 					}
 
 				}
-				if dataMap["action"] == "text"{
+				if dataMap["action"] == "text" {
 					id := int(dataMap["id"].(float64))
-					log.Println("editando shape capa %s", id)
-					
-					var data map[string]interface{}
-					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
-					data["text"] = dataMap["text"]
-					response := make(map[string]interface{})
-					response["action"] = "text"
-					response["id"] = id
-					response["text"] = dataMap["text"]
-					//log.Println(dataMap["text"])
+					log.Printf("Editando texto capa %s", string(rune(id)))
 
-					responseJSON, err := json.Marshal(response)
+					temporal := make(map[string]interface{})
+					temporal["action"] = "text"
+					temporal["id"] = float64(id)
+					temporal["text"] = rooms[roomName].Data[id]["text"]
+
+					rooms[roomName].Temp.Push(temporal)
+					rooms[roomName].Data[id]["text"] = dataMap["text"]
+
+					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
 						log.Println("Error al convertir a JSON:", err)
 					}
-					
+
 					for _, client := range proyect.Active {
 						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						if err != nil {
@@ -228,32 +242,24 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 				}
 
-				if dataMap["action"] == "polygon"{
-					log.Println("olaa")
+				if dataMap["action"] == "polygon" {
 					id := int(dataMap["id"].(float64))
-					log.Println("Editando polygon capa %s", id)
-					var data map[string]interface{}
-					json.Unmarshal([]byte(rooms[roomName].Data[id]), &data)
-					data["polygon"] = dataMap["polygon"]
-					log.Println(data["polygon"])
+					log.Printf("Editando polygon capa %s", string(rune(id)))
 
-					response := make(map[string]interface{})
-					response["action"] = "polygon"
-					response["id"] = id
-					response["polygon"] = dataMap["polygon"]
+					temporal := make(map[string]interface{})
+					temporal["action"] = "polygon"
+					temporal["id"] = float64(id)
+					temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
+					log.Println(temporal)
 
-					responseJSON, err := json.Marshal(response)
+					rooms[roomName].Temp.Push(temporal)
+					rooms[roomName].Data[id]["polygon"] = dataMap["polygon"]
+
+					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
 						log.Println("Error al convertir a JSON:", err)
 					}
-					
-					tempJSON, err := json.Marshal(data)
-						if err != nil {
-							log.Println("Error al convertir a JSON:", err)
-						}
-					rooms[roomName].Data[id] = string(tempJSON)
-					log.Println(rooms[roomName].Data[id])
-					
+
 					for _, client := range proyect.Active {
 						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
 						log.Println(string(responseJSON))
@@ -261,103 +267,48 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println(err)
 						}
 					}
-
-
 				}
 
-				if dataMap["action"] == "undo"{
-					log.Println("deshacer")
-					tempMsg := rooms[roomName].Temp.Pop()
-					log.Println(tempMsg)
-					
-					var tempMap map[string]interface{}
-					err := json.Unmarshal([]byte(tempMsg), &tempMap)
+				if dataMap["action"] == "añadir" {
+					id := int(dataMap["id"].(float64))
+					log.Printf("Añadiendo capa %s", string(rune(id)))
+
+					temp := make(map[string]interface{})
+					temp["action"] = "delete"
+					temp["id"] = float64(id)
+
+					rooms[roomName].Data = append(rooms[roomName].Data, dataMap)
+					rooms[roomName].Temp.Push(temp)
+
+					jsonBytes, err := json.Marshal(dataMap)
 					if err != nil {
-						log.Fatal(err)
+						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
 					}
-					id := int(tempMap["id"].(float64))
-					if tempMap["action"]== "delete"{
-						rooms[roomName].Data =  append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
-						
-						response := make(map[string]interface{})
-						response["action"] = "delete"
-						response["ID"] = id
 
-						responseJSON, err := json.Marshal(response)
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
 						if err != nil {
-							log.Println("Error al convertir a JSON:", err)
-						}
-						
-						for _, client := range proyect.Active {
-							err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-							if err != nil {
-								log.Println(err)
-							}
-						}
-					}else{
-						for _, client := range proyect.Active {
-							err = client.WriteMessage(websocket.TextMessage, []byte(tempMsg))
-							if err != nil {
-								log.Println(err)
-	
-							}
+							log.Println(err)
 						}
 					}
-
-					
-					
-
 				}
-				if dataMap["action"] == "save"{
-					log.Println("guardando..")
+
+				if dataMap["action"] == "save" {
+					log.Println("guardando...")
 					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
-
 				}
-				if dataMap["action"] == "añadir"{
-					log.Println("cambios")
 
-					id := int(dataMap["id"].(float64))
-					response := make(map[string]interface{})
-					response["action"] = "delete"
-					response["ID"] = id
-
-					jsonBytes, err := json.Marshal(dataMap)
-					if err != nil {
-    					log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-					}
-					
-					if len(rooms[roomName].Data) == id{
-						log.Println("añadir")
-						rooms[roomName].Data = append(rooms[roomName].Data, string(jsonBytes))
-						responseJSON, err := json.Marshal(response)
-						if err != nil {
-							log.Println("Error al convertir a JSON:", err)
-						}
-						rooms[roomName].Temp.Push(string(responseJSON))
-						
-					}else{
-						log.Println("actualizar")
-						rooms[roomName].Temp.Push(rooms[roomName].Data[id])
-						rooms[roomName].Data[id] = string(jsonBytes)
-					}
-					log.Println("usuario %s a actualizado el archivo", user)
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-					}
-				}
-				
-			}else{
+			} else {
 				errMessage := "Error: Don't have permission to edit this document"
 				err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 			}
 		}
-	}	
-        
-    conn.Close()
+	}
+
+	conn.Close()
 	return nil
 }
 
@@ -377,65 +328,64 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
 
-    user := claims["email"].(string)
-    room := c.Param("room")
-    inviteRequest := new(dtos.InviteRequest)
+	user := claims["email"].(string)
+	room := c.Param("room")
+	inviteRequest := new(dtos.InviteRequest)
 
 	//validar mas datos
-    if err := c.Bind(inviteRequest); err != nil {
-        return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-    }
-
-    if inviteRequest.Email == "" || inviteRequest.Role == 0 {
-        return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-    }
-
-    //obtener el room
-    proyect, err := a.serv.GetRoom(ctx, room)
-	log.Println(proyect)
-    if err != nil {
-        return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
-    }
-
-    //validar aun mas datos (corroborar permisos)
-	value, exists := proyect.Clients[user]
-    if !exists {
-		log.Println("no forma parte de la sala")
-        return c.JSON(http.StatusForbidden, responseMessage{Message: "Unauthorized"})
-    } else if value != 0{
-		log.Println("no eres admin")
-        return c.JSON(http.StatusForbidden, responseMessage{Message: "Unauthorized"})
+	if err := c.Bind(inviteRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
 	}
 
-    //agregar el usuario al room
-    proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
+	if inviteRequest.Email == "" || inviteRequest.Role == 0 {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+	}
+
+	//obtener el room
+	proyect, err := a.serv.GetRoom(ctx, room)
+	log.Println(proyect)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
+	}
+
+	//validar aun mas datos (corroborar permisos)
+	value, exists := proyect.Clients[user]
+	if !exists {
+		log.Println("no forma parte de la sala")
+		return c.JSON(http.StatusForbidden, responseMessage{Message: "Unauthorized"})
+	} else if value != 0 {
+		log.Println("no eres admin")
+		return c.JSON(http.StatusForbidden, responseMessage{Message: "Unauthorized"})
+	}
+
+	//agregar el usuario al room
+	proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
 
 	err = a.serv.AddUser(ctx, inviteRequest.Email, room) //actualizar el registro de usuario
 	if err != nil {
-        return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
-    }
-    err = a.serv.SaveUsers(ctx, proyect)
-    if err != nil {
-        return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
-    }
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
+	}
+	err = a.serv.SaveUsers(ctx, proyect)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
+	}
 
-    return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
+	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
+func instanceRoom(roomName string, Clients map[string]models.Role, data []map[string]interface{}) *Room {
+	room, exists := rooms[roomName] //instancia el room con los datos de la bd
+	if !exists {
+		room = &Room{
+			Name:    roomName,
+			Clients: Clients,
+			Active:  make([]*websocket.Conn, 0),
+			Data:    data,
+		}
+		rooms[roomName] = room
+	}
 
-func instanceRoom(roomName string, Clients map[string]models.Role, data []string) *Room {
-    room, exists := rooms[roomName] //instancia el room con los datos de la bd
-    if !exists {
-        room = &Room{
-            Name:     roomName,
-            Clients:  Clients,
-            Active: make([]*websocket.Conn, 0),
-			Data: data,
-        }
-        rooms[roomName] = room
-    }
-	
-    return room
+	return room
 }
 
 func (a *API) HandleCreateProyect(c echo.Context) error {
@@ -454,27 +404,27 @@ func (a *API) HandleCreateProyect(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
 
-    user := claims["email"].(string)
-    room := c.Param("room")
+	user := claims["email"].(string)
+	room := c.Param("room")
 	participantsRequest := new(dtos.CreateProjectRequest)
 
 	//validar mas datos
-    if err := c.Bind(participantsRequest); err != nil {
+	if err := c.Bind(participantsRequest); err != nil {
 		log.Println(err)
-        return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-    }
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+	}
 	participantMap := make(map[string]models.Role)
 
-    for _, participant := range participantsRequest.Participants {
-        participantMap[participant.Email] = models.Role(participant.Role)
-    }
-	
-    err = a.serv.CreateRoom(ctx, room, user, participantMap)
-    if err != nil {
-        return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to create a room"})
-    }
+	for _, participant := range participantsRequest.Participants {
+		participantMap[participant.Email] = models.Role(participant.Role)
+	}
 
-    return c.JSON(http.StatusOK, responseMessage{Message: "Room created successfully"})
+	err = a.serv.CreateRoom(ctx, room, user, participantMap)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to create a room"})
+	}
+
+	return c.JSON(http.StatusOK, responseMessage{Message: "Room created successfully"})
 }
 
 func (a *API) proyects(c echo.Context) error {
@@ -493,7 +443,7 @@ func (a *API) proyects(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
 
-    user := claims["email"].(string)
+	user := claims["email"].(string)
 	type responseProyects struct {
 		Proyects []string
 	}
@@ -503,14 +453,14 @@ func (a *API) proyects(c echo.Context) error {
 		log.Println(err)
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
 	}
-	
-    return c.JSON(http.StatusOK, responseProyects{Proyects: proyects})
+
+	return c.JSON(http.StatusOK, responseProyects{Proyects: proyects})
 }
 
-//codigo de una pila, (pila de cambios, del control Z)
-type Stack []string
+// codigo de una pila, (pila de cambios, del control Z)
+type Stack []map[string]interface{}
 
-func (s *Stack) Push(v string) {
+func (s *Stack) Push(v map[string]interface{}) {
 	*s = append(*s, v)
 
 	// Pila de tamaño 10
@@ -519,10 +469,13 @@ func (s *Stack) Push(v string) {
 	}
 }
 
-func (s *Stack) Pop() string {
+func (s *Stack) Pop() (map[string]interface{}, error) {
+	if len(*s) == 0 {
+		return nil, errors.New("La pila esta vacia")
+	}
 	index := len(*s) - 1
 	element := (*s)[index]
 	*s = (*s)[:index]
 
-	return element
+	return element, nil
 }
