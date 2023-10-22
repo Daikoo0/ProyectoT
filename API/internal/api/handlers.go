@@ -149,16 +149,11 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	}
 
 	//conectar a la sala
-	proyect := instanceRoom(roomName, room.Clients, room.Data)
+	proyect := instanceRoom(roomName, room.Clients, room.Data, room.Config)
 	proyect.Active = append(proyect.Active, conn)
 
 	//enviar los datos que hay en la base de datos
 	for _, row := range proyect.Data {
-		if err != nil {
-			errMessage := "Error: Cannot read this document"
-			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
-			break
-		}
 		rowBytes, err := json.Marshal(row)
 		if err != nil {
 			errMessage := "Error: Incorrect format"
@@ -166,6 +161,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		}
 		conn.WriteMessage(websocket.TextMessage, rowBytes)
 	}
+	configRoom := make(map[string]interface{})
+	configRoom["action"] = "settingsRoom"
+	configRoom["config"] = room.Config
+
+	configBytes, err := json.Marshal(configRoom)
+		if err != nil {
+			errMessage := "Error: cannot sent room config"
+			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		}
+		conn.WriteMessage(websocket.TextMessage, configBytes)
+
 
 	if err == nil {
 		//enviar datos actuales (no se que chucha con su front)
@@ -181,6 +187,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 			if permission != 2 {
 				var dataMap map[string]interface{}
 				err := json.Unmarshal([]byte(msg), &dataMap)
+				undo := true
 				if err != nil {
 					log.Println("le falta el id a la wea")
 					log.Fatal(err)
@@ -194,6 +201,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println(errMessage)
 					} else {
 						dataMap = temp
+						undo = false
 					}
 				}
 				log.Println(dataMap)
@@ -201,6 +209,27 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				if dataMap["action"] == "delete" {
 					id := int(dataMap["id"].(float64))
 					log.Printf("Borrando capa %s", string(rune(id)))
+
+					if undo {
+						temporal := make(map[string]interface{})
+						temporal["action"] = "añadir"
+						temporal["id"] = float64(id)
+						temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
+						temporal["text"] = rooms[roomName].Data[id]["text"]
+
+						rooms[roomName].Temp.Push(temporal)
+						//variacion := int(rooms[roomName].Data[:id]["polygon"]["y2"])-int(rooms[roomName].Data[:id]["polygon"]["y1"])
+						//log.Println(variacion)
+						/*
+
+						for estrato := range rooms[roomName].Data[:id]["polygon"]
+						estrato["y1"] = estrato["y1"] - variacion
+						estrato["y2"] = estrato["y2"] - variacion
+						for circle := range estrato["circles"]
+							circle["y"] = circle["y"] - variacion
+						}
+						*/
+					}
 
 					rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
 
@@ -221,12 +250,14 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					id := int(dataMap["id"].(float64))
 					log.Printf("Editando texto capa %s", string(rune(id)))
 
-					temporal := make(map[string]interface{})
-					temporal["action"] = "text"
-					temporal["id"] = float64(id)
-					temporal["text"] = rooms[roomName].Data[id]["text"]
+					if undo {
+						temporal := make(map[string]interface{})
+						temporal["action"] = "text"
+						temporal["id"] = float64(id)
+						temporal["text"] = rooms[roomName].Data[id]["text"]
 
-					rooms[roomName].Temp.Push(temporal)
+						rooms[roomName].Temp.Push(temporal)
+					}
 					rooms[roomName].Data[id]["text"] = dataMap["text"]
 
 					responseJSON, err := json.Marshal(dataMap)
@@ -246,13 +277,15 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					id := int(dataMap["id"].(float64))
 					log.Printf("Editando polygon capa %s", string(rune(id)))
 
-					temporal := make(map[string]interface{})
-					temporal["action"] = "polygon"
-					temporal["id"] = float64(id)
-					temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
-					log.Println(temporal)
+					if undo {
+						temporal := make(map[string]interface{})
+						temporal["action"] = "polygon"
+						temporal["id"] = float64(id)
+						temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
 
-					rooms[roomName].Temp.Push(temporal)
+						rooms[roomName].Temp.Push(temporal)
+					}
+
 					rooms[roomName].Data[id]["polygon"] = dataMap["polygon"]
 
 					responseJSON, err := json.Marshal(dataMap)
@@ -269,16 +302,46 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 				}
 
+				if dataMap["action"] == "settingsRoom" {
+					log.Printf("Editando config room")
+
+					if undo {
+						temporal := make(map[string]interface{})
+						temporal["action"] = "settingsRoom"
+						temporal["config"] = rooms[roomName].Config
+						rooms[roomName].Temp.Push(temporal)
+					}
+
+					for key, newValue := range dataMap["config"].(map[string]interface{}){
+						rooms[roomName].Config[key] = newValue
+					}
+
+					responseJSON, err := json.Marshal(dataMap["config"])
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+						log.Println(string(responseJSON))
+						if err != nil {
+							log.Println(err)
+						}
+					}
+				}
+
 				if dataMap["action"] == "añadir" {
 					id := int(dataMap["id"].(float64))
 					log.Printf("Añadiendo capa %s", string(rune(id)))
+					if undo {
+						temp := make(map[string]interface{})
+						temp["action"] = "delete"
+						temp["id"] = float64(id)
 
-					temp := make(map[string]interface{})
-					temp["action"] = "delete"
-					temp["id"] = float64(id)
+						rooms[roomName].Temp.Push(temp)
+					}
 
 					rooms[roomName].Data = append(rooms[roomName].Data, dataMap)
-					rooms[roomName].Temp.Push(temp)
 
 					jsonBytes, err := json.Marshal(dataMap)
 					if err != nil {
@@ -295,7 +358,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				if dataMap["action"] == "save" {
 					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, roomName)
+					err = a.serv.SaveRoom(ctx, rooms[roomName].Data,rooms[roomName].Config, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
@@ -373,7 +436,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(roomName string, Clients map[string]models.Role, data []map[string]interface{}) *Room {
+func instanceRoom(roomName string, Clients map[string]models.Role, data []map[string]interface{}, config map[string]interface{}) *Room {
 	room, exists := rooms[roomName] //instancia el room con los datos de la bd
 	if !exists {
 		room = &Room{
@@ -381,6 +444,7 @@ func instanceRoom(roomName string, Clients map[string]models.Role, data []map[st
 			Clients: Clients,
 			Active:  make([]*websocket.Conn, 0),
 			Data:    data,
+			Config:  config,
 		}
 		rooms[roomName] = room
 	}

@@ -78,15 +78,15 @@ const CoordinateInputs: React.FC = () => {
 
     // contenido inicial de las columnas
     const [initialTexts] = useState({
-      'Arcilla-Limo-Arena-Grava' :     { content: "vacío", optional : false, vertical : false, enabled : true},
-      'Sistema' :   { content: "vacío", optional : true, vertical : true, enabled : true},
-      'Edad' :      { content: "vacío", optional : true, vertical : true, enabled : true},
-      'Formación' : { content: "vacío", optional : true, vertical : true, enabled : true},
-      'Miembro' :   { content: "vacío", optional : true, vertical : true, enabled : true},
-      'Estructuras y/o fósiles': { content: [{ x: '0', y : '0', src: ''}], optional : true, vertical : false, enabled : true},
-      'Facie' :     { content: "vacío", optional : true, vertical : false, enabled : true},
-      'Ambiente depositacional': { content: "vacío", optional : true, vertical : false, enabled : true},
-      'Descripción':{ content: "vacío", optional : true, vertical : false, enabled : true}
+      'Arcilla-Limo-Arena-Grava' :     { content: "vacío", optional : false, vertical : false},
+      'Sistema' :   { content: "vacío", optional : true, vertical : true},
+      'Edad' :      { content: "vacío", optional : true, vertical : true},
+      'Formación' : { content: "vacío", optional : true, vertical : true},
+      'Miembro' :   { content: "vacío", optional : true, vertical : true},
+      'Estructuras y/o fósiles': { content: [{ x: '0', y : '0', src: ''}], optional : true, vertical : false},
+      'Facie' :     { content: "vacío", optional : true, vertical : false},
+      'Ambiente depositacional': { content: "vacío", optional : true, vertical : false},
+      'Descripción':{ content: "vacío", optional : true, vertical : false}
     });
 
 
@@ -113,7 +113,28 @@ const CoordinateInputs: React.FC = () => {
    
     const [socket, setSocket] = useState<WebSocket | null>(null);
 
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false)
+
+    
+    const [config, setConfig] = useState(
+      {
+      action : 'settingsRoom',
+      config :{
+        columns: {
+          'Arcilla-Limo-Arena-Grava' : { enabled : true},
+          'Sistema' :                  { enabled : true},
+          'Edad' :                     { enabled : true},
+          'Formación' :                { enabled : true},
+          'Miembro' :                  { enabled : true},
+          'Estructuras y/o fósiles':   { enabled : true},
+          'Facie' :                    { enabled : true},
+          'Ambiente depositacional':   { enabled : true},
+          'Descripción':               { enabled : true}
+        },
+        scale: 50
+    }
+    }
+    )
 
     const Sidebar = () => {
     
@@ -205,8 +226,9 @@ const CoordinateInputs: React.FC = () => {
       socket.onmessage = (event) => {
         //console.log(event.data);
         const shapeN = JSON.parse(event.data);
-        //console.log(shapeN)
+        console.log(shapeN)
 
+      
         // action='añadir', id, polygon, text
         if(shapeN.action === 'añadir'){
           
@@ -228,13 +250,20 @@ const CoordinateInputs: React.FC = () => {
             )
           );
 
+        // action='config', config
+        }else if(shapeN.action === 'settingsRoom'){
+
+          console.log(shapeN)
+          setConfig(shapeN);
+              
         // action='delete', id, 
-        }else if(shapeN.action === 'delete'){
+        }else if (shapeN.action === 'delete') {
           setShapes(prevShapes => 
             prevShapes.filter(shape => shape.id !== shapeN.id)
           );
         }
       };
+
       //use efect mio detecta si se presiona el control Z
       const handleKeyDown = (event) => {
         if (event.ctrlKey && event.key === "z") {
@@ -288,6 +317,14 @@ const CoordinateInputs: React.FC = () => {
 
     // Evento delete
     const HandleDelete = () => {
+
+      const mockEvent = {
+        target: {
+          value: '0', 
+        }
+      } as React.ChangeEvent<HTMLInputElement>; 
+
+      handleChangeHeight(mockEvent);
       socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
   
     }
@@ -437,7 +474,7 @@ const CoordinateInputs: React.FC = () => {
           // Cambio de la altura del polígono seleccionado
           if (shape.id === selectedShapeId) {
             const newY2 = shape.polygon.y1 + newHeight;
-    
+            
             if (newY2 < shape.polygon.y2) {
 
               const filteredCircles = shape.polygon.circles.filter((circle, index) => {
@@ -527,6 +564,7 @@ const CoordinateInputs: React.FC = () => {
         setHeight(shapes[index].polygon.y2 - shapes[index].polygon.y1);
         setSliderZoom(shapes[index].polygon.zoom);
         setSliderRotation(shapes[index].polygon.rotation);
+        setIsOpen(true);
     };
 
 //    Cambia en el editor las configuraciones del poligno seleccionado 
@@ -597,29 +635,22 @@ const CoordinateInputs: React.FC = () => {
 
   const handleCheckBox = (e,column) => {
 
-      const copia = [...shapes]
+      const prevConfigState = { ...config };
+     
+      if(e.target.checked){
+
+          prevConfigState.config.columns[column].enabled = true;
+          setConfig(prevConfigState);
+          socket.send(JSON.stringify(prevConfigState));
+
+          }else{
+            prevConfigState.config.columns[column].enabled = false;
+            setConfig(prevConfigState);
+            socket.send(JSON.stringify(prevConfigState));
+          }
+       
+      }
     
-      for(var index in copia){
-        console.log(copia[index].text[column].enabled);
-        if(e.target.checked){
-        copia[index].text[column].enabled = true;
-      }else{
-        copia[index].text[column].enabled = false;
-      }
-        //socket.send(JSON.stringify(copia[index]));  
-        sendSocket("text", index);
-
-      //   {   
-      //     action: "Shapes",
-      //     id: shapes.length,
-      //     shapes: {
-      //       text : initialTexts
-      //   }
-      //  }
-
-        // socket.send(JSON.stringify(copia[index].text));  
-      }
-    }
 
       const [isListOpen, setIsListOpen] = useState(false);
 
@@ -677,8 +708,6 @@ const CoordinateInputs: React.FC = () => {
             <ul>
               {Object.keys(initialTexts).map((key) => {
                 const item = initialTexts[key];
-                if(shapes.length>0)
-                { 
                 if (item.optional) {
                   return (
                     <li key={key}>
@@ -690,36 +719,14 @@ const CoordinateInputs: React.FC = () => {
                           type="checkbox"
                           id={key}
                           name={key}
-                          checked={shapes[0].text[key].enabled}
+                          checked={config.config.columns[key].enabled}
                           onChange={(e) => handleCheckBox(e, key)}
                         />
                       </div>
                     </li>
                   );
                 }
-                return null;}else{
-                  const item = initialTexts[key];
-                  if (item.optional) {
-                    return (
-                      <li key={key}>
-                        <div style={{ display: 'flex' }}>
-                          <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
-                            {key}
-                          </label>
-                          <input
-                            type="checkbox"
-                            id={key}
-                            name={key}
-                            defaultChecked={true}
-                            onChange={(e) => handleCheckBox(e, key)}
-                          />
-                        </div>
-                      </li>
-                    );
-                  }
-                  return null; 
-                  
-                }
+             
               })}
             </ul>
           )}
@@ -802,6 +809,7 @@ const CoordinateInputs: React.FC = () => {
                   polygon={shape} 
                   text={shape.text}
                   setText={(text, send) => setText(index, text, send, socket)}
+                  config={config}
                 />
             ))}
 
@@ -823,7 +831,7 @@ const CoordinateInputs: React.FC = () => {
                   File={shape.polygon.file}
                   circles={shape.polygon.circles}
                   setCircles={(circles, send) => setCircles(index, circles,send, socket)}
-                  onClick={() => {handleShapeClick(index); setIsOpen(true);}}
+                  onClick={() => handleShapeClick(index)}
                   //onDrag={() => {
                   //  handleShapeonDrag(index)
                   //}}
@@ -843,7 +851,7 @@ const CoordinateInputs: React.FC = () => {
                // fill="yellow"
                 opacity={0.5}
                 draggable
-                onClick = {() => {handleShapeClick(index); setIsOpen(true);}}
+                onClick = {() => handleShapeClick(index)}
                 onDragStart={() => dragStart(shape.id)}
                 onDragMove={(e) => {
                     handleContainerDrag(shape.id, e); 

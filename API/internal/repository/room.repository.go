@@ -44,6 +44,20 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, pa
 		Name:    roomName,
 		Clients: participants,
 		Data:    []map[string]interface{}{},
+		Config: map[string]interface{}{
+			"columns": map[string]interface{}{
+				"Arcilla-Limo-Arena-Grava": map[string]interface{}{"enabled": true},
+				"Sistema":                  map[string]interface{}{"enabled": true},
+				"Edad":                     map[string]interface{}{"enabled": true},
+				"Formación":                map[string]interface{}{"enabled": true},
+				"Miembro":                  map[string]interface{}{"enabled": true},
+				"Estructuras y/o fósiles":  map[string]interface{}{"enabled": true},
+				"Facie":                    map[string]interface{}{"enabled": true},
+				"Ambiente depositacional":  map[string]interface{}{"enabled": true},
+				"Descripción":              map[string]interface{}{"enabled": true},
+			},
+			"scale": 50,
+		},
 	}
 
 	var existingRoom models.Room
@@ -69,10 +83,11 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, pa
 
 	return nil
 }
-func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, roomName string) error {
+func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
 	filter := bson.M{"name": roomName}
 	update := bson.M{"$set": bson.M{
 		"data": data,
+		"config": config,
 	}}
 
 	rooms := r.db.Collection("rooms")

@@ -4,4 +4,5 @@ type Room struct {
 	Name    string
 	Clients map[string]Role
 	Data    []map[string]interface{}
+	Config  map[string]interface{}
 }
