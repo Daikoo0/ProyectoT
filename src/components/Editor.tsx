@@ -241,7 +241,6 @@ const CoordinateInputs: React.FC = () => {
                 shape.id === shapeN.id ? { ...shape, polygon: shapeN.polygon } : shape
             )
           );
-          
         // action='text', id, text
         }else if(shapeN.action === 'text'){ 
           setShapes(prevShapes => 
@@ -253,7 +252,7 @@ const CoordinateInputs: React.FC = () => {
         // action='config', config
         }else if(shapeN.action === 'settingsRoom'){
 
-          console.log(shapeN)
+          //console.log(shapeN)
           setConfig(shapeN);
               
         // action='delete', id, 
@@ -292,8 +291,6 @@ const CoordinateInputs: React.FC = () => {
           };
         }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
         
-        //const lastPolygon = shapes[shapes.length-1];  
-        //const lastPolygon = shapes.find(objeto => objeto.y2 === coordA.y2);
         setLastPositionSI({ x: coordA.x1, y: coordA.y2  }) //arreglar
         setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
       }
@@ -325,7 +322,7 @@ const CoordinateInputs: React.FC = () => {
       } as React.ChangeEvent<HTMLInputElement>; 
 
       handleChangeHeight(mockEvent);
-      socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
+      //socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
   
     }
 
@@ -436,7 +433,7 @@ const CoordinateInputs: React.FC = () => {
         polygonsintext.action = "polygon"
 
         console.log(polygonsintext)
-        socket.send(JSON.stringify(polygonsintext));
+        socket.send(JSON.stringify(polygonsintext))
       }
       else if(send === "text"){
         const send ={
@@ -513,7 +510,7 @@ const CoordinateInputs: React.FC = () => {
     
           return shape;
         });
-    
+        
         setShapes(updatedShapes);
       }
     };

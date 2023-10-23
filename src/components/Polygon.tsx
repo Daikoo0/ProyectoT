@@ -195,7 +195,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, Tensio
     // Todos los eventos de los circulos
     const addEventToCircle = (index) => {
         return {
-          onMouseLeave: () => {
+          onMouseUp: () => {
             const updatedCircles = [...circles];
             console.log("Soltar punto")
             setCircles(updatedCircles, true);

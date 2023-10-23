@@ -15,7 +15,7 @@ const Grid = ({ polygon, setText, text, config}) => {
   const cells = [];
   const columnRefs = {};
   //console.log(config.config)
-  console.log(text['Estructuras y/o fósiles'], polygon.id);
+  //console.log(text['Estructuras y/o fósiles'], polygon.id);
   const URLImage = ({ image }) => {
     const [img] = useImage(image.src);
     return (
@@ -240,7 +240,7 @@ const Grid = ({ polygon, setText, text, config}) => {
       cells.push(
       <>  
       {text[column].content.map((image) => {
-          console.log(text[column].content);
+          //console.log(text[column].content);
           return <URLImage image={image} />;
         })} 
         </>
