@@ -322,7 +322,13 @@ const CoordinateInputs: React.FC = () => {
       } as React.ChangeEvent<HTMLInputElement>; 
 
       handleChangeHeight(mockEvent);
-      //socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
+      // if (selectedShapeIndex !== null) {
+      //   const updatedShapes = [...shapes];
+      //   updatedShapes[selectedShapeIndex].polygon.x1 = -1000; 
+      //   updatedShapes[selectedShapeIndex].polygon.x2 = -1000; 
+      //   socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+      // }
+      // //socket.send(JSON.stringify({action:"delete", id: selectedShapeID, y1: shapes[selectedShapeIndex].polygon.y1, y2: shapes[selectedShapeIndex].polygon.y2} ));
   
     }
 
@@ -433,7 +439,18 @@ const CoordinateInputs: React.FC = () => {
         polygonsintext.action = "polygon"
 
         console.log(polygonsintext)
-        socket.send(JSON.stringify(polygonsintext))
+        
+        if(polygonsintext.polygon.y1 === polygonsintext.polygon.y2){
+          polygonsintext.polygon.x1 = -1000
+          polygonsintext.polygon.x2 = -1000
+          polygonsintext.polygon.y1 = -1000
+          polygonsintext.polygon.y2 = -1000
+          socket.send(JSON.stringify(polygonsintext))
+
+        }else{
+          socket.send(JSON.stringify(polygonsintext))
+        }
+
       }
       else if(send === "text"){
         const send ={

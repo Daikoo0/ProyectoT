@@ -232,7 +232,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 
 					rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
-
+					log.Println(id)
+					log.Println(rooms[roomName].Data)
 					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
 						log.Println("Error al convertir a JSON:", err)
@@ -275,7 +276,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				if dataMap["action"] == "polygon" {
 					id := int(dataMap["id"].(float64))
-					log.Printf("Editando polygon capa %s", string(rune(id)))
+					log.Println(id)
+					log.Printf("Editando polygon capa %s", string(id))
 
 					if undo {
 						temporal := make(map[string]interface{})
