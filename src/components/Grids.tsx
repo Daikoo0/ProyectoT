@@ -1,9 +1,8 @@
 import React from 'react';
 import { Rect, Layer, Text, Image, Group } from 'react-konva';
-import { useRef, useState } from 'react';
-import Konva from 'konva';
+import { useState } from 'react';
 import useImage from 'use-image';
-import Html from 'react-konva-utils';
+import { Html } from "react-konva-utils";
 
 
 const Grid = ({ polygon, setText, text, config}) => {
@@ -13,9 +12,6 @@ const Grid = ({ polygon, setText, text, config}) => {
   const cellHeight = polygon ? polygon.polygon.y2 - polygon.polygon.y1 : cellSize;
 
   const cells = [];
-  const columnRefs = {};
-  //console.log(config.config)
-  //console.log(text['Estructuras y/o fósiles'], polygon.id);
   const URLImage = ({ image }) => {
     const [img] = useImage(image.src);
     return (
@@ -28,123 +24,103 @@ const Grid = ({ polygon, setText, text, config}) => {
         width={50}
         height={60}
         draggable
-        // onDragEnd = {(e) =>
-        //   {  const x = e.target.x();
-        //      const y = e.target.y();
-
-        //      const copia = { ...text };
-        //      copia['Estructuras y/o fósiles'].content = textarea.value;
-        //     // console.log(textRef.current.text());
-        //      setText(copia,true);
-            
-        //   }
-        // }
       />
     );
   };
 
-  const handleDoubleClick = (textRef,column,vertical) => {
-    // if (textRef.current) {
-    //   textRef.current.hide();
-    //   const stage = textRef.current.getStage();
-    //   if (!stage) return;
+  interface StickyNoteProps {
+    text: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    column : string;
+  }
+  
+  const RETURN_KEY = 13;
+  const ESCAPE_KEY = 27;
+  
 
-    //   const textPosition = textRef.current.getAbsolutePosition();
-    //   const stageBox = stage.container().getBoundingClientRect();
-    //   //console.log(stageBox,textPosition);
-    //   var areaPosition;
+  const additionalColumns = ['Arcilla-Limo-Arena-Grava','Estructuras y/o fósiles','Sistema','Edad','Formación','Miembro','Facie','Ambiente depositacional','Descripción'];
 
-    //   if(vertical){
-    //      areaPosition = {
-    //       x: stageBox.left + textPosition.x +150,
-    //       y: stageBox.top + textPosition.y-100,
-    //     };
-    //   }else{
-    //     areaPosition = {
-    //       x: stageBox.left + textPosition.x+150,
-    //       y: stageBox.top + textPosition.y,
-    //     };
-    //   }
-
-
-    //   const textarea = document.createElement('textarea');
-    //   document.body.appendChild(textarea);
-    //    textarea.value = textRef.current.text();
-    //    textarea.style.position = 'absolute';
-    //    textarea.style.top = stageBox.top + polygon.polygon.y1+ 'px';
-    //    textarea.style.left =  stageBox.left + textRef.current.getAbsolutePosition().x + 'px';
-    //    textarea.style.width = cellSize -2 +'px';
-    //    textarea.style.height = cellHeight -2 +'px';
-    //    textarea.style.background = 'none';
-    //    textarea.style.overflow = 'auto';
-    //    textarea.style.color = textRef.current.fill();
-    //    if(vertical){
-    //     textarea.style.transform = 'rotate(270deg)';
-    //    // textarea.style.top = areaPosition.y + cellSize-1 + 'px';
-    //     textarea.style.width = polygon.polygon.height
-    //   }
-    //  textarea.focus();
-
-    //   textarea.addEventListener('blur', (e) => {
-          
-    //       const copia = { ...text };
-    //       copia[column].content = textarea.value;
-    //     //  console.log(textRef.current.text());
-    //       setText(copia,true);
-    //       textRef.current!.text(textarea.value);
-    //       stage.batchDraw();
-    //       document.body.removeChild(textarea);
-    //       textRef.current.show();
-    //   });
-    // }
-    if (textRef.current) {
-    //  textRef.current.hide();
-    //  const stage = textRef.current.getStage();
-     // if (!stage) return;
-
-   //   const textPosition = textRef.current.getAbsolutePosition();
-      //const stageBox = stage.container().getBoundingClientRect();
-      //console.log(stageBox,textPosition);
-      var areaPosition;
-
-      // if(vertical){
-      //    areaPosition = {
-      //     x: stageBox.left + textPosition.x +150,
-      //     y: stageBox.top + textPosition.y-100,
-      //   };
-      // }else{
-      //   areaPosition = {
-      //     x: stageBox.left + textPosition.x+150,
-      //     y: stageBox.top + textPosition.y,
-      //   };
-      // }
-
-
-      //const textRef = document.createElement('textRef');
-     // document.body.appendChild(textRef);
-      // textRef.value = textRef.current.text();
-       textRef.style.position = 'absolute';
-     //  textRef.style.top = stageBox.top + polygon.polygon.y1+ 'px';
-     //  textRef.style.left =  stageBox.left + textRef.current.getAbsolutePosition().x + 'px';
-       textRef.style.width = cellSize -2 +'px';
-       textRef.style.height = cellHeight -2 +'px';
-       textRef.style.background = 'none';
-       textRef.style.overflow = 'auto';
-       //textRef.style.color = textRef.current.fill();
-       if(vertical){
-        textRef.style.transform = 'rotate(270deg)';
-       // textRef.style.top = areaPosition.y + cellSize-1 + 'px';
-        textRef.style.width = polygon.polygon.height
-      }
-     textRef.focus();
-
-      textRef.addEventListener('blur', (e) => {
-          
-          const copia = { ...text };
-          copia[column].content = textRef.ariaValueText;
-          setText(copia,true);
-      });
-    }
+  
+  const StickyNote: React.FC<StickyNoteProps> = (props) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [content, setContent] = useState(props.text);
+  
+    const textComponent = isEditing ? (
+      <Html
+        groupProps={{ x: 0, y: 0 }}
+        divProps={{
+          style: {
+            width: props.width,
+            height: props.height,
+            overflow: 'hidden',
+            background: 'none',
+            outline: 'none',
+            border: 'none',
+            padding: '0px',
+            margin: '0px',
+          },
+        }}
+      >
+        <textarea
+          style={{
+            width : cellSize,
+            height : cellHeight,
+            background: 'none',
+            border: 'none',
+            padding: '0px',
+            margin: '0px',
+            outline: 'none',
+            overflow: 'auto',
+            fontSize: '24px',
+            fontFamily: 'sans-serif',
+            color: 'black',
+          }}
+          value={content}
+          onChange={(newText) => 
+          { 
+            setContent(newText.currentTarget.value);
+          }}
+          onBlur={() =>
+            {const copia = { ...text };
+            copia[props.column].content = content;
+            setText(copia,true);
+          }}
+          onKeyDown={(e) => {
+            if ((e.keyCode === RETURN_KEY && !e.shiftKey) || e.keyCode === ESCAPE_KEY){
+              setIsEditing(false);
+            }
+          }
+        }
+        />
+      </Html>
+    ) : (
+      <Text
+        x={0}
+        y={0}
+        text={props.text}
+        fill="black"
+        fontFamily="sans-serif"
+        fontSize={24}
+        width={props.width}
+        height={props.height}
+        onDblClick={(e) => setIsEditing(true)} 
+      />
+    );
+  
+    return (
+      <Group x={props.x} y={props.y}>
+        <Rect
+          x={0}
+          y={0}
+          width={props.width}
+          height={props.height}
+        />
+        {textComponent}
+      </Group>
+    );
   };
 
   // Agregar encabezado en la primera fila
@@ -159,8 +135,6 @@ const Grid = ({ polygon, setText, text, config}) => {
       stroke="black"
     />
   );
-
-  const additionalColumns = ['Arcilla-Limo-Arena-Grava','Estructuras y/o fósiles','Sistema','Edad','Formación','Miembro','Facie','Ambiente depositacional','Descripción'];
 
   let xOffset = marginLeft + polygonColumnWidth;
   additionalColumns.forEach((column, index) => {
@@ -185,7 +159,6 @@ const Grid = ({ polygon, setText, text, config}) => {
         x={xOffset + cellSize / 2} // Alineación horizontal en el centro de la celda
         y={cellSize / 2} // Alineación vertical en el centro de la celda
         text={column}
-       // verticalAlign="middle"
         fontSize={14}
         fill="black"></Text>
     );
@@ -230,39 +203,32 @@ const Grid = ({ polygon, setText, text, config}) => {
   // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
   additionalColumns.forEach((column) => {
 
-  
-   if (!columnRefs[column]) {
-    columnRefs[column] = useRef(null);
-   }
 
    if(config.config.columns[column].enabled){
     if(column==='Estructuras y/o fósiles'){
       cells.push(
-      <>  
+      <Group>  
       {text[column].content.map((image) => {
-          //console.log(text[column].content);
           return <URLImage image={image} />;
         })} 
-        </>
+        </Group>
     );
 
   xOffset += cellSize;
 
     }else{
+      
             cells.push(
                 
-              <Text 
-                  ref={columnRefs[column]}
-                  x={xOffset+1}
-                  y={text[column].vertical ? polygon.polygon.y1+cellHeight : polygon.polygon.y1}
-                  rotation={text[column].vertical ? 270 : 0}
-                  height={cellHeight}
-                  width={cellSize}
-                  text={text[column].content}
-                  fontSize={18}
-                  onDblClick={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
-                  onTap={(e) => handleDoubleClick(columnRefs[column],column,text[column].vertical)}
-             ></Text>
+            <StickyNote
+            column={column}
+            x={xOffset}
+          //  y={text[column].vertical ? polygon.polygon.y1+cellHeight : polygon.polygon.y1}
+            y={polygon.polygon.y1}
+            width={cellSize}
+            height={cellHeight}
+            text={text[column].content}
+          />
               
             );
         
