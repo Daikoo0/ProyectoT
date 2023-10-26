@@ -31,7 +31,7 @@ const router = createBrowserRouter([
     element: <Home />,
   },
   {
-    path: "/invite",
+    path: "/invite/:project",
     element: <AddUserToRoom />,
   },
   {

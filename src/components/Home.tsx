@@ -39,7 +39,15 @@ const Home = () => {
     const handleEdit = (sala) => {
       navigate(`/editor/${sala}`); 
     };
+
+    const handleAddRoom = () => {
+      navigate(`/create`); 
+    };
   
+    const handleInvite = (sala) => {
+      navigate(`/invite/${sala}`); 
+    };
+
     return (
       <div>
       <h1>Proyectos del usuario</h1>
@@ -48,9 +56,11 @@ const Home = () => {
           <div key={index} className="proyecto">
             <span>{proyecto}</span>
             <button onClick={() => handleEdit(proyecto)}>Editar</button>
+            <button onClick={() => handleInvite(proyecto)}>Agregar Usuario</button> 
           </div>
         ))}
       </div>
+      <button onClick={handleAddRoom}>Crear Sala</button>
     </div>
     );
   };

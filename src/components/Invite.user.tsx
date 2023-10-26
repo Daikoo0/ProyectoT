@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 //import './Form.css';
 
 const AddUserToRoom = () => {
   //esta ruta lo que hace es invitar un usuario a la room
   //me puse en corte baneador compulsivo 💀💀 y todos estan baneados
   //la unica forma de entrar a un room es que seas parte de el y esto hace esta ruta 
-
+  const { project } = useParams();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [room, setRoom] = useState('');
+  const [room, setRoom] = useState(project);
   const [message, setMessage] = useState('');
 
   async function handleAddUser() {

@@ -21,8 +21,8 @@ const Grid = ({ polygon, setText, text, config}) => {
         y={image.y}
         offsetX={img ? img.width / 2 : 0}
         offsetY={img ? img.height / 2 : 0}
-        width={50}
-        height={60}
+        width={30}
+        height={30}
         draggable
       />
     );
@@ -35,6 +35,7 @@ const Grid = ({ polygon, setText, text, config}) => {
     width: number;
     height: number;
     column : string;
+    vertical : boolean;
   }
   
   const RETURN_KEY = 13;
@@ -74,7 +75,7 @@ const Grid = ({ polygon, setText, text, config}) => {
             margin: '0px',
             outline: 'none',
             overflow: 'auto',
-            fontSize: '24px',
+            fontSize: '18px',
             fontFamily: 'sans-serif',
             color: 'black',
           }}
@@ -99,11 +100,12 @@ const Grid = ({ polygon, setText, text, config}) => {
     ) : (
       <Text
         x={0}
-        y={0}
+        y={props.vertical ? cellHeight : 0}
         text={props.text}
         fill="black"
         fontFamily="sans-serif"
-        fontSize={24}
+        fontSize={18}
+        rotation={props.vertical ? 270 : 0}
         width={props.width}
         height={props.height}
         onDblClick={(e) => setIsEditing(true)} 
@@ -141,27 +143,33 @@ const Grid = ({ polygon, setText, text, config}) => {
 
    if(config.config.columns[column].enabled){
     
- cells.push(
-      <Rect
-        key={`header-${column}`}
-        x={xOffset}
-        y={0}
-        width={cellSize}
-        height={cellHeight}
-        fill="white"
-        stroke="black"
-      />
-    );
-
     cells.push(
+          <Rect
+            key={`header-${column}`}
+            x={xOffset}
+            y={0}
+            width={cellSize}
+            height={cellHeight}
+            fill="white"
+            stroke="black"
+          />
+        );
+
+    const words = column.split(' ');
+    const lineHeight = 14 * 1.5;
+
+    const textElements = words.map((word, index) => (
       <Text
-        key={`text-${column}`}
-        x={xOffset + cellSize / 2} // Alineación horizontal en el centro de la celda
-        y={cellSize / 2} // Alineación vertical en el centro de la celda
-        text={column}
+        key={`text-${column}-${index}`}
+        x={xOffset + cellSize / 8}
+        y={cellSize / 5 + index * lineHeight} // Ajustamos la posición 'y' para cada palabra.
+        text={word}
         fontSize={14}
-        fill="black"></Text>
-    );
+        fill="black"
+      />
+    ));
+
+    cells.push(...textElements);
   
 
     // Agregar el texto de la columna
@@ -228,6 +236,7 @@ const Grid = ({ polygon, setText, text, config}) => {
             width={cellSize}
             height={cellHeight}
             text={text[column].content}
+            vertical={text[column].vertical}
           />
               
             );

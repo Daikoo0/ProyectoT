@@ -106,7 +106,7 @@ const CoordinateInputs: React.FC = () => {
     // Slider barras
     const [sliderZoom, setSliderZoom] = useState(100); // Zoom
     const [sliderRotation, setSliderRotation] = useState(0); // Rotacion
-    const [sliderTension, setSliderTension] = useState(1); // Tension de lineas
+    const [sliderTension, setSliderTension] = useState(0); // Tension de lineas
 
     // websocket instanciacion
     const { project } = useParams();
@@ -291,8 +291,16 @@ const CoordinateInputs: React.FC = () => {
           };
         }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
         
-        setLastPositionSI({ x: coordA.x1, y: coordA.y2  }) //arreglar
-        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
+        if(coordA.y2 === -1000){
+          setLastPositionSI({ x: 100, y: 100  }) 
+          setLastPositionID({ x: 200, y: 200 })
+        }else{
+          console.log(coordA)
+          setLastPositionSI({ x: coordA.x1, y: coordA.y2  }) 
+          setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
+        }
+
+        
       }
       
     },[shapes]);
@@ -690,7 +698,6 @@ const CoordinateInputs: React.FC = () => {
   
     const dragUrl = React.useRef(null);
     const stageRef = React.useRef(null);
-    //const [imageFosils, setImageFosils] = React.useState([]);
   
     // Seleccion de patron / Pattern
     const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
@@ -699,8 +706,6 @@ const CoordinateInputs: React.FC = () => {
       setSelectedFosil(String(event.target.value));
       console.log(event.target.value)
     };
-      
-  
 
     return (
       <div id="Editor">
