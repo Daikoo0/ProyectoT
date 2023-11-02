@@ -1,17 +1,109 @@
 import React from 'react';
 import { Rect, Layer, Text, Image, Group } from 'react-konva';
-import { useState } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import useImage from 'use-image';
 import { Html } from "react-konva-utils";
 
+interface StickyNoteProps {
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  column : string;
+  vertical : boolean;
+}
 
-const Grid = ({ polygon, setText, text, config}) => {
+interface ImageComponentProps {
+  imageNames : any;
+  src: string;
+  x: number;
+  y: number;
+  width : number;
+  height : number
+}
+
+
+
+const Grid = ({ polygon, setText, text, config, dragUrl}) => {
   const cellSize = 110; // Tamaño de cada celda de la cuadrícula
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
   const cellHeight = polygon ? polygon.polygon.y2 - polygon.polygon.y1 : cellSize;
 
   const cells = [];
+
+  const groupRef = useRef(null);
+
+  const ImageComponent : React.FC<ImageComponentProps> = (props) => {
+      const groupRef = useRef(null);
+
+      var a = []
+      props.imageNames.forEach((imageName, index) => {
+        const [img] = useImage(imageName.src);
+        const b = <Image
+       image={img}
+        x={imageName.x}
+        y={imageName.y}
+        offsetX={img ? img.width / 2 : 0}
+        offsetY={img ? img.height / 2 : 0}
+       />;
+      a.push(b)   
+    });   
+
+    const MyKonvaComponent = 
+        <Group x={props.x} y={props.y} ref={groupRef}>
+       
+        <Html
+            groupProps={{ x: 0, y: 0 }}
+            divProps={{
+              style: {
+                width: props.width,
+                height: props.height,
+                overflow: 'hidden',
+                background: 'none',
+                outline: 'none',
+                border: 'none',
+                padding: '0px',
+                margin: '0px',
+              },
+            }}
+          >
+            <div
+              style={{
+                width : cellSize,
+                height : cellHeight,
+                background: 'none',
+                border: 'none',
+                padding: '0px',
+                margin: '0px',
+                outline: 'none',
+                overflow: 'auto',
+                fontSize: '18px',
+                fontFamily: 'sans-serif',
+                color: 'black',
+              }}
+              onDrop={(e)=> {
+                e.preventDefault();
+                  const copia = { ...text };
+                  copia['Estructuras y/o fósiles'].content.push({
+                  'x' :  e.nativeEvent.offsetX,
+                  'y' : e.nativeEvent.offsetY,
+                  'src' : dragUrl.current});
+                  setText(copia,true);
+              }}
+            
+            />
+          </Html>
+          {a}
+          </Group>
+
+    return (
+      MyKonvaComponent
+    );
+  };
+
+
   const URLImage = ({ image }) => {
     const [img] = useImage(image.src);
     return (
@@ -28,16 +120,7 @@ const Grid = ({ polygon, setText, text, config}) => {
     );
   };
 
-  interface StickyNoteProps {
-    text: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    column : string;
-    vertical : boolean;
-  }
-  
+
   const RETURN_KEY = 13;
   const ESCAPE_KEY = 27;
   
@@ -215,11 +298,15 @@ const Grid = ({ polygon, setText, text, config}) => {
    if(config.config.columns[column].enabled){
     if(column==='Estructuras y/o fósiles'){
       cells.push(
-      <Group>  
-      {text[column].content.map((image) => {
-          return <URLImage image={image} />;
-        })} 
-        </Group>
+     
+      <ImageComponent
+       imageNames={text['Estructuras y/o fósiles'].content}
+        x={xOffset} 
+        y={polygon.polygon.y1}
+        width={cellSize}
+        height={cellHeight}
+        />
+  
     );
 
   xOffset += cellSize;
@@ -251,9 +338,11 @@ const Grid = ({ polygon, setText, text, config}) => {
   );
 
   return (
-    <Layer>
-      {cells}
-    </Layer>
+   <>
+   {cells}
+   </>
+      
+    
   );
 };
 

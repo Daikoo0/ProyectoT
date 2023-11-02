@@ -83,7 +83,7 @@ const CoordinateInputs: React.FC = () => {
       'Edad' :      { content: "vacío", optional : true, vertical : true},
       'Formación' : { content: "vacío", optional : true, vertical : true},
       'Miembro' :   { content: "vacío", optional : true, vertical : true},
-      'Estructuras y/o fósiles': { content: [{ x: '0', y : '0', src: ''}], optional : true, vertical : false},
+      'Estructuras y/o fósiles': { content: [], optional : true, vertical : false},
       'Facie' :     { content: "vacío", optional : true, vertical : false},
       'Ambiente depositacional': { content: "vacío", optional : true, vertical : false},
       'Descripción':{ content: "vacío", optional : true, vertical : false}
@@ -778,64 +778,62 @@ const CoordinateInputs: React.FC = () => {
         </div>
 
         <div id="gridContainer" 
-         onDrop={(e) => {
-          e.preventDefault();
-          stageRef.current.setPointersPositions(e);
+        //  onDrop={(e) => {
+        //   e.preventDefault();
+        //   stageRef.current.setPointersPositions(e);
 
-          const copia = [...shapes]
-          for (let shape of copia) {
-            const { y1, y2 } = shape.polygon;
+        //   const copia = [...shapes]
+        //   for (let shape of copia) {
+        //     const { y1, y2 } = shape.polygon;
         
-            // Comprobar si el punto 'y' está entre 'y1' e 'y2'
-            if (stageRef.current.getPointerPosition().y >= Math.min(y1, y2) 
-            && stageRef.current.getPointerPosition().y <= Math.max(y1, y2)
-            &&  stageRef.current.getPointerPosition().x > 499 
-            &&  stageRef.current.getPointerPosition().x < 601
-            ) {
-              if (copia[shape.id].text['Estructuras y/o fósiles']) {
+        //     // Comprobar si el punto 'y' está entre 'y1' e 'y2'
+        //     if (stageRef.current.getPointerPosition().y >= Math.min(y1, y2) 
+        //     && stageRef.current.getPointerPosition().y <= Math.max(y1, y2)
+        //     &&  stageRef.current.getPointerPosition().x > 499 
+        //     &&  stageRef.current.getPointerPosition().x < 601
+        //     ) {
+        //       if (copia[shape.id].text['Estructuras y/o fósiles']) {
 
-                // const shapeToUpdate = { ...copia[shape.index] }
-                copia[shape.id].text['Estructuras y/o fósiles'].content.push(
-               {'x' :  stageRef.current.getPointerPosition().x,
-                'y' : stageRef.current.getPointerPosition().y,
-                'src' : dragUrl.current})
+        //         // const shapeToUpdate = { ...copia[shape.index] }
+        //         copia[shape.id].text['Estructuras y/o fósiles'].content.push(
+        //        {'x' :  stageRef.current.getPointerPosition().x-510,
+        //         'y' : stageRef.current.getPointerPosition().y-y1,
+        //         'src' : dragUrl.current})
 
-                //copia[shape.id] = shape;
-                setShapes(copia);
-            //    sendSocket("text",shape.id);
-                socket.send(JSON.stringify({
-                  action: "text",
-                  id: copia[shape.id].id,
-                  text: copia[shape.id].text,
-                }))
-                } 
+        //         //copia[shape.id] = shape;
+        //         setShapes(copia);
+        //     //    sendSocket("text",shape.id);
+        //         socket.send(JSON.stringify({
+        //           action: "text",
+        //           id: copia[shape.id].id,
+        //           text: copia[shape.id].text,
+        //         }))
+        //         } 
 
-              // Retornar el shape actual
-              return shape;
-            }
-          }
+        //       // Retornar el shape actual
+        //       return shape;
+        //     }
+        //   }
         
-          // Si no se encuentra ningún shape, retorna null 
-          return null;
-        }}
+        //   // Si no se encuentra ningún shape, retorna null 
+        //   return null;
+        // }}
         onDragOver={(e) => e.preventDefault()}>
 
         <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
-      
-            {shapes.map((shape,index) => (
-                <Grid
+        <Layer>
+  
+            {shapes.map((shape, index) => (     
+              <>
+                 <Grid
                   key={index} 
                   polygon={shape} 
                   text={shape.text}
                   setText={(text, send) => setText(index, text, send, socket)}
                   config={config}
+                  dragUrl={dragUrl}
                 />
-            ))}
 
-        <Layer>
-  
-            {shapes.map((shape, index) => (
-             
                 <Polygon
                   key={index}
                   x1={shape.polygon.x1}
@@ -855,9 +853,6 @@ const CoordinateInputs: React.FC = () => {
                   //  handleShapeonDrag(index)
                   //}}
                 />
-                
-            ))} 
-            {shapes.map((shape, index) => (
                 <Rect
                 key={index}
                 //x={shape.x1} // lado izquerdo poligono
@@ -881,6 +876,7 @@ const CoordinateInputs: React.FC = () => {
                     y: pos.y, 
                 })}
               />
+              </>
             ))} 
             {shapes.length > 0 && (
             
