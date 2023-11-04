@@ -16,14 +16,11 @@ interface StickyNoteProps {
 
 interface ImageComponentProps {
   imageNames : any;
-  src: string;
   x: number;
   y: number;
   width : number;
   height : number
 }
-
-
 
 const Grid = ({ polygon, setText, text, config, dragUrl}) => {
   const cellSize = 110; // Tamaño de cada celda de la cuadrícula
@@ -300,7 +297,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
       cells.push(
      
       <ImageComponent
-       imageNames={text['Estructuras y/o fósiles'].content}
+        imageNames={text['Estructuras y/o fósiles'].content}
         x={xOffset} 
         y={polygon.polygon.y1}
         width={cellSize}

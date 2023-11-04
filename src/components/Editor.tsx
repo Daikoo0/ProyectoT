@@ -486,58 +486,66 @@ const CoordinateInputs: React.FC = () => {
     const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
       setHeight(Number(event.target.value));
       const newHeight = Number(event.target.value);
-
-      if (selectedShapeIndex !== null) {
-        const selectedShapeId = shapes[selectedShapeIndex].id;
-    
-        const deltaY = newHeight - (shapes[selectedShapeIndex].polygon.y2 - shapes[selectedShapeIndex].polygon.y1);
-    
-        const updatedShapes = shapes.map((shape) => {
-          // Cambio de la altura del polígono seleccionado
-          if (shape.id === selectedShapeId) {
-            const newY2 = shape.polygon.y1 + newHeight;
-            
-            if (newY2 < shape.polygon.y2) {
-
-              const filteredCircles = shape.polygon.circles.filter((circle, index) => {
-                return index < 2 || index >= shape.polygon.circles.length - 2 || circle.y <= newY2;
-              });
-    
-              return {
-                ...shape,
-                polygon: {
-                    ...shape.polygon,
-                    y2: newY2,
-                    circles: filteredCircles,
-                }
-            };
-              
-            } else {
-              return {
-                ...shape,
-                polygon: {
-                    ...shape.polygon,
-                    y2: newY2,
-                }
-            };
-            }
-          } else if (shape.polygon.y1 >= shapes[selectedShapeIndex].polygon.y2) {
-            // Cambio de posición del resto de figuras por debajo
-            return {
-              ...shape,
-              polygon: {
-                  ...shape.polygon,
-                  y1: shape.polygon.y1 + deltaY,
-                  y2: shape.polygon.y2 + deltaY,
-              }
-            };
-          }
-    
-          return shape;
-        });
-        
-        setShapes(updatedShapes);
+      
+      const send ={
+        action: "height",
+        id: selectedShapeIndex,
+        circles : shapes[selectedShapeIndex].polygon.circles,
+        newHeight : newHeight,
       }
+      socket.send(JSON.stringify(send));
+
+      // if (selectedShapeIndex !== null) {
+      //   const selectedShapeId = shapes[selectedShapeIndex].id;
+    
+      //   const deltaY = newHeight - (shapes[selectedShapeIndex].polygon.y2 - shapes[selectedShapeIndex].polygon.y1);
+    
+      //   const updatedShapes = shapes.map((shape) => {
+      //     // Cambio de la altura del polígono seleccionado
+      //     if (shape.id === selectedShapeId) {
+      //       const newY2 = shape.polygon.y1 + newHeight;
+            
+      //       if (newY2 < shape.polygon.y2) {
+
+      //         const filteredCircles = shape.polygon.circles.filter((circle, index) => {
+      //           return index < 2 || index >= shape.polygon.circles.length - 2 || circle.y <= newY2;
+      //         });
+    
+      //         return {
+      //           ...shape,
+      //           polygon: {
+      //               ...shape.polygon,
+      //               y2: newY2,
+      //               circles: filteredCircles,
+      //           }
+      //       };
+              
+      //       } else {
+      //         return {
+      //           ...shape,
+      //           polygon: {
+      //               ...shape.polygon,
+      //               y2: newY2,
+      //           }
+      //       };
+      //       }
+      //     } else if (shape.polygon.y1 >= shapes[selectedShapeIndex].polygon.y2) {
+      //       // Cambio de posición del resto de figuras por debajo
+      //       return {
+      //         ...shape,
+      //         polygon: {
+      //             ...shape.polygon,
+      //             y1: shape.polygon.y1 + deltaY,
+      //             y2: shape.polygon.y2 + deltaY,
+      //         }
+      //       };
+      //     }
+    
+      //     return shape;
+      //   });
+        
+      //   setShapes(updatedShapes);
+      // }
     };
 
 
@@ -826,7 +834,7 @@ const CoordinateInputs: React.FC = () => {
             {shapes.map((shape, index) => (     
               <>
                  <Grid
-                  key={index} 
+                  key={shape.polygon.id}
                   polygon={shape} 
                   text={shape.text}
                   setText={(text, send) => setText(index, text, send, socket)}
@@ -835,7 +843,7 @@ const CoordinateInputs: React.FC = () => {
                 />
 
                 <Polygon
-                  key={index}
+                  key={shape.polygon.id}
                   x1={shape.polygon.x1}
                   y1={shape.polygon.y1}
                   x2={shape.polygon.x2}
@@ -854,7 +862,7 @@ const CoordinateInputs: React.FC = () => {
                   //}}
                 />
                 <Rect
-                key={index}
+                key={shape.polygon.id}
                 //x={shape.x1} // lado izquerdo poligono
                 //y={shape.y1}
                 x={shape.polygon.x1}

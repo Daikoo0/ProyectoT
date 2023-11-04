@@ -17,6 +17,17 @@ import (
 type responseMessage struct {
 	Message string `json:"message"`
 }
+type shap struct {
+	id      int
+	polygon string `json:"message"`
+}
+
+type circle struct {
+	x       int
+	y       int
+	radius  int
+	movable bool
+}
 
 type Room struct {
 	Name    string
@@ -166,12 +177,11 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	configRoom["config"] = room.Config
 
 	configBytes, err := json.Marshal(configRoom)
-		if err != nil {
-			errMessage := "Error: cannot sent room config"
-			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
-		}
-		conn.WriteMessage(websocket.TextMessage, configBytes)
-
+	if err != nil {
+		errMessage := "Error: cannot sent room config"
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+	}
+	conn.WriteMessage(websocket.TextMessage, configBytes)
 
 	if err == nil {
 		//enviar datos actuales (no se que chucha con su front)
@@ -222,12 +232,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						//log.Println(variacion)
 						/*
 
-						for estrato := range rooms[roomName].Data[:id]["polygon"]
-						estrato["y1"] = estrato["y1"] - variacion
-						estrato["y2"] = estrato["y2"] - variacion
-						for circle := range estrato["circles"]
-							circle["y"] = circle["y"] - variacion
-						}
+							for estrato := range rooms[roomName].Data[:id]["polygon"]
+							estrato["y1"] = estrato["y1"] - variacion
+							estrato["y2"] = estrato["y2"] - variacion
+							for circle := range estrato["circles"]
+								circle["y"] = circle["y"] - variacion
+							}
 						*/
 					}
 
@@ -314,7 +324,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						rooms[roomName].Temp.Push(temporal)
 					}
 
-					for key, newValue := range dataMap["config"].(map[string]interface{}){
+					for key, newValue := range dataMap["config"].(map[string]interface{}) {
 						rooms[roomName].Config[key] = newValue
 					}
 
@@ -360,7 +370,61 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				if dataMap["action"] == "save" {
 					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomName].Data,rooms[roomName].Config, roomName)
+					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
+					if err != nil {
+						log.Println("No se guardo la data")
+					}
+				}
+
+				if dataMap["action"] == "height" {
+					id := int(dataMap["id"].(float64))
+					circlesp, err := json.Marshal(dataMap["circles"])
+					newHeight := int(dataMap["newHeight"].(float64))
+					log.Println(id, newHeight, err)
+					log.Println(id, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
+					//rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)// todos los shapes
+
+					updatedShapes := rooms[roomName].Data
+					//updatedShapes := append(rooms[roomName].Data)
+
+					for _, shape := range rooms[roomName].Data {
+
+						shap := make(map[string]interface{})
+						cu, err := json.Marshal(shape["polygon"])
+						json.Unmarshal(cu, &shap)
+						log.Println(shap["y1"], err)
+						deltaY := newHeight - (int(shap["y2"].(float64)) - int(shap["y1"].(float64)))
+
+						var cir []circle
+						json.Unmarshal([]byte(circlesp), &cir)
+
+						if shap["id"] == id {
+							newY2 := int(shap["y1"].(float64)) + newHeight
+							if newY2 < int(shap["y2"].(float64)) {
+								var filteredCircles []any
+
+								for i, circle := range cir {
+									if i < 2 || i >= len(cir)-2 || circle.y <= newY2 {
+										filteredCircles = append(filteredCircles, circle)
+									}
+								}
+
+								shap["y2"] = newY2
+								cir, err := json.Marshal(filteredCircles)
+								log.Println(cir, err)
+							} else {
+								shap["y2"] = newY2
+							}
+						} else if int(shap["y1"].(float64)) >= int(shap["y2"].(float64)) {
+							shap["y1"] = int(shap["y1"].(float64)) + deltaY
+							shap["y2"] = int(shap["y2"].(float64)) + deltaY
+						}
+						updatedShapes = append(updatedShapes, shap)
+						rooms[roomName].Data = updatedShapes
+						log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+					}
+					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
