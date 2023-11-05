@@ -9,17 +9,18 @@ import (
 //go:embed settings.yaml
 var settingsFile []byte
 
-type Settings struct{
+type Settings struct {
 	Port string `yaml:"port"`
-	DB string `yaml:"database"`
+	DB   string `yaml:"database"`
 	Name string `yaml:"dbname"`
-	Key string `yaml:"key"`
+	Key  string `yaml:"key"`
 }
-func New() (*Settings, error){
+
+func New() (*Settings, error) {
 	var s Settings
 
 	err := yaml.Unmarshal(settingsFile, &s)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return &s, nil

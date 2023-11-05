@@ -17,7 +17,7 @@ import (
 func main(){
 	log.Println("hola desde main")
 
-	//patron de diseño inyección de dependencias, queria ver que tal xd
+	//patron de diseño inyección de dependencias
 	app := fx.New( 
 		fx.Provide(
 			context.Background,

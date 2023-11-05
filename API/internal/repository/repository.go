@@ -12,24 +12,22 @@ import (
 //
 //go:generate mockery --name=Repository --output=repository --inpackage
 type Repository interface { //comunicaciones con la base de datos
-	SaveUser(ctx context.Context, email, name, password string) error       //guarda un usuario en la base de datos
-	GetUserByEmail(ctx context.Context, email string) (*entity.User, error) //devuelve la entidad usuario
 
-	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error)
-	GetRoom(ctx context.Context, roomName string) (*models.Room, error)
+	// Room - room.repository.go
+	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error)                           // Conecta a un usuario a una sala
+	GetRoom(ctx context.Context, roomName string) (*models.Room, error)                                            // Devuelve la entidad sala
+	CreateRoom(ctx context.Context, roomName string, owner string, participants map[string]models.Role) error      // Crea una sala
+	SaveProject(ctx context.Context, data string, name string) error                                               // Guarda un proyecto en la base de datos
+	SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, name string) error // Guarda una sala en la base de datos
+	SaveUsers(ctx context.Context, room *models.Room) error                                                        // Guarda los usuarios de una sala en la base de datos
 
-	SaveProject(ctx context.Context, data string, name string) error
-	SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, name string) error
+	// Profile - profile.repository.go
+	GetProyects(ctx context.Context, email string) ([]string, error) // Devuelve los proyectos de un usuario
 
-	SaveUsers(ctx context.Context, room *models.Room) error
-	CreateRoom(ctx context.Context, roomName string, owner string, participants map[string]models.Role) error
-
-	GetProyects(ctx context.Context, email string) ([]string, error)
-	AddUser(ctx context.Context, email string, roomName string) error
-
-	//se reciben y se devuelven interfaces
-	//no trabajo en funcion de structs por que el main recibe interfaces
-	//(no quiero convertir a struct enviar y reconvertir a interfaz)
+	// Users - user.repository.go
+	SaveUser(ctx context.Context, email, name, password string) error       // Guarda un usuario en la base de datos
+	GetUserByEmail(ctx context.Context, email string) (*entity.User, error) // Devuelve la entidad usuario (OBJID, email, name, password, proyects)
+	AddUser(ctx context.Context, email string, roomName string) error       // Agrega un usuario a una sala
 }
 type repo struct {
 	db *mongo.Database

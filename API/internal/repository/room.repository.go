@@ -25,6 +25,7 @@ func (r *repo) ConnectRoom(ctx context.Context, roomName string, user string) (*
 	return &room, nil
 }
 
+// Obtiene la entidad sala con el nombre - CAMBIARLO POR ID
 func (r *repo) GetRoom(ctx context.Context, roomName string) (*models.Room, error) {
 
 	rooms := r.db.Collection("rooms")
@@ -86,7 +87,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, pa
 func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
 	filter := bson.M{"name": roomName}
 	update := bson.M{"$set": bson.M{
-		"data": data,
+		"data":   data,
 		"config": config,
 	}}
 

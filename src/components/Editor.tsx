@@ -260,6 +260,8 @@ const CoordinateInputs: React.FC = () => {
           setShapes(prevShapes => 
             prevShapes.filter(shape => shape.id !== shapeN.id)
           );
+        }else if(shapeN.action === 'height'){
+          console.log(shapeN)
         }
       };
 
@@ -318,6 +320,16 @@ const CoordinateInputs: React.FC = () => {
       console.log("guardando..")
       socket.send(JSON.stringify({action:"save"}));
       //socket.send(JSON.stringify({action:"delete", id: selectedShapeID}));
+    };
+
+    const HandleTesting = () => {
+      const updatedPolygons = [...shapes];
+      const {text, ...polygonsintext} = updatedPolygons[1]
+      polygonsintext.action = "test"
+
+      socket.send(JSON.stringify(polygonsintext));
+
+     
     };
 
     // Evento delete
@@ -727,6 +739,7 @@ const CoordinateInputs: React.FC = () => {
           <div className='a'> <button onClick={handleAddShape}>Agregar Figura</button> </div>
           <div className='a'> <button onClick={HandleUndo}>Deshacer</button></div>
           <div className='a'><button onClick={HandleDelete}>Eliminar</button></div>
+          <div className='a'><button onClick={HandleTesting}>Testing</button></div>
           <div className='a'>
           <button onClick={handleListToggle}>
             {isListOpen ? 'Cerrar' : 'Abrir Lista'}

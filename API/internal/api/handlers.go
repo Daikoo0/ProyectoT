@@ -3,8 +3,11 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+
+	//"time"
 
 	"github.com/ProyectoT/api/encryption"
 	"github.com/ProyectoT/api/internal/api/dtos"
@@ -46,7 +49,7 @@ func (a *API) RegisterUser(c echo.Context) error {
 
 	err := c.Bind(&params)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"}) // HTTP 400 Bad Request
 	}
 
 	err = a.dataValidator.Struct(params)
@@ -57,43 +60,47 @@ func (a *API) RegisterUser(c echo.Context) error {
 	err = a.serv.RegisterUser(ctx, params.Email, params.Name, params.Password)
 	if err != nil {
 		if err == service.ErrUserAlreadyExists {
-			return c.JSON(http.StatusConflict, responseMessage{Message: "User already exists"})
+			return c.JSON(http.StatusConflict, responseMessage{Message: "User already exists"}) // HTTP 409 Conflict
 		}
 
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"})
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"}) // HTTP 500 Internal Server Error
 	}
 
-	return c.JSON(http.StatusCreated, nil)
+	return c.JSON(http.StatusCreated, nil) // HTTP 201 Created
 }
 
+// LoginUser recibe un email y una contraseña, y devuelve un token de autenticación enviado en una cookie
 func (a *API) LoginUser(c echo.Context) error {
-	ctx := c.Request().Context()
+	ctx := c.Request().Context() // Context.Context es una interfaz que permite el paso de valores entre funciones
 	params := dtos.LoginUser{}
 
-	err := c.Bind(&params)
+	err := c.Bind(&params) // llena a params con los datos de la solicitud
+
+	// Sin error  == nil - Con error != nil
 	if err != nil {
-		log.Println(err)
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+		//return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"}) //HTTP 400 Bad Request
 	}
 
-	err = a.dataValidator.Struct(params)
+	err = a.dataValidator.Struct(params) // valida los datos de la solicitud
 	if err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()})
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()}) // HTTP 400 Bad Request
 	}
 
-	u, err := a.serv.LoginUser(ctx, params.Email, params.Password)
+	u, err := a.serv.LoginUser(ctx, params.Email, params.Password) // OBJID, email, name
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Invalid Credentials"})
 	}
 
-	token, err := encryption.SignedLoginToken(u)
+	token, err := encryption.SignedLoginToken(u) // Genera el token con los datos del usuario (OBJID, email, name)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"})
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"}) // HTTP 500 Internal Server Error
 	}
 
+	// Setear la cookie
 	cookie := &http.Cookie{
 		Name:     "Authorization",
 		Value:    token,
@@ -101,15 +108,16 @@ func (a *API) LoginUser(c echo.Context) error {
 		SameSite: http.SameSiteNoneMode,
 		HttpOnly: true,
 		Path:     "/",
+		//Expires:  time.Now().Add(10 * time.Second), // tiempo de vida de la cookie
 	}
 
-	c.SetCookie(cookie)
-	return c.JSON(http.StatusOK, map[string]string{"success": "true"})
+	c.SetCookie(cookie)                                                // Setea la cookie en el navegador
+	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
 }
 
 func (a *API) HandleWebSocket(c echo.Context) error {
 	ctx := c.Request().Context()
-	roomName := c.Param("room")
+	roomName := c.Param("room") // Nombre de la sala conectada
 
 	//convertir la peticion en websocket (lo coloco antes de las validaciones para devolver mensajes de error)
 	upgrader := websocket.Upgrader{
@@ -150,6 +158,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		conn.Close()
 		return nil
 	}
+
+	//log.Println(room)
 
 	permission, exists := room.Clients[user]
 	if !exists {
@@ -202,6 +212,19 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Println("le falta el id a la wea")
 					log.Fatal(err)
 				}
+
+				log.Println(dataMap) // Informacion recibida
+
+				// Switch para las acciones
+				switch dataMap["action"] {
+				case "Add":
+					log.Println("Añadiendo capa")
+
+				case "test":
+					log.Println("testiando")
+
+				}
+
 				if dataMap["action"] == "undo" {
 					log.Println("deshacer")
 					temp, err := rooms[roomName].Temp.Pop()
@@ -214,7 +237,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						undo = false
 					}
 				}
-				log.Println(dataMap)
 
 				if dataMap["action"] == "delete" {
 					id := int(dataMap["id"].(float64))
@@ -287,7 +309,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				if dataMap["action"] == "polygon" {
 					id := int(dataMap["id"].(float64))
 					log.Println(id)
-					log.Printf("Editando polygon capa %s", string(id))
+					log.Printf("Editando polygon capa %s", fmt.Sprint(id))
 
 					if undo {
 						temporal := make(map[string]interface{})
@@ -377,15 +399,23 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				}
 
 				if dataMap["action"] == "height" {
-					id := int(dataMap["id"].(float64))
-					circlesp, err := json.Marshal(dataMap["circles"])
+					id := int(dataMap["id"].(float64)) // id de la capa seleccionada
+
+					log.Println("id", id)
+
+					circlesp, err := json.Marshal(dataMap["circles"]) // trasforma el datamap a json
+
+					log.Println("circles", string(circlesp))
+					fmt.Print(circlesp)
+
 					newHeight := int(dataMap["newHeight"].(float64))
-					log.Println(id, newHeight, err)
-					log.Println(id, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
+					log.Println(newHeight, err)
+					//log.Println(id, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
 					//rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)// todos los shapes
 
-					updatedShapes := rooms[roomName].Data
+					updatedShapes := rooms[roomName].Data // Copia de la data de la sala
 					//updatedShapes := append(rooms[roomName].Data)
 
 					for _, shape := range rooms[roomName].Data {
@@ -399,6 +429,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						var cir []circle
 						json.Unmarshal([]byte(circlesp), &cir)
 
+						// Modifica el tamaño de la capa seleccionada
 						if shap["id"] == id {
 							newY2 := int(shap["y1"].(float64)) + newHeight
 							if newY2 < int(shap["y2"].(float64)) {
@@ -416,15 +447,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							} else {
 								shap["y2"] = newY2
 							}
+
+							//Modifica las coordenadas de las capas que estan debajo de la seleccionada
 						} else if int(shap["y1"].(float64)) >= int(shap["y2"].(float64)) {
 							shap["y1"] = int(shap["y1"].(float64)) + deltaY
 							shap["y2"] = int(shap["y2"].(float64)) + deltaY
 						}
 						updatedShapes = append(updatedShapes, shap)
 						rooms[roomName].Data = updatedShapes
-						log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+						//log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 					}
-					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
+					//err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
