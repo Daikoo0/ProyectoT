@@ -7,7 +7,7 @@ function Login() {
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { setTheme, availableThemes  } = useTheme();
   const navigate = useNavigate();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,6 +16,10 @@ function Login() {
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
+  };
+
+  const handleThemeChange = (event) => {
+    setTheme(event.target.value);
   };
 
   async function handleLogin() {
@@ -46,24 +50,37 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div> 
-      <button onClick={toggleTheme}>Cambiar a {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
-      </div>
-      <h2>Iniciar Sesión</h2>
-      <form>
-        <div className="form-group">
-          <label htmlFor="Correo">Correo:</label>
-          <input
-            type="email"
-            id="Correo"
-            name="Correo"
-            value={Correo}
-            onChange={handleUsernameChange}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Contraseña:</label>
+    <div className="hero min-h-screen bg-base-200">
+      <div className="hero-content flex-col lg:flex-row-reverse">
+       
+         <div className="text-center lg:text-left">
+             <h1 className="text-5xl font-bold">Inicia sesión</h1>
+              <div>
+                 <label htmlFor="theme-select">Elige un tema:</label>
+                 <select id="theme-select" onChange={handleThemeChange}>
+                  {availableThemes.map(theme => (
+                      <option key={theme} value={theme}>
+                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                      </option>
+                  ))}
+                 </select>
+              </div>
+         </div>
+      
+         <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+             <form className="card-body">
+             <div className="form-control">
+                  <label htmlFor="Correo" className="label">Correo:</label>
+                    <input
+                    type="email"
+                    id="Correo"
+                    name="Correo"
+                    value={Correo}
+                    onChange={handleUsernameChange}
+                  />
+             </div>
+        <div className="form-control">
+          <label htmlFor="password" className="label">Contraseña:</label>
           <input
             type="password"
             id="password"
@@ -72,11 +89,15 @@ function Login() {
             onChange={handlePasswordChange}
           />
         </div>
-        <button type="button" onClick={handleLogin}>
+        <div className="form-control mt-6">
+        <button type="button" className="btn btn-primary" onClick={handleLogin}>
           Iniciar Sesión
         </button>
+        </div>
         <p>{message}</p>
       </form>
+      </div>
+      </div>
     </div>
   );
 }

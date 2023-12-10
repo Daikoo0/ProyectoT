@@ -1,38 +1,42 @@
 import { createContext, useState, useContext, ReactNode, useEffect } from "react";
 
+const themes = [
+  "light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave",
+  "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua",
+  "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula",
+  "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee", "winter",
+  "dim", "nord", "sunset"
+];
 
 type ThemeContextType = {
-  isDarkMode: boolean;
-  toggleTheme: () => void;
+  currentTheme: string;
+  setTheme: (themeName: string) => void;
+  availableThemes: string[];
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const localThemePreference = localStorage.getItem('isDarkMode');
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(localThemePreference ? JSON.parse(localThemePreference) : false);
+  const localThemePreference = localStorage.getItem('theme');
+  const [currentTheme, setCurrentTheme] = useState<string>(localThemePreference || 'light');
 
   useEffect(() => {
-    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
-    
-      if (isDarkMode) {
-        document.body.classList.add('dark-mode');
-        document.body.classList.remove('light-mode');
-      } else {
-        document.body.classList.add('light-mode');
-        document.body.classList.remove('dark-mode');
-      }
-    
-  }, [isDarkMode]);
+    localStorage.setItem('theme', currentTheme);
+    const html = document.documentElement;
+    html.setAttribute('data-theme', currentTheme);
+  }, [currentTheme]);
 
-  console.log(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+  const setTheme = (themeName: string) => {
+    if (themes.includes(themeName)) {
+      setCurrentTheme(themeName);
+    } else {
+      console.warn(`El tema '${themeName}' no es reconocido. Utilizando tema por defecto.`);
+      setCurrentTheme('light');
+    }
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ currentTheme, setTheme, availableThemes: themes }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -45,5 +49,3 @@ export const useTheme = () => {
   }
   return context;
 };
-
-
