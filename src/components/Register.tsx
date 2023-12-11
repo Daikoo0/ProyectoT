@@ -71,89 +71,89 @@ function Register() {
   };
 
   return (
-    <div className="hero-content flex-col lg:flex-row-reverse">
-      
-      <div className="text-center">
-        <h1 className="text-5xl font-bold">Registrate</h1>
-        <div className="form-control mt-6">
-          <label className="label-text">Elige un tema:</label>
-          <select className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
-            {availableThemes.map(theme => (
-              <option key={theme} value={theme}>
-                {theme.charAt(0).toUpperCase() + theme.slice(1)}
-              </option>
-            ))}
-          </select>
+    <div className="hero min-h-screen bg-base-200">
+      <div className="hero-content flex-col lg:flex-row-reverse">
+        <div className="text-center">
+          <h1 className="text-5xl font-bold">Registrate</h1>
+          <div className="form-control mt-6">
+            <label className="label-text">Elige un tema:</label>
+            <select className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
+              {availableThemes.map(theme => (
+                <option key={theme} value={theme}>
+                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+          <form className="card-body">
+
+            <div className="form-control w-4/5 max-w-xs">
+              <label className="label-text">Nombre de usuario:</label>
+              <input
+                className="input input-bordered w-full max-w-xs"
+                placeholder="username"
+                id="username"
+                name="username"
+                value={username}
+                onChange={handleUserNameChange}
+              />
+            </div>
+
+            <div className="form-control w-4/5 max-w-xs">
+              <label className="label-text">Correo:</label>
+              <input
+                className="input input-bordered w-full max-w-xs"
+                placeholder="name@uct.cl"
+                type="email"
+                id="Correo"
+                name="Correo"
+                value={Correo}
+                onChange={handleUsernameChange}
+              />
+            </div>
+
+            <div className="form-control w-4/5 max-w-xs">
+              <label className="label-text">Contraseña:</label>
+
+              <input
+                className="input input-bordered w-full max-w-xs"
+                placeholder="••••••••"
+                type="password"
+                id="password"
+                name="password"
+                value={password}
+                onChange={handlePasswordChange}
+              />
+              <input
+                className="input input-bordered w-full max-w-xs"
+                placeholder="Confirmar contraseña"
+                type="password"
+                id="passwordConfirm"
+                name="passwordConfirm"
+                value={password}
+                onChange={handlePasswordConfirmChange}
+              />
+
+            </div>
+            <div className="form-control mt-6">
+              <button type="button" className="btn btn-primary" onClick={handleLogin}>
+                Crear mi usuario
+              </button>
+            </div>
+            <p className="mt-5 text-center text-sm">
+              Ya estas registrado?{' '}
+              <a href="/" className="link link-primary font-semibold">
+                Inicia sesión
+              </a>
+            </p>
+            <p>{message}</p>
+          </form>
         </div>
       </div>
-
-      <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-        <form className="card-body">
-
-          <div className="form-control w-4/5 max-w-xs">
-            <label className="label-text">Nombre de usuario:</label>
-            <input
-              className="input input-bordered w-full max-w-xs"
-              placeholder="username"
-              id="username"
-              name="username"
-              value={username}
-              onChange={handleUserNameChange}
-            />
-          </div>
-
-          <div className="form-control w-4/5 max-w-xs">
-            <label className="label-text">Correo:</label>
-            <input
-              className="input input-bordered w-full max-w-xs"
-              placeholder="name@uct.cl"
-              type="email"
-              id="Correo"
-              name="Correo"
-              value={Correo}
-              onChange={handleUsernameChange}
-            />
-          </div>
-
-          <div className="form-control w-4/5 max-w-xs">
-            <label className="label-text">Contraseña:</label>
-      
-            <input
-              className="input input-bordered w-full max-w-xs"
-              placeholder="••••••••"
-              type="password"
-              id="password"
-              name="password"
-              value={password}
-              onChange={handlePasswordChange}
-            />
-            <input
-              className="input input-bordered w-full max-w-xs"
-              placeholder="Confirmar contraseña"
-              type="password"
-              id="passwordConfirm"
-              name="passwordConfirm"
-              value={password}
-              onChange={handlePasswordConfirmChange}
-            />
-            
-          </div>
-          <div className="form-control mt-6">
-            <button type="button" className="btn btn-primary" onClick={handleLogin}>
-              Crear mi usuario
-            </button>
-          </div>
-          <p className="mt-5 text-center text-sm">
-            Ya estas registrado?{' '}
-            <a href="/" className="link link-primary font-semibold">
-              Inicia sesión
-            </a>
-          </p> 
-          <p>{message}</p>
-        </form>
-      </div>
     </div>
-
   );
 }
 

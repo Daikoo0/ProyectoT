@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../Context/theme-context';
 import { useNavigate } from "react-router-dom";
-import './Form.css';
+//import './Form.css';
 
 function Login() {
   const [Correo, setCorreo] = useState('');
@@ -50,7 +50,7 @@ function Login() {
   };
 
   return (
-    
+    <div className="hero min-h-screen bg-base-200">
       <div className="hero-content flex-col lg:flex-row-reverse">
 
         <div className="text-center">
@@ -112,7 +112,7 @@ function Login() {
           </form>
         </div>
       </div>
-   
+    </div>
   );
 }
 

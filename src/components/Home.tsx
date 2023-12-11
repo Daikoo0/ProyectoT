@@ -48,72 +48,115 @@ const Home = () => {
   };
 
   return (
+
+
     <div className="">
+      {/* NAVBAR */}
+      <div className="navbar bg-base-100">
+        <div className="flex-1">
+          <a className="btn btn-ghost text-xl">Proyecto T</a>
+        </div>
+        <div className="flex-none">
+          <div className="dropdown dropdown-end">
+            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+              <div className="indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                <span className="badge badge-sm indicator-item">8</span>
+              </div>
+            </div>
+            <div tabIndex={0} className="mt-3 z-[1] card card-compact dropdown-content w-52 bg-base-100 shadow">
+              <div className="card-body">
+                <span className="font-bold text-lg">8 Items</span>
+                <span className="text-info">Subtotal: $999</span>
+                <div className="card-actions">
+                  <button className="btn btn-primary btn-block">View cart</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="dropdown dropdown-end">
+            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+              <div className="w-10 rounded-full">
+                <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 11 14H9a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 10 19Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                </svg>
+              </div>
+            </div>
+            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+              <li><a>Profile</a></li>
+              <li><a>Settings</a></li>
+              <li><a>Logout</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* PROYECTOS */}
       <h1>Proyectos del usuario</h1>
-        <div className="overflow-x-auto">
-          <table className="table">
-            {/* head */}
-            <thead>
+      <div className="overflow-x-auto">
+        <table className="table">
+          {/* head */}
+          <thead>
+            <tr>
+              <th>
+                <label>
+                  <input type="checkbox" className="checkbox" />
+                </label>
+              </th>
+              <th>Titulo Proyecto</th>
+              <th>Localizacion</th>
+              <th>Ultimo Cambio</th>
+              <th>Descripcion</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* rows */}
+            {proyectos.map((data) => (
               <tr>
                 <th>
                   <label>
                     <input type="checkbox" className="checkbox" />
                   </label>
                 </th>
-                <th>Titulo Proyecto</th>
-                <th>Localizacion</th>
-                <th>Ultimo Cambio</th>
-                <th>Descripcion</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* rows */}
-              {proyectos.map((data) => (
-                <tr>
-                  <th>
-                    <label>
-                      <input type="checkbox" className="checkbox" />
-                    </label>
-                  </th>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <div className="font-bold">{data}</div>
-                        <div className="text-sm opacity-50">data.Propietario</div>
-                      </div>
+                <td>
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <div className="font-bold">{data}</div>
+                      <div className="text-sm opacity-50">data.Propietario</div>
                     </div>
-                  </td>
-                  <td>
-                    Chile, Temuco
-                    <br />
-                    <span className="badge badge-ghost badge-sm">52.4801256, 62.1858301</span>
-                  </td>
-                  <td>23/04/2023</td>
-                  <td>No se que poner</td>
-                  <th>
-                    <button className="btn btn-ghost btn-xs" onClick={() => handleEdit(data)}>Editar</button>
-                    <button className="btn btn-ghost btn-xs" onClick={() => handleInvite(data)}>Co-Autores</button>
-                    <button className="btn btn-ghost btn-xs">Eliminar</button>
-                  </th>
-                </tr>
-              ))}
-            </tbody>
-            {/* foot */}
-            <tfoot>
-              <tr>
-                <th></th>
-                <th>Titulo Proyecto</th>
-                <th>Localizacion</th>
-                <th>Ultimo Cambio</th>
-                <th>Descripcion</th>
-                <th></th>
+                  </div>
+                </td>
+                <td>
+                  Chile, Temuco
+                  <br />
+                  <span className="badge badge-ghost badge-sm">52.4801256, 62.1858301</span>
+                </td>
+                <td>23/04/2023</td>
+                <td>No se que poner</td>
+                <th>
+                  <button className="btn btn-ghost btn-xs" onClick={() => handleEdit(data)}>Editar</button>
+                  <button className="btn btn-ghost btn-xs" onClick={() => handleInvite(data)}>Co-Autores</button>
+                  <button className="btn btn-ghost btn-xs">Eliminar</button>
+                </th>
               </tr>
-            </tfoot>
+            ))}
+          </tbody>
+          {/* foot */}
+          <tfoot>
+            <tr>
+              <th></th>
+              <th>Titulo Proyecto</th>
+              <th>Localizacion</th>
+              <th>Ultimo Cambio</th>
+              <th>Descripcion</th>
+              <th></th>
+            </tr>
+          </tfoot>
 
-          </table>
-        </div>
-      
+        </table>
+      </div>
+
       <button className="btn btn-neutral" onClick={handleAddRoom}>Crear Sala</button>
 
     </div>

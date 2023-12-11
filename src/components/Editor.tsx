@@ -83,7 +83,7 @@ const CoordinateInputs: React.FC = () => {
       'Edad' :      { content: "vacío", optional : true, vertical : true},
       'Formación' : { content: "vacío", optional : true, vertical : true},
       'Miembro' :   { content: "vacío", optional : true, vertical : true},
-      'Estructuras y/o fósiles': { content: [], optional : true, vertical : false},
+      // 'Estructuras y/o fósiles': { content: [], optional : true, vertical : false},
       'Facie' :     { content: "vacío", optional : true, vertical : false},
       'Ambiente depositacional': { content: "vacío", optional : true, vertical : false},
       'Descripción':{ content: "vacío", optional : true, vertical : false}
@@ -131,22 +131,17 @@ const CoordinateInputs: React.FC = () => {
           'Ambiente depositacional':   { enabled : true},
           'Descripción':               { enabled : true}
         },
-        scale: 50
+        scale: 50,
+        fosiles : { content: [], optional : true, vertical : false} 
     }
     }
     )
 
     const Sidebar = () => {
     
-      const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-      };
     
       return (
-        <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-          <button id="toggle" className={`btn btn-toggle btn-primary`} onClick={toggleSidebar}>
-            <img src={`../src/assets/fosiles/3.svg`} alt=''></img>
-          </button>  
+        <div className={`sidebar ${isOpen ? 'open' : ''}`}> 
          
 
           <div id="controls-sidebar">

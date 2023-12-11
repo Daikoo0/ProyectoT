@@ -1,6 +1,6 @@
 import React from 'react';
 import { Rect, Layer, Text, Image, Group } from 'react-konva';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import useImage from 'use-image';
 import { Html } from "react-konva-utils";
 
@@ -10,19 +10,19 @@ interface StickyNoteProps {
   y: number;
   width: number;
   height: number;
-  column : string;
-  vertical : boolean;
+  column: string;
+  vertical: boolean;
 }
 
 interface ImageComponentProps {
-  imageNames : any;
+  imageNames: any;
   x: number;
   y: number;
-  width : number;
-  height : number
+  width: number;
+  height: number
 }
 
-const Grid = ({ polygon, setText, text, config, dragUrl}) => {
+const Grid = ({ polygon, setText, text, config, dragUrl }) => {
   const cellSize = 110; // Tamaño de cada celda de la cuadrícula
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
@@ -30,70 +30,93 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
 
   const cells = [];
 
-  const groupRef = useRef(null);
 
-  const ImageComponent : React.FC<ImageComponentProps> = (props) => {
-      const groupRef = useRef(null);
+  const [highestY2, setHighestY2] = useState(200);
 
-      var a = []
-      props.imageNames.forEach((imageName, index) => {
-        const [img] = useImage(imageName.src);
-        const b = <Image
-       image={img}
+
+  useEffect(() => {
+
+    console.log(polygon)
+    setHighestY2(prevHighestY2 => Math.max(prevHighestY2, polygon.polygon.y2));
+
+  }, [polygon.polygon.y2]);
+
+
+  // Esta es la posición fija de Lexer columna en la cuadrícula
+  const fixedColumnPosition = marginLeft + polygonColumnWidth + cellSize;
+
+  const renderFixedColumn = () => {
+    return (
+      <Group x={fixedColumnPosition} y={0}>
+        <Text>Contenido de la columna fija</Text>;
+      </Group>
+    );
+  };
+
+
+  const ImageComponent: React.FC<ImageComponentProps> = (props) => {
+    const groupRef = useRef(null);
+
+    var a = []
+    props.imageNames.forEach((imageName, index) => {
+      const [img] = useImage(imageName.src);
+      const b = <Image
+        image={img}
         x={imageName.x}
         y={imageName.y}
         offsetX={img ? img.width / 2 : 0}
         offsetY={img ? img.height / 2 : 0}
-       />;
-      a.push(b)   
-    });   
+      />;
+      a.push(b)
+    });
 
-    const MyKonvaComponent = 
-        <Group x={props.x} y={props.y} ref={groupRef}>
-       
+    const MyKonvaComponent =
+      <Group x={props.x} y={props.y} ref={groupRef}>
+
         <Html
-            groupProps={{ x: 0, y: 0 }}
-            divProps={{
-              style: {
-                width: props.width,
-                height: props.height,
-                overflow: 'hidden',
-                background: 'none',
-                outline: 'none',
-                border: 'none',
-                padding: '0px',
-                margin: '0px',
-              },
+          groupProps={{ x: 0, y: 0 }}
+          divProps={{
+            style: {
+              width: props.width,
+              height: props.height,
+              overflow: 'hidden',
+              background: 'none',
+              outline: 'none',
+              border: 'none',
+              padding: '0px',
+              margin: '0px',
+            },
+          }}
+        >
+          <div
+            style={{
+              width: cellSize,
+              height: cellHeight,
+              background: 'none',
+              border: 'none',
+              padding: '0px',
+              margin: '0px',
+              outline: 'none',
+              overflow: 'auto',
+              fontSize: '18px',
+              fontFamily: 'sans-serif',
+              color: 'black',
             }}
-          >
-            <div
-              style={{
-                width : cellSize,
-                height : cellHeight,
-                background: 'none',
-                border: 'none',
-                padding: '0px',
-                margin: '0px',
-                outline: 'none',
-                overflow: 'auto',
-                fontSize: '18px',
-                fontFamily: 'sans-serif',
-                color: 'black',
-              }}
-              onDrop={(e)=> {
-                e.preventDefault();
-                  const copia = { ...text };
-                  copia['Estructuras y/o fósiles'].content.push({
-                  'x' :  e.nativeEvent.offsetX,
-                  'y' : e.nativeEvent.offsetY,
-                  'src' : dragUrl.current});
-                  setText(copia,true);
-              }}
-            
-            />
-          </Html>
-          {a}
-          </Group>
+            onDrop={(e) => {
+              e.preventDefault();
+              const copia = { ...text };
+              copia['Estructuras y/o fósiles'].content.push({
+                'x': e.nativeEvent.offsetX,
+                'y': e.nativeEvent.offsetY,
+                'src': dragUrl.current
+              });
+              setText(copia, true);
+            }}
+
+          />
+        </Html>
+        {a}
+      </Group>
 
     return (
       MyKonvaComponent
@@ -120,15 +143,15 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
 
   const RETURN_KEY = 13;
   const ESCAPE_KEY = 27;
-  
 
-  const additionalColumns = ['Arcilla-Limo-Arena-Grava','Estructuras y/o fósiles','Sistema','Edad','Formación','Miembro','Facie','Ambiente depositacional','Descripción'];
 
-  
+  const additionalColumns = ['Arcilla-Limo-Arena-Grava', 'Estructuras y/o fósiles', 'Sistema', 'Edad', 'Formación', 'Miembro', 'Facie', 'Ambiente depositacional', 'Descripción'];
+
+
   const StickyNote: React.FC<StickyNoteProps> = (props) => {
     const [isEditing, setIsEditing] = useState(false);
     const [content, setContent] = useState(props.text);
-  
+
     const textComponent = isEditing ? (
       <Html
         groupProps={{ x: 0, y: 0 }}
@@ -147,8 +170,8 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
       >
         <textarea
           style={{
-            width : cellSize,
-            height : cellHeight,
+            width: cellSize,
+            height: cellHeight,
             background: 'none',
             border: 'none',
             padding: '0px',
@@ -160,21 +183,20 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
             color: 'black',
           }}
           value={content}
-          onChange={(newText) => 
-          { 
+          onChange={(newText) => {
             setContent(newText.currentTarget.value);
           }}
-          onBlur={() =>
-            {const copia = { ...text };
+          onBlur={() => {
+            const copia = { ...text };
             copia[props.column].content = content;
-            setText(copia,true);
+            setText(copia, true);
           }}
           onKeyDown={(e) => {
-            if ((e.keyCode === RETURN_KEY && !e.shiftKey) || e.keyCode === ESCAPE_KEY){
+            if ((e.keyCode === RETURN_KEY && !e.shiftKey) || e.keyCode === ESCAPE_KEY) {
               setIsEditing(false);
             }
           }
-        }
+          }
         />
       </Html>
     ) : (
@@ -188,10 +210,10 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
         rotation={props.vertical ? 270 : 0}
         width={props.width}
         height={props.height}
-        onDblClick={(e) => setIsEditing(true)} 
+        onDblClick={(e) => setIsEditing(true)}
       />
     );
-  
+
     return (
       <Group x={props.x} y={props.y}>
         <Rect
@@ -219,13 +241,15 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
   );
 
   let xOffset = marginLeft + polygonColumnWidth;
+
   additionalColumns.forEach((column, index) => {
 
-   if(config.config.columns[column].enabled){
-    
-    cells.push(
+    if (index == 1) {
+      if (config.config.columns['Estructuras y/o fósiles'].enabled) {
+
+        cells.push(
           <Rect
-            key={`header-${column}`}
+            key={`header-Estructuras y/o fósiles`}
             x={xOffset}
             y={0}
             width={cellSize}
@@ -234,44 +258,74 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
             stroke="black"
           />
         );
-
-    const words = column.split(' ');
-    const lineHeight = 14 * 1.5;
-
-    const textElements = words.map((word, index) => (
-      <Text
-        key={`text-${column}-${index}`}
-        x={xOffset + cellSize / 8}
-        y={cellSize / 5 + index * lineHeight} // Ajustamos la posición 'y' para cada palabra.
-        text={word}
-        fontSize={14}
-        fill="black"
-      />
-    ));
-
-    cells.push(...textElements);
-  
-
-    // Agregar el texto de la columna
-    cells.push(
-      <Rect
-        key={`row-${index}-${column}`}
-        x={xOffset}
-        y={polygon.polygon.y1}
-        width={cellSize}
-        height={polygon.polygon.y2-polygon.polygon.y1}
-        fill="white"
-        stroke="black"
-      />
-    );
     
-    xOffset += cellSize;
-  } 
-}
+      cells.push(
+        <Rect
+          key={`a`}
+          x={xOffset}
+          y={100}
+          width={cellSize}
+          height={highestY2-100}
+          fill="red"
+          stroke="black"
+        />
+      );
+      xOffset += cellSize;
 
-);
+    }
+    }
 
-  
+    if (config.config.columns[column].enabled && column !== 'Estructuras y/o fósiles') {
+
+      cells.push(
+        <Rect
+          key={`header-${column}`}
+          x={xOffset}
+          y={0}
+          width={cellSize}
+          height={cellHeight}
+          fill="white"
+          stroke="black"
+        />
+      );
+
+      const words = column.split(' ');
+      const lineHeight = 14 * 1.5;
+
+      const textElements = words.map((word, index) => (
+        <Text
+          key={`text-${column}-${index}`}
+          x={xOffset + cellSize / 8}
+          y={cellSize / 5 + index * lineHeight} // Ajustamos la posición 'y' para cada palabra.
+          text={word}
+          fontSize={14}
+          fill="black"
+        />
+      ));
+
+      cells.push(...textElements);
+
+
+      // Agregar el texto de la columna
+      cells.push(
+        <Rect
+          key={`row-${index}-${column}`}
+          x={xOffset}
+          y={polygon.polygon.y1}
+          width={cellSize}
+          height={polygon.polygon.y2 - polygon.polygon.y1}
+          fill="white"
+          stroke="black"
+        />
+      );
+
+      xOffset += cellSize;
+    }
+  }
+
+  );
+
+
   cells.push(
     <Rect
       key={`row-1`}
@@ -292,54 +346,57 @@ const Grid = ({ polygon, setText, text, config, dragUrl}) => {
   additionalColumns.forEach((column) => {
 
 
-   if(config.config.columns[column].enabled){
-    if(column==='Estructuras y/o fósiles'){
-      cells.push(
-     
-      <ImageComponent
-        imageNames={text['Estructuras y/o fósiles'].content}
-        x={xOffset} 
-        y={polygon.polygon.y1}
-        width={cellSize}
-        height={cellHeight}
-        />
-  
-    );
+    if (config.config.columns[column].enabled) {
+      if (column === 'Estructuras y/o fósiles') {
+        cells.push(
 
-  xOffset += cellSize;
+          <ImageComponent
+            imageNames={text['Estructuras y/o fósiles'].content}
+            x={xOffset}
+            y={polygon.polygon.y1}
+            width={cellSize}
+            height={cellHeight}
+          />
 
-    }else{
-      
-            cells.push(
-                
-            <StickyNote
+        );
+
+        xOffset += cellSize;
+
+      } else {
+
+        cells.push(
+
+          <StickyNote
             column={column}
             x={xOffset}
-          //  y={text[column].vertical ? polygon.polygon.y1+cellHeight : polygon.polygon.y1}
+            //  y={text[column].vertical ? polygon.polygon.y1+cellHeight : polygon.polygon.y1}
             y={polygon.polygon.y1}
             width={cellSize}
             height={cellHeight}
             text={text[column].content}
             vertical={text[column].vertical}
           />
-              
-            );
-        
-          xOffset += cellSize;
 
-        }
-           
+        );
+
+        xOffset += cellSize;
+
+      }
+
+    }
   }
-}
 
   );
 
+  cells.push(renderFixedColumn);
+
+
   return (
-   <>
-   {cells}
-   </>
-      
-    
+    <>
+      {cells}
+    </>
+
+
   );
 };
 
