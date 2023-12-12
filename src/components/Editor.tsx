@@ -116,7 +116,7 @@ const CoordinateInputs: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false)
 
     
-    const [config, setConfig] = useState(
+    const [config,setConfig] = useState(
       {
       action : 'settingsRoom',
       config :{
@@ -126,16 +126,39 @@ const CoordinateInputs: React.FC = () => {
           'Edad' :                     { enabled : true},
           'Formación' :                { enabled : true},
           'Miembro' :                  { enabled : true},
-          'Estructuras y/o fósiles':   { enabled : true},
+          'Estructuras y/o fósiles':   { enabled : true, content: [], optional : true, vertical : false} ,// aqui
           'Facie' :                    { enabled : true},
           'Ambiente depositacional':   { enabled : true},
           'Descripción':               { enabled : true}
         },
         scale: 50,
-        fosiles : { content: [], optional : true, vertical : false} 
+        // fosiles : { content: [], optional : true, vertical : false} 
     }
     }
     )
+
+    // const sendConfig = (cconfig, send, socket) => {
+    //   //const updatedShapes = [...shapes];
+    //   var updatedConfig = config
+      
+    //  // updatedShapes[index].text = text;
+    //   updatedConfig.config = cconfig;
+     
+    //   //setShapes(updatedShapes);
+
+    //   setConfig(updatedConfig)
+    //   if(send){
+    //   //  console.log("Send: text")
+
+    //   //sendSocket("text", index);
+    //     sendSocket("text", index);
+  
+    //     //socket.send(JSON.stringify(updatedShapes[index]));
+    //   }
+    // }
+
+
+
 
     const Sidebar = () => {
     
@@ -727,9 +750,6 @@ const CoordinateInputs: React.FC = () => {
          <Sidebar/>
          <div id="sidebar-top">
          <div id="controls">
-         <div> 
-          <button onClick={toggleTheme}>Cambiar a {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}</button>
-         </div>
          <div className='a'> <button onClick={HandleSave}>Guardar Cambios</button></div>
           <div className='a'> <button onClick={handleAddShape}>Agregar Figura</button> </div>
           <div className='a'> <button onClick={HandleUndo}>Deshacer</button></div>
@@ -794,46 +814,6 @@ const CoordinateInputs: React.FC = () => {
         </div>
 
         <div id="gridContainer" 
-        //  onDrop={(e) => {
-        //   e.preventDefault();
-        //   stageRef.current.setPointersPositions(e);
-
-        //   const copia = [...shapes]
-        //   for (let shape of copia) {
-        //     const { y1, y2 } = shape.polygon;
-        
-        //     // Comprobar si el punto 'y' está entre 'y1' e 'y2'
-        //     if (stageRef.current.getPointerPosition().y >= Math.min(y1, y2) 
-        //     && stageRef.current.getPointerPosition().y <= Math.max(y1, y2)
-        //     &&  stageRef.current.getPointerPosition().x > 499 
-        //     &&  stageRef.current.getPointerPosition().x < 601
-        //     ) {
-        //       if (copia[shape.id].text['Estructuras y/o fósiles']) {
-
-        //         // const shapeToUpdate = { ...copia[shape.index] }
-        //         copia[shape.id].text['Estructuras y/o fósiles'].content.push(
-        //        {'x' :  stageRef.current.getPointerPosition().x-510,
-        //         'y' : stageRef.current.getPointerPosition().y-y1,
-        //         'src' : dragUrl.current})
-
-        //         //copia[shape.id] = shape;
-        //         setShapes(copia);
-        //     //    sendSocket("text",shape.id);
-        //         socket.send(JSON.stringify({
-        //           action: "text",
-        //           id: copia[shape.id].id,
-        //           text: copia[shape.id].text,
-        //         }))
-        //         } 
-
-        //       // Retornar el shape actual
-        //       return shape;
-        //     }
-        //   }
-        
-        //   // Si no se encuentra ningún shape, retorna null 
-        //   return null;
-        // }}
         onDragOver={(e) => e.preventDefault()}>
 
         <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
@@ -847,6 +827,7 @@ const CoordinateInputs: React.FC = () => {
                   text={shape.text}
                   setText={(text, send) => setText(index, text, send, socket)}
                   config={config}
+                  setConfig={(config, send) => setConfig(index, text, send, socket)}
                   dragUrl={dragUrl}
                 />
 

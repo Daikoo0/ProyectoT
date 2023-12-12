@@ -270,6 +270,18 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
           stroke="black"
         />
       );
+
+      cells.push(
+
+        <ImageComponent
+          imageNames={config.config.columns['Estructuras y/o fósiles'].content}
+          x={xOffset}
+          y={polygon.polygon.y1}
+          width={cellSize}
+          height={cellHeight}
+        />
+
+      );
       xOffset += cellSize;
 
     }
@@ -347,22 +359,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
 
 
     if (config.config.columns[column].enabled) {
-      if (column === 'Estructuras y/o fósiles') {
-        cells.push(
-
-          <ImageComponent
-            imageNames={text['Estructuras y/o fósiles'].content}
-            x={xOffset}
-            y={polygon.polygon.y1}
-            width={cellSize}
-            height={cellHeight}
-          />
-
-        );
-
-        xOffset += cellSize;
-
-      } else {
+      if (column !== 'Estructuras y/o fósiles') {
 
         cells.push(
 
