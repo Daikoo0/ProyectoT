@@ -5,7 +5,7 @@ import { useTheme } from '../Context/theme-context';
 
 const Home = () => {
 
-  const { setTheme, availableThemes } = useTheme();
+  const { currentTheme, setTheme, availableThemes } = useTheme();
   const [proyectos, setProyectos] = useState([]);
   const navigate = useNavigate();
 
@@ -67,7 +67,7 @@ const Home = () => {
         <div className="flex-none">
 
           <div className="dropdown dropdown-end">
-            <select className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
+            <select value={currentTheme} className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
               {availableThemes.map(theme => (
                 <option key={theme} value={theme}>
                   {theme.charAt(0).toUpperCase() + theme.slice(1)}

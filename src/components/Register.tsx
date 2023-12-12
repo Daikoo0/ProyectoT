@@ -10,7 +10,7 @@ function Register() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [username, setUserName] = useState('');
   const [message, setMessage] = useState('');
-  const { setTheme, availableThemes } = useTheme();
+  const {currentTheme, setTheme, availableThemes } = useTheme();
   const navigate = useNavigate();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +77,7 @@ function Register() {
           <h1 className="text-5xl font-bold">Registrate</h1>
           <div className="form-control mt-6">
             <label className="label-text">Elige un tema:</label>
-            <select className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
+            <select value={currentTheme} className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
               {availableThemes.map(theme => (
                 <option key={theme} value={theme}>
                   {theme.charAt(0).toUpperCase() + theme.slice(1)}
