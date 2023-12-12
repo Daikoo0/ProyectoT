@@ -25,7 +25,7 @@ type Repository interface { //comunicaciones con la base de datos
 	GetProyects(ctx context.Context, email string) ([]string, error) // Devuelve los proyectos de un usuario
 
 	// Users - user.repository.go
-	SaveUser(ctx context.Context, email, name, password string) error       // Guarda un usuario en la base de datos
+	SaveUser(ctx context.Context, email, name, lastname, password string) error       // Guarda un usuario en la base de datos
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error) // Devuelve la entidad usuario (OBJID, email, name, password, proyects)
 	AddUser(ctx context.Context, email string, roomName string) error       // Agrega un usuario a una sala
 }

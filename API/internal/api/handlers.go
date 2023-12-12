@@ -43,6 +43,7 @@ type Room struct {
 
 var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
 
+// registerUser recibe un email, un nombre y una contraseña, y registra un usuario en la base de datos
 func (a *API) RegisterUser(c echo.Context) error {
 	ctx := c.Request().Context()
 	params := dtos.RegisterUser{}
@@ -57,7 +58,9 @@ func (a *API) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()})
 	}
 
-	err = a.serv.RegisterUser(ctx, params.Email, params.Name, params.Password)
+	log.Println(params.Email, params.Name, params.Password, params.LastName)
+
+	err = a.serv.RegisterUser(ctx, params.Email, params.Name, params.LastName, params.Password)
 	if err != nil {
 		if err == service.ErrUserAlreadyExists {
 			return c.JSON(http.StatusConflict, responseMessage{Message: "User already exists"}) // HTTP 409 Conflict

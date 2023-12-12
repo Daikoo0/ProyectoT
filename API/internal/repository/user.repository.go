@@ -11,10 +11,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (r *repo) SaveUser(ctx context.Context, email, name, password string) error {
+func (r *repo) SaveUser(ctx context.Context, email, name, lastname, password string) error {
 	user := entity.User{
 		Email:    email,
 		Name:     name,
+		LastName: lastname,
 		Password: password,
 		Proyects: []string{},
 	}

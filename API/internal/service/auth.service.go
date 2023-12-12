@@ -15,7 +15,7 @@ var (
 	ErrRoleNotFound       = errors.New("role not found")
 )
 
-func (s *serv) RegisterUser(ctx context.Context, email, name, password string) error {
+func (s *serv) RegisterUser(ctx context.Context, email, name, lastname, password string) error {
 
 	u, _ := s.repo.GetUserByEmail(ctx, email) // leer usuario de la bd completo OBJID, email, name, password, proyects
 	if u != nil {
@@ -28,7 +28,7 @@ func (s *serv) RegisterUser(ctx context.Context, email, name, password string) e
 	}
 
 	pass := encryption.ToBase64(bb)                //cifrar contraseña
-	return s.repo.SaveUser(ctx, email, name, pass) // Guardar usuario en la base de datos
+	return s.repo.SaveUser(ctx, email, name, lastname, pass) // Guardar usuario en la base de datos
 }
 
 func (s *serv) LoginUser(ctx context.Context, email, password string) (*models.User, error) {

@@ -8,7 +8,8 @@ function Register() {
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [username, setUserName] = useState('');
+  const [name, setName] = useState('');
+  const [lastname, setLastName] = useState('');
   const [message, setMessage] = useState('');
   const {currentTheme, setTheme, availableThemes } = useTheme();
   const navigate = useNavigate();
@@ -26,7 +27,11 @@ function Register() {
   };
 
   const handleUserNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserName(e.target.value);
+    setName(e.target.value);
+  };
+
+  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLastName(e.target.value);
   };
 
   const handleThemeChange = (event) => {
@@ -43,7 +48,8 @@ function Register() {
       credentials: "include",
       body: JSON.stringify({
         email: Correo,
-        name: username,
+        name: name,
+        lastname: lastname,
         password: password,
         passwordConfirm: passwordConfirm,
       }),
@@ -91,14 +97,26 @@ function Register() {
           <form className="card-body">
 
             <div className="form-control w-4/5 max-w-xs">
-              <label className="label-text">Nombre de usuario:</label>
+              <label className="label-text">First Name:</label>
               <input
                 className="input input-bordered w-full max-w-xs"
-                placeholder="username"
-                id="username"
-                name="username"
-                value={username}
+                placeholder="Enter your name"
+                id="name"
+                name="name"
+                value={name}
                 onChange={handleUserNameChange}
+              />
+            </div>
+
+            <div className="form-control w-4/5 max-w-xs">
+              <label className="label-text">Last Name:</label>
+              <input
+                className="input input-bordered w-full max-w-xs"
+                placeholder="Enter your lastname"
+                id="lastname"
+                name="lastname"
+                value={lastname}
+                onChange={handleLastNameChange}
               />
             </div>
 
@@ -133,7 +151,7 @@ function Register() {
                 type="password"
                 id="passwordConfirm"
                 name="passwordConfirm"
-                value={password}
+                value={passwordConfirm}
                 onChange={handlePasswordConfirmChange}
               />
 

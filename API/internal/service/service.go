@@ -28,7 +28,7 @@ type Service interface {
 	AddUser(ctx context.Context, user string, roomName string) error
 
 	// Auth - auth.service.go
-	RegisterUser(ctx context.Context, email, name, password string) error
+	RegisterUser(ctx context.Context, email, name, lastname, password string) error
 	LoginUser(ctx context.Context, email, password string) (*models.User, error)
 }
 
