@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../Context/theme-context';
-
+import SelectTheme from '../components/Web/SelectTheme';
 
 const Home = () => {
 
-  const { currentTheme, setTheme, availableThemes } = useTheme();
   const [proyectos, setProyectos] = useState([]);
   const navigate = useNavigate();
 
@@ -50,10 +48,6 @@ const Home = () => {
     navigate(`/invite/${sala}`);
   };
 
-  const handleThemeChange = (event) => {
-    setTheme(event.target.value);
-  };
-
   return (
 
 
@@ -67,13 +61,7 @@ const Home = () => {
         <div className="flex-none">
 
           <div className="dropdown dropdown-end">
-            <select value={currentTheme} className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
-              {availableThemes.map(theme => (
-                <option key={theme} value={theme}>
-                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                </option>
-              ))}
-            </select>
+            <SelectTheme />
           </div>
 
 

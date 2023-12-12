@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Stage, Layer, Image } from 'react-konva';
 import useImage from 'use-image';
 
-import Json from '../fossil.json';
+import Json from '../../fossil.json';
 
 const URLImage = ({ image }) => {
   const [img] = useImage(image.src);

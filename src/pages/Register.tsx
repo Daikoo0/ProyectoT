@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { useTheme } from '../Context/theme-context';
-//import './Form.css';
+import SelectTheme from '../components/Web/SelectTheme';
+
 
 function Register() {
   const [Correo, setCorreo] = useState('');
@@ -11,7 +10,6 @@ function Register() {
   const [name, setName] = useState('');
   const [lastname, setLastName] = useState('');
   const [message, setMessage] = useState('');
-  const {currentTheme, setTheme, availableThemes } = useTheme();
   const navigate = useNavigate();
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,9 +32,6 @@ function Register() {
     setLastName(e.target.value);
   };
 
-  const handleThemeChange = (event) => {
-    setTheme(event.target.value);
-  };
 
   async function handleLogin() {
 
@@ -83,13 +78,7 @@ function Register() {
           <h1 className="text-5xl font-bold">Registrate</h1>
           <div className="form-control mt-6">
             <label className="label-text">Elige un tema:</label>
-            <select value={currentTheme} className="select select-primary w-full max-w-xs" onChange={handleThemeChange}>
-              {availableThemes.map(theme => (
-                <option key={theme} value={theme}>
-                  {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                </option>
-              ))}
-            </select>
+            <SelectTheme/>
           </div>
         </div>
 

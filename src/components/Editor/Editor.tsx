@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Rect,Image, Group, Text, Line} from 'react-konva';
 import { useParams } from 'react-router-dom';
-import { useTheme } from '../Context/theme-context';
 //import ShapeComponent from './shape';
 //import Konva from './konva';
-import Json from '../lithologic.json';
+import Json from '../../lithologic.json';
 import Polygon from './Polygon';
 import Grid from './Grids';
-import './Editor.css';
+//import './Editor.css';
 import useImage from 'use-image';
-import fosilJson from '../fossil.json';
+import fosilJson from '../../fossil.json';
 
 const VerticalRuler = ({ x, y, height, unit, scale }) => {
   // El número total de marcas basado en la altura y la unidad de cada marca
@@ -58,7 +57,6 @@ const CoordinateInputs: React.FC = () => {
     const unit = 10; // La distancia en la pantalla entre marcas
     const scale = 10; // Cómo se traducen las unidades de pantalla a unidades reales (por ejemplo, 1:10 para cm a mm)
 
-    const { isDarkMode, toggleTheme } = useTheme();
   //---------------// POLIGONOS //---------------//
     //Figuras / Poligonos 
     const [shapes, setShapes] = useState([]); 
