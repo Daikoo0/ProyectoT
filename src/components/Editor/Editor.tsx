@@ -135,26 +135,29 @@ const CoordinateInputs: React.FC = () => {
     }
     )
 
-    // const sendConfig = (cconfig, send, socket) => {
-    //   //const updatedShapes = [...shapes];
-    //   var updatedConfig = config
+    const sendConfig = (cconfig, send, socket) => {
+      //const updatedShapes = [...shapes];
+      var updatedConfig = config
       
-    //  // updatedShapes[index].text = text;
-    //   updatedConfig.config = cconfig;
+     // updatedShapes[index].text = text;
+      updatedConfig.config = cconfig;
      
-    //   //setShapes(updatedShapes);
+      //setShapes(updatedShapes);
 
-    //   setConfig(updatedConfig)
-    //   if(send){
-    //   //  console.log("Send: text")
+      setConfig(updatedConfig)
+      if(send){
+      //  console.log("Send: text")
 
-    //   //sendSocket("text", index);
-    //     sendSocket("text", index);
-  
-    //     //socket.send(JSON.stringify(updatedShapes[index]));
-    //   }
-    // }
+      //sendSocket("text", index);
 
+      const send ={
+        action: "settingsRoom",
+        config : updatedConfig,
+      }
+        
+        socket.send(JSON.stringify(send));
+      }
+    }
 
 
 
@@ -825,7 +828,7 @@ const CoordinateInputs: React.FC = () => {
                   text={shape.text}
                   setText={(text, send) => setText(index, text, send, socket)}
                   config={config}
-                  setConfig={(config, send) => setConfig(index, text, send, socket)}
+                  sendConfig={(config, send) => sendConfig(config, send, socket)}
                   dragUrl={dragUrl}
                 />
 

@@ -22,7 +22,7 @@ interface ImageComponentProps {
   height: number
 }
 
-const Grid = ({ polygon, setText, text, config, dragUrl }) => {
+const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
   const cellSize = 110; // Tamaño de cada celda de la cuadrícula
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
@@ -30,13 +30,12 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
 
   const cells = [];
 
+  console.log(config);
 
   const [highestY2, setHighestY2] = useState(200);
 
 
   useEffect(() => {
-
-    console.log(polygon)
     setHighestY2(prevHighestY2 => Math.max(prevHighestY2, polygon.polygon.y2));
 
   }, [polygon.polygon.y2]);
@@ -104,13 +103,13 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
             }}
             onDrop={(e) => {
               e.preventDefault();
-              const copia = { ...text };
-              copia['Estructuras y/o fósiles'].content.push({
+              const copia = { ...config };
+              copia.config.columns['Estructuras y/o fósiles'].content.push({
                 'x': e.nativeEvent.offsetX,
                 'y': e.nativeEvent.offsetY,
                 'src': dragUrl.current
               });
-              setText(copia, true);
+              sendConfig(copia, true);
             }}
 
           />
@@ -244,28 +243,29 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
 
   additionalColumns.forEach((column, index) => {
 
-    if (index == 1) {
-      if (config.config.columns['Estructuras y/o fósiles'].enabled) {
+    if (index == 1
+      && config.config.columns['Estructuras y/o fósiles'].enabled
+      && column === 'Estructuras y/o fósiles') {
 
-        cells.push(
-          <Rect
-            key={`header-Estructuras y/o fósiles`}
-            x={xOffset}
-            y={0}
-            width={cellSize}
-            height={cellHeight}
-            fill="white"
-            stroke="black"
-          />
-        );
-    
+      cells.push(
+        <Rect
+          key={`header-Estructuras y/o fósiles`}
+          x={xOffset}
+          y={0}
+          width={cellSize}
+          height={cellHeight}
+          fill="white"
+          stroke="black"
+        />
+      );
+
       cells.push(
         <Rect
           key={`a`}
           x={xOffset}
           y={100}
           width={cellSize}
-          height={highestY2-100}
+          height={highestY2 - 100}
           fill="red"
           stroke="black"
         />
@@ -282,12 +282,13 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
         />
 
       );
+      
       xOffset += cellSize;
 
-    }
-    }
-
-    if (config.config.columns[column].enabled && column !== 'Estructuras y/o fósiles') {
+    } else if (config.config.columns[column].enabled
+      && column !== 'Estructuras y/o fósiles' 
+      && index !== 1
+    ) {
 
       cells.push(
         <Rect
@@ -331,8 +332,24 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
         />
       );
 
+      cells.push(
+
+        <StickyNote
+          column={column}
+          x={xOffset}
+          y={polygon.polygon.y1}
+          width={cellSize}
+          height={cellHeight}
+          text={text[column].content}
+          vertical={text[column].vertical}
+        />
+
+      );
+
       xOffset += cellSize;
     }
+
+    
   }
 
   );
@@ -353,37 +370,6 @@ const Grid = ({ polygon, setText, text, config, dragUrl }) => {
 
   xOffset = marginLeft + polygonColumnWidth;
 
-
-  // Agregar celdas para las columnas adicionales (dejar en blanco si no hay polígono)
-  additionalColumns.forEach((column) => {
-
-
-    if (config.config.columns[column].enabled) {
-      if (column !== 'Estructuras y/o fósiles') {
-
-        cells.push(
-
-          <StickyNote
-            column={column}
-            x={xOffset}
-            //  y={text[column].vertical ? polygon.polygon.y1+cellHeight : polygon.polygon.y1}
-            y={polygon.polygon.y1}
-            width={cellSize}
-            height={cellHeight}
-            text={text[column].content}
-            vertical={text[column].vertical}
-          />
-
-        );
-
-        xOffset += cellSize;
-
-      }
-
-    }
-  }
-
-  );
 
   cells.push(renderFixedColumn);
 
