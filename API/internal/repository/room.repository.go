@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"log"
+	"fmt"
+	"time"
 
 	"github.com/ProyectoT/api/internal/entity"
 	"github.com/ProyectoT/api/internal/models"
@@ -38,31 +40,42 @@ func (r *repo) GetRoom(ctx context.Context, roomName string) (*models.Room, erro
 	return &room, nil
 }
 
-func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, participants map[string]models.Role) error {
-	rooms := r.db.Collection("rooms")
-	participants[owner] = models.Owner
-	room := &models.Room{
+func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error {
+	rooms := r.db.Collection("projects")
+	//participants[correo] = models.Owner 
+	anio, mes, dia := time.Now().Date()
+	creationDate := fmt.Sprintf("%d-%02d-%02d", anio, mes, dia)
+
+	room := &models.Data{
 		Name:    roomName,
-		Clients: participants,
-		Data:    []map[string]interface{}{},
-		Config: map[string]interface{}{
-			"columns": map[string]interface{}{
-				"Arcilla-Limo-Arena-Grava": map[string]interface{}{"enabled": true},
-				"Sistema":                  map[string]interface{}{"enabled": true},
-				"Edad":                     map[string]interface{}{"enabled": true},
-				"Formación":                map[string]interface{}{"enabled": true},
-				"Miembro":                  map[string]interface{}{"enabled": true},
-				"Estructuras y/o fósiles": map[string]interface{}{"enabled": true,
-					"content": []map[string]interface{}{}, "optional": true, "vertical": false},
-				"Facie":                   map[string]interface{}{"enabled": true},
-				"Ambiente depositacional": map[string]interface{}{"enabled": true},
-				"Descripción":             map[string]interface{}{"enabled": true},
-			},
-			"scale": 50,
-		},
+		Owner: name,
+		Members: map[string]interface{}{correo:0},
+		CreationDate:  creationDate,
+		Description: desc,
+		Location: location,
+		Lat: lat,
+		Long: long,
+		Visible: visible,
+		// Data:    []map[string]interface{}{},
+		// Config: map[string]interface{}{
+		// 	"columns": map[string]interface{}{
+		// 		"Arcilla-Limo-Arena-Grava": map[string]interface{}{"enabled": true},
+		// 		"Sistema":                  map[string]interface{}{"enabled": true},
+		// 		"Edad":                     map[string]interface{}{"enabled": true},
+		// 		"Formación":                map[string]interface{}{"enabled": true},
+		// 		"Miembro":                  map[string]interface{}{"enabled": true},
+		// 		"Estructuras y/o fósiles": map[string]interface{}{"enabled": true,
+		// 			"content": []map[string]interface{}{}, "optional": true, "vertical": false},
+		// 		"Facie":                   map[string]interface{}{"enabled": true},
+		// 		"Ambiente depositacional": map[string]interface{}{"enabled": true},
+		// 		"Descripción":             map[string]interface{}{"enabled": true},
+		// 	},
+		// 	"scale": 50,
+		// },
 	}
 
-	var existingRoom models.Room
+	var existingRoom models.Data
+
 	err := rooms.FindOne(ctx, bson.M{"name": roomName}).Decode(&existingRoom)
 	if err != mongo.ErrNoDocuments {
 		if err != nil {
@@ -79,9 +92,9 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, owner string, pa
 	}
 
 	//actualizar los documentos de los usuarios
-	for p := range participants {
-		r.AddUser(ctx, p, roomName)
-	}
+	// for p := range participants {
+	// 	r.AddUser(ctx, p, roomName)
+	// }
 
 	return nil
 }

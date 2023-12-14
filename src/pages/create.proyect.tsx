@@ -2,47 +2,38 @@ import { useState } from 'react';
 //import './Form.css';
 
 const ParticipantForm = () => {
-  //esta ruta lo que hace es generar una nueva room
-  //me puse en corte baneador compulsivo 💀💀 y todos estan baneados
-  //si se quiere crear acceder a un proyecto que no esta creado no permitira conexiones a el socket
-  //con esta ruta se crea un room y puse la opcion de añadir participantes para comenzar, todo esta guardado en la bd
-  const [roomName, setRoomName] = useState('');
-  const [participants, setParticipants] = useState([{ email: '', role: 0 }]);
+ 
+  const [ visible, setVisible ] = useState(false);
+  const [ roomName, setRoomName ] = useState(undefined);
+  const [ location, setLocation ] = useState(undefined);
+  const [ desc, setDesc ] = useState(undefined);
+  const [ lat, setLat ] = useState(null);
+  const [ long, setLong ] = useState(null);
+
+  
   const [message, setMessage] = useState('')
 
-  const addParticipant = () => {
-    setParticipants([...participants, { email: '', role: 0 }]);
-  };
-
-  const removeParticipant = (index) => {
-    const updatedParticipants = [...participants];
-    updatedParticipants.splice(index, 1);
-    setParticipants(updatedParticipants);
-  };
-
-  const handleRoomNameChange = (e) => {
-    setRoomName(e.target.value);
-  };
-
-  const handleParticipantChange = (e, index) => {
-    const { name, value } = e.target;
-    const updatedParticipants = [...participants];
-    updatedParticipants[index] = {
-      ...updatedParticipants[index],
-      [name]: name === 'role' ? parseInt(value) : value,
-    };
-    setParticipants(updatedParticipants);
-  };
-
   async function handleSubmit() {
-    console.log(JSON.stringify(participants));
-    const response = await fetch(`http://localhost:3001/rooms/${roomName}/create`, {
+    
+    var Data = {
+      roomName: roomName,
+      location: location,
+      lat: parseFloat(lat),
+      long: parseFloat(long),
+      desc: desc,
+      visible: visible
+
+    };
+
+    console.log(Data);
+
+    const response = await fetch(`http://localhost:3001/rooms/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       credentials: 'include',
-      body: JSON.stringify({ participants }),
+      body: JSON.stringify(Data),
     });
 
     const data = await response.json();
@@ -67,6 +58,7 @@ const ParticipantForm = () => {
           
             <div className="flex p-6 w-full">
               <div className="form-control w-full max-w-xs mr-2">
+                
                 <label className="label-text">Nombre de la sala:</label>
                 <input
                   className="input input-bordered w-full max-w-xs"
@@ -74,7 +66,7 @@ const ParticipantForm = () => {
                   type="text"
                   id="roomName"
                   value={roomName}
-                  onChange={handleRoomNameChange}
+                  onChange={(e) => setRoomName(e.target.value)}
                 />
               </div>
               
@@ -85,8 +77,8 @@ const ParticipantForm = () => {
                   placeholder="Chile, Temuco"
                   type="text"
                   id="location"
-                  value=""
-                  // onChange={}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
                 />
               </div>
             </div>
@@ -99,8 +91,8 @@ const ParticipantForm = () => {
                   placeholder="Ingrese Latitud"
                   type="number"
                   id="latitude"
-                  value=''
-                  // onChange={}
+                  value={lat}
+                  onChange={(e) => setLat(e.target.value)}
                 />
               </div>
               
@@ -111,12 +103,32 @@ const ParticipantForm = () => {
                   placeholder="Ingrese Longitud"
                   type='number'
                   id="longitude"
-                  value=""
-                  // onChange={}
+                  value={long}
+                  onChange={(e) => setLong(e.target.value)}
                 />
               </div>
             </div>
-            
+
+            <div className="form-control w-full max-w-xs">
+                <label className="label-text"> Descripción:</label>
+                <input
+                  className="input input-bordered w-full max-w-xs"
+                  placeholder="Ingrese Descripcion "
+                  type='text'
+                  id="desc"
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                />
+              </div>
+              <div className="form-control w-full max-w-xs">
+
+               {visible ? <>
+                <label className="label-text "> Público </label>   
+                </>:<>
+                <label className="label-text"> Privado</label>   
+                </>  }
+                <input type="checkbox" className="toggle toggle-success" checked={visible} onChange={() => setVisible(!visible)} />
+              </div>
             <div className="form-control mt-6">
                 <button className="btn btn-neutral" onClick={handleSubmit}>Crear Sala</button>
               </div>

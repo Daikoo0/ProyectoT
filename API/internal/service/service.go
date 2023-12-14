@@ -18,7 +18,7 @@ type Service interface {
 	// Room - room.service.go
 	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error)
 	GetRoom(ctx context.Context, roomName string) (*models.Room, error) // Devuelve la entidad sala - name, clients, data, config
-	CreateRoom(ctx context.Context, roomName string, user string, participants map[string]models.Role) error
+	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error
 	SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error
 	SaveUsers(ctx context.Context, room *models.Room) error
 	SaveProject(ctx context.Context, data string, name string) error

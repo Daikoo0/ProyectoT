@@ -207,7 +207,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				break
 			}
 
-			if permission != 2 {
+			if permission != 2 { 
 				var dataMap map[string]interface{}
 				err := json.Unmarshal([]byte(msg), &dataMap)
 				undo := true
@@ -554,38 +554,66 @@ func instanceRoom(roomName string, Clients map[string]models.Role, data []map[st
 	return room
 }
 
+
 func (a *API) HandleCreateProyect(c echo.Context) error {
 
 	ctx := c.Request().Context()
 	cookie, err := c.Cookie("Authorization")
 
-	//validar datos
+	//Revisa si existe el token
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
+
+	// Si existe, revisa si es valido
 	claims, err := encryption.ParseLoginJWT(cookie.Value)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
 
-	user := claims["email"].(string)
-	room := c.Param("room")
-	participantsRequest := new(dtos.CreateProjectRequest)
+	correo := claims["email"].(string)
+	name := claims["name"].(string)
+	log.Println(correo)
+	log.Println(name)
 
-	//validar mas datos
-	if err := c.Bind(participantsRequest); err != nil {
-		log.Println(err)
+	var params dtos.Project
+
+	err = c.Bind(&params) // llena a params con los datos de la solicitud
+
+	// Sin error  == nil - Con error != nil
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-	}
-	participantMap := make(map[string]models.Role)
-
-	for _, participant := range participantsRequest.Participants {
-		participantMap[participant.Email] = models.Role(participant.Role)
+		//return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"}) //HTTP 400 Bad Request
 	}
 
-	err = a.serv.CreateRoom(ctx, room, user, participantMap)
+	err = a.dataValidator.Struct(params) // valida los datos de la solicitud
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()}) // HTTP 400 Bad Request
+	}
+	
+
+	// DELETEABLE
+		// participantsRequest := new(dtos.CreateProjectRequest)
+		// log.Println(participantsRequest)
+
+		// //validar mas datos
+		// if err := c.Bind(participantsRequest); err != nil {
+		// 	log.Println(err)
+		// 	return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+		// }
+		// participantMap := make(map[string]models.Role)
+
+		// for _, participant := range participantsRequest.Participants {
+		// 	participantMap[participant.Email] = models.Role(participant.Role)
+		// }
+		// log.Println(participantMap)
+	// DELETEABLE
+
+
+	err = a.serv.CreateRoom(ctx, params.RoomName, name, correo, params.Desc, params.Location, params.Lat, params.Long, params.Visible)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to create a room"})
 	}

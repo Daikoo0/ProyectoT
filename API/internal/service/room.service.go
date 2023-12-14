@@ -31,9 +31,9 @@ func (s *serv) GetRoom(ctx context.Context, roomName string) (*models.Room, erro
 	}
 	return room, nil
 }
-func (s *serv) CreateRoom(ctx context.Context, roomName string, user string, participants map[string]models.Role) error {
+func (s *serv) CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error {
 
-	return s.repo.CreateRoom(ctx, roomName, user, participants)
+	return s.repo.CreateRoom(ctx, roomName, name, correo, desc, location, lat, long, visible)
 }
 
 func (s *serv) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
