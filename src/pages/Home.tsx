@@ -18,10 +18,9 @@ const Home = () => {
       });
 
       const result = await response.json();
-      console.log('Datos recibidos:', result);
 
-     setProyectos(result.projects);
-      
+      setProyectos(result.projects);
+
     } catch (error) {
       console.error('Error al obtener datos:', error);
 
@@ -52,15 +51,15 @@ const Home = () => {
       <div className="drawer lg:drawer-open">
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content justify-center">
-          
-          <Navbar logohidden={false}/>
+
+          <Navbar logohidden={false} />
 
           {/* Contenido */}
           <main className="flex-1 p-4">
             {/* PROYECTOS */}
             <div className="overflow-x-auto bg-base-200 rounded-box p-4 h-full">
               <h1>Proyectos del usuario</h1>
-              
+
               <button className="btn btn-neutral lg:hidden" onClick={handleAddRoom}>Crear Sala</button>
               <table className="table">
                 {/* head */}
@@ -68,7 +67,7 @@ const Home = () => {
                   <tr>
                     <th>
                       <label>
-                        <input type="checkbox" className="checkbox" />
+                        {proyectos===null? null : <input type="checkbox" className="checkbox" />}
                       </label>
                     </th>
                     <th>Titulo Proyecto</th>
@@ -80,35 +79,45 @@ const Home = () => {
                 </thead>
                 <tbody>
                   {/* rows */}
-                  {proyectos.map((data, index) => (
-                    <tr key={index}>
-                      <th>
-                        <label>
-                          <input type="checkbox" className="checkbox" />
-                        </label>
-                      </th>
+                  {proyectos === null ?
+                    <tr>
                       <td>
                         <div className="flex items-center gap-3">
                           <div>
-                            <div className="font-bold">{data.Name}</div>
-                            <div className="text-sm opacity-50">{data.Owner}</div>
+                            <div className="font-bold">No Projects</div>
                           </div>
                         </div>
                       </td>
-                      <td>
-                        {data.Location}
-                        <br />
-                        <span className="badge badge-ghost badge-sm">{data.Lat}, {data.Long}</span>
-                      </td>
-                      <td>{data.CreationDate}</td>
-                      <td>{data.Description}</td>
-                      <th>
-                        <button className="btn btn-ghost btn-xs" onClick={() => handleEdit(data)}>Editar</button>
-                        <button className="btn btn-ghost btn-xs" onClick={() => handleInvite(data)}>Co-Autores</button>
-                        <button className="btn btn-ghost btn-xs">Eliminar</button>
-                      </th>
                     </tr>
-                  ))}
+                    : proyectos.map((data, index) => (
+                      <tr key={index}>
+                        <th>
+                          <label>
+                            <input type="checkbox" className="checkbox" />
+                          </label>
+                        </th>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <div className="font-bold">{data.Name}</div>
+                              <div className="text-sm opacity-50">{data.Owner}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          {data.Location}
+                          <br />
+                          <span className="badge badge-ghost badge-sm">{data.Lat}, {data.Long}</span>
+                        </td>
+                        <td>{data.CreationDate}</td>
+                        <td>{data.Description}</td>
+                        <th>
+                          <button className="btn btn-ghost btn-xs" onClick={() => handleEdit(data)}>Editar</button>
+                          <button className="btn btn-ghost btn-xs" onClick={() => handleInvite(data)}>Co-Autores</button>
+                          <button className="btn btn-ghost btn-xs">Eliminar</button>
+                        </th>
+                      </tr>
+                    ))}
                 </tbody>
                 {/* foot */}
                 <tfoot>
@@ -131,18 +140,18 @@ const Home = () => {
 
         </div>
         <div className="drawer-side">
-          
+
           <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
-          
+
           <ul className="menu px-4 w-80 min-h-full bg-base-200 text-base-content">
-            
+
             {/* Sidebar content here */}
-            
-           
+
+
             <li className='pb-6 hidden lg:block'><a className="btn btn-ghost text-xl">Proyecto T</a></li>
-            
+
             <button className="btn btn-neutral hidden lg:block" onClick={handleAddRoom}>Crear Sala</button>
-        
+
             <li className="menu-title">Proyecto</li>
             <li><a>All Projects </a></li>
             <li><a>Your Projects</a></li>

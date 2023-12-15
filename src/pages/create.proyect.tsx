@@ -7,9 +7,9 @@ import Navbar from '../components/Web/Narbar';
 const ParticipantForm = () => {
 
   const [visible, setVisible] = useState(false);
-  const [roomName, setRoomName] = useState(undefined);
-  const [location, setLocation] = useState(undefined);
-  const [desc, setDesc] = useState(undefined);
+  const [roomName, setRoomName] = useState('');
+  const [location, setLocation] = useState('');
+  const [desc, setDesc] = useState('');
   const [lat, setLat] = useState(null);
   const [long, setLong] = useState(null);
   const [message, setMessage] = useState('')
