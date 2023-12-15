@@ -1,5 +1,7 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Room struct {
 	Name    string
 	Clients map[string]Role
@@ -8,13 +10,19 @@ type Room struct {
 }
 
 type Data struct {
-	Name    string
-	Owner   string
-	Members map[string]interface{}
+	Name         string
+	Owner        string
+	Members      map[string]interface{}
 	CreationDate string
-	Description string
-	Location string
-	Lat float64
-	Long float64
-	Visible bool
+	Description  string
+	Location     string
+	Lat          float64
+	Long         float64
+	Visible      bool
+}
+
+type Data_project struct {
+	Id_project primitive.ObjectID
+	Data       []map[string]interface{}
+	Config     map[string]interface{}
 }
