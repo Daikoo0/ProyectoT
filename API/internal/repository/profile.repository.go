@@ -2,6 +2,8 @@ package repository
 
 import (
 	context "context"
+	"log"
+
 	//"errors"
 	//"log"
 	//"fmt"
@@ -13,36 +15,36 @@ import (
 )
 
 func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.Data, error) {
-    users := r.db.Collection("projects")
+	users := r.db.Collection("projects")
 
-    // Define el filtro usando bson.M en lugar de bson.D
-    filter := bson.D{
-			{"$or",
-				bson.A{
-					bson.D{{"members", bson.D{{correo, 0}}}},
-					bson.D{{"members", bson.D{{correo, 1}}}},
-					bson.D{{"members", bson.D{{correo, 2}}}},
-				},
-			},
-		}
+	// Define el filtro usando bson.M en lugar de bson.D
+	filter := bson.M{
+		"$or": []bson.M{
+			{"members.0": correo},
+			{"members.1": correo},
+			{"members.2": correo},
+		},
+	}
 
-    // Realiza la consulta
-    cursor, err := users.Find(ctx, filter)
-    if err != nil {
-        // Manejar el error, por ejemplo, imprimirlo o devolverlo
-        return nil, err
-    }
-    defer cursor.Close(ctx)
+	// Realiza la consulta
+	cursor, err := users.Find(ctx, filter)
+	if err != nil {
+		// Manejar el error, por ejemplo, imprimirlo o devolverlo
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
-    // Decodifica los resultados en una slice de la estructura que representa tus proyectos
-    var projects []models.Data
+	// Decodifica los resultados en una slice de la estructura que representa tus proyectos
+	var projects []models.Data
 
-    if err := cursor.All(ctx, &projects); err != nil {
-        // Manejar el error, por ejemplo, imprimirlo o devolverlo
-        return nil, err
-    }
+	if err := cursor.All(ctx, &projects); err != nil {
+		// Manejar el error, por ejemplo, imprimirlo o devolverlo
+		return nil, err
+	}
 
-    return projects, nil
+	log.Println(projects)
+
+	return projects, nil
 
 	// result2, err := users.Find(ctx,   bson.D{
 	// 	{"$or",
@@ -58,10 +60,10 @@ func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.Data, e
 	// 	log.Println("Error finding rooms with email:", err)
 	// 	return nil, err
 	// }
-	
+
 	// if err := result2.Err(); err != nil {
-		
-    //  	log.Println("Se metio en el errrorAAAAAAAA")
+
+	//  	log.Println("Se metio en el errrorAAAAAAAA")
 	// 	if errors.Is(err, mongo.ErrNoDocuments) {
 	// 		log.Println("AHHHHHHHHH")
 	// 		log.Println(err)

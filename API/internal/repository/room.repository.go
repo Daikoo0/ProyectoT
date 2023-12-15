@@ -48,9 +48,12 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 	creationDate := fmt.Sprintf("%d-%02d-%02d", anio, mes, dia)
 
 	room := &models.Data{
-		Name:         roomName,
-		Owner:        name,
-		Members:      map[string]interface{}{correo: 0},
+		Name:  roomName,
+		Owner: name,
+		Members: map[string]interface{}{"0": correo,
+			"1": []string{},
+			"2": []string{},
+		},
 		CreationDate: creationDate,
 		Description:  desc,
 		Location:     location,
@@ -63,7 +66,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 	//var existingDataProject models.Data_project
 
 	//emailKey := fmt.Sprintf("members.%s", correo)
-	err := rooms.FindOne(ctx, bson.M{"name": roomName, "members": bson.M{correo: 0}}).Decode(&existingRoom)
+	err := rooms.FindOne(ctx, bson.M{"name": roomName, "members": bson.M{"0": correo}}).Decode(&existingRoom)
 	if err != mongo.ErrNoDocuments {
 		if err != nil {
 			log.Println("Error checking project existence:", err)
