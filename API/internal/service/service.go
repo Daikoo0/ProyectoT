@@ -24,7 +24,7 @@ type Service interface {
 	SaveProject(ctx context.Context, data string, name string) error
 
 	// Profile - profile.service.go
-	GetProyects(ctx context.Context, user string) ([]string, error)
+	GetProyects(ctx context.Context, user string) ([]models.Data, error)
 	AddUser(ctx context.Context, user string, roomName string) error
 
 	// Auth - auth.service.go

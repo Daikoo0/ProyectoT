@@ -22,7 +22,7 @@ type Repository interface { //comunicaciones con la base de datos
 	SaveUsers(ctx context.Context, room *models.Room) error                                                        // Guarda los usuarios de una sala en la base de datos
 
 	// Profile - profile.repository.go
-	GetProyects(ctx context.Context, email string) ([]string, error) // Devuelve los proyectos de un usuario
+	GetProyects(ctx context.Context, email string) ([]models.Data, error) // Devuelve los proyectos de un usuario
 
 	// Users - user.repository.go
 	SaveUser(ctx context.Context, email, name, lastname, password string) error       // Guarda un usuario en la base de datos

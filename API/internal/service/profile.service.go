@@ -1,8 +1,10 @@
 package service
 
-import "context"
-
-func (s *serv) GetProyects(ctx context.Context, user string) ([]string, error) {
+import (
+	"context"
+	"github.com/ProyectoT/api/internal/models"
+)
+func (s *serv) GetProyects(ctx context.Context, user string) ([]models.Data, error) {
 	proyects, err := s.repo.GetProyects(ctx, user)
 	if err != nil {
 		return nil, err

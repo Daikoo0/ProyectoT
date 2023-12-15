@@ -62,8 +62,8 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 	var existingRoom models.Data
 	//var existingDataProject models.Data_project
 
-	emailKey := fmt.Sprintf("members.%s", correo)
-	err := rooms.FindOne(ctx, bson.M{"name": roomName, emailKey: 0}).Decode(&existingRoom)
+	//emailKey := fmt.Sprintf("members.%s", correo)
+	err := rooms.FindOne(ctx, bson.M{"name": roomName, "members": bson.M{correo: 0}}).Decode(&existingRoom)
 	if err != mongo.ErrNoDocuments {
 		if err != nil {
 			log.Println("Error checking project existence:", err)
@@ -71,6 +71,8 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 		}
 		return errors.New("room with this name and email/user already exists")
 	}
+
+	log.Println(existingRoom)
 
 	var result, errd = rooms.InsertOne(ctx, room)
 	if errd != nil {

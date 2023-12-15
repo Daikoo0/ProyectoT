@@ -25,6 +25,10 @@ type shap struct {
 	polygon string `json:"message"`
 }
 
+type ProjectResponse struct {
+	Projects []models.Data `json:"projects"`
+}
+
 type circle struct {
 	x       int
 	y       int
@@ -648,7 +652,13 @@ func (a *API) proyects(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
 	}
 
-	return c.JSON(http.StatusOK, responseProyects{Proyects: proyects})
+	// Crear una instancia de ProjectResponse con los proyectos obtenidos
+	response := ProjectResponse{
+		Projects: proyects,
+	}
+	
+	// Devolver la respuesta JSON con los proyectos
+	return c.JSON(http.StatusOK, response)
 }
 
 // codigo de una pila, (pila de cambios, del control Z)
