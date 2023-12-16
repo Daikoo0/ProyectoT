@@ -11,16 +11,18 @@ import { ThemeProvider } from './Context/theme-context.tsx'
 import Prueba from './components/Prueba/prueba.tsx'
 import AddUserToRoom from "./pages/Invite.user.tsx"
 import ParticipantForm from "./pages/create.proyect.tsx"
+import About from "./pages/About.tsx"
 
 const router = createBrowserRouter([
 
+  
   {
     path: "/",
-    element: <Login />,
+    element: <About />,
   },
   {
-    path: "/editor/:project",
-    element: <Editor />,
+    path: "/login",
+    element: <Login />,
   },
   {
     path: "/register",
@@ -29,6 +31,10 @@ const router = createBrowserRouter([
   {
     path: "/Home",
     element: <Home />,
+  },
+  {
+    path: "/editor/:project",
+    element: <Editor />,
   },
   {
     path: "/invite/:project",

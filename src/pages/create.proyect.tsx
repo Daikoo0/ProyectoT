@@ -181,9 +181,9 @@ const ParticipantForm = () => {
         <div className="divider divider-horizontal"></div>
 
         {/* Mapa */}
-        <div className="grid h-full w-1/2 flex-grow card bg-base-300 rounded-box place-items-center p-4 ">
+        <div className="grid h-96 w-1/2 flex-grow card bg-base-300 rounded-box place-items-center p-4 ">
 
-          <MapContainer className={'h-96 w-full'} center={[-38.7027177, -72.5338521]} zoom={13} scrollWheelZoom={true}>
+          <MapContainer className={'h-full w-full'} center={[-38.7027177, -72.5338521]} zoom={13} scrollWheelZoom={true}>
             <TileLayer
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
@@ -194,10 +194,6 @@ const ParticipantForm = () => {
 
         </div>
       </div>
-
-
-
-
 
     </div>
   );
