@@ -27,6 +27,7 @@ type Service interface {
 	// Profile - profile.service.go
 	GetProyects(ctx context.Context, user string) ([]models.Data, error)
 	GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
+	HandleGetPublicProject(ctx context.Context) ([]models.Data, error)
 	AddUser(ctx context.Context, user string, roomName string) error
 
 	// Auth - auth.service.go

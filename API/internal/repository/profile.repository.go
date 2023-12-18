@@ -88,4 +88,38 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 	}
 
 	return -1, nil // Correo no encontrado en ninguna lista
+
+	
 }
+
+func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.Data, error) {
+
+	dbprojects := r.db.Collection("projects")
+
+	// Define el filtro usando bson.M en lugar de bson.D
+	filter := bson.M{
+		"visible": true,
+	}
+
+	// Realiza la consulta
+	cursor, err := dbprojects.Find(ctx, filter)
+	if err != nil {
+		// Manejar el error, por ejemplo, imprimirlo o devolverlo
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	// Decodifica los resultados en una slice de la estructura que representa tus proyectos
+	var projects []models.Data
+
+	if err := cursor.All(ctx, &projects); err != nil {
+		// Manejar el error, por ejemplo, imprimirlo o devolverlo
+		return nil, err
+	}
+
+	log.Println(projects)
+
+	return projects, nil
+
+}
+	

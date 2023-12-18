@@ -25,6 +25,7 @@ type Repository interface { //comunicaciones con la base de datos
 	// Profile - profile.repository.go
 	GetProyects(ctx context.Context, email string) ([]models.Data, error) // Devuelve los proyectos de un usuario
 	GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
+	HandleGetPublicProject(ctx context.Context) ([]models.Data, error)	// Devuelve los proyectos publicos
 
 	// Users - user.repository.go
 	SaveUser(ctx context.Context, email, name, lastname, password string) error // Guarda un usuario en la base de datos

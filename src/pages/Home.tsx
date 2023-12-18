@@ -156,6 +156,8 @@ const Home = () => {
             <li><a>All Projects </a></li>
             <li><a>Your Projects</a></li>
             <li><a>Shared with you</a></li>
+            <li className="menu-title">Busqueda</li>
+            <li><a>Proyectos Publicos</a></li>
             <li className="menu-title">Organización</li>
             <li><a>Item 1</a></li>
             <li><a>Item 2</a></li>

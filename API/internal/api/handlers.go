@@ -689,6 +689,36 @@ func (a *API) proyects(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+func (a *API) HandleGetPublicProject(c echo.Context) error {
+
+	ctx := c.Request().Context()
+	_, err := c.Cookie("Authorization")
+
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+	type responseProyects struct {
+		Proyects []string
+	}
+
+	proyects, err := a.serv.HandleGetPublicProject(ctx)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
+	}
+
+	// Crear una instancia de ProjectResponse con los proyectos obtenidos
+	response := ProjectResponse{
+		Projects: proyects,
+	}
+	
+	// Devolver la respuesta JSON con los proyectos
+	return c.JSON(http.StatusOK, response)
+}
+
+
 // codigo de una pila, (pila de cambios, del control Z)
 type Stack []map[string]interface{}
 

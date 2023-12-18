@@ -12,6 +12,7 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 	users.POST("/login", a.LoginUser) 		// users/login
 	users.GET("/", a.proyects)             // users
 
+	e.GET("/search/public", a.HandleGetPublicProject) // search/public
 	e.GET("/ws/:room", a.HandleWebSocket)   //ws/sala
 	e.POST("/rooms/:room/invite", a.HandleInviteUser) //rooms/sala/usuario
 	e.POST("/rooms/create", a.HandleCreateProyect) //rooms/sala/usuario

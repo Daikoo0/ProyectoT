@@ -12,6 +12,14 @@ func (s *serv) GetProyects(ctx context.Context, user string) ([]models.Data, err
 	return proyects, nil
 }
 
+func (s *serv) HandleGetPublicProject(ctx context.Context) ([]models.Data, error) {
+	proyects, err := s.repo.HandleGetPublicProject(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return proyects, nil
+}
+
 func (s *serv) AddUser(ctx context.Context, user string,roomName string) error {
 	err := s.repo.AddUser(ctx, user, roomName)
 	if err != nil {
