@@ -56,7 +56,7 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	
 	// Define el filtro usando bson.M en lugar de bson.D
 	filter := bson.M{
 		"_id": objectID,
@@ -78,8 +78,10 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 		}
 		return -1, err
 	}
+	log.Println("///////////////////////////////")
+	log.Println(room)
 
-	// Verifica en qué lista se encuentra el correo
+	// La consulta esta correcta, pero no se encontró el correo
 	for i := 0; i < 3; i++ {
 		// Supongamos que `members` es un slice dentro de `room`
 		if len(room.Members) > i && room.Members[strconv.Itoa(i)] == correo {
@@ -87,9 +89,7 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 		}
 	}
 
-	return -1, nil // Correo no encontrado en ninguna lista
-
-	
+	return -1, nil // Correo no encontrado en ninguna lista	
 }
 
 func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.Data, error) {

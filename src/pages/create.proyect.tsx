@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
-//import './Form.css';
+import Map from '../components/Web/Map';
 
 import Navbar from '../components/Web/Narbar';
 
@@ -88,7 +88,7 @@ const ParticipantForm = () => {
   }
 
   return (
-    <div>
+    <div className='flex-1'>
       
       <Navbar logohidden={true} />
 
@@ -177,20 +177,14 @@ const ParticipantForm = () => {
           <p>{message}</p>
 
         </div>
-
-        <div className="divider divider-horizontal"></div>
-
         {/* Mapa */}
-        <div className="grid h-96 w-1/2 flex-grow card bg-base-300 rounded-box place-items-center p-4 ">
+        <div className="grid w-1/2 card bg-base-300 rounded-box place-items-center p-4 ">
 
-          <MapContainer className={'h-full w-full'} center={[-38.7027177, -72.5338521]} zoom={13} scrollWheelZoom={true}>
-            <TileLayer
-              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-            />
+          <Map>
+
             <LocationMarker />
-
-          </MapContainer>
+          
+          </Map>
 
         </div>
       </div>

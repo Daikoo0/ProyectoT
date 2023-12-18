@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer} from 'react-leaflet';
+import { Marker } from 'react-leaflet';
+import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
+
+import Map from '../../components/Web/Map';
 
 const Prueba = () => {
 
@@ -31,19 +34,17 @@ const Prueba = () => {
   }, []);
 
   return (
-    <>
-      <MapContainer className={'h-screen w-full'} center={[-38.7027177, -72.5338521]} zoom={13} scrollWheelZoom={true}>
 
-        
-            <TileLayer
-              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
-              
-            />
-            
+    <Map>
+      <MarkerClusterGroup>
+        {proyectos === null ? null : proyectos.map((proyecto, index) => (
+          <Marker key={index} position={[proyecto.Lat, proyecto.Long]} />
+        ))}
+      </MarkerClusterGroup>;
+    </Map>
 
-      </MapContainer>
-    </>
+
+
   );
 };
 

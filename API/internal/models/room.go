@@ -10,6 +10,7 @@ type Room struct {
 }
 
 type Data struct {
+	ID 			 primitive.ObjectID `bson:"_id,omitempty"`
 	Name         string
 	Owner        string
 	Members      map[string]interface{}
