@@ -15,6 +15,7 @@ import (
 	"github.com/ProyectoT/api/internal/service"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type responseMessage struct {
@@ -36,16 +37,26 @@ type circle struct {
 	movable bool
 }
 
-type Room struct {
-	Name    string
-	Config  map[string]interface{}
-	Active  []*websocket.Conn
-	Clients map[string]models.Role
-	Data    []map[string]interface{}
-	Temp    Stack
+// type Room struct {
+// 	Name    string
+// 	Config  map[string]interface{}
+// 	Active  []*websocket.Conn
+// 	Clients map[string]models.Role
+// 	Data    []map[string]interface{}
+// 	Temp    Stack
+// }
+
+type RoomData struct {
+	Id_project primitive.ObjectID
+	Data       []map[string]interface{}
+	Config     map[string]interface{}
+	Active     []*websocket.Conn
+	Temp       Stack
 }
 
-var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
+//var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
+
+var rooms = make(map[string]*RoomData) //map temporal que almacena todas las salas activas
 
 // registerUser recibe un email, un nombre y una contraseña, y registra un usuario en la base de datos
 func (a *API) RegisterUser(c echo.Context) error {
@@ -124,7 +135,7 @@ func (a *API) LoginUser(c echo.Context) error {
 
 func (a *API) HandleWebSocket(c echo.Context) error {
 	ctx := c.Request().Context()
-	roomName := c.Param("room") // Nombre de la sala conectada
+	roomID := c.Param("room") // ID de la sala conectada
 
 	//convertir la peticion en websocket (lo coloco antes de las validaciones para devolver mensajes de error)
 	upgrader := websocket.Upgrader{
@@ -158,7 +169,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	user := claims["email"].(string)
 
 	//validar aun mas datos (forma parte de la sala)
-	room, err := a.serv.GetRoom(ctx, roomName)
+	room, err := a.serv.GetRoom(ctx, roomID)
 	if err != nil {
 		errMessage := "Error: Room not found"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
@@ -166,18 +177,29 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		return nil
 	}
 
-	//log.Println(room)
+	// permission, exists := room.Clients[user]
+	// if !exists {
+	// 	errMessage := "Error: Unauthorized"
+	// 	err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+	// 	conn.Close()
+	// 	return nil
+	// }
 
-	permission, exists := room.Clients[user]
-	if !exists {
+	permission, e := a.serv.GetPermission(ctx, user, roomID)
+	if permission == -1 {
+		log.Println(e)
 		errMessage := "Error: Unauthorized"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
 
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+
 	//conectar a la sala
-	proyect := instanceRoom(roomName, room.Clients, room.Data, room.Config)
+	proyect := instanceRoom(objectID,
+		room.Data,
+		room.Config)
 	proyect.Active = append(proyect.Active, conn)
 
 	//enviar los datos que hay en la base de datos
@@ -211,7 +233,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				break
 			}
 
-			if permission != 2 { 
+			if permission != 2 {
 				var dataMap map[string]interface{}
 				err := json.Unmarshal([]byte(msg), &dataMap)
 				undo := true
@@ -234,7 +256,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				if dataMap["action"] == "undo" {
 					log.Println("deshacer")
-					temp, err := rooms[roomName].Temp.Pop()
+					temp, err := rooms[roomID].Temp.Pop() // esto estaba con el nombre no con la id
 					log.Println(temp)
 					if err != nil {
 						errMessage := "Error: la pila esta vacia"
@@ -253,10 +275,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						temporal := make(map[string]interface{})
 						temporal["action"] = "añadir"
 						temporal["id"] = float64(id)
-						temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
-						temporal["text"] = rooms[roomName].Data[id]["text"]
+						temporal["polygon"] = rooms[roomID].Data[id]["polygon"]
+						temporal["text"] = rooms[roomID].Data[id]["text"]
 
-						rooms[roomName].Temp.Push(temporal)
+						rooms[roomID].Temp.Push(temporal)
 						//variacion := int(rooms[roomName].Data[:id]["polygon"]["y2"])-int(rooms[roomName].Data[:id]["polygon"]["y1"])
 						//log.Println(variacion)
 						/*
@@ -270,9 +292,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						*/
 					}
 
-					rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)
+					rooms[roomID].Data = append(rooms[roomID].Data[:id], rooms[roomID].Data[id+1:]...)
 					log.Println(id)
-					log.Println(rooms[roomName].Data)
+					log.Println(rooms[roomID].Data)
 					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
 						log.Println("Error al convertir a JSON:", err)
@@ -294,11 +316,11 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						temporal := make(map[string]interface{})
 						temporal["action"] = "text"
 						temporal["id"] = float64(id)
-						temporal["text"] = rooms[roomName].Data[id]["text"]
+						temporal["text"] = rooms[roomID].Data[id]["text"]
 
-						rooms[roomName].Temp.Push(temporal)
+						rooms[roomID].Temp.Push(temporal)
 					}
-					rooms[roomName].Data[id]["text"] = dataMap["text"]
+					rooms[roomID].Data[id]["text"] = dataMap["text"]
 
 					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
@@ -322,12 +344,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						temporal := make(map[string]interface{})
 						temporal["action"] = "polygon"
 						temporal["id"] = float64(id)
-						temporal["polygon"] = rooms[roomName].Data[id]["polygon"]
+						temporal["polygon"] = rooms[roomID].Data[id]["polygon"]
 
-						rooms[roomName].Temp.Push(temporal)
+						rooms[roomID].Temp.Push(temporal)
 					}
 
-					rooms[roomName].Data[id]["polygon"] = dataMap["polygon"]
+					rooms[roomID].Data[id]["polygon"] = dataMap["polygon"]
 
 					responseJSON, err := json.Marshal(dataMap)
 					if err != nil {
@@ -349,12 +371,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					if undo {
 						temporal := make(map[string]interface{})
 						temporal["action"] = "settingsRoom"
-						temporal["config"] = rooms[roomName].Config
-						rooms[roomName].Temp.Push(temporal)
+						temporal["config"] = rooms[roomID].Config
+						rooms[roomID].Temp.Push(temporal)
 					}
 
 					for key, newValue := range dataMap["config"].(map[string]interface{}) {
-						rooms[roomName].Config[key] = newValue
+						rooms[roomID].Config[key] = newValue
 					}
 
 					responseJSON, err := json.Marshal(dataMap["config"])
@@ -379,10 +401,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						temp["action"] = "delete"
 						temp["id"] = float64(id)
 
-						rooms[roomName].Temp.Push(temp)
+						rooms[roomID].Temp.Push(temp)
 					}
 
-					rooms[roomName].Data = append(rooms[roomName].Data, dataMap)
+					rooms[roomID].Data = append(rooms[roomID].Data, dataMap)
 
 					jsonBytes, err := json.Marshal(dataMap)
 					if err != nil {
@@ -399,7 +421,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				if dataMap["action"] == "save" {
 					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
+					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
@@ -422,10 +444,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					//rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)// todos los shapes
 
-					updatedShapes := rooms[roomName].Data // Copia de la data de la sala
+					updatedShapes := rooms[roomID].Data // Copia de la data de la sala
 					//updatedShapes := append(rooms[roomName].Data)
 
-					for _, shape := range rooms[roomName].Data {
+					for _, shape := range rooms[roomID].Data {
 
 						shap := make(map[string]interface{})
 						cu, err := json.Marshal(shape["polygon"])
@@ -461,7 +483,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							shap["y2"] = int(shap["y2"].(float64)) + deltaY
 						}
 						updatedShapes = append(updatedShapes, shap)
-						rooms[roomName].Data = updatedShapes
+						rooms[roomID].Data = updatedShapes
 						//log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 					}
 					//err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
@@ -518,8 +540,10 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	}
 
 	//validar aun mas datos (corroborar permisos)
-	value, exists := proyect.Clients[user]
-	if !exists {
+	//value, exists := proyect.Clients[user]
+	value, exists := a.serv.GetPermission(ctx, user, room)
+	if value == -1 {
+		log.Println(exists)
 		log.Println("no forma parte de la sala")
 		return c.JSON(http.StatusForbidden, responseMessage{Message: "Unauthorized"})
 	} else if value != 0 {
@@ -528,13 +552,15 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	}
 
 	//agregar el usuario al room
-	proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
+	//	proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
+	info, err := a.serv.GetRoomInfo(ctx, room)
+	info.Members[inviteRequest.Email] = inviteRequest.Role
 
 	err = a.serv.AddUser(ctx, inviteRequest.Email, room) //actualizar el registro de usuario
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
 	}
-	err = a.serv.SaveUsers(ctx, proyect)
+	err = a.serv.SaveUsers(ctx, info)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to save room"})
 	}
@@ -542,22 +568,26 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(roomName string, Clients map[string]models.Role, data []map[string]interface{}, config map[string]interface{}) *Room {
-	room, exists := rooms[roomName] //instancia el room con los datos de la bd
+func instanceRoom(Id_project primitive.ObjectID,
+	Data []map[string]interface{},
+	Config map[string]interface{}) *RoomData {
+
+	projectIDString := Id_project.Hex()
+
+	room, exists := rooms[projectIDString]
+
+	//room, exists := rooms[Id_project] //instancia el room con los datos de la bd
 	if !exists {
-		room = &Room{
-			Name:    roomName,
-			Clients: Clients,
-			Active:  make([]*websocket.Conn, 0),
-			Data:    data,
-			Config:  config,
+		room = &RoomData{
+			Id_project: Id_project,
+			Data:       Data,
+			Config:     Config,
 		}
-		rooms[roomName] = room
+		rooms[projectIDString] = room
 	}
 
 	return room
 }
-
 
 func (a *API) HandleCreateProyect(c echo.Context) error {
 
@@ -597,25 +627,23 @@ func (a *API) HandleCreateProyect(c echo.Context) error {
 		log.Println(err)
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()}) // HTTP 400 Bad Request
 	}
-	
 
 	// DELETEABLE
-		// participantsRequest := new(dtos.CreateProjectRequest)
-		// log.Println(participantsRequest)
+	// participantsRequest := new(dtos.CreateProjectRequest)
+	// log.Println(participantsRequest)
 
-		// //validar mas datos
-		// if err := c.Bind(participantsRequest); err != nil {
-		// 	log.Println(err)
-		// 	return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-		// }
-		// participantMap := make(map[string]models.Role)
+	// //validar mas datos
+	// if err := c.Bind(participantsRequest); err != nil {
+	// 	log.Println(err)
+	// 	return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+	// }
+	// participantMap := make(map[string]models.Role)
 
-		// for _, participant := range participantsRequest.Participants {
-		// 	participantMap[participant.Email] = models.Role(participant.Role)
-		// }
-		// log.Println(participantMap)
+	// for _, participant := range participantsRequest.Participants {
+	// 	participantMap[participant.Email] = models.Role(participant.Role)
+	// }
+	// log.Println(participantMap)
 	// DELETEABLE
-
 
 	err = a.serv.CreateRoom(ctx, params.RoomName, name, correo, params.Desc, params.Location, params.Lat, params.Long, params.Visible)
 	if err != nil {
@@ -656,7 +684,7 @@ func (a *API) proyects(c echo.Context) error {
 	response := ProjectResponse{
 		Projects: proyects,
 	}
-	
+
 	// Devolver la respuesta JSON con los proyectos
 	return c.JSON(http.StatusOK, response)
 }

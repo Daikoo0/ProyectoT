@@ -1,17 +1,19 @@
 package repository
 
 import (
-	context "context"
+	"context"
+	"errors"
 	"log"
+	"strconv"
 
-	//"errors"
 	//"log"
 	//"fmt"
 
 	//entity "github.com/ProyectoT/api/internal/entity"
-	"go.mongodb.org/mongo-driver/bson"
-	//"go.mongodb.org/mongo-driver/mongo"
 	"github.com/ProyectoT/api/internal/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.Data, error) {
@@ -45,60 +47,45 @@ func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.Data, e
 	log.Println(projects)
 
 	return projects, nil
+}
 
-	// result2, err := users.Find(ctx,   bson.D{
-	// 	{"$or",
-	// 		bson.A{
-	// 			bson.D{{"members", bson.D{{correo, 0}}}},
-	// 			bson.D{{"members", bson.D{{correo, 1}}}},
-	// 			bson.D{{"members", bson.D{{correo, 2}}}},
-	// 		},
-	// 	},
-	// })
+func (r *repo) GetPermission(ctx context.Context, correo string, proyectID string) (int, error) {
+	users := r.db.Collection("projects")
 
-	// if err != nil {
-	// 	log.Println("Error finding rooms with email:", err)
-	// 	return nil, err
-	// }
+	objectID, err := primitive.ObjectIDFromHex(proyectID)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// if err := result2.Err(); err != nil {
+	// Define el filtro usando bson.M en lugar de bson.D
+	filter := bson.M{
+		"_id": objectID,
+		"$or": []bson.M{
+			{"members.0": correo},
+			{"members.1": correo},
+			{"members.2": correo},
+		},
+	}
 
-	//  	log.Println("Se metio en el errrorAAAAAAAA")
-	// 	if errors.Is(err, mongo.ErrNoDocuments) {
-	// 		log.Println("AHHHHHHHHH")
-	// 		log.Println(err)
-	// 		return nil, nil // User not found
-	// 	}
-	// 	log.Println("Error finding user:", err)
-	// 	return nil, err
-	// }
+	// Realiza la consulta
+	var room models.Data
+	err = users.FindOne(ctx, filter).Decode(&room)
+	if err != nil {
+		// Manejar el error, por ejemplo, imprimirlo o devolverlo
+		if err == mongo.ErrNoDocuments {
+			// Si no se encuentra el proyecto, devolver un error específico o nil
+			return -1, errors.New("project not found")
+		}
+		return -1, err
+	}
 
-	// var user2 models.Data
-	// err = result2.Decode(&user2)
-	// if err != nil {
-	// 	log.Println("Error decoding user:", err)
-	// 	return nil, err
-	// }
-	// log.Println(user2.Members)
+	// Verifica en qué lista se encuentra el correo
+	for i := 0; i < 3; i++ {
+		// Supongamos que `members` es un slice dentro de `room`
+		if len(room.Members) > i && room.Members[strconv.Itoa(i)] == correo {
+			return i, nil
+		}
+	}
 
-	// return nil , err
-
-	// result := users.FindOne(ctx, filter)
-	// if err := result.Err(); err != nil {
-	// 	if errors.Is(err, mongo.ErrNoDocuments) {
-	// 		return nil, nil // User not found
-	// 	}
-	// 	log.Println("Error finding user:", err)
-	// 	return nil, err
-	// }
-
-	// var user entity.User
-	// err = result.Decode(&user)
-	// if err != nil {
-	// 	log.Println("Error decoding user:", err)
-	// 	return nil, err
-	// }
-	// log.Println(user.Proyects)
-
-	// return user.Proyects, nil
+	return -1, nil // Correo no encontrado en ninguna lista
 }

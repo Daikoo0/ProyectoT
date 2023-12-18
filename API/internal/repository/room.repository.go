@@ -28,12 +28,35 @@ func (r *repo) ConnectRoom(ctx context.Context, roomName string, user string) (*
 	return &room, nil
 }
 
-// Obtiene la entidad sala con el nombre - CAMBIARLO POR ID
-func (r *repo) GetRoom(ctx context.Context, roomName string) (*models.Room, error) {
+// Obtiene el contenido de la sala (shapes, configuracion, etc)
+func (r *repo) GetRoom(ctx context.Context, roomID string) (*models.Data_project, error) {
 
-	rooms := r.db.Collection("rooms")
-	var room models.Room
-	err := rooms.FindOne(ctx, bson.M{"name": roomName}).Decode(&room)
+	rooms := r.db.Collection("data-projects")
+	var room models.Data_project
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = rooms.FindOne(ctx, bson.M{"id_project": objectID}).Decode(&room)
+	if err != nil {
+		return nil, err
+	}
+
+	return &room, nil
+}
+
+// Obtiene la informacion general de la sala (miembros, etc)
+func (r *repo) GetRoomInfo(ctx context.Context, roomID string) (*models.Data, error) {
+
+	rooms := r.db.Collection("projects")
+	var room models.Data
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = rooms.FindOne(ctx, bson.M{"_id": objectID}).Decode(&room)
 	if err != nil {
 		return nil, err
 	}
@@ -135,10 +158,15 @@ func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, conf
 	return nil
 }
 
-func (r *repo) SaveUsers(ctx context.Context, room *models.Room) error {
-	filter := bson.M{"name": room.Name}
+func (r *repo) SaveUsers(ctx context.Context, room *models.Data) error {
+	filter := bson.M{
+		"$and": []bson.M{
+			{"name": room.Name},
+			{"owner": room.Owner},
+		},
+	}
 	update := bson.M{"$set": bson.M{
-		"clients": room.Clients,
+		"members": room.Members,
 	}}
 	log.Println(update)
 

@@ -24,13 +24,22 @@ func (s *serv) ConnectRoom(ctx context.Context, roomName string, user string) (*
 
 	return room, nil
 }
-func (s *serv) GetRoom(ctx context.Context, roomName string) (*models.Room, error) {
+func (s *serv) GetRoom(ctx context.Context, roomName string) (*models.Data_project, error) {
 	room, err := s.repo.GetRoom(ctx, roomName)
 	if err != nil {
 		return nil, err
 	}
 	return room, nil
 }
+
+func (s *serv) GetRoomInfo(ctx context.Context, roomName string) (*models.Data, error) {
+	room, err := s.repo.GetRoomInfo(ctx, roomName)
+	if err != nil {
+		return nil, err
+	}
+	return room, nil
+}
+
 func (s *serv) CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error {
 
 	return s.repo.CreateRoom(ctx, roomName, name, correo, desc, location, lat, long, visible)
@@ -39,10 +48,10 @@ func (s *serv) CreateRoom(ctx context.Context, roomName string, name string, cor
 func (s *serv) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
-	return s.repo.SaveRoom(ctx, data,config, roomName)
+	return s.repo.SaveRoom(ctx, data, config, roomName)
 }
 
-func (s *serv) SaveUsers(ctx context.Context, room *models.Room) error {
+func (s *serv) SaveUsers(ctx context.Context, room *models.Data) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
 	return s.repo.SaveUsers(ctx, room)
@@ -52,4 +61,9 @@ func (s *serv) SaveProject(ctx context.Context, data string, name string) error 
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
 	return s.repo.SaveProject(ctx, data, name)
+}
+
+func (s *serv) GetPermission(ctx context.Context, correo string, proyectName string) (int, error) {
+
+	return s.repo.GetPermission(ctx, correo, proyectName)
 }
