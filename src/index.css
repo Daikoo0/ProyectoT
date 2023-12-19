@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.drawer-open .drawer-overlay {
+    display: block;
+  }

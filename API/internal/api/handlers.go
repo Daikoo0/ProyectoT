@@ -21,21 +21,21 @@ import (
 type responseMessage struct {
 	Message string `json:"message"`
 }
-type shap struct {
-	id      int
-	polygon string `json:"message"`
-}
+// type shap struct {
+// 	id      int
+// 	polygon string `json:"message"`
+// }
 
 type ProjectResponse struct {
 	Projects []models.Data `json:"projects"`
 }
 
-type circle struct {
-	x       int
-	y       int
-	radius  int
-	movable bool
-}
+// type circle struct {
+// 	x       int
+// 	y       int
+// 	radius  int
+// 	movable bool
+// }
 
 // type Room struct {
 // 	Name    string
@@ -176,14 +176,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		conn.Close()
 		return nil
 	}
-
-	// permission, exists := room.Clients[user]
-	// if !exists {
-	// 	errMessage := "Error: Unauthorized"
-	// 	err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
-	// 	conn.Close()
-	// 	return nil
-	// }
 
 	permission, e := a.serv.GetPermission(ctx, user, roomID)
 	if permission == -1 {
@@ -427,70 +419,70 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 				}
 
-				if dataMap["action"] == "height" {
-					id := int(dataMap["id"].(float64)) // id de la capa seleccionada
+				// if dataMap["action"] == "height" {
+				// 	id := int(dataMap["id"].(float64)) // id de la capa seleccionada
 
-					log.Println("id", id)
+				// 	log.Println("id", id)
 
-					circlesp, err := json.Marshal(dataMap["circles"]) // trasforma el datamap a json
+				// 	circlesp, err := json.Marshal(dataMap["circles"]) // trasforma el datamap a json
 
-					log.Println("circles", string(circlesp))
-					fmt.Print(circlesp)
+				// 	log.Println("circles", string(circlesp))
+				// 	fmt.Print(circlesp)
 
-					newHeight := int(dataMap["newHeight"].(float64))
+				// 	newHeight := int(dataMap["newHeight"].(float64))
 
-					log.Println(newHeight, err)
-					//log.Println(id, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+				// 	log.Println(newHeight, err)
+				// 	//log.Println(id, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
-					//rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)// todos los shapes
+				// 	//rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)// todos los shapes
 
-					updatedShapes := rooms[roomID].Data // Copia de la data de la sala
-					//updatedShapes := append(rooms[roomName].Data)
+				// 	updatedShapes := rooms[roomID].Data // Copia de la data de la sala
+				// 	//updatedShapes := append(rooms[roomName].Data)
 
-					for _, shape := range rooms[roomID].Data {
+				// 	for _, shape := range rooms[roomID].Data {
 
-						shap := make(map[string]interface{})
-						cu, err := json.Marshal(shape["polygon"])
-						json.Unmarshal(cu, &shap)
-						log.Println(shap["y1"], err)
-						deltaY := newHeight - (int(shap["y2"].(float64)) - int(shap["y1"].(float64)))
+				// 		shap := make(map[string]interface{})
+				// 		cu, err := json.Marshal(shape["polygon"])
+				// 		json.Unmarshal(cu, &shap)
+				// 		log.Println(shap["y1"], err)
+				// 		deltaY := newHeight - (int(shap["y2"].(float64)) - int(shap["y1"].(float64)))
 
-						var cir []circle
-						json.Unmarshal([]byte(circlesp), &cir)
+				// 		var cir []circle
+				// 		json.Unmarshal([]byte(circlesp), &cir)
 
-						// Modifica el tamaño de la capa seleccionada
-						if shap["id"] == id {
-							newY2 := int(shap["y1"].(float64)) + newHeight
-							if newY2 < int(shap["y2"].(float64)) {
-								var filteredCircles []any
+				// 		// Modifica el tamaño de la capa seleccionada
+				// 		if shap["id"] == id {
+				// 			newY2 := int(shap["y1"].(float64)) + newHeight
+				// 			if newY2 < int(shap["y2"].(float64)) {
+				// 				var filteredCircles []any
 
-								for i, circle := range cir {
-									if i < 2 || i >= len(cir)-2 || circle.y <= newY2 {
-										filteredCircles = append(filteredCircles, circle)
-									}
-								}
+				// 				for i, circle := range cir {
+				// 					if i < 2 || i >= len(cir)-2 || circle.y <= newY2 {
+				// 						filteredCircles = append(filteredCircles, circle)
+				// 					}
+				// 				}
 
-								shap["y2"] = newY2
-								cir, err := json.Marshal(filteredCircles)
-								log.Println(cir, err)
-							} else {
-								shap["y2"] = newY2
-							}
+				// 				shap["y2"] = newY2
+				// 				cir, err := json.Marshal(filteredCircles)
+				// 				log.Println(cir, err)
+				// 			} else {
+				// 				shap["y2"] = newY2
+				// 			}
 
-							//Modifica las coordenadas de las capas que estan debajo de la seleccionada
-						} else if int(shap["y1"].(float64)) >= int(shap["y2"].(float64)) {
-							shap["y1"] = int(shap["y1"].(float64)) + deltaY
-							shap["y2"] = int(shap["y2"].(float64)) + deltaY
-						}
-						updatedShapes = append(updatedShapes, shap)
-						rooms[roomID].Data = updatedShapes
-						//log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-					}
-					//err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
-					if err != nil {
-						log.Println("No se guardo la data")
-					}
-				}
+				// 			//Modifica las coordenadas de las capas que estan debajo de la seleccionada
+				// 		} else if int(shap["y1"].(float64)) >= int(shap["y2"].(float64)) {
+				// 			shap["y1"] = int(shap["y1"].(float64)) + deltaY
+				// 			shap["y2"] = int(shap["y2"].(float64)) + deltaY
+				// 		}
+				// 		updatedShapes = append(updatedShapes, shap)
+				// 		rooms[roomID].Data = updatedShapes
+				// 		//log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
+				// 	}
+				// 	//err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
+				// 	if err != nil {
+				// 		log.Println("No se guardo la data")
+				// 	}
+				// }
 
 			} else {
 				errMessage := "Error: Don't have permission to edit this document"

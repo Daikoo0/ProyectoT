@@ -23,7 +23,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, Tensio
             return;
         }
 
-        const imageURL = new URL('../assets/patrones/'+File+'.svg', import.meta.url).href
+        const imageURL = new URL('../../assets/patrones/'+File+'.svg', import.meta.url).href
 
         fetch(imageURL)
         .then(response => response.text())

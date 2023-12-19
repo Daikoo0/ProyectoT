@@ -75,7 +75,7 @@ useEffect(() => {
 
               {item === 'tabla' && <TableData Data={proyectos} /> }
               {item === 'mapa' && 
-                <div className='h-screen'>
+                <div className='h-full'>
                   <MapProject Data={proyectMap}/>
                 </div>
               }

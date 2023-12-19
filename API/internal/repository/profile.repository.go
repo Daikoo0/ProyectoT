@@ -81,14 +81,23 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 	log.Println("///////////////////////////////")
 	log.Println(room)
 
-	// La consulta esta correcta, pero no se encontró el correo
 	for i := 0; i < 3; i++ {
-		// Supongamos que `members` es un slice dentro de `room`
-		if len(room.Members) > i && room.Members[strconv.Itoa(i)] == correo {
-			return i, nil
+		// Verificar si el índice existe en la lista de miembros
+		if miembro, ok := room.Members[strconv.Itoa(i)]; ok {
+			switch v := miembro.(type) {
+			case string:
+				if v == correo {
+					return i, nil 
+				}
+			case primitive.A:
+				for _, correoEnLista := range v {
+					if correoStr, ok := correoEnLista.(string); ok && correoStr == correo {
+						return i, nil
+					}
+				}
+			}
 		}
 	}
-
 	return -1, nil // Correo no encontrado en ninguna lista	
 }
 
