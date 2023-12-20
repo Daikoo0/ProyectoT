@@ -81,7 +81,6 @@ const CoordinateInputs: React.FC = () => {
     'Edad': { content: "vacío", optional: true, vertical: true },
     'Formación': { content: "vacío", optional: true, vertical: true },
     'Miembro': { content: "vacío", optional: true, vertical: true },
-    // 'Estructuras y/o fósiles': { content: [], optional : true, vertical : false},
     'Facie': { content: "vacío", optional: true, vertical: false },
     'Ambiente depositacional': { content: "vacío", optional: true, vertical: false },
     'Descripción': { content: "vacío", optional: true, vertical: false }
@@ -245,26 +244,14 @@ const CoordinateInputs: React.FC = () => {
 
 
   const sendConfig = (cconfig, send, socket) => {
-    //const updatedShapes = [...shapes];
-    var updatedConfig = config
+    const prevConfigState = { ...config };
 
-    // updatedShapes[index].text = text;
-    updatedConfig.config = cconfig;
+    prevConfigState.config = cconfig;
 
-    //setShapes(updatedShapes);
-
-    setConfig(updatedConfig)
+    setConfig(prevConfigState)
     if (send) {
-      //  console.log("Send: text")
 
-      //sendSocket("text", index);
-
-      const send = {
-        action: "settingsRoom",
-        config: updatedConfig,
-      }
-
-      socket.send(JSON.stringify(send));
+      socket.send(JSON.stringify(prevConfigState));
     }
   }
 
@@ -800,92 +787,95 @@ const CoordinateInputs: React.FC = () => {
       <div className="drawer drawer-end">
         <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
         <div className="drawer-content">
+          <main className="flex-1 p-4">
+            <div className='a'> <button onClick={HandleSave}>Guardar Cambios</button></div>
 
-              {/* <div className='a'> <button onClick={HandleSave}>Guardar Cambios</button></div> */}
-              
-          <div id="gridContainer" onDragOver={(e) => e.preventDefault()}>
+            <div id="gridContainer" onDragOver={(e) => e.preventDefault()}>
 
-            <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
-              <Layer>
+              <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
+                <Layer>
 
-                {shapes.map((shape, index) => (
-                  <>
-                    <Grid
-                      key={shape.polygon.id}
-                      polygon={shape}
-                      text={shape.text}
-                      setText={(text, send) => setText(index, text, send, socket)}
-                      config={config}
-                      sendConfig={(config, send) => sendConfig(config, send, socket)}
-                      dragUrl={dragUrl}
-                    />
+                  {shapes.map((shape, index) => (
+                    <>
+                      <Grid
+                        key={shape.polygon.id}
+                        polygon={shape}
+                        text={shape.text}
+                        setText={(text, send) => setText(index, text, send, socket)}
+                        config={config}
+                        sendConfig={(config, send) => sendConfig(config, send, socket)}
+                        dragUrl={dragUrl}
+                      />
 
-                    <Polygon
-                      key={shape.polygon.id}
-                      x1={shape.polygon.x1}
-                      y1={shape.polygon.y1}
-                      x2={shape.polygon.x2}
-                      y2={shape.polygon.y2}
-                      ColorFill={shape.polygon.colorfill}
-                      ColorStroke={shape.polygon.colorstroke}
-                      Zoom={shape.polygon.zoom}
-                      Rotation={shape.polygon.rotation}
-                      Tension={shape.polygon.tension}
-                      File={shape.polygon.file}
-                      circles={shape.polygon.circles}
-                      setCircles={(circles, send) => setCircles(index, circles, send, socket)}
-                      onClick={() => handleShapeClick(index)}
-                    //onDrag={() => {
-                    //  handleShapeonDrag(index)
-                    //}}
-                    />
-                    <Rect
-                      key={shape.polygon.id}
-                      //x={shape.x1} // lado izquerdo poligono
-                      //y={shape.y1}
-                      x={shape.polygon.x1}
-                      y={shape.polygon.y1}
-                      width={80}
-                      height={shape.polygon.y2 - shape.polygon.y1}
-                      // height={shape.x2-shape.x1}
-                      // fill="yellow"
-                      opacity={0.5}
-                      draggable
-                      onClick={() => handleShapeClick(index)}
-                      onDragStart={() => dragStart(shape.id)}
-                      onDragMove={(e) => {
-                        handleContainerDrag(shape.id, e);
-                        e.target.y(shape.polygon.y1);
-                      }}
-                      dragBoundFunc={(pos) => ({
-                        x: 100,
-                        y: pos.y,
-                      })}
-                    />
-                  </>
-                ))}
-                {shapes.length > 0 && (
+                      <Polygon
+                        key={shape.polygon.id}
+                        x1={shape.polygon.x1}
+                        y1={shape.polygon.y1}
+                        x2={shape.polygon.x2}
+                        y2={shape.polygon.y2}
+                        ColorFill={shape.polygon.colorfill}
+                        ColorStroke={shape.polygon.colorstroke}
+                        Zoom={shape.polygon.zoom}
+                        Rotation={shape.polygon.rotation}
+                        Tension={shape.polygon.tension}
+                        File={shape.polygon.file}
+                        circles={shape.polygon.circles}
+                        setCircles={(circles, send) => setCircles(index, circles, send, socket)}
+                        onClick={() => handleShapeClick(index)}
+                      //onDrag={() => {
+                      //  handleShapeonDrag(index)
+                      //}}
+                      />
+                      <Rect
+                        key={shape.polygon.id}
+                        //x={shape.x1} // lado izquerdo poligono
+                        //y={shape.y1}
+                        x={shape.polygon.x1}
+                        y={shape.polygon.y1}
+                        width={80}
+                        height={shape.polygon.y2 - shape.polygon.y1}
+                        // height={shape.x2-shape.x1}
+                        // fill="yellow"
+                        opacity={0.5}
+                        draggable
+                        onClick={() => handleShapeClick(index)}
+                        onDragStart={() => dragStart(shape.id)}
+                        onDragMove={(e) => {
+                          handleContainerDrag(shape.id, e);
+                          e.target.y(shape.polygon.y1);
+                        }}
+                        dragBoundFunc={(pos) => ({
+                          x: 100,
+                          y: pos.y,
+                        })}
+                      />
+                    </>
+                  ))}
+                  {shapes.length > 0 && (
 
-                  <VerticalRuler x={100} y={100} height={lastPositionID.y - 200} unit={unit} scale={scale} />
+                    <VerticalRuler x={100} y={100} height={lastPositionID.y - 200} unit={unit} scale={scale} />
 
-                )}
-              </Layer>
-            </Stage>
+                  )}
+                </Layer>
+              </Stage>
 
-          </div>
-
+            </div>
+          </main>
         </div>
 
         <div className="drawer-side">
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
           <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
             {/* Sidebar content here */}
+
             <li className="menu-title">Proyecto</li>
             <li>
               <p>Seleccionar opción de Pattern: </p>
-              <select value={selectedOption} onChange={handleOptionChange}>
+              <select value={selectedOption} onChange={handleOptionChange} className='select select-bordered w-full max-w-xs'>
                 {Object.keys(Json).map(option => (
-                  <option key={option} value={option}>{option}</option>
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
                 ))}
               </select>
             </li>
@@ -940,9 +930,9 @@ const CoordinateInputs: React.FC = () => {
                 onMouseUp={SliderDrop}
               />
             </li>
-            
+
           </ul>
-         
+
         </div>
       </div>
 

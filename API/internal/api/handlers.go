@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	//"time"
+	"time"
 
 	"github.com/ProyectoT/api/encryption"
 	"github.com/ProyectoT/api/internal/api/dtos"
@@ -132,6 +132,36 @@ func (a *API) LoginUser(c echo.Context) error {
 	c.SetCookie(cookie)                                                // Setea la cookie en el navegador
 	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
 }
+
+// LogoutUser elimina la cookie de autenticación
+func (a *API) LogoutUser(c echo.Context) error{
+	
+	expiredCookie := &http.Cookie{
+        Name:     "Authorization",
+        Value:    "",
+        Expires:  time.Unix(0, 0),
+        MaxAge:   -1,
+        Secure:   true,
+        SameSite: http.SameSiteNoneMode,
+        HttpOnly: true,
+        Path:     "/",
+    }
+
+    c.SetCookie(expiredCookie)                                         // Setea la cookie en el navegador
+	
+	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
+} 
+
+// Verifica si existe una cookie de autenticación
+func (a *API) AuthUser(c echo.Context) error{
+	
+	_, err := c.Cookie("Authorization")
+	if err != nil {
+		return c.NoContent(http.StatusUnauthorized) // HTTP 401 Unauthorized
+	}
+	
+	return c.NoContent(http.StatusOK) // HTTP 200 OK
+} 
 
 func (a *API) HandleWebSocket(c echo.Context) error {
 	ctx := c.Request().Context()

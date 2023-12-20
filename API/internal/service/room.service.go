@@ -6,7 +6,7 @@ import (
 	"github.com/ProyectoT/api/internal/models"
 )
 
-func (s *serv) ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error) {
+func (s *serv) ConnectRoom(ctx context.Context, roomName string, user string) (*models.Data_project, error) {
 
 	room, err := s.repo.ConnectRoom(ctx, roomName, user)
 	if err != nil {

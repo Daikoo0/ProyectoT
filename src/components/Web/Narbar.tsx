@@ -5,6 +5,21 @@ const Navbar = ({ logohidden }) => {
 
   const navigate = useNavigate();
 
+  const logout = async () => {
+    try {
+      await fetch('http://localhost:3001/users/logout', {
+        method: 'POST', 
+        credentials: 'include', // Incluye las cookies en la solicitud
+      });
+
+      navigate('/login');
+
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
+
+
   return (
     <>
       {/* NAVBAR */}
@@ -51,7 +66,7 @@ const Navbar = ({ logohidden }) => {
             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
               <li><a>Profile</a></li>
               <li><a>Settings</a></li>
-              <li><a>Logout</a></li>
+              <li><a onClick={logout}>Logout</a></li>
             </ul>
           </div>
         </div>

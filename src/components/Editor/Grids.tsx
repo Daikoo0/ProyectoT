@@ -259,26 +259,42 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
         />
       );
 
-      cells.push(
-        <Rect
-          key={`a`}
-          x={xOffset}
-          y={100}
-          width={cellSize}
-          height={highestY2 - 100}
-          fill="red"
-          stroke="black"
+      const words = column.split(' ');
+      const lineHeight = 14 * 1.5;
+
+      const textElements = words.map((word, index) => (
+        <Text
+          key={`text-${column}-${index}`}
+          x={xOffset + cellSize / 8}
+          y={cellSize / 5 + index * lineHeight} // Ajustamos la posición 'y' para cada palabra.
+          text={word}
+          fontSize={14}
+          fill="black"
         />
-      );
+      ));
+
+      cells.push(...textElements);
+
+      // cells.push(
+      //   <Rect
+      //     key={`a`}
+      //     x={xOffset}
+      //     y={100}
+      //     width={cellSize}
+      //     height={highestY2 - 100}
+      //     fill="red"
+      //     stroke="black"
+      //   />
+      // );
 
       cells.push(
 
         <ImageComponent
           imageNames={config.config.columns['Estructuras y/o fósiles'].content}
           x={xOffset}
-          y={polygon.polygon.y1}
+          y={100}
           width={cellSize}
-          height={cellHeight}
+          height={highestY2 - 100}
         />
 
       );
@@ -351,7 +367,6 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
 
     
   }
-
   );
 
 

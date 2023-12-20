@@ -7,10 +7,12 @@ import (
 func (a *API) RegisterRoutes(e *echo.Echo) {
 
 	users := e.Group("/users")
- 
+	
+	users.POST("/logout", a.LogoutUser)     // users/logout
 	users.POST("/register", a.RegisterUser) // users/register
 	users.POST("/login", a.LoginUser) 		// users/login
-	users.GET("/", a.proyects)             // users
+	users.GET("/auth", a.AuthUser)          // users/Auth
+	users.GET("/", a.proyects)              // users
 
 	e.GET("/search/public", a.HandleGetPublicProject) // search/public
 	e.GET("/ws/:room", a.HandleWebSocket)   //ws/sala

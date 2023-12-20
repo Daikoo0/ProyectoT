@@ -15,11 +15,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func (r *repo) ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error) {
+func (r *repo) ConnectRoom(ctx context.Context, roomID string, user string) (*models.Data_project, error) {
 
-	rooms := r.db.Collection("rooms")
-	var room models.Room
-	err := rooms.FindOne(ctx, bson.M{"name": roomName}).Decode(&room)
+	rooms := r.db.Collection("data-projects")
+	var room models.Data_project
+
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+	err = rooms.FindOne(ctx, bson.M{"id_project": objectID}).Decode(&room)
 	if err == mongo.ErrNoDocuments {
 		return nil, err
 	}
@@ -141,15 +143,16 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 	return nil
 }
 func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
-	filter := bson.M{"name": roomName}
+	objectID, err := primitive.ObjectIDFromHex(roomName)
+	filter := bson.M{"id_project": objectID}
 	update := bson.M{"$set": bson.M{
 		"data":   data,
 		"config": config,
 	}}
 
-	rooms := r.db.Collection("rooms")
+	rooms := r.db.Collection("data-projects")
 	opts := options.Update().SetUpsert(true)
-	_, err := rooms.UpdateOne(ctx, filter, update, opts)
+	_, err = rooms.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		log.Println("Error updating room:", err)
 		return err
@@ -170,7 +173,7 @@ func (r *repo) SaveUsers(ctx context.Context, room *models.Data) error {
 	}}
 	log.Println(update)
 
-	rooms := r.db.Collection("rooms")
+	rooms := r.db.Collection("project")
 	opts := options.Update().SetUpsert(true)
 	_, err := rooms.UpdateOne(ctx, filter, update, opts)
 	if err != nil {

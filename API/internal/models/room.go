@@ -2,12 +2,12 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-type Room struct {
-	Name    string
-	Clients map[string]Role
-	Data    []map[string]interface{}
-	Config  map[string]interface{}
-}
+// type Room struct {
+// 	Name    string
+// 	Clients map[string]Role
+// 	Data    []map[string]interface{}
+// 	Config  map[string]interface{}
+// }
 
 type Data struct {
 	ID 			 primitive.ObjectID `bson:"_id,omitempty"`

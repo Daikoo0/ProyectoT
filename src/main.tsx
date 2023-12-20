@@ -8,6 +8,7 @@ import Home from './pages/Home.tsx'
 import Shape from './components/Prueba/shape.tsx'
 import App from './App.tsx'
 import { ThemeProvider } from './Context/theme-context.tsx'
+import AuthMiddleware from './Context/AuthMiddleware.tsx'
 import Prueba from './components/Prueba/prueba.tsx'
 import AddUserToRoom from "./pages/Invite.user.tsx"
 import ParticipantForm from "./pages/create.proyect.tsx"
@@ -18,39 +19,39 @@ const router = createBrowserRouter([
   
   {
     path: "/",
-    element: <About />,
+    element: <About/>,
   },
   {
     path: "/login",
-    element: <Login />,
+    element: <Login/>,
   },
   {
     path: "/register",
-    element: <Register />,
+    element: <Register/>,
   },
   {
     path: "/Home",
-    element: <Home />,
+    element: <AuthMiddleware> <Home/> </AuthMiddleware>,
   },
   {
     path: "/editor/:project",
-    element: <Editor />,
+    element: <AuthMiddleware> <Editor/> </AuthMiddleware>,
   },
   {
     path: "/invite/:project",
-    element: <AddUserToRoom />,
+    element: <AuthMiddleware> <AddUserToRoom/> </AuthMiddleware>,
   },
   {
     path: "/create",
-    element: <ParticipantForm />,
+    element: <AuthMiddleware> <ParticipantForm/> </AuthMiddleware>,
   },
   {
     path: "/image",
-    element: <Shape />,
+    element: <Shape/>,
   },
   {
     path: "/app",
-    element: <App />,
+    element: <App/>,
   },
   {
     path: "/prueba",

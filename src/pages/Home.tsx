@@ -46,7 +46,7 @@ const Home = () => {
       const result = await response.json();
 
       setProyectMap(result.projects);
-      console.log(result.projects);
+      console.log(response);
 
     } catch (error) {
       console.error('Error al obtener datos:', error);
@@ -99,7 +99,7 @@ useEffect(() => {
             <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}>Crear Sala</button>
 
             <li className="menu-title">Proyecto</li>
-            <li onClick={() => setItem('tabla')  }><a>All Projects </a></li>
+            <li onClick={() => setItem('tabla')   }><a>All Projects </a></li>
             <li><a>Your Projects</a></li>
             <li><a>Shared with you</a></li>
             <li className="menu-title">Busqueda</li>

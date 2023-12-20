@@ -16,7 +16,7 @@ type Service interface {
 	// --- Todas se comunican con repository --- //
 
 	// Room - room.service.go
-	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error)
+	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Data_project, error)
 	GetRoom(ctx context.Context, roomName string) (*models.Data_project, error) // Devuelve la entidad data-project :  data, config
 	GetRoomInfo(ctx context.Context, roomID string) (*models.Data, error)
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error

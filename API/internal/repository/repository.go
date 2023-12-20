@@ -14,7 +14,7 @@ import (
 type Repository interface { //comunicaciones con la base de datos
 
 	// Room - room.repository.go
-	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Room, error) // Conecta a un usuario a una sala
+	ConnectRoom(ctx context.Context, roomName string, user string) (*models.Data_project, error) // Conecta a un usuario a una sala
 	GetRoom(ctx context.Context, roomName string) (*models.Data_project, error)
 	GetRoomInfo(ctx context.Context, roomID string) (*models.Data, error)                                                                                     // Devuelve la entidad sala
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error // Crea una sala
