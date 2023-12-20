@@ -14,13 +14,6 @@ interface StickyNoteProps {
   vertical: boolean;
 }
 
-interface ImageComponentProps {
-  imageNames: any;
-  x: number;
-  y: number;
-  width: number;
-  height: number
-}
 
 const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
   const cellSize = 110; // Tamaño de cada celda de la cuadrícula
@@ -29,116 +22,6 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
   const cellHeight = polygon ? polygon.polygon.y2 - polygon.polygon.y1 : cellSize;
 
   const cells = [];
-
-  console.log(config);
-
-  const [highestY2, setHighestY2] = useState(200);
-
-
-  useEffect(() => {
-    setHighestY2(prevHighestY2 => Math.max(prevHighestY2, polygon.polygon.y2));
-
-  }, [polygon.polygon.y2]);
-
-
-  // Esta es la posición fija de Lexer columna en la cuadrícula
-  const fixedColumnPosition = marginLeft + polygonColumnWidth + cellSize;
-
-  const renderFixedColumn = () => {
-    return (
-      <Group x={fixedColumnPosition} y={0}>
-        <Text>Contenido de la columna fija</Text>;
-      </Group>
-    );
-  };
-
-
-  const ImageComponent: React.FC<ImageComponentProps> = (props) => {
-    const groupRef = useRef(null);
-
-    var a = []
-    props.imageNames.forEach((imageName, index) => {
-      const [img] = useImage(imageName.src);
-      const b = <Image
-        image={img}
-        x={imageName.x}
-        y={imageName.y}
-        offsetX={img ? img.width / 2 : 0}
-        offsetY={img ? img.height / 2 : 0}
-      />;
-      a.push(b)
-    });
-
-    const MyKonvaComponent =
-      <Group x={props.x} y={props.y} ref={groupRef}>
-
-        <Html
-          groupProps={{ x: 0, y: 0 }}
-          divProps={{
-            style: {
-              width: props.width,
-              height: props.height,
-              overflow: 'hidden',
-              background: 'none',
-              outline: 'none',
-              border: 'none',
-              padding: '0px',
-              margin: '0px',
-            },
-          }}
-        >
-          <div
-            style={{
-              width: cellSize,
-              height: cellHeight,
-              background: 'none',
-              border: 'none',
-              padding: '0px',
-              margin: '0px',
-              outline: 'none',
-              overflow: 'auto',
-              fontSize: '18px',
-              fontFamily: 'sans-serif',
-              color: 'black',
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const copia = { ...config };
-              copia.config.columns['Estructuras y/o fósiles'].content.push({
-                'x': e.nativeEvent.offsetX,
-                'y': e.nativeEvent.offsetY,
-                'src': dragUrl.current
-              });
-              sendConfig(copia, true);
-            }}
-
-          />
-        </Html>
-        {a}
-      </Group>
-
-    return (
-      MyKonvaComponent
-    );
-  };
-
-
-  const URLImage = ({ image }) => {
-    const [img] = useImage(image.src);
-    return (
-      <Image
-        image={img}
-        x={image.x}
-        y={image.y}
-        offsetX={img ? img.width / 2 : 0}
-        offsetY={img ? img.height / 2 : 0}
-        width={30}
-        height={30}
-        draggable
-      />
-    );
-  };
-
 
   const RETURN_KEY = 13;
   const ESCAPE_KEY = 27;
@@ -239,71 +122,13 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
     />
   );
 
-  let xOffset = marginLeft + polygonColumnWidth;
+  let xOffset = marginLeft + polygonColumnWidth+150;
 
   additionalColumns.forEach((column, index) => {
 
-    if (index == 1
-      && config.config.columns['Estructuras y/o fósiles'].enabled
-      && column === 'Estructuras y/o fósiles') {
 
-      cells.push(
-        <Rect
-          key={`header-Estructuras y/o fósiles`}
-          x={xOffset}
-          y={0}
-          width={cellSize}
-          height={cellHeight}
-          fill="white"
-          stroke="black"
-        />
-      );
-
-      const words = column.split(' ');
-      const lineHeight = 14 * 1.5;
-
-      const textElements = words.map((word, index) => (
-        <Text
-          key={`text-${column}-${index}`}
-          x={xOffset + cellSize / 8}
-          y={cellSize / 5 + index * lineHeight} // Ajustamos la posición 'y' para cada palabra.
-          text={word}
-          fontSize={14}
-          fill="black"
-        />
-      ));
-
-      cells.push(...textElements);
-
-      // cells.push(
-      //   <Rect
-      //     key={`a`}
-      //     x={xOffset}
-      //     y={100}
-      //     width={cellSize}
-      //     height={highestY2 - 100}
-      //     fill="red"
-      //     stroke="black"
-      //   />
-      // );
-
-      cells.push(
-
-        <ImageComponent
-          imageNames={config.config.columns['Estructuras y/o fósiles'].content}
-          x={xOffset}
-          y={100}
-          width={cellSize}
-          height={highestY2 - 100}
-        />
-
-      );
-      
-      xOffset += cellSize;
-
-    } else if (config.config.columns[column].enabled
+    if (config.config.columns[column].enabled
       && column !== 'Estructuras y/o fósiles' 
-      && index !== 1
     ) {
 
       cells.push(
@@ -385,8 +210,6 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
 
   xOffset = marginLeft + polygonColumnWidth;
 
-
-  cells.push(renderFixedColumn);
 
 
   return (

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Stage, Layer, Rect, Image, Group, Text, Line } from 'react-konva';
+import { Html } from "react-konva-utils";
 import { useParams } from 'react-router-dom';
 //import ShapeComponent from './shape';
 //import Konva from './konva';
@@ -279,7 +280,6 @@ const CoordinateInputs: React.FC = () => {
         //console.log(event.data);
         const shapeN = JSON.parse(event.data);
         console.log(shapeN)
-
 
         // action='añadir', id, polygon, text
         if (shapeN.action === 'añadir') {
@@ -781,6 +781,104 @@ const CoordinateInputs: React.FC = () => {
     console.log(event.target.value)
   };
 
+
+  interface ImageComponentProps {
+    imageNames: any;
+    x: number;
+    y: number;
+    width: number;
+    height: number
+  }
+
+  const ImageComponent: React.FC<ImageComponentProps> = (props) => {
+    const groupRef = useRef(null);
+
+    var a = []
+    props.imageNames.map((imageName, index) => {
+      const [img] = useImage(imageName.src);
+      const b = <Image
+        image={img}
+        x={imageName.x}
+        y={imageName.y}
+        offsetX={img ? img.width / 2 : 0}
+        offsetY={img ? img.height / 2 : 0}
+      />;
+      a.push(b)
+    });
+
+    const MyKonvaComponent =
+      <Group x={props.x} y={props.y} ref={groupRef}>
+
+        <Html
+          groupProps={{ x: 0, y: 0 }}
+          divProps={{
+            style: {
+              width: props.width,
+              height: props.height,
+              overflow: 'hidden',
+              background: 'none',
+              outline: 'none',
+              border: 'none',
+              padding: '0px',
+              margin: '0px',
+            },
+          }}
+        >
+          <div
+            style={{
+              width: 100,
+              height: lastPositionID.y,
+              background: 'none',
+              border: 'none',
+              padding: '0px',
+              margin: '0px',
+              outline: 'none',
+              overflow: 'auto',
+              fontSize: '18px',
+              fontFamily: 'sans-serif',
+              color: 'black',
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const copia = { ...config };
+              copia.config.columns['Estructuras y/o fósiles'].content.push({
+                'x': e.nativeEvent.offsetX,
+                'y': e.nativeEvent.offsetY,
+                'src': dragUrl.current
+              });
+
+              setConfig(copia);
+              socket.send(JSON.stringify(copia));
+              //sendConfig(copia, true, socket);
+            }}
+
+          />
+        </Html>
+        {a}
+      </Group>
+
+    return (
+      MyKonvaComponent
+    );
+  };
+
+  const ImageFosil = ({ image }) => {
+    const [img] = useImage(image.src);
+    return (
+      <Image
+        image={img}
+        x={image.x}
+        y={image.y}
+        offsetX={img ? 30 / 2 : 0}
+        offsetY={img ? 30 / 2 : 0}
+        width={30}
+        height={30}
+        draggable
+      />
+    );
+  };
+
+
   return (
     <>
       <OptionsBar />
@@ -794,6 +892,141 @@ const CoordinateInputs: React.FC = () => {
 
               <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
                 <Layer>
+
+
+                  <Rect
+                    key={`header-fosils`}
+                    x={400}
+                    y={0}
+                    width={150}
+                    height={100}
+                    fill="white"
+                    stroke="black"
+                  />
+
+                  {'Estructuras y/o fósiles'.split(' ').map((word, index) => (
+                    <Text
+                      key={`text-'Estructuras y/o fósiles'-${index}`}
+                      x={420}
+                      y={100 / 5 + index * 14 * 1.5}
+                      text={word}
+                      fontSize={14}
+                      fill="black"
+                    />
+
+                  ))}
+
+                  {shapes.length > 0 && (
+
+                    <Group x={400} y={100} height={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
+                      <Rect
+                        key={`header-fosils`}
+                        x={0}
+                        y={0}
+                        width={150}
+                        height={lastPositionID.y - 200}
+                        fill="transparent"
+                        stroke="black"
+                      />
+
+                      <Html
+                        groupProps={{ x: 0, y: 0 }}
+                        divProps={{
+                          style: {
+                            width: 150,
+                            overflow: 'hidden',
+                            background: 'none',
+                            outline: 'none',
+                            border: 'red',
+                            padding: '0px',
+                            margin: '0px',
+                            color: 'red',
+                            //  backgroundColor : 'blue'
+                          },
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 150,
+                            height: lastPositionID.y - 200,
+                            background: 'none',
+                            border: 'none',
+                            padding: '0px',
+                            margin: '0px',
+                            outline: 'none',
+                            overflow: 'auto',
+                            fontSize: '18px',
+                            fontFamily: 'sans-serif',
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+
+                            const prevConfigState = { ...config };
+                            prevConfigState.config.columns['Estructuras y/o fósiles'].content.push({
+                              'x': e.nativeEvent.offsetX,
+                              'y': e.nativeEvent.offsetY,
+                              'src': dragUrl.current
+                            });
+
+                            setConfig(prevConfigState);
+                            socket.send(JSON.stringify(prevConfigState));
+                            // sendConfig(copia, true, socket);
+                            console.log(config)
+                          }}
+
+                        >
+
+                          {config.config.columns['Estructuras y/o fósiles'].content.map((img) => {
+                            return (
+                              <>
+                              <div 
+                                style={{
+                                  position : 'absolute',
+                                  height: '100px', 
+                                  borderLeft: '1px dashed #000', 
+                                  marginLeft: `${img.x + 30/2}px`, 
+                                  marginTop : `${img.y + 15 - 50}px`,
+                                }}></div>
+                                 <div
+        style={{
+          position: 'absolute',
+          width: '30px',
+          borderBottom: '1px dashed #000',
+          marginLeft: `${img.x}px`,
+          marginTop: `${img.y + 15 -50}px`,
+        }}
+      ></div>
+
+<div
+        style={{
+          position: 'absolute',
+          width: '30px',
+          borderBottom: '1px dashed #000',
+          marginLeft: `${img.x}px`,
+          marginTop: `${img.y + 15 +50}px`,
+        }}
+      ></div>
+
+                              <img
+                                src={img.src}
+                                width={30}
+                                height={30}
+                                style={{
+                                  position: 'absolute',
+                                  left: `${img.x}px`,
+                                  top: `${img.y}px`,
+                                }}
+                              />
+                              </>
+                            );
+                          })}
+                        </div>
+
+                      </Html>
+                  
+                    </Group>
+                  )}
+
 
                   {shapes.map((shape, index) => (
                     <>
@@ -822,20 +1055,13 @@ const CoordinateInputs: React.FC = () => {
                         circles={shape.polygon.circles}
                         setCircles={(circles, send) => setCircles(index, circles, send, socket)}
                         onClick={() => handleShapeClick(index)}
-                      //onDrag={() => {
-                      //  handleShapeonDrag(index)
-                      //}}
                       />
                       <Rect
                         key={shape.polygon.id}
-                        //x={shape.x1} // lado izquerdo poligono
-                        //y={shape.y1}
                         x={shape.polygon.x1}
                         y={shape.polygon.y1}
                         width={80}
                         height={shape.polygon.y2 - shape.polygon.y1}
-                        // height={shape.x2-shape.x1}
-                        // fill="yellow"
                         opacity={0.5}
                         draggable
                         onClick={() => handleShapeClick(index)}
@@ -855,7 +1081,10 @@ const CoordinateInputs: React.FC = () => {
 
                     <VerticalRuler x={100} y={100} height={lastPositionID.y - 200} unit={unit} scale={scale} />
 
+
                   )}
+
+
                 </Layer>
               </Stage>
 
