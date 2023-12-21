@@ -535,6 +535,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 		log.Println(err)
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
+
 	claims, err := encryption.ParseLoginJWT(cookie.Value)
 	if err != nil {
 		log.Println(err)

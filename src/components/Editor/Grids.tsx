@@ -20,15 +20,10 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
   const cellHeight = polygon ? polygon.polygon.y2 - polygon.polygon.y1 : cellSize;
-
   const cells = [];
-
   const RETURN_KEY = 13;
   const ESCAPE_KEY = 27;
-
-
   const additionalColumns = ['Arcilla-Limo-Arena-Grava', 'Estructuras y/o fósiles', 'Sistema', 'Edad', 'Formación', 'Miembro', 'Facie', 'Ambiente depositacional', 'Descripción'];
-
 
   const StickyNote: React.FC<StickyNoteProps> = (props) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -109,6 +104,19 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
     );
   };
 
+
+  const [columnWidths, setColumnWidths] = useState({
+    'Arcilla-Limo-Arena-Grava': cellSize,
+    'Estructuras y/o fósiles': cellSize,
+    'Sistema': cellSize,
+    'Edad': cellSize,
+    'Formación': cellSize,
+    'Miembro': cellSize,
+    'Facie': cellSize,
+    'Ambiente depositacional': cellSize,
+    'Descripción': cellSize
+  });
+
   // Agregar encabezado en la primera fila
   cells.push(
     <Rect
@@ -122,13 +130,13 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
     />
   );
 
-  let xOffset = marginLeft + polygonColumnWidth+150;
+  let xOffset = marginLeft + polygonColumnWidth + 150;
 
   additionalColumns.forEach((column, index) => {
 
 
     if (config.config.columns[column].enabled
-      && column !== 'Estructuras y/o fósiles' 
+      && column !== 'Estructuras y/o fósiles'
     ) {
 
       cells.push(
@@ -170,6 +178,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
           height={polygon.polygon.y2 - polygon.polygon.y1}
           fill="white"
           stroke="black"
+          
         />
       );
 
@@ -190,7 +199,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
       xOffset += cellSize;
     }
 
-    
+
   }
   );
 

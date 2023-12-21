@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import { Marker, useMapEvents } from 'react-leaflet'
 import Map from '../components/Web/Map';
 
 import Navbar from '../components/Web/Narbar';

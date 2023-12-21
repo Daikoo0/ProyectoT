@@ -11,6 +11,7 @@ import Grid from './Grids';
 import useImage from 'use-image';
 import fosilJson from '../../fossil.json';
 import SelectTheme from '../Web/SelectTheme';
+import Fosil from './Fosil';
 
 const VerticalRuler = ({ x, y, height, unit, scale }) => {
   // El número total de marcas basado en la altura y la unidad de cada marca
@@ -217,7 +218,7 @@ const CoordinateInputs: React.FC = () => {
                   draggable="true"
                   onDragStart={(e) => {
 
-                    dragUrl.current = "../src/assets/fosiles/" + fosilJson[selectedFosil] + ".svg";
+                    dragUrl.current = '../../assets/fosiles/' + fosilJson[selectedFosil] + '.svg';
                     console.log(selectedFosil)
                   }}
 
@@ -659,7 +660,7 @@ const CoordinateInputs: React.FC = () => {
     setSliderZoom(shapes[index].polygon.zoom);
     setSliderRotation(shapes[index].polygon.rotation);
     setIsOpen(true);
-    setSideBar(true)
+    // setSideBar(true)
   };
 
   //    Cambia en el editor las configuraciones del poligno seleccionado 
@@ -893,7 +894,8 @@ const CoordinateInputs: React.FC = () => {
               <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
                 <Layer>
 
-
+                {shapes.length > 0 && (
+                  <>
                   <Rect
                     key={`header-fosils`}
                     x={400}
@@ -916,7 +918,9 @@ const CoordinateInputs: React.FC = () => {
 
                   ))}
 
-                  {shapes.length > 0 && (
+               </>   )}
+
+{shapes.length > 0 && (
 
                     <Group x={400} y={100} height={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
                       <Rect
@@ -976,54 +980,18 @@ const CoordinateInputs: React.FC = () => {
 
                         >
 
-                          {config.config.columns['Estructuras y/o fósiles'].content.map((img) => {
-                            return (
-                              <>
-                              <div 
-                                style={{
-                                  position : 'absolute',
-                                  height: '100px', 
-                                  borderLeft: '1px dashed #000', 
-                                  marginLeft: `${img.x + 30/2}px`, 
-                                  marginTop : `${img.y + 15 - 50}px`,
-                                }}></div>
-                                 <div
-        style={{
-          position: 'absolute',
-          width: '30px',
-          borderBottom: '1px dashed #000',
-          marginLeft: `${img.x}px`,
-          marginTop: `${img.y + 15 -50}px`,
-        }}
-      ></div>
 
-<div
-        style={{
-          position: 'absolute',
-          width: '30px',
-          borderBottom: '1px dashed #000',
-          marginLeft: `${img.x}px`,
-          marginTop: `${img.y + 15 +50}px`,
-        }}
-      ></div>
-
-                              <img
-                                src={img.src}
-                                width={30}
-                                height={30}
-                                style={{
-                                  position: 'absolute',
-                                  left: `${img.x}px`,
-                                  top: `${img.y}px`,
-                                }}
-                              />
-                              </>
-                            );
-                          })}
                         </div>
 
+
+
                       </Html>
-                  
+                      {config.config.columns['Estructuras y/o fósiles'].content.map((img, index) => (
+                        <>
+                          <Fosil img={img} index={index} />
+                        </>
+                      ))}
+
                     </Group>
                   )}
 
@@ -1064,7 +1032,9 @@ const CoordinateInputs: React.FC = () => {
                         height={shape.polygon.y2 - shape.polygon.y1}
                         opacity={0.5}
                         draggable
-                        onClick={() => handleShapeClick(index)}
+                        onClick={() => {handleShapeClick(index)
+                          setSideBar(true)
+                        }}
                         onDragStart={() => dragStart(shape.id)}
                         onDragMove={(e) => {
                           handleContainerDrag(shape.id, e);

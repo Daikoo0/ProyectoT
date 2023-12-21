@@ -14,6 +14,11 @@ const AddUserToRoom = () => {
 
   async function handleAddUser() {
    
+    console.log(JSON.stringify({
+      email: email,
+      role: parseInt(role),
+      }));
+
     const response = await fetch(`http://localhost:3001/rooms/${room}/invite`, {
         method: "POST",
         headers: {
