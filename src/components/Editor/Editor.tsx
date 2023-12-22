@@ -614,6 +614,19 @@ const CoordinateInputs: React.FC = () => {
   };
 
 
+  const cellSize = 110; // Tamaño de cada celda de la cuadrícula
+  const [columnWidths, setColumnWidths] = useState({
+    'Arcilla-Limo-Arena-Grava': cellSize,
+    'Estructuras y/o fósiles': cellSize,
+    'Sistema': cellSize,
+    'Edad': cellSize,
+    'Formación': cellSize,
+    'Miembro': cellSize,
+    'Facie': cellSize,
+    'Ambiente depositacional': cellSize,
+    'Descripción': cellSize
+  });
+
   //////////////-----------MODIFICADO-----------------//////////////
   // Generacion de figuras, envio a backend 
   const handleAddShape = () => {
@@ -1006,6 +1019,8 @@ const CoordinateInputs: React.FC = () => {
                         config={config}
                         sendConfig={(config, send) => sendConfig(config, send, socket)}
                         dragUrl={dragUrl}
+                        columnWidths={columnWidths}
+                        setColumnWidths={setColumnWidths}
                       />
 
                       <Polygon

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rect, Layer, Text, Image, Group } from 'react-konva';
+import { Rect, Layer, Text, Image, Group} from 'react-konva';
 import { useState, useRef, useMemo, useEffect } from 'react';
 import useImage from 'use-image';
 import { Html } from "react-konva-utils";
@@ -15,7 +15,7 @@ interface StickyNoteProps {
 }
 
 
-const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
+const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidths, setColumnWidths }) => {
   const cellSize = 110; // Tamaño de cada celda de la cuadrícula
   const polygonColumnWidth = 300; // Ancho de la columna de polígonos
   const marginLeft = 100; // Margen a la izquierda de la tabla
@@ -24,6 +24,27 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
   const RETURN_KEY = 13;
   const ESCAPE_KEY = 27;
   const additionalColumns = ['Arcilla-Limo-Arena-Grava', 'Estructuras y/o fósiles', 'Sistema', 'Edad', 'Formación', 'Miembro', 'Facie', 'Ambiente depositacional', 'Descripción'];
+
+  const gridRef = useRef(null);
+
+  const DraggableRect = (props) => {
+    return (
+      <Rect
+        fill="blue"
+        draggable
+        hitStrokeWidth={20}
+        onMouseEnter={() => (document.body.style.cursor = "ew-resize")}
+        onMouseLeave={() => (document.body.style.cursor = "default")}
+        dragBoundFunc={(pos) => {
+          return {
+            ...pos,
+            y: 0,
+          };
+        }}
+        {...props}
+      />
+    );
+  };
 
   const StickyNote: React.FC<StickyNoteProps> = (props) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +68,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
       >
         <textarea
           style={{
-            width: cellSize,
+            width: columnWidths[props.column],
             height: cellHeight,
             background: 'none',
             border: 'none',
@@ -98,24 +119,14 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
           y={0}
           width={props.width}
           height={props.height}
+          fill="white"
+          stroke="black"
+          ref={gridRef}
         />
         {textComponent}
       </Group>
     );
   };
-
-
-  const [columnWidths, setColumnWidths] = useState({
-    'Arcilla-Limo-Arena-Grava': cellSize,
-    'Estructuras y/o fósiles': cellSize,
-    'Sistema': cellSize,
-    'Edad': cellSize,
-    'Formación': cellSize,
-    'Miembro': cellSize,
-    'Facie': cellSize,
-    'Ambiente depositacional': cellSize,
-    'Descripción': cellSize
-  });
 
   // Agregar encabezado en la primera fila
   cells.push(
@@ -129,6 +140,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
       stroke="black"
     />
   );
+ 
 
   let xOffset = marginLeft + polygonColumnWidth + 150;
 
@@ -144,12 +156,32 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
           key={`header-${column}`}
           x={xOffset}
           y={0}
-          width={cellSize}
+          width={columnWidths[column]}
           height={cellHeight}
           fill="white"
           stroke="black"
         />
       );
+
+      cells.push(   
+         <DraggableRect
+        x={xOffset+ columnWidths[column] - 5}
+        y={0}
+        width={5}
+        height={cellHeight}
+        onDragMove={(e) => {
+          const node = e.target;
+          const newWidth = e.evt.offsetX-xOffset;
+          console.log(e, xOffset+ columnWidths[column] )
+        setColumnWidths((prev) => {
+          return {
+            ...prev,
+            [column]: newWidth,
+          };
+        });
+        }}
+    
+      />);
 
       const words = column.split(' ');
       const lineHeight = 14 * 1.5;
@@ -157,7 +189,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
       const textElements = words.map((word, index) => (
         <Text
           key={`text-${column}-${index}`}
-          x={xOffset + cellSize / 8}
+          x={xOffset + columnWidths[column] / 8}
           y={cellSize / 5 + index * lineHeight} // Ajustamos la posición 'y' para cada palabra.
           text={word}
           fontSize={14}
@@ -167,28 +199,13 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
 
       cells.push(...textElements);
 
-
-      // Agregar el texto de la columna
-      cells.push(
-        <Rect
-          key={`row-${index}-${column}`}
-          x={xOffset}
-          y={polygon.polygon.y1}
-          width={cellSize}
-          height={polygon.polygon.y2 - polygon.polygon.y1}
-          fill="white"
-          stroke="black"
-          
-        />
-      );
-
       cells.push(
 
         <StickyNote
           column={column}
           x={xOffset}
           y={polygon.polygon.y1}
-          width={cellSize}
+          width={columnWidths[column]}
           height={cellHeight}
           text={text[column].content}
           vertical={text[column].vertical}
@@ -196,7 +213,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig }) => {
 
       );
 
-      xOffset += cellSize;
+      xOffset += columnWidths[column];
     }
 
 

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@changey/react-leaflet-markercluster": "^4.0.0-rc1",
+    "@rowsncolumns/grid": "^9.0.4",
     "@scena/ruler": "^0.20.0",
     "engine.io": "^6.5.2",
     "engine.io-client": "^6.5.2",
