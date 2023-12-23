@@ -805,95 +805,6 @@ const CoordinateInputs: React.FC = () => {
     height: number
   }
 
-  const ImageComponent: React.FC<ImageComponentProps> = (props) => {
-    const groupRef = useRef(null);
-
-    var a = []
-    props.imageNames.map((imageName, index) => {
-      const [img] = useImage(imageName.src);
-      const b = <Image
-        image={img}
-        x={imageName.x}
-        y={imageName.y}
-        offsetX={img ? img.width / 2 : 0}
-        offsetY={img ? img.height / 2 : 0}
-      />;
-      a.push(b)
-    });
-
-    const MyKonvaComponent =
-      <Group x={props.x} y={props.y} ref={groupRef}>
-
-        <Html
-          groupProps={{ x: 0, y: 0 }}
-          divProps={{
-            style: {
-              width: props.width,
-              height: props.height,
-              overflow: 'hidden',
-              background: 'none',
-              outline: 'none',
-              border: 'none',
-              padding: '0px',
-              margin: '0px',
-            },
-          }}
-        >
-          <div
-            style={{
-              width: 100,
-              height: lastPositionID.y,
-              background: 'none',
-              border: 'none',
-              padding: '0px',
-              margin: '0px',
-              outline: 'none',
-              overflow: 'auto',
-              fontSize: '18px',
-              fontFamily: 'sans-serif',
-              color: 'black',
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const copia = { ...config };
-              copia.config.columns['Estructuras y/o fósiles'].content.push({
-                'x': e.nativeEvent.offsetX,
-                'y': e.nativeEvent.offsetY,
-                'src': dragUrl.current
-              });
-
-              setConfig(copia);
-              socket.send(JSON.stringify(copia));
-              //sendConfig(copia, true, socket);
-            }}
-
-          />
-        </Html>
-        {a}
-      </Group>
-
-    return (
-      MyKonvaComponent
-    );
-  };
-
-  const ImageFosil = ({ image }) => {
-    const [img] = useImage(image.src);
-    return (
-      <Image
-        image={img}
-        x={image.x}
-        y={image.y}
-        offsetX={img ? 30 / 2 : 0}
-        offsetY={img ? 30 / 2 : 0}
-        width={30}
-        height={30}
-        draggable
-      />
-    );
-  };
-
-
   return (
     <>
       <OptionsBar />
@@ -1074,7 +985,6 @@ const CoordinateInputs: React.FC = () => {
               </Stage>
 
 
-              <GridDos/>
 
 
             </div>
