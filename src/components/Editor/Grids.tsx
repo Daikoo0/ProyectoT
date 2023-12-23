@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rect, Layer, Text, Image, Group} from 'react-konva';
+import { Rect, Layer, Text, Image, Group } from 'react-konva';
 import { useState, useRef, useMemo, useEffect } from 'react';
 import useImage from 'use-image';
 import { Html } from "react-konva-utils";
@@ -27,17 +27,50 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
 
   const gridRef = useRef(null);
 
+
+  const ondragst = (e,initialPosition) => {
+    initialPosition.current = { ...e.target.position() };
+  }
+
+  const handleDragMove = (e,column,initialPosition, xOffset) => {
+
+    const speedFactor = 1000;
+
+    // Multiplica las coordenadas del objeto por el factor de velocidad
+    const newX = e.target.x() + e.target.getStage().getPointerPosition().dx * speedFactor;
+    
+    e.target.x(newX);
+
+    requestAnimationFrame(() => {
+      const deltaX = e.evt.movementX;
+      setColumnWidths((prev) => ({
+        ...prev,
+        [column]:  prev[column] + deltaX,
+      }));
+    });
+  };
+
   const DraggableRect = (props) => {
+    
+    
+    const initialPosition = useRef({ x: props.x, y: 0 }); 
+
     return (
       <Rect
         fill="blue"
+        dragVelocity={99999999999999}
         draggable
-        hitStrokeWidth={20}
+        hitStrokeWidth={0}
+        dragDistance={1}
         onMouseEnter={() => (document.body.style.cursor = "ew-resize")}
         onMouseLeave={() => (document.body.style.cursor = "default")}
+        onDragStart={(e) => ondragst(e,initialPosition)}
+        dragThrottle={0.00002}
+        onDragMove={(e) => handleDragMove(e,props.column,initialPosition,xOffset)}
+        onDragEnd={(e) => console.log(e)}
         dragBoundFunc={(pos) => {
           return {
-            ...pos,
+            x : pos.x,
             y: 0,
           };
         }}
@@ -140,7 +173,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
       stroke="black"
     />
   );
- 
+
 
   let xOffset = marginLeft + polygonColumnWidth + 150;
 
@@ -163,25 +196,15 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
         />
       );
 
-      cells.push(   
-         <DraggableRect
-        x={xOffset+ columnWidths[column] - 5}
-        y={0}
-        width={5}
-        height={cellHeight}
-        onDragMove={(e) => {
-          const node = e.target;
-          const newWidth = e.evt.offsetX-xOffset;
-          console.log(e, xOffset+ columnWidths[column] )
-        setColumnWidths((prev) => {
-          return {
-            ...prev,
-            [column]: newWidth,
-          };
-        });
-        }}
-    
-      />);
+
+      cells.push(
+        <DraggableRect
+          x={xOffset + columnWidths[column] - 5}
+          y={0}
+          width={5}
+          height={cellHeight}
+          column={column}
+        />);
 
       const words = column.split(' ');
       const lineHeight = 14 * 1.5;

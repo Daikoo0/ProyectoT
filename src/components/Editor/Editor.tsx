@@ -12,6 +12,7 @@ import useImage from 'use-image';
 import fosilJson from '../../fossil.json';
 import SelectTheme from '../Web/SelectTheme';
 import Fosil from './Fosil';
+import GridDos from './GridDos';
 
 const VerticalRuler = ({ x, y, height, unit, scale }) => {
   // El número total de marcas basado en la altura y la unidad de cada marca
@@ -896,6 +897,7 @@ const CoordinateInputs: React.FC = () => {
   return (
     <>
       <OptionsBar />
+      
       <div className="drawer drawer-end">
         <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
         <div className="drawer-content">
@@ -1008,10 +1010,9 @@ const CoordinateInputs: React.FC = () => {
                     </Group>
                   )}
 
-
                   {shapes.map((shape, index) => (
                     <>
-                      <Grid
+                      {/* <Grid
                         key={shape.polygon.id}
                         polygon={shape}
                         text={shape.text}
@@ -1021,7 +1022,7 @@ const CoordinateInputs: React.FC = () => {
                         dragUrl={dragUrl}
                         columnWidths={columnWidths}
                         setColumnWidths={setColumnWidths}
-                      />
+                      /> */}
 
                       <Polygon
                         key={shape.polygon.id}
@@ -1069,11 +1070,17 @@ const CoordinateInputs: React.FC = () => {
 
                   )}
 
-
                 </Layer>
               </Stage>
 
+
+              <GridDos/>
+
+
             </div>
+
+            
+            
           </main>
         </div>
 
@@ -1155,6 +1162,7 @@ const CoordinateInputs: React.FC = () => {
 
     </>
   );
+  
 };
 
 export default CoordinateInputs;

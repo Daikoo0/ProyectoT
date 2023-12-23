@@ -36,16 +36,7 @@ const Cell = ({
         verticalAlign="middle"
         align="center"
       />
-      <Circle
-        x={x + 10}
-        y={y + 10}
-        radius={10}
-
-        fill="red"
-        stroke="grey"
-        strokeWidth={0.5}
-        draggable
-      />
+      
     </>
   );
 };
@@ -53,7 +44,7 @@ const Cell = ({
 const columnCount = 10;
 const rowCount = 10;
 
-const Prueba = () => {
+const GridDos = () => {
   const width = 1000;
   const height = 500;
   const gridRef = useRef(null);
@@ -75,14 +66,15 @@ const Prueba = () => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+     <div style={{ display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <Grid
+    
+    <Grid
         columnCount={columnCount}
+        height={60}
         rowCount={1}
         frozenColumns={frozenColumns}
         ref={gridRef}
-        height={60}
         width={width}
         columnWidth={(index) => {
           if (index in columnWidthMap) return columnWidthMap[index];
@@ -142,8 +134,8 @@ const Prueba = () => {
         }}
         itemRenderer={Cell}
       />
-    </div>
+   </div>
   );
 };
 
-export default Prueba;
+export default GridDos;
