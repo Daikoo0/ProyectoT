@@ -1,18 +1,7 @@
 import React from 'react';
-import { Rect, Layer, Text, Image, Group } from 'react-konva';
-import { useState, useRef, useMemo, useEffect } from 'react';
-import useImage from 'use-image';
+import { Rect, Text, Image, Group } from 'react-konva';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { Html } from "react-konva-utils";
-
-interface StickyNoteProps {
-  text: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  column: string;
-  vertical: boolean;
-}
 
 
 const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidths, setColumnWidths }) => {
@@ -25,21 +14,12 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
   const ESCAPE_KEY = 27;
   const additionalColumns = ['Arcilla-Limo-Arena-Grava', 'Estructuras y/o fósiles', 'Sistema', 'Edad', 'Formación', 'Miembro', 'Facie', 'Ambiente depositacional', 'Descripción'];
 
-  const gridRef = useRef(null);
-
-
-  const ondragst = (e,initialPosition) => {
+  const ondragst = useCallback((e, initialPosition) => {
     initialPosition.current = { ...e.target.position() };
-  }
+  }, []);
 
-  const handleDragMove = (e,column,initialPosition, xOffset) => {
+  const handleDragMove = useCallback((e, column, initialPosition) => {
 
-    const speedFactor = 1000;
-
-    // Multiplica las coordenadas del objeto por el factor de velocidad
-    const newX = e.target.x() + e.target.getStage().getPointerPosition().dx * speedFactor;
-    
-    e.target.x(newX);
 
     requestAnimationFrame(() => {
       const deltaX = e.evt.movementX;
@@ -48,121 +28,147 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
         [column]:  prev[column] + deltaX,
       }));
     });
+  }, [setColumnWidths]);
+
+
+  // Define manejadores de eventos fuera del cuerpo de DraggableRect
+const handleMouseEnter = useCallback(() => {
+  document.body.style.cursor = "ew-resize";
+}, []);
+
+const handleMouseLeave = useCallback(() => {
+  document.body.style.cursor = "default";
+}, []);
+
+const handleDragEnd = useCallback((e) => {
+  console.log(e);
+}, []);
+
+const dragBoundFunc = useCallback((pos) => {
+  return {
+    x: pos.x,
+    y: 0
   };
+}, []);
 
-  const DraggableRect = (props) => {
-    
-    
-    const initialPosition = useRef({ x: props.x, y: 0 }); 
+const DraggableRect = useMemo(() => {
+  return (props) => (
+    <Rect
+      fill="blue"
+      draggable
+      hitStrokeWidth={30}
+      dragDistance={1}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onDragStart={(e) => ondragst(e, props.initialPosition)}
+      dragThrottle={0.00002}
+      onDragMove={(e) => handleDragMove(e, props.column, props.initialPosition)}
+      onDragEnd={handleDragEnd}
+      dragBoundFunc={dragBoundFunc}
+      {...props}
+    />
+  );
+}, [ondragst, handleDragMove, handleMouseEnter, handleMouseLeave, handleDragEnd, dragBoundFunc]);
 
-    return (
-      <Rect
-        fill="blue"
-        dragVelocity={99999999999999}
-        draggable
-        hitStrokeWidth={0}
-        dragDistance={1}
-        onMouseEnter={() => (document.body.style.cursor = "ew-resize")}
-        onMouseLeave={() => (document.body.style.cursor = "default")}
-        onDragStart={(e) => ondragst(e,initialPosition)}
-        dragThrottle={0.00002}
-        onDragMove={(e) => handleDragMove(e,props.column,initialPosition,xOffset)}
-        onDragEnd={(e) => console.log(e)}
-        dragBoundFunc={(pos) => {
-          return {
-            x : pos.x,
-            y: 0,
-          };
-        }}
-        {...props}
-      />
-    );
-  };
 
-  const StickyNote: React.FC<StickyNoteProps> = (props) => {
+  const StickyNote = useCallback((props) => {
     const [isEditing, setIsEditing] = useState(false);
     const [content, setContent] = useState(props.text);
-
-    const textComponent = isEditing ? (
-      <Html
-        groupProps={{ x: 0, y: 0 }}
-        divProps={{
-          style: {
-            width: props.width,
-            height: props.height,
-            overflow: 'hidden',
-            background: 'none',
-            outline: 'none',
-            border: 'none',
-            padding: '0px',
-            margin: '0px',
-          },
-        }}
-      >
-        <textarea
-          style={{
-            width: columnWidths[props.column],
-            height: cellHeight,
-            background: 'none',
-            border: 'none',
-            padding: '0px',
-            margin: '0px',
-            outline: 'none',
-            overflow: 'auto',
-            fontSize: '18px',
-            fontFamily: 'sans-serif',
-            color: 'black',
-          }}
-          value={content}
-          onChange={(newText) => {
-            setContent(newText.currentTarget.value);
-          }}
-          onBlur={() => {
-            const copia = { ...text };
-            copia[props.column].content = content;
-            setText(copia, true);
-          }}
-          onKeyDown={(e) => {
-            if ((e.keyCode === RETURN_KEY && !e.shiftKey) || e.keyCode === ESCAPE_KEY) {
-              setIsEditing(false);
-            }
-          }
-          }
-        />
-      </Html>
-    ) : (
-      <Text
-        x={0}
-        y={props.vertical ? cellHeight : 0}
-        text={props.text}
-        fill="black"
-        fontFamily="sans-serif"
-        fontSize={18}
-        rotation={props.vertical ? 270 : 0}
-        width={props.width}
-        height={props.height}
-        onDblClick={(e) => setIsEditing(true)}
-      />
-    );
-
+  
+    const handleChange = (newText) => {
+      setContent(newText.currentTarget.value);
+    };
+  
+    const handleBlur = () => {
+      const copia = { ...text };
+      copia[props.column].content = content;
+      setText(copia, true);
+    };
+  
+    const handleKeyDown = (e) => {
+      if ((e.keyCode === RETURN_KEY && !e.shiftKey) || e.keyCode === ESCAPE_KEY) {
+        setIsEditing(false);
+      }
+    };
+  
+    const renderTextComponent = () => {
+      if (isEditing) {
+        return (
+          <Html
+            groupProps={{ x: 0, y: 0 }}
+            divProps={{ style: textAreaDivStyle }}
+          >
+            <textarea
+              style={{ ...textAreaStyle, width: columnWidths[props.column], height: cellHeight }}
+              value={content}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              onKeyDown={handleKeyDown}
+            />
+          </Html>
+        );
+      } else {
+        return (
+          <Text
+            {...textProps}
+            x={0}
+            y={props.vertical ? cellHeight : 0}
+            text={props.text}
+            onDblClick={() => setIsEditing(true)}
+            width={props.width}
+            height={props.height}
+          />
+        );
+      }
+    };
+  
     return (
       <Group x={props.x} y={props.y}>
-        <Rect
-          x={0}
-          y={0}
-          width={props.width}
-          height={props.height}
-          fill="white"
-          stroke="black"
-          ref={gridRef}
-        />
-        {textComponent}
+        <Rect {...rectProps} x={0} y={0} width={props.width} height={props.height} />
+        {renderTextComponent()}
       </Group>
     );
+  }, [setText, columnWidths, cellHeight, text]);
+  
+  // Estilos fuera del componente
+  const textAreaDivStyle = {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+    background: 'none',
+    outline: 'none',
+    border: 'none',
+    padding: '0px',
+    margin: '0px',
   };
+  
+  const textAreaStyle = {
+    background: 'none',
+    border: 'none',
+    padding: '0px',
+    margin: '0px',
+    outline: 'none',
+    overflow: 'auto',
+    fontSize: '18px',
+    fontFamily: 'sans-serif',
+    color: 'black',
+  };
+  
+  const textProps = {
+    fill: 'black',
+    fontFamily: 'sans-serif',
+    fontSize: 18,
+    rotation: 0, // Este valor puede ajustarse si es necesario
+  };
+  
+  const rectProps = {
+    fill: 'white',
+    stroke: 'black',
+  };
+  
 
   // Agregar encabezado en la primera fila
-  cells.push(
+  const headerCell = useMemo(() => (
     <Rect
       key={`header`}
       x={marginLeft}
@@ -172,19 +178,26 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
       fill="white"
       stroke="black"
     />
-  );
+  ), [polygonColumnWidth, cellHeight, marginLeft]);
+
+  cells.push(headerCell);
+
+  
+
+  const additionalColumnCells = useMemo(() => {
+    const columnCells = [];
+    let xOffset = marginLeft + polygonColumnWidth + 150;
+    additionalColumns.forEach((column, index) => {
 
 
-  let xOffset = marginLeft + polygonColumnWidth + 150;
-
-  additionalColumns.forEach((column, index) => {
+  //additionalColumns.forEach((column, index) => {
 
 
     if (config.config.columns[column].enabled
       && column !== 'Estructuras y/o fósiles'
     ) {
 
-      cells.push(
+      columnCells.push(
         <Rect
           key={`header-${column}`}
           x={xOffset}
@@ -197,7 +210,7 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
       );
 
 
-      cells.push(
+      columnCells.push(
         <DraggableRect
           x={xOffset + columnWidths[column] - 5}
           y={0}
@@ -220,9 +233,9 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
         />
       ));
 
-      cells.push(...textElements);
+      columnCells.push(...textElements);
 
-      cells.push(
+      columnCells.push(
 
         <StickyNote
           column={column}
@@ -243,8 +256,10 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
   }
   );
 
+  
 
-  cells.push(
+
+  columnCells.push(
     <Rect
       key={`row-1`}
       x={marginLeft}
@@ -260,6 +275,12 @@ const Grid = ({ polygon, setText, text, config, dragUrl, sendConfig, columnWidth
   xOffset = marginLeft + polygonColumnWidth;
 
 
+
+  return columnCells;
+}, [additionalColumns]);
+
+
+cells.push(...additionalColumnCells);
 
   return (
     <>

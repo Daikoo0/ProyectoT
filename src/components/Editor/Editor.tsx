@@ -923,7 +923,7 @@ const CoordinateInputs: React.FC = () => {
 
                   {shapes.map((shape, index) => (
                     <>
-                      {/* <Grid
+                      <Grid
                         key={shape.polygon.id}
                         polygon={shape}
                         text={shape.text}
@@ -933,7 +933,7 @@ const CoordinateInputs: React.FC = () => {
                         dragUrl={dragUrl}
                         columnWidths={columnWidths}
                         setColumnWidths={setColumnWidths}
-                      /> */}
+                      />
 
                       <Polygon
                         key={shape.polygon.id}
