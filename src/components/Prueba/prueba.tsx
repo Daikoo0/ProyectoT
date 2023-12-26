@@ -45,7 +45,9 @@ const App = () => {
   const width = 1700;
   const height = 800;
 
-  const rowCount = 5;
+  //const rowCount = 5;
+
+  const [rowCount, setRowCount] = useState(5);
   const columnCount = 8;
 
   const gridRef = useRef(null);
@@ -154,6 +156,22 @@ const App = () => {
     ...safeProps
   } = editableProps;
 
+
+  const addShape = (id,x,y,height,width) => {
+
+    // const send = {
+    //   action: "Add",
+    //   id : ,
+    //   x : ,
+    //   y : ,
+    //   height : ,
+    //   width : ,
+    // }
+    // //console.log(send)
+    // socket.send(JSON.stringify(send));
+
+  }
+
   // Renderizado de la Grilla
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
@@ -182,6 +200,7 @@ const App = () => {
       /> */}
 
       {/* Main Grid */}
+      <button onClick={addShape}>aaaaaaaaaaaaaaaaaaaaaaaagregar capa</button>
       <Grid
         ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
         width={width} // Ancho Stage

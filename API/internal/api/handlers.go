@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/text/width"
 )
 
 type responseMessage struct {
@@ -269,10 +270,99 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				// Switch para las acciones
 				switch dataMap["action"] {
 				case "Add":
-					log.Println("Añadiendo capa")
 
+					idPolygon := dataMap["ID"]
+					XPolygon := dataMap["x"]
+					YPolygon := dataMap["y"]
+					height := dataMap["height"]
+					width := dataMap["width"]
+					
+					type Property struct {
+						Content  string
+						Optional bool
+						Vertical bool
+					}
+
+					initialTexts := map[string]Property{
+						"Arcilla-Limo-Arena-Grava":    {Content: "vacío", Optional: false, Vertical: false},
+						"Sistema":                     {Content: "vacío", Optional: true, Vertical: true},
+						"Edad":                        {Content: "vacío", Optional: true, Vertical: true},
+						"Formación":                   {Content: "vacío", Optional: true, Vertical: true},
+						"Miembro":                     {Content: "vacío", Optional: true, Vertical: true},
+						"Facie":                       {Content: "vacío", Optional: true, Vertical: false},
+						"Ambiente depositacional":     {Content: "vacío", Optional: true, Vertical: false},
+						"Descripción":                 {Content: "vacío", Optional: true, Vertical: false},
+					}
+
+					type Circle struct {
+						X       float64
+						Y       float64
+						Radius  float64
+						Movable bool
+					}
+					
+					// Define la estructura para un Polígono.
+					type Polygon struct {
+						X           float64
+						Y           float64
+						ColorFill    string
+						ColorStroke  string
+						Zoom         float64
+						Rotation     float64
+						Tension      float64
+						File         int
+						FileOption   int
+						Height       float64
+						Circles      []Circle
+					}
+					
+					// Define la estructura principal.
+					type Shape struct {
+						ID     int
+						Polygon Polygon
+						Text    string
+					}
+
+					newShape := Shape{
+						ID: idPolygon,
+						Polygon: Polygon{
+							X:         0,
+							Y:         0,
+							ColorFill:  "white",
+							ColorStroke: "black",
+							Zoom:       100,
+							Rotation:   0,
+							Tension:    0.5,
+							File:       0,
+							FileOption: 0,
+							Height:     100,
+							Circles: []Circle{
+								{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
+								{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
+								{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
+								{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
+							},
+						},
+						Text: initialTexts, 
+					}
+
+					responseJSON, err := json.Marshal(newShape)
+					if err != nil {
+						log.Println("Error al convertir a JSON:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+						log.Println(string(responseJSON))
+						if err != nil {
+							log.Println(err)
+						}
+					}
+	
 				case "test":
 					log.Println("testiando")
+
+				}
 
 				}
 
