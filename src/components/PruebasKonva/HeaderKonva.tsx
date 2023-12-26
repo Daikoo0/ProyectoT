@@ -1,7 +1,18 @@
 import { Rect, Text, Group } from "react-konva";
 
+interface HeaderKonvaProps {
+    //frozenColumns: number;
+    onResize: (columnIndex: number, newWidth: number) => void;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    columnIndex?: number;
+    // ...otros tipos de propiedades según sea necesario...
+  }
+
 // Barras de desplazamiento
-const dragHandleWidth = 5;
+const dragHandleWidth = 2;
 const DraggableRect = (props) => {
     return (
         <Rect
@@ -21,8 +32,8 @@ const DraggableRect = (props) => {
     );
 };
 
-const HeaderComponent = ({ columnIndex, x, y, width, height, frozenColumns, onResize }) => {
-    const text = columnIndex < frozenColumns ? "S/No" : `Header ${columnIndex}`;
+const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, onResize }) => {
+    const text = columnIndex ? `Header ${columnIndex}` :  "S/No";
     const fill = "#eee";
     return (
         <Group>
@@ -44,6 +55,7 @@ const HeaderComponent = ({ columnIndex, x, y, width, height, frozenColumns, onRe
                 fontStyle="bold"
                 verticalAlign="middle"
                 align="center"
+                fontSize={18}
             />
             <DraggableRect
                 x={x + width - dragHandleWidth}

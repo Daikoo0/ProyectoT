@@ -14,6 +14,7 @@ import AddUserToRoom from "./pages/Invite.user.tsx"
 import ParticipantForm from "./pages/create.proyect.tsx"
 import About from "./pages/About.tsx"
 import GridDos from './components/Editor/GridDos.tsx'
+import EditableGrid from './components/Prueba/EditableGrid.tsx'
 
 const router = createBrowserRouter([
 
@@ -61,7 +62,11 @@ const router = createBrowserRouter([
   {
     path: "/prueba",
     element: <Prueba />,
-  }
+  },
+  {
+    path: "/editablegrid",
+    element: <EditableGrid/>,
+  },
 
 ]);
 

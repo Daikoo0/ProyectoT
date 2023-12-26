@@ -213,7 +213,7 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, Tensio
         };
       };
 
-    const minX = 200;
+    const minX = 700;
     const maxX = 350;
 
     // const handleSceneFunc = (ctx, shape) => {
@@ -324,6 +324,22 @@ const Polygon = ({x1, y1, x2, y2, ColorFill, ColorStroke, Zoom, Rotation, Tensio
         </>
       
     ); 
+};
+
+Polygon.defaultProps = {
+    x1: 0,
+    y1: 0,
+    x2: 0,
+    y2: 0,
+    ColorFill: 'white',
+    ColorStroke: 'black',
+    Zoom: 100,
+    Rotation: 0,
+    Tension: 1,
+    File: 0,
+    circles: [],
+    setCircles: () => {},
+    onClick: () => {},
 };
 
 export default Polygon;
