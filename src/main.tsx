@@ -13,7 +13,6 @@ import Prueba from './components/Prueba/prueba.tsx'
 import AddUserToRoom from "./pages/Invite.user.tsx"
 import ParticipantForm from "./pages/create.proyect.tsx"
 import About from "./pages/About.tsx"
-import GridDos from './components/Editor/GridDos.tsx'
 import EditableGrid from './components/Prueba/EditableGrid.tsx'
 
 const router = createBrowserRouter([
@@ -44,8 +43,8 @@ const router = createBrowserRouter([
     element: <AuthMiddleware> <AddUserToRoom/> </AuthMiddleware>,
   },
   {
-    path: "/prueba2/:project",
-    element: <AuthMiddleware><GridDos/></AuthMiddleware>,
+    path: "/prueba/:project",
+    element: <AuthMiddleware><Prueba/></AuthMiddleware>,
   },
   {
     path: "/create",

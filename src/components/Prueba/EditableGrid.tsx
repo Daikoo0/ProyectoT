@@ -126,13 +126,15 @@ const App = () => {
                 selections={selections}
                 columnWidth={columnWidth}
                 showFillHandle={!isEditInProgress}
-                itemRenderer={(props) => (
-                    <DefaultCell
+                itemRenderer={(props) => {
+                    console.log(props)
+                    return <DefaultCell
                         value={data[`${props.rowIndex},${props.columnIndex}`]}
                         align="left"
                         {...props}
                     />
-                )}
+                    
+                }}
                 rowHeight={rowHeight}
                 {...selectionProps}
                 {...editableProps}

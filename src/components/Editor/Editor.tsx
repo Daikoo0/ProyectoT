@@ -12,11 +12,9 @@ import useImage from 'use-image';
 import fosilJson from '../../fossil.json';
 import SelectTheme from '../Web/SelectTheme';
 import Fosil from './Fosil';
-import GridDos from './GridDos';
-
-const VerticalRuler = ({ x, y, height, unit, scale }) => {
+const VerticalRuler = ({ x, y, heightShape, unit, scale }) => {
   // El número total de marcas basado en la altura y la unidad de cada marca
-  const numberOfMarks = height / unit;
+  const numberOfMarks = heightShape / unit;
 
   const marks = [];
   for (let i = 0; i <= numberOfMarks; i++) {
@@ -49,7 +47,7 @@ const VerticalRuler = ({ x, y, height, unit, scale }) => {
 
   return (
     <Group>
-      <Line points={[x, y, x, y + height]} stroke="black" strokeWidth={2} />
+      <Line points={[x, y, x, y + heightShape]} stroke="black" strokeWidth={2} />
       {marks}
     </Group>
   );
@@ -75,7 +73,7 @@ const CoordinateInputs: React.FC = () => {
   //---------------// CAPAS Y GRID //---------------//
   // Alto de la capa
   const [initialHeight] = useState(100);
-  const [height, setHeight] = useState<number>(initialHeight);
+  const [heightShape, setHeight] = useState<number>(initialHeight);
 
   // contenido inicial de las columnas
   const [initialTexts] = useState({
@@ -314,7 +312,7 @@ const CoordinateInputs: React.FC = () => {
           setShapes(prevShapes =>
             prevShapes.filter(shape => shape.id !== shapeN.id)
           );
-        } else if (shapeN.action === 'height') {
+        } else if (shapeN.action === 'heightShape') {
           console.log(shapeN)
         }
       };
@@ -554,7 +552,7 @@ const CoordinateInputs: React.FC = () => {
     const newHeight = Number(event.target.value);
 
     // const send ={
-    //   action: "height",
+    //   action: "heightShape",
     //   id: selectedShapeIndex,
     //   circles : shapes[selectedShapeIndex].polygon.circles,
     //   newHeight : newHeight,
@@ -634,27 +632,27 @@ const CoordinateInputs: React.FC = () => {
 
     const NewShape =
     {
-      action: "añadir",
-      id: shapes.length,
-      polygon: {
-        x1: lastPositionSI.x, y1: lastPositionSI.y,
-        x2: lastPositionID.x, y2: lastPositionID.y,
-        colorfill: initialColorFill,
-        colorstroke: initialColorStroke,
-        zoom: sliderZoom,
-        rotation: sliderRotation,
-        tension: sliderTension,
-        file: 0,
-        fileOption: 0,
-        height: initialHeight,
-        circles: [
-          { x: lastPositionSI.x, y: lastPositionSI.y, radius: 5, movable: false },
-          { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true },
-          { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true },
-          { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false },
-        ]
-      },
-      text: initialTexts
+      action: "añadir"
+      // id: shapes.length,
+      // polygon: {
+      //   x1: lastPositionSI.x, y1: lastPositionSI.y,
+      //   x2: lastPositionID.x, y2: lastPositionID.y,
+      //   colorfill: initialColorFill,
+      //   colorstroke: initialColorStroke,
+      //   zoom: sliderZoom,
+      //   rotation: sliderRotation,
+      //   tension: sliderTension,
+      //   file: 0,
+      //   fileOption: 0,
+      //   heightShape: initialHeight,
+      //   circles: [
+      //     { x: lastPositionSI.x, y: lastPositionSI.y, radius: 5, movable: false },
+      //     { x: lastPositionID.x, y: lastPositionSI.y, radius: 5, movable: true },
+      //     { x: lastPositionID.x, y: lastPositionID.y, radius: 5, movable: true },
+      //     { x: lastPositionSI.x, y: lastPositionID.y, radius: 5, movable: false },
+      //   ]
+      // },
+      // text: initialTexts
     }
 
     socket.send(JSON.stringify(NewShape));
@@ -778,7 +776,7 @@ const CoordinateInputs: React.FC = () => {
         offsetX={img ? img.width / 2 : 0}
         offsetY={img ? img.height / 2 : 0}
         width={50}
-        height={60}
+        heightShape={60}
         draggable
       />
     );
@@ -802,7 +800,7 @@ const CoordinateInputs: React.FC = () => {
     x: number;
     y: number;
     width: number;
-    height: number
+    heightShape: number
   }
 
   return (
@@ -817,7 +815,7 @@ const CoordinateInputs: React.FC = () => {
 
             <div id="gridContainer" onDragOver={(e) => e.preventDefault()}>
 
-              <Stage width={window.innerWidth} height={window.innerHeight} ref={stageRef}>
+              <Stage width={window.innerWidth} heightShape={window.innerHeight} ref={stageRef}>
                 <Layer>
 
                 {shapes.length > 0 && (
@@ -827,7 +825,7 @@ const CoordinateInputs: React.FC = () => {
                     x={400}
                     y={0}
                     width={150}
-                    height={100}
+                    heightShape={100}
                     fill="white"
                     stroke="black"
                   />
@@ -848,13 +846,13 @@ const CoordinateInputs: React.FC = () => {
 
 {shapes.length > 0 && (
 
-                    <Group x={400} y={100} height={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
+                    <Group x={400} y={100} heightShape={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
                       <Rect
                         key={`header-fosils`}
                         x={0}
                         y={0}
                         width={150}
-                        height={lastPositionID.y - 200}
+                        heightShape={lastPositionID.y - 200}
                         fill="transparent"
                         stroke="black"
                       />
@@ -956,7 +954,7 @@ const CoordinateInputs: React.FC = () => {
                         x={shape.polygon.x1}
                         y={shape.polygon.y1}
                         width={80}
-                        height={shape.polygon.y2 - shape.polygon.y1}
+                        heightShape={shape.polygon.y2 - shape.polygon.y1}
                         opacity={0.5}
                         draggable
                         onClick={() => {handleShapeClick(index)
@@ -976,7 +974,7 @@ const CoordinateInputs: React.FC = () => {
                   ))}
                   {shapes.length > 0 && (
 
-                    <VerticalRuler x={100} y={100} height={lastPositionID.y - 200} unit={unit} scale={scale} />
+                    <VerticalRuler x={100} y={100} heightShape={lastPositionID.y - 200} unit={unit} scale={scale} />
 
 
                   )}
@@ -1035,7 +1033,7 @@ const CoordinateInputs: React.FC = () => {
 
             <li>
               <p>Cambiar alto de capa seleccionada: </p>
-              <input type="number" value={height} onChange={handleChangeHeight} />
+              <input type="number" value={heightShape} onChange={handleChangeHeight} />
             </li>
 
             <li>

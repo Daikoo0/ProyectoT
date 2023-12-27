@@ -16,12 +16,12 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/text/width"
 )
 
 type responseMessage struct {
 	Message string `json:"message"`
 }
+
 // type shap struct {
 // 	id      int
 // 	polygon string `json:"message"`
@@ -135,34 +135,34 @@ func (a *API) LoginUser(c echo.Context) error {
 }
 
 // LogoutUser elimina la cookie de autenticación
-func (a *API) LogoutUser(c echo.Context) error{
-	
-	expiredCookie := &http.Cookie{
-        Name:     "Authorization",
-        Value:    "",
-        Expires:  time.Unix(0, 0),
-        MaxAge:   -1,
-        Secure:   true,
-        SameSite: http.SameSiteNoneMode,
-        HttpOnly: true,
-        Path:     "/",
-    }
+func (a *API) LogoutUser(c echo.Context) error {
 
-    c.SetCookie(expiredCookie)                                         // Setea la cookie en el navegador
-	
+	expiredCookie := &http.Cookie{
+		Name:     "Authorization",
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		HttpOnly: true,
+		Path:     "/",
+	}
+
+	c.SetCookie(expiredCookie) // Setea la cookie en el navegador
+
 	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
-} 
+}
 
 // Verifica si existe una cookie de autenticación
-func (a *API) AuthUser(c echo.Context) error{
-	
+func (a *API) AuthUser(c echo.Context) error {
+
 	_, err := c.Cookie("Authorization")
 	if err != nil {
 		return c.NoContent(http.StatusUnauthorized) // HTTP 401 Unauthorized
 	}
-	
+
 	return c.NoContent(http.StatusOK) // HTTP 200 OK
-} 
+}
 
 func (a *API) HandleWebSocket(c echo.Context) error {
 	ctx := c.Request().Context()
@@ -271,101 +271,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				switch dataMap["action"] {
 				case "Add":
 
-					idPolygon := dataMap["ID"]
-					XPolygon := dataMap["x"]
-					YPolygon := dataMap["y"]
-					height := dataMap["height"]
-					width := dataMap["width"]
-					
-					type Property struct {
-						Content  string
-						Optional bool
-						Vertical bool
-					}
+					log.Println("aaaañ")
 
-					initialTexts := map[string]Property{
-						"Arcilla-Limo-Arena-Grava":    {Content: "vacío", Optional: false, Vertical: false},
-						"Sistema":                     {Content: "vacío", Optional: true, Vertical: true},
-						"Edad":                        {Content: "vacío", Optional: true, Vertical: true},
-						"Formación":                   {Content: "vacío", Optional: true, Vertical: true},
-						"Miembro":                     {Content: "vacío", Optional: true, Vertical: true},
-						"Facie":                       {Content: "vacío", Optional: true, Vertical: false},
-						"Ambiente depositacional":     {Content: "vacío", Optional: true, Vertical: false},
-						"Descripción":                 {Content: "vacío", Optional: true, Vertical: false},
-					}
-
-					type Circle struct {
-						X       float64
-						Y       float64
-						Radius  float64
-						Movable bool
-					}
-					
-					// Define la estructura para un Polígono.
-					type Polygon struct {
-						X           float64
-						Y           float64
-						ColorFill    string
-						ColorStroke  string
-						Zoom         float64
-						Rotation     float64
-						Tension      float64
-						File         int
-						FileOption   int
-						Height       float64
-						Circles      []Circle
-					}
-					
-					// Define la estructura principal.
-					type Shape struct {
-						ID     int
-						Polygon Polygon
-						Text    string
-					}
-
-					newShape := Shape{
-						ID: idPolygon,
-						Polygon: Polygon{
-							X:         0,
-							Y:         0,
-							ColorFill:  "white",
-							ColorStroke: "black",
-							Zoom:       100,
-							Rotation:   0,
-							Tension:    0.5,
-							File:       0,
-							FileOption: 0,
-							Height:     100,
-							Circles: []Circle{
-								{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
-								{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
-								{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
-								{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
-							},
-						},
-						Text: initialTexts, 
-					}
-
-					responseJSON, err := json.Marshal(newShape)
-					if err != nil {
-						log.Println("Error al convertir a JSON:", err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-						log.Println(string(responseJSON))
-						if err != nil {
-							log.Println(err)
-						}
-					}
-	
 				case "test":
 					log.Println("testiando")
 
 				}
-
-				}
-
 				if dataMap["action"] == "undo" {
 					log.Println("deshacer")
 					temp, err := rooms[roomID].Temp.Pop() // esto estaba con el nombre no con la id
@@ -385,7 +296,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					if undo {
 						temporal := make(map[string]interface{})
-						temporal["action"] = "añadir"
+						temporal["action"] = "Add"
 						temporal["id"] = float64(id)
 						temporal["polygon"] = rooms[roomID].Data[id]["polygon"]
 						temporal["text"] = rooms[roomID].Data[id]["text"]
@@ -506,29 +417,125 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				}
 
 				if dataMap["action"] == "añadir" {
-					id := int(dataMap["id"].(float64))
-					log.Printf("Añadiendo capa %s", string(rune(id)))
-					if undo {
-						temp := make(map[string]interface{})
-						temp["action"] = "delete"
-						temp["id"] = float64(id)
+					// 	id := int(dataMap["id"].(float64))
+					// 	log.Printf("Añadiendo capa %s", string(rune(id)))
+					// 	if undo {
+					// 		temp := make(map[string]interface{})
+					// 		temp["action"] = "delete"
+					// 		temp["id"] = float64(id)
 
-						rooms[roomID].Temp.Push(temp)
-					}
+					// 		rooms[roomID].Temp.Push(temp)
+					// 	}
 
-					rooms[roomID].Data = append(rooms[roomID].Data, dataMap)
+					// 	rooms[roomID].Data = append(rooms[roomID].Data, dataMap)
 
-					jsonBytes, err := json.Marshal(dataMap)
-					if err != nil {
-						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-					}
+					// 	jsonBytes, err := json.Marshal(dataMap)
+					// 	if err != nil {
+					// 		log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+					// 	}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-						if err != nil {
-							log.Println(err)
+					// 	for _, client := range proyect.Active {
+					// 		err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+					// 		if err != nil {
+					// 			log.Println(err)
+					// 		}
+					// 	}
+
+					// idPolygon := int(dataMap["id"].(float64))
+
+					if val, ok := dataMap["id"]; ok && val != nil {
+						idPolygon := int(val.(float64))
+						XPolygon := dataMap["x"].(float64)
+						YPolygon := dataMap["y"].(float64)
+						height := dataMap["height"].(float64)
+						width := dataMap["width"].(float64)
+
+						log.Println("agregar")
+
+						type Property struct {
+							Content  string
+							Optional bool
+							Vertical bool
 						}
+
+						initialTexts := map[string]Property{
+							"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
+							"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
+							"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
+							"Formación":                {Content: "vacío", Optional: true, Vertical: true},
+							"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
+							"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
+							"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
+							"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
+						}
+
+						type Circle struct {
+							X       float64
+							Y       float64
+							Radius  float64
+							Movable bool
+						}
+
+						// Define la estructura para un Polígono.
+						type Polygon struct {
+							X           float64
+							Y           float64
+							ColorFill   string
+							ColorStroke string
+							Zoom        float64
+							Rotation    float64
+							Tension     float64
+							File        int
+							FileOption  int
+							Height      float64
+							Circles     []Circle
+						}
+
+						// Define la estructura principal.
+						type Shape struct {
+							Id      int
+							Polygon Polygon
+							Text    map[string]Property
+						}
+
+						newShape := Shape{
+							Id: idPolygon, // numero de fila
+							Polygon: Polygon{
+								X:           0,
+								Y:           0,
+								ColorFill:   "white",
+								ColorStroke: "black",
+								Zoom:        100,
+								Rotation:    0,
+								Tension:     0.5,
+								File:        0,
+								FileOption:  0,
+								Height:      100,
+								Circles: []Circle{
+									{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
+									{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
+									{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
+									{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
+								},
+							},
+							Text: initialTexts,
+						}
+						jsonBytes, err := json.Marshal(newShape)
+						if err != nil {
+							log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+						}
+
+						for _, client := range proyect.Active {
+							err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+							if err != nil {
+								log.Println(err)
+							}
+						}
+					} else {
+						// Manejar el error o el caso de valor nulo
+						log.Println(val, ok)
 					}
+
 				}
 
 				if dataMap["action"] == "save" {
@@ -603,7 +610,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				// 		log.Println("No se guardo la data")
 				// 	}
 				// }
-
 			} else {
 				errMessage := "Error: Don't have permission to edit this document"
 				err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
@@ -826,11 +832,10 @@ func (a *API) HandleGetPublicProject(c echo.Context) error {
 	response := ProjectResponse{
 		Projects: proyects,
 	}
-	
+
 	// Devolver la respuesta JSON con los proyectos
 	return c.JSON(http.StatusOK, response)
 }
-
 
 // codigo de una pila, (pila de cambios, del control Z)
 type Stack []map[string]interface{}
