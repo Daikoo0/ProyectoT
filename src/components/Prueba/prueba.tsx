@@ -39,13 +39,15 @@ const App = () => {
   // Estado para los datos de la grilla
   const [data, setData] = useState({
     // Estructura inicial de los datos
-    "3,1": <Polygon2 x={100} y={100} Width={100} Height={100} Tension={1} onClick={""}/>,
     "3,4": "texto del polygon2",
     "4,2": "Contenido de la celda",
     "2,2": "Cocos"
   });
 
-  
+  const [polygons, setPolygons] = useState({
+    "2,1": <Polygon2 x={100} y={100} Width={100} Height={300} Tension={1} onClick={""} />
+  });
+
   //---------------// CAPAS Y GRID //---------------//
   // Alto de la capa
   const [initialHeight] = useState(100);
@@ -53,19 +55,18 @@ const App = () => {
 
   const [lastPositionID, setLastPositionID] = useState({ x: 200, y: 200 });
 
-   //Figuras / Poligonos 
-   const [shapes, setShapes] = useState([]);
+  //Figuras / Poligonos 
+  const [shapes, setShapes] = useState([]);
 
-   // Index / ID de la Figura / Poligono
-   const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); // 0,1,2,3...
-   const [selectedShapeID, setSelectedShapeID] = useState(null);
+  // Index / ID de la Figura / Poligono
+  const [selectedShapeIndex, setSelectedShapeIndex] = useState(null); // 0,1,2,3...
+  const [selectedShapeID, setSelectedShapeID] = useState(null);
 
   const width = 1700;
   const height = 800;
 
-  //const rowCount = 5;
 
-  const [rowCount, setRowCount] = useState(shapes.length);
+  const [rowCount, setRowCount] = useState(1);
   const columnCount = 8;
 
   const gridRef = useRef(null);
@@ -140,42 +141,42 @@ const App = () => {
   };
 
 
-    // contenido inicial de las columnas (borrar)
-    const [initialTexts] = useState({
-      'Arcilla-Limo-Arena-Grava': { content: "vacío", optional: false, vertical: false },
-      'Sistema': { content: "vacío", optional: true, vertical: true },
-      'Edad': { content: "vacío", optional: true, vertical: true },
-      'Formación': { content: "vacío", optional: true, vertical: true },
-      'Miembro': { content: "vacío", optional: true, vertical: true },
-      'Facie': { content: "vacío", optional: true, vertical: false },
-      'Ambiente depositacional': { content: "vacío", optional: true, vertical: false },
-      'Descripción': { content: "vacío", optional: true, vertical: false }
-    });
+  // contenido inicial de las columnas (borrar)
+  const [initialTexts] = useState({
+    'Arcilla-Limo-Arena-Grava': { content: "vacío", optional: false, vertical: false },
+    'Sistema': { content: "vacío", optional: true, vertical: true },
+    'Edad': { content: "vacío", optional: true, vertical: true },
+    'Formación': { content: "vacío", optional: true, vertical: true },
+    'Miembro': { content: "vacío", optional: true, vertical: true },
+    'Facie': { content: "vacío", optional: true, vertical: false },
+    'Ambiente depositacional': { content: "vacío", optional: true, vertical: false },
+    'Descripción': { content: "vacío", optional: true, vertical: false }
+  });
 
 
-    const handleCheckBox = (e, column) => {
+  const handleCheckBox = (e, column) => {
 
-      const prevConfigState = { ...config };
-  
-      if (e.target.checked) {
-  
-        prevConfigState.config.columns[column].enabled = true;
-        setConfig(prevConfigState);
-        socket.send(JSON.stringify(prevConfigState));
-  
-      } else {
-        prevConfigState.config.columns[column].enabled = false;
-        setConfig(prevConfigState);
-        socket.send(JSON.stringify(prevConfigState));
-      }
-  
+    const prevConfigState = { ...config };
+
+    if (e.target.checked) {
+
+      prevConfigState.config.columns[column].enabled = true;
+      setConfig(prevConfigState);
+      socket.send(JSON.stringify(prevConfigState));
+
+    } else {
+      prevConfigState.config.columns[column].enabled = false;
+      setConfig(prevConfigState);
+      socket.send(JSON.stringify(prevConfigState));
     }
 
-    const dragUrl = useRef(null);
-  
-    // Seleccion de patron / Pattern
-    const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
-  
+  }
+
+  const dragUrl = useRef(null);
+
+  // Seleccion de patron / Pattern
+  const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
+
   //const [newWidth, setNewWidth] = useState(100);
 
   const OptionsBar = () => {
@@ -240,7 +241,7 @@ const App = () => {
             </div>
 
             <div onClick={addShape} className="dropdown dropdown-end" >
-            {/* onClick={(e) => addShape(rowCount,lastPositionID.x - (columnWidthMap[1] || 200),lastPositionID.y,heightShape,(columnWidthMap[1] || 200))} */}
+              {/* onClick={(e) => addShape(rowCount,lastPositionID.x - (columnWidthMap[1] || 200),lastPositionID.y,heightShape,(columnWidthMap[1] || 200))} */}
               <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
@@ -378,10 +379,9 @@ const App = () => {
       if (coordA.y2 === -1000) {
         //setLastPositionSI({ x: 100, y: 100 })
         setLastPositionID({ x: 200, y: 200 })
-      } else 
-      {
+      } else {
         console.log(coordA)
-    //    setLastPositionSI({ x: coordA.x1, y: coordA.y2 })
+        //    setLastPositionSI({ x: coordA.x1, y: coordA.y2 })
         setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
       }
 
@@ -484,14 +484,15 @@ const App = () => {
 
 
   const addShape = () => {
-console.log("dadsdsa")
+    console.log("dadsdsa")
+    setRowCount(prevRowCount => prevRowCount + 1)
     const send = {
       action: "añadir",
-      id : rowCount,
-      x : lastPositionID.x - (columnWidthMap[1] || 200),
-      y : lastPositionID.y,
-      height : height,
-      width : width,
+      id: rowCount,
+      x: lastPositionID.x - (columnWidthMap[1] || 200),
+      y: lastPositionID.y,
+      height: height,
+      width: width,
     }
     console.log(send)
     socket.send(JSON.stringify(send));
@@ -526,7 +527,7 @@ console.log("dadsdsa")
       /> */}
 
       {/* Main Grid */}
-      <OptionsBar/>
+      <OptionsBar />
       <Grid
         ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
         width={width} // Ancho Stage
@@ -536,7 +537,7 @@ console.log("dadsdsa")
         frozenRows={frozenRows}
         columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
         rowHeight={(index) => {
-          if (index === 0) return 80;
+          if (index === 0) return 110;
           return 100;
         }}
         //rowHeight={() => 40} // Altura de las filas en la grilla principal
@@ -559,10 +560,10 @@ console.log("dadsdsa")
             // Renderizar celdas normales para el resto de la grilla
 
             if (props.columnIndex === 1) {
-            
+
               return (
                 <Cell
-                  value={data[`${props.rowIndex},${props.columnIndex}`]}
+                  value={polygons[`${props.rowIndex},${props.columnIndex}`]}
                   x={props.x}
                   y={props.y}
                   width={props.width}
@@ -570,7 +571,7 @@ console.log("dadsdsa")
                   {...props}
                 />
               );
-              
+
             } else {
               return (
                 <DefaultCell
