@@ -1,15 +1,15 @@
 import { Rect, Text, Group, Line } from "react-konva";
 
 interface HeaderKonvaProps {
-    //frozenColumns: number;
+
     onResize: (columnIndex: number, newWidth: number) => void;
     x?: number;
     y?: number;
     width?: number;
     height?: number;
     columnIndex?: number;
-    // ...otros tipos de propiedades según sea necesario...
-  }
+    header?: Array<string>;
+}
 
 // Barras de desplazamiento
 const dragHandleWidth = 2;
@@ -35,45 +35,81 @@ const DraggableRect = (props) => {
 
 const HeaderLines = ({ x, y, width, height, categories }) => {
     const linesAndText = [];
-    let accumulatedWidth = x;
 
-    for (let i = 0; i < categories.length; i++) {
-        const category = categories[i];
-        const linePosition = accumulatedWidth + (width * category.widthFactor);
-
-        // Agregar la línea
-        linesAndText.push(
+    linesAndText.push(
+        <>
             <Line
-                points={[linePosition, y + 95, linePosition, y + 110]}
+                points={[x, y + height / 2, x + width, y + height / 2]}
                 stroke="black"
                 strokeWidth={1}
             />
-        );
-
-        // Agregar el texto arriba de la línea
-        linesAndText.push(
-            <Text
-               rotation={270}
-                x={linePosition - 10} // Ajusta esto para alinear el texto según necesites
-                y={y + 95} // Posición vertical del texto, ajusta según sea necesario
-                text={category.name}
-                fontSize={11} // Ajusta el tamaño de fuente como necesites
-                fill="black" // Color del texto
-                // Puedes añadir otros estilos de texto como 'fontFamily', 'fontWeight', etc.
+            <Line
+                points={[x, y, x, y + 110]}
+                stroke="black"
+                strokeWidth={1}
             />
-        );
+        </>
+    )
 
-        accumulatedWidth = linePosition;
+    for (let i = 0; i < categories.length; i++) {
+        const category = categories[i];
+        const linePosition = x + (width * category.widthFactor);
+
+        if (category.widthFactor === 0) {
+
+            linesAndText.push(
+                <>
+                    <Line
+                        points={[linePosition, y + 42, linePosition, y + height / 2]}
+                        stroke="black"
+                        strokeWidth={1}
+                    />
+                    <Text
+                        rotation={270}
+                        x={linePosition - 5} // Ajusta esto para alinear el texto según necesites
+                        y={y + 40} // Posición vertical del texto, ajusta según sea necesario
+                        text={category.name}
+                        fontSize={11} // Ajusta el tamaño de fuente como necesites
+                        fill="black" // Color del texto
+                    // Puedes añadir otros estilos de texto como 'fontFamily', 'fontWeight', etc.
+                    />
+                </>
+            )
+
+        } else {
+            linesAndText.push(
+                <>
+                    <Line
+                        points={[linePosition, y + 95, linePosition, y + 110]}
+                        stroke="black"
+                        strokeWidth={1}
+                    />
+                    <Text
+                        rotation={270}
+                        x={linePosition - 5} // Ajusta esto para alinear el texto según necesites
+                        y={y + 95} // Posición vertical del texto, ajusta según sea necesario
+                        text={category.name}
+                        fontSize={11} // Ajusta el tamaño de fuente como necesites
+                        fill="black" // Color del texto
+                    />
+                </>
+            )
+        }
+
+
+
+        x = linePosition;
     }
 
     return <Group>{linesAndText}</Group>;
 };
 
 
-const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, onResize }) => {
+const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, header, onResize }) => {
     const halfWidth = width / 2;
-    const text = columnIndex ? `Header ${columnIndex}` :  "S/No";
+    const text = header[columnIndex];
     const fill = "#eee";
+
     return (
         <Group>
             <Rect
@@ -89,33 +125,47 @@ const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width,
                 x={x}
                 y={y}
                 height={height}
-                width={columnIndex ===1? halfWidth :width}
+                width={text === "Litologia" ? halfWidth : width}
                 text={text}
                 fontStyle="bold"
                 verticalAlign="middle"
                 align="center"
                 fontSize={18}
             />
-               {columnIndex === 1 && (
-              
-                <HeaderLines x={x + halfWidth} y={y} width={halfWidth} height={height} 
-                categories={[
-                    // { name: 'border', widthFactor: 0 },
-                    { name: 'clay', widthFactor: 0.08 },
-                    { name: 'silt', widthFactor: 0.08 },
-                    { name: 'vf', widthFactor: 0.08 },
-                    { name: 'f', widthFactor: 0.08 },
-                    { name: 'm', widthFactor: 0.08 },
-                    { name: 'c', widthFactor: 0.08 },
-                    { name: 'vc', widthFactor: 0.08 },
-                    { name: 'gran', widthFactor: 0.08 },
-                    { name: 'pebb', widthFactor: 0.08 },
-                    { name: 'cobb', widthFactor: 0.08 },
-                    { name: 'boul', widthFactor: 0.08 },
-                ]}
+            {text === "Litologia" && (
+
+                <HeaderLines x={x + halfWidth} y={y} width={halfWidth} height={height}
+                    categories={[
+                        // { name: 'border', widthFactor: 0 },
+                        { name: 'clay', widthFactor: 0.1 },
+                        { name: 'silt', widthFactor: 0.08 },
+                        { name: 'mud', widthFactor: 0 },
+                        { name: 'vf', widthFactor: 0.08 },
+                        { name: 'wacke', widthFactor: 0 },
+                        { name: 'f', widthFactor: 0.08 },
+                        { name: 'm', widthFactor: 0.08 },
+                        { name: 'pack', widthFactor: 0 },
+                        { name: 'c', widthFactor: 0.08 },
+                        { name: 'vc', widthFactor: 0.08 },
+                        { name: 'grain', widthFactor: 0 },
+                        { name: 'gran', widthFactor: 0.08 },
+                        { name: 'pebb', widthFactor: 0.08 },
+                        { name: 'cobb', widthFactor: 0.08 },
+                        { name: 'rud & \nbound', widthFactor: 0 },
+                        { name: 'boul', widthFactor: 0.08 },
+                    ]}
+                // limestones={[
+                //     // { name: 'border', widthFactor: 0 },
+                //     { name: 'mud', widthFactor: 0.18 },
+                //     { name: 'wacke', widthFactor: 0.08 },
+                //     { name: 'pack', widthFactor: 0.16 },
+                //     { name: 'grain', widthFactor: 0.16 },
+                //     { name: 'rud & bound', widthFactor: 0.16 },
+
+                // ]}
                 />
-                
-                
+
+
             )}
             <DraggableRect
                 x={x + width - dragHandleWidth}

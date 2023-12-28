@@ -56,6 +56,7 @@ const App = () => {
   const [lastPositionID, setLastPositionID] = useState({ x: 200, y: 200 });
 
   //Figuras / Poligonos 
+  const [Header, setHeader] = useState([]); 
   const [shapes, setShapes] = useState([]);
 
   // Index / ID de la Figura / Poligono
@@ -66,8 +67,8 @@ const App = () => {
   const height = 800;
 
 
-  const [rowCount, setRowCount] = useState(1);
-  const columnCount = 8;
+  const [rowCount, setRowCount] = useState(3);
+  const [columnCount, setColumnCount] = useState(0);
 
   const gridRef = useRef(null);
   const frozenRows = 1;
@@ -318,7 +319,11 @@ const App = () => {
           console.log("shapeN")
 
           // action='polygon', id, polygon
-        } else if (shapeN.action === 'polygon') {
+        } else if (shapeN.action === 'header'){
+          setHeader(shapeN.config)
+          setColumnCount(shapeN.config.length)
+
+        }else if (shapeN.action === 'polygon') {
           setShapes(prevShapes =>
             prevShapes.map(shape =>
               shape.id === shapeN.id ? { ...shape, polygon: shapeN.polygon } : shape
@@ -406,6 +411,7 @@ const App = () => {
     selections,
     activeCell,
     getValue: getCellValue,
+  
     onSubmit: (value, { rowIndex, columnIndex }, nextActiveCell) => {
       console.log('On submit');
       console.log(data)
@@ -501,121 +507,102 @@ const App = () => {
 
   // Renderizado de la Grilla
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      {/* Header Grid */}
-      {/* <Grid
-        ref={headerGridRef} // Referencia para manipular el encabezado desde otros componentes
-        columnCount={columnCount} // Número total de columnas
-        rowCount={1} // Solo una fila para el encabezado
-        width={width} // Ancho del encabezado, normalmente igual al de la grilla principal
-        height={60} // Altura del encabezado
-        columnWidth={(index) => columnWidthMap[index] || 100} // Ancho de la columna, obtenido del estado
-        rowHeight={() => 60} // Altura de las filas en el encabezado
-        showScrollbar={false} // Esconder la barra de desplazamiento para el encabezado
-        itemRenderer={(props) => {
-          // Renderizador personalizado para las celdas del encabezado
-          return <HeaderKonva
-            {...props}
-            onResize={handleResize} // Función para manejar el redimensionamiento de las columnas
-            frozenColumns={frozenColumns} // Número de columnas congeladas
-          />
-        }}
-        // onScroll={({ scrollLeft }) => {
-        //   // Sincronizar el desplazamiento horizontal con la grilla principal
-        //   gridRef.current.scrollTo({ scrollLeft });
-        // }}
-      /> */}
+    <>
+    <div>
 
-      {/* Main Grid */}
-      <OptionsBar />
-      <Grid
-        ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
-        width={width} // Ancho Stage
-        height={height} // Altura Stage
-        columnCount={columnCount} // Número total de columnas
-        rowCount={rowCount} // Número total de filas
-        frozenRows={frozenRows}
-        columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-        rowHeight={(index) => {
-          if (index === 0) return 110;
-          return 100;
-        }}
-        //rowHeight={() => 40} // Altura de las filas en la grilla principal
-        activeCell={activeCell}
-        //frozenColumns={frozenColumns} // Número de columnas congeladas
+      <OptionsBar /> 
+      
+  
+      <div style={{ display: "flex", flexDirection: "column", position: "absolute"}}>
+      
+        <Grid
+          ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
+          width={width} // Ancho Stage
+          height={height} // Altura Stage
+          columnCount={columnCount} // Número total de columnas
+          rowCount={rowCount} // Número total de filas
+          frozenRows={frozenRows}
+          columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+          rowHeight={(index) => {
 
-        //itemRenderer={Cell} // Renderizador personalizado para las celdas de la grilla
-        itemRenderer={(props) => {
-          if (props.rowIndex === 0) {
+            if (index === 0) return 110;
+            return 100;
+          }}
+          //rowHeight={() => 40} // Altura de las filas en la grilla principal
+          activeCell={activeCell}
+          //frozenColumns={frozenColumns} // Número de columnas congeladas
+          //itemRenderer={Cell} // Renderizador personalizado para las celdas de la grilla
+          itemRenderer={(props) => {
+            //console.log(props)
+            if (props.rowIndex === 0) {
 
-            // Renderizar el Encabezado para la primera fila
-            return (
-              <HeaderKonva
-
-                onResize={handleResize}
-                {...props}
-              />
-            )
-          } else {
-            // Renderizar celdas normales para el resto de la grilla
-
-            if (props.columnIndex === 1) {
-
+              // Renderizar el Encabezado para la primera fila
               return (
-                <Cell
-                  value={polygons[`${props.rowIndex},${props.columnIndex}`]}
-                  x={props.x}
-                  y={props.y}
-                  width={props.width}
-                  height={props.height}
+                <HeaderKonva
+                  header={Header}
+                  onResize={handleResize}
                   {...props}
                 />
-              );
-
+              )
             } else {
-              return (
-                <DefaultCell
-                  value={data[`${props.rowIndex},${props.columnIndex}`]}
-                  align="center"
-                  fill="white"
-                  stroke="blue"
-                  fontSize={12}
-                  {...props}
-                />
-              );
+              // Renderizar celdas normales para el resto de la grilla
+
+              if (Header[props.columnIndex] === "Litologia") {
+
+                return (
+                  <Cell
+                    value={polygons[`${props.rowIndex},${props.columnIndex}`]}
+                    x={props.x}
+                    y={props.y}
+                    width={props.width}
+                    height={props.height}
+                    {...props}
+                  />
+                );
+
+              } else {
+                return (
+                  <DefaultCell
+                    value={data[`${props.rowIndex},${props.columnIndex}`]}
+                    align="center"
+                    fill="white"
+                    stroke="blue"
+                    fontSize={12}
+                    {...props}
+                  />
+                );
+              }
+              // <Cell
+              //   value={data[`${props.rowIndex},${props.columnIndex}`]}
+              //   height={props.height}
+              //   x={props.x}
+              //   y={props.y} 
+              //   width={props.width}
+              //   {...props}
+              // />
+
             }
-
-
-            // <Cell
-            //   value={data[`${props.rowIndex},${props.columnIndex}`]}
-            //   height={props.height}
-            //   x={props.x}
-            //   y={props.y} 
-            //   width={props.width}
-            //   {...props}
-            // />
-
-          }
-        }}
-        //{...selectionProps} // Propiedades del hook useSelection
-        //{...editableProps} // Editar lo que esta en la celda
-        {...safeProps}
-        //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
-
-        //Permite el cuadro azul que muestra la selección
-        onKeyDown={(...args) => {
-          selectionProps.onKeyDown(...args);
-          editableProps.onKeyDown(...args);
-        }}
-        onMouseDown={(...args) => {
-          selectionProps.onMouseDown(...args);
-          editableProps.onMouseDown(...args);
-        }}
-      />
-
-      {editorComponent}
-
+          }}
+          //{...selectionProps} // Propiedades del hook useSelection
+          //{...editableProps} // Editar lo que esta en la celda
+          {...safeProps}
+          //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
+          
+          //Permite el cuadro azul que muestra la selección
+          onKeyDown={(...args) => {
+            selectionProps.onKeyDown(...args);
+            editableProps.onKeyDown(...args);
+          }}
+          onMouseDown={(...args) => {
+            selectionProps.onMouseDown(...args);
+            editableProps.onMouseDown(...args);
+          }}
+        />
+        {editorComponent}
+        
+      </div>
     </div>
+    </>
   );
 };
 

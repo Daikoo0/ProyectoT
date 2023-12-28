@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 
 	"time"
 
@@ -22,30 +23,9 @@ type responseMessage struct {
 	Message string `json:"message"`
 }
 
-// type shap struct {
-// 	id      int
-// 	polygon string `json:"message"`
-// }
-
 type ProjectResponse struct {
 	Projects []models.Data `json:"projects"`
 }
-
-// type circle struct {
-// 	x       int
-// 	y       int
-// 	radius  int
-// 	movable bool
-// }
-
-// type Room struct {
-// 	Name    string
-// 	Config  map[string]interface{}
-// 	Active  []*websocket.Conn
-// 	Clients map[string]models.Role
-// 	Data    []map[string]interface{}
-// 	Temp    Stack
-// }
 
 type RoomData struct {
 	Id_project primitive.ObjectID
@@ -86,6 +66,22 @@ func (a *API) RegisterUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, nil) // HTTP 201 Created
+}
+
+func RemoveElement(roomID string, conn *websocket.Conn) {
+	var index int = -1
+	for i, c := range rooms[roomID].Active {
+		if c == conn { // asumiendo que conn es comparable directamente
+			index = i
+			break
+		}
+	}
+
+	if index != -1 {
+		// Eliminar el elemento en el índice encontrado
+		rooms[roomID].Active = append(rooms[roomID].Active[:index], rooms[roomID].Active[index+1:]...)
+	}
+
 }
 
 // LoginUser recibe un email y una contraseña, y devuelve un token de autenticación enviado en una cookie
@@ -186,6 +182,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		errMessage := "Error: Unauthorized"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
+		RemoveElement(roomID, conn)
 		return nil
 	}
 
@@ -194,6 +191,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		errMessage := "Error: Unauthorized"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
+
+		RemoveElement(roomID, conn)
 		return nil
 	}
 
@@ -205,6 +204,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		errMessage := "Error: Room not found"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
+
+		RemoveElement(roomID, conn)
 		return nil
 	}
 
@@ -214,6 +215,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		errMessage := "Error: Unauthorized"
 		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
+
+		RemoveElement(roomID, conn)
 		return nil
 	}
 
@@ -225,6 +228,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		room.Config)
 	proyect.Active = append(proyect.Active, conn)
 
+	log.Println(proyect.Active)
+
 	//enviar los datos que hay en la base de datos
 	for _, row := range proyect.Data {
 		rowBytes, err := json.Marshal(row)
@@ -233,7 +238,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 			conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		}
 		conn.WriteMessage(websocket.TextMessage, rowBytes)
+		log.Println(string(rowBytes))
 	}
+	//------------------ Enviar la configuracion Gabriel ------------------//
 	configRoom := make(map[string]interface{})
 	configRoom["action"] = "settingsRoom"
 	configRoom["config"] = room.Config
@@ -245,10 +252,45 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	}
 	conn.WriteMessage(websocket.TextMessage, configBytes)
 
+	//----------------- Enviar la configuracion Update --------------------//
+	configRoom2 := make(map[string]interface{})
+	configRoom2["action"] = "header"
+	// Configuracion de las columnas de la tabla
+
+	datos := proyect.Config["columns"]
+
+	orden := []string{"Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"}
+
+	var claves []string
+	datosVal := reflect.ValueOf(datos)
+
+	if datosVal.Kind() == reflect.Map {
+		for _, clave := range orden {
+			valor := datosVal.MapIndex(reflect.ValueOf(clave))
+			if valor.IsValid() && valor.Interface().(bool) {
+				claves = append(claves, clave)
+			}
+		}
+	}
+	configRoom2["config"] = claves
+
+	configHeader, err := json.Marshal(configRoom2)
+	if err != nil {
+		errMessage := "Error: cannot sent room config"
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+	}
+
+	conn.WriteMessage(websocket.TextMessage, configHeader)
+	// log.Println("aAA")
+	// log.Println(claves)
+
+	// log.Println("////////////")
+	// log.Println(string(configBytes))
+
 	if err == nil {
 		//enviar datos actuales (no se que chucha con su front)
 		//conn.WriteMessage(websocket.TextMessage, []byte(dataBytes))
-		log.Printf("user %s: Permission %d", user, permission)
+		//log.Printf("user %s: Permission %d", user, permission)
 
 		for {
 			_, msg, err := conn.ReadMessage()
@@ -618,6 +660,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	}
 
 	conn.Close()
+	RemoveElement(roomID, conn)
 	return nil
 }
 
@@ -701,7 +744,9 @@ func instanceRoom(Id_project primitive.ObjectID,
 			Id_project: Id_project,
 			Data:       Data,
 			Config:     Config,
+			Active:     make([]*websocket.Conn, 0),
 		}
+
 		rooms[projectIDString] = room
 	}
 

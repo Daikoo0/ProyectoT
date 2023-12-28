@@ -59,14 +59,10 @@ const router = createBrowserRouter([
     element: <App/>,
   },
   {
-    path: "/prueba",
-    element: <Prueba />,
-  },
-  {
     path: "/editablegrid",
     element: <EditableGrid/>,
   },
-
+  
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
