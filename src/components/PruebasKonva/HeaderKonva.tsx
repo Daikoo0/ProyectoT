@@ -8,7 +8,7 @@ interface HeaderKonvaProps {
     width?: number;
     height?: number;
     columnIndex?: number;
-    header?: Array<string>;
+    value?: string;
 }
 
 // Barras de desplazamiento
@@ -58,45 +58,44 @@ const HeaderLines = ({ x, y, width, height, categories }) => {
         if (category.widthFactor === 0) {
 
             linesAndText.push(
-                <>
-                    <Line
-                        points={[linePosition, y + 42, linePosition, y + height / 2]}
-                        stroke="black"
-                        strokeWidth={1}
-                    />
-                    <Text
-                        rotation={270}
-                        x={linePosition - 5} // Ajusta esto para alinear el texto según necesites
-                        y={y + 40} // Posición vertical del texto, ajusta según sea necesario
-                        text={category.name}
-                        fontSize={11} // Ajusta el tamaño de fuente como necesites
-                        fill="black" // Color del texto
-                    // Puedes añadir otros estilos de texto como 'fontFamily', 'fontWeight', etc.
-                    />
-                </>
+                <Line
+                    points={[linePosition, y + 42, linePosition, y + height / 2]}
+                    stroke="black"
+                    strokeWidth={1}
+                />
+            )
+            linesAndText.push(
+                <Text
+                    rotation={270}
+                    x={linePosition - 5} // Ajusta esto para alinear el texto según necesites
+                    y={y + 40} // Posición vertical del texto, ajusta según sea necesario
+                    text={category.name}
+                    fontSize={11} // Ajusta el tamaño de fuente como necesites
+                    fill="black" // Color del texto
+                // Puedes añadir otros estilos de texto como 'fontFamily', 'fontWeight', etc.
+                />
             )
 
         } else {
             linesAndText.push(
-                <>
-                    <Line
-                        points={[linePosition, y + 95, linePosition, y + 110]}
-                        stroke="black"
-                        strokeWidth={1}
-                    />
-                    <Text
-                        rotation={270}
-                        x={linePosition - 5} // Ajusta esto para alinear el texto según necesites
-                        y={y + 95} // Posición vertical del texto, ajusta según sea necesario
-                        text={category.name}
-                        fontSize={11} // Ajusta el tamaño de fuente como necesites
-                        fill="black" // Color del texto
-                    />
-                </>
+                <Line
+                    points={[linePosition, y + 95, linePosition, y + 110]}
+                    stroke="black"
+                    strokeWidth={1}
+                />
+            )
+            linesAndText.push(
+                <Text
+                    rotation={270}
+                    x={linePosition - 5} // Ajusta esto para alinear el texto según necesites
+                    y={y + 95} // Posición vertical del texto, ajusta según sea necesario
+                    text={category.name}
+                    fontSize={11} // Ajusta el tamaño de fuente como necesites
+                    fill="black" // Color del texto
+                />
+
             )
         }
-
-
 
         x = linePosition;
     }
@@ -105,9 +104,9 @@ const HeaderLines = ({ x, y, width, height, categories }) => {
 };
 
 
-const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, header, onResize }) => {
+const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, value, onResize }) => {
     const halfWidth = width / 2;
-    const text = header[columnIndex];
+    const text = value;
     const fill = "#eee";
 
     return (
@@ -154,15 +153,6 @@ const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width,
                         { name: 'rud & \nbound', widthFactor: 0 },
                         { name: 'boul', widthFactor: 0.08 },
                     ]}
-                // limestones={[
-                //     // { name: 'border', widthFactor: 0 },
-                //     { name: 'mud', widthFactor: 0.18 },
-                //     { name: 'wacke', widthFactor: 0.08 },
-                //     { name: 'pack', widthFactor: 0.16 },
-                //     { name: 'grain', widthFactor: 0.16 },
-                //     { name: 'rud & bound', widthFactor: 0.16 },
-
-                // ]}
                 />
 
 

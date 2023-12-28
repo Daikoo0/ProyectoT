@@ -112,7 +112,19 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 	data_project := &models.Data_project{
 		Id_project: roomID,
-		Data:       []map[string]interface{}{},
+		Data: map[string]interface{}{
+
+			"Sistema":                 map[int]interface{}{}, // Mapa de enteros a interfaces
+			"Edad":                    map[int]interface{}{},
+			"Formacion":               map[int]interface{}{},
+			"Miembro":                 map[int]interface{}{},
+			"Espesor":                 map[int]interface{}{},
+			"Litologia":               map[int]interface{}{},
+			"Estructura fosil":        map[int]interface{}{},
+			"Facie":                   map[int]interface{}{},
+			"Ambiente Depositacional": map[int]interface{}{},
+			"Descripcion":             map[int]interface{}{},
+		},
 		Config: map[string]interface{}{
 			"columns": map[string]bool{
 				"Sistema":                 true,
@@ -156,7 +168,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 	return nil
 }
-func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
+func (r *repo) SaveRoom(ctx context.Context, data map[string]interface{}, config map[string]interface{}, roomName string) error {
 	objectID, err := primitive.ObjectIDFromHex(roomName)
 	filter := bson.M{"id_project": objectID}
 	update := bson.M{"$set": bson.M{

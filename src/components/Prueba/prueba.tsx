@@ -56,7 +56,7 @@ const App = () => {
   const [lastPositionID, setLastPositionID] = useState({ x: 200, y: 200 });
 
   //Figuras / Poligonos 
-  const [Header, setHeader] = useState([]); 
+  const [Header, setHeader] = useState([]);
   const [shapes, setShapes] = useState([]);
 
   // Index / ID de la Figura / Poligono
@@ -80,9 +80,12 @@ const App = () => {
 
 
   const getCellValue = useCallback(
-    ({ rowIndex, columnIndex }) => data[`${rowIndex},${columnIndex}`],
+    ({ rowIndex, columnIndex }) => {
+        const key = Header[columnIndex];
+        return data[key] && data[key][rowIndex];
+    },
     [data]
-  );
+);
 
   //---------------// PATRONES Y EDICION //---------------//
 
@@ -215,7 +218,7 @@ const App = () => {
               </div>
               <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
 
-                {Object.keys(initialTexts).map((key) => {
+                {/* {Object.keys(initialTexts).map((key) => {
                   const item = initialTexts[key];
                   if (item.optional) {
                     return (
@@ -237,7 +240,7 @@ const App = () => {
                     );
                   }
 
-                })}
+                })} */}
               </ul>
             </div>
 
@@ -312,45 +315,19 @@ const App = () => {
         const shapeN = JSON.parse(event.data);
         console.log(shapeN)
 
-        // action='añadir', id, polygon, text
-        if (shapeN.action === 'añadir') {
+        switch (shapeN.action) {
+          case 'data':
+            setData(shapeN.data)
+            setHeader(shapeN.config)
+            setColumnCount(shapeN.config.length)
+            break;
+          
 
-          setShapes(prevShapes => [...prevShapes, shapeN]);
-          console.log("shapeN")
-
-          // action='polygon', id, polygon
-        } else if (shapeN.action === 'header'){
-          setHeader(shapeN.config)
-          setColumnCount(shapeN.config.length)
-
-        }else if (shapeN.action === 'polygon') {
-          setShapes(prevShapes =>
-            prevShapes.map(shape =>
-              shape.id === shapeN.id ? { ...shape, polygon: shapeN.polygon } : shape
-            )
-          );
-          // action='text', id, text
-        } else if (shapeN.action === 'text') {
-          setShapes(prevShapes =>
-            prevShapes.map(shape =>
-              shape.id === shapeN.id ? { ...shape, text: shapeN.text } : shape
-            )
-          );
-
-          // action='config', config
-        } else if (shapeN.action === 'settingsRoom') {
-
-          //console.log(shapeN)
-          setConfig(shapeN);
-
-          // action='delete', id, 
-        } else if (shapeN.action === 'delete') {
-          setShapes(prevShapes =>
-            prevShapes.filter(shape => shape.id !== shapeN.id)
-          );
-        } else if (shapeN.action === 'heightShape') {
-          console.log(shapeN)
+          default:
+          // Manejar cualquier situación no contemplada
+          break;
         }
+
       };
 
       //use efect mio detecta si se presiona el control Z
@@ -400,7 +377,7 @@ const App = () => {
     gridRef,
     rowCount,
     columnCount,
-    getValue: ({ rowIndex, columnIndex }) => data[`${rowIndex},${columnIndex}`],
+    getValue: getCellValue,
     // Otras funciones opcionales como onFill, onSelect, etc.
   });
 
@@ -411,21 +388,31 @@ const App = () => {
     selections,
     activeCell,
     getValue: getCellValue,
-  
+
     onSubmit: (value, { rowIndex, columnIndex }, nextActiveCell) => {
       console.log('On submit');
-      console.log(data)
-      setData((prev) => ({ ...prev, [`${rowIndex},${columnIndex}`]: value }));
+      console.log(data);
+    
+      setData(prev => {
+        const newData = { ...prev };
+        const key = Header[columnIndex];
+        newData[key] = { ...newData[key], [rowIndex]: value };
+    
+        return newData;
+      });
+    
       gridRef.current.resizeColumns([columnIndex]);
-
-      /* Select the next cell */
+    
+      // Seleccionar la siguiente celda
       if (nextActiveCell) {
         setActiveCell(nextActiveCell);
       }
     },
     canEdit: ({ rowIndex, columnIndex }) => {
       console.log('Can edit', columnIndex, rowIndex);
+      console.log(data)
       if (rowIndex === 0) return false;
+      if (Header[columnIndex] === "Litologia") return false;
       return true;
     },
     onDelete: (activeCell, selections) => {
@@ -488,9 +475,9 @@ const App = () => {
     ...safeProps
   } = editableProps;
 
-
+  // Por Modificar 
   const addShape = () => {
-    console.log("dadsdsa")
+    //console.log("dadsdsa")
     setRowCount(prevRowCount => prevRowCount + 1)
     const send = {
       action: "añadir",
@@ -508,100 +495,99 @@ const App = () => {
   // Renderizado de la Grilla
   return (
     <>
-    <div>
+      <div>
 
-      <OptionsBar /> 
-      
-  
-      <div style={{ display: "flex", flexDirection: "column", position: "absolute"}}>
-      
-        <Grid
-          ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
-          width={width} // Ancho Stage
-          height={height} // Altura Stage
-          columnCount={columnCount} // Número total de columnas
-          rowCount={rowCount} // Número total de filas
-          frozenRows={frozenRows}
-          columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-          rowHeight={(index) => {
+        <OptionsBar />
 
-            if (index === 0) return 110;
-            return 100;
-          }}
-          //rowHeight={() => 40} // Altura de las filas en la grilla principal
-          activeCell={activeCell}
-          //frozenColumns={frozenColumns} // Número de columnas congeladas
-          //itemRenderer={Cell} // Renderizador personalizado para las celdas de la grilla
-          itemRenderer={(props) => {
-            //console.log(props)
-            if (props.rowIndex === 0) {
 
-              // Renderizar el Encabezado para la primera fila
-              return (
-                <HeaderKonva
-                  header={Header}
-                  onResize={handleResize}
-                  {...props}
-                />
-              )
-            } else {
-              // Renderizar celdas normales para el resto de la grilla
+        <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
 
-              if (Header[props.columnIndex] === "Litologia") {
+          <Grid
+            ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
+            width={width} // Ancho Stage
+            height={height} // Altura Stage
+            columnCount={columnCount} // Número total de columnas
+            rowCount={rowCount} // Número total de filas
+            frozenRows={frozenRows}
+            columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+            rowHeight={(index) => {
+              if (index === 0) return 110;
+              return 100;
+            }}
+            //rowHeight={() => 40} // Altura de las filas en la grilla principal
+            activeCell={activeCell}
+            //frozenColumns={frozenColumns} // Número de columnas congeladas
+            //itemRenderer={Cell} // Renderizador personalizado para las celdas de la grilla
+            itemRenderer={(props) => {
+              //console.log(props)
+              if (props.rowIndex === 0) {
 
+                // Renderizar el Encabezado para la primera fila
                 return (
-                  <Cell
-                    value={polygons[`${props.rowIndex},${props.columnIndex}`]}
-                    x={props.x}
-                    y={props.y}
-                    width={props.width}
-                    height={props.height}
+                  <HeaderKonva
+                    value={Header[props.columnIndex]}
+                    onResize={handleResize}
                     {...props}
                   />
-                );
-
+                )
               } else {
-                return (
-                  <DefaultCell
-                    value={data[`${props.rowIndex},${props.columnIndex}`]}
-                    align="center"
-                    fill="white"
-                    stroke="blue"
-                    fontSize={12}
-                    {...props}
-                  />
-                );
-              }
-              // <Cell
-              //   value={data[`${props.rowIndex},${props.columnIndex}`]}
-              //   height={props.height}
-              //   x={props.x}
-              //   y={props.y} 
-              //   width={props.width}
-              //   {...props}
-              // />
+                // Renderizar celdas normales para el resto de la grilla
+                if (Header[props.columnIndex] === "Litologia") {
 
-            }
-          }}
-          //{...selectionProps} // Propiedades del hook useSelection
-          //{...editableProps} // Editar lo que esta en la celda
-          {...safeProps}
-          //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
-          
-          //Permite el cuadro azul que muestra la selección
-          onKeyDown={(...args) => {
-            selectionProps.onKeyDown(...args);
-            editableProps.onKeyDown(...args);
-          }}
-          onMouseDown={(...args) => {
-            selectionProps.onMouseDown(...args);
-            editableProps.onMouseDown(...args);
-          }}
-        />
-        {editorComponent}
-        
+                  return (
+                    <Cell
+                      value={polygons[`${props.rowIndex},${props.columnIndex}`]}
+                      x={props.x}
+                      y={props.y}
+                      width={props.width}
+                      height={props.height}
+                      {...props}
+                    />
+                  );
+
+                } else {
+                  //const puntero = 
+                  return (
+                    <DefaultCell
+                      value={data[Header[props.columnIndex]][props.rowIndex]}
+                      align="center"
+                      fill="white"
+                      stroke="blue"
+                      fontSize={12}
+                      {...props}
+                    />
+                  );
+                }
+                // <Cell
+                //   value={data[`${props.rowIndex},${props.columnIndex}`]}
+                //   height={props.height}
+                //   x={props.x}
+                //   y={props.y} 
+                //   width={props.width}
+                //   {...props}
+                // />
+
+              }
+            }}
+            //{...selectionProps} // Propiedades del hook useSelection
+            //{...editableProps} // Editar lo que esta en la celda
+            {...safeProps}
+            //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
+
+            //Permite el cuadro azul que muestra la selección
+            onKeyDown={(...args) => {
+              selectionProps.onKeyDown(...args);
+              editableProps.onKeyDown(...args);
+            }}
+            onMouseDown={(...args) => {
+              selectionProps.onMouseDown(...args);
+              editableProps.onMouseDown(...args);
+            }}
+          />
+          {editorComponent}
+
+        </div>
       </div>
-    </div>
     </>
   );
 };

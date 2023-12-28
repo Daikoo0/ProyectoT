@@ -36,7 +36,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/editor/:project",
-    element: <AuthMiddleware> <Editor/> </AuthMiddleware>,
+    element: <AuthMiddleware> <Prueba/></AuthMiddleware>,
   },
   {
     path: "/invite/:project",
@@ -44,7 +44,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/prueba/:project",
-    element: <AuthMiddleware><Prueba/></AuthMiddleware>,
+    element: <AuthMiddleware><Editor/></AuthMiddleware>,
   },
   {
     path: "/create",

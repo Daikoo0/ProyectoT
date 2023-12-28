@@ -10,7 +10,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 // }
 
 type Data struct {
-	ID 			 primitive.ObjectID `bson:"_id,omitempty"`
+	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	Name         string
 	Owner        string
 	Members      map[string]interface{}
@@ -24,6 +24,6 @@ type Data struct {
 
 type Data_project struct {
 	Id_project primitive.ObjectID
-	Data       []map[string]interface{}
+	Data       map[string]interface{}
 	Config     map[string]interface{}
 }

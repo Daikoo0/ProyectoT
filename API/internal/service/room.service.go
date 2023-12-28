@@ -45,7 +45,7 @@ func (s *serv) CreateRoom(ctx context.Context, roomName string, name string, cor
 	return s.repo.CreateRoom(ctx, roomName, name, correo, desc, location, lat, long, visible)
 }
 
-func (s *serv) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
+func (s *serv) SaveRoom(ctx context.Context, data map[string]interface{}, config map[string]interface{}, roomName string) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
 	return s.repo.SaveRoom(ctx, data, config, roomName)
