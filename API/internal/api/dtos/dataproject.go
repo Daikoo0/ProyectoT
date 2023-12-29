@@ -16,3 +16,11 @@ type EditText struct {
 }
 
 // Case add
+
+type Add struct {
+	Id     string `json:"id"`
+	X      int    `json:"x"`
+	Y      int    `json:"y"`
+	Height int    `json:"height"`
+	Width  int    `json:"width"`
+}

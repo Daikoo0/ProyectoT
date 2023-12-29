@@ -281,100 +281,78 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				// Switch para las acciones
 				switch dataMap.Action {
-				// case "añadir":
+				case "añadir":
 
-				// 	if val, ok := dataMap["id"]; ok && val != nil {
-				// 		idPolygon := int(val.(float64))
-				// 		XPolygon := dataMap["x"].(float64)
-				// 		YPolygon := dataMap["y"].(float64)
-				// 		height := dataMap["height"].(float64)
-				// 		width := dataMap["width"].(float64)
+					var addData dtos.Add
 
-				// 		log.Println("agregar")
+					err := json.Unmarshal(dataMap.Data, &addData)
+					if err != nil {
+						log.Println("Error")
+					}
 
-				// 		type Property struct {
-				// 			Content  string
-				// 			Optional bool
-				// 			Vertical bool
-				// 		}
+					//if val, ok := addData.Id; ok && val != nil {
+					idPolygon := addData.Id
+					XPolygon := addData.X
+					YPolygon := addData.Y
+					height := addData.Height
+					width := addData.Width
 
-				// 		initialTexts := map[string]Property{
-				// 			"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
-				// 			"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
-				// 			"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
-				// 			"Formación":                {Content: "vacío", Optional: true, Vertical: true},
-				// 			"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
-				// 			"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
-				// 			"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
-				// 			"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
-				// 		}
+					log.Println("agregar")
 
-				// 		type Circle struct {
-				// 			X       float64
-				// 			Y       float64
-				// 			Radius  float64
-				// 			Movable bool
-				// 		}
+					type Property struct {
+						Content  string
+						Optional bool
+						Vertical bool
+					}
 
-				// 		// Define la estructura para un Polígono.
-				// 		type Polygon struct {
-				// 			X           float64
-				// 			Y           float64
-				// 			ColorFill   string
-				// 			ColorStroke string
-				// 			Zoom        float64
-				// 			Rotation    float64
-				// 			Tension     float64
-				// 			File        int
-				// 			FileOption  int
-				// 			Height      float64
-				// 			Circles     []Circle
-				// 		}
+					initialTexts := map[string]Property{
+						"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
+						"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
+						"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
+						"Formación":                {Content: "vacío", Optional: true, Vertical: true},
+						"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
+						"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
+						"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
+						"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
+					}
 
-				// 		// Define la estructura principal.
-				// 		type Shape struct {
-				// 			Id      int
-				// 			Polygon Polygon
-				// 			Text    map[string]Property
-				// 		}
+					newShape := map[string]interface{}{
+						"id": idPolygon, // numero de fila
+						"Polygon": map[string]interface{}{
+							"x":           0,
+							"y":           0,
+							"ColorFill":   "white",
+							"colorStroke": "black",
+							"zoom":        100,
+							"rotation":    0,
+							"tension":     0.5,
+							"file":        0,
+							"fileOption":  0,
+							"height":      100,
+							"circles": []map[string]interface{}{
+								{"x": XPolygon, "y": YPolygon, "radius": 5, "movable": false},
+								{"x": XPolygon + width, "y": YPolygon, "radius": 5, "movable": true},
+								{"x": XPolygon + width, "y": YPolygon + height, "radius": 5, "movable": true},
+								{"x": XPolygon, "y": YPolygon + height, "radius": 5, "movable": false},
+							},
+						},
+						"Text": initialTexts,
+					}
+					jsonBytes, err := json.Marshal(newShape)
+					if err != nil {
+						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+					}
 
-				// 		newShape := Shape{
-				// 			Id: idPolygon, // numero de fila
-				// 			Polygon: Polygon{
-				// 				X:           0,
-				// 				Y:           0,
-				// 				ColorFill:   "white",
-				// 				ColorStroke: "black",
-				// 				Zoom:        100,
-				// 				Rotation:    0,
-				// 				Tension:     0.5,
-				// 				File:        0,
-				// 				FileOption:  0,
-				// 				Height:      100,
-				// 				Circles: []Circle{
-				// 					{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
-				// 					{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
-				// 					{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
-				// 					{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
-				// 				},
-				// 			},
-				// 			Text: initialTexts,
-				// 		}
-				// 		jsonBytes, err := json.Marshal(newShape)
-				// 		if err != nil {
-				// 			log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-				// 		}
-
-				// 		for _, client := range proyect.Active {
-				// 			err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-				// 			if err != nil {
-				// 				log.Println(err)
-				// 			}
-				// 		}
-				// 	} else {
-				// 		// Manejar el error o el caso de valor nulo
-				// 		log.Println(val, ok)
-				// 	}
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+						if err != nil {
+							log.Println(err)
+						}
+					}
+					// } else {
+					// 	// Manejar el error o el caso de valor nulo
+					// 	log.Println(val, ok)
+					// }
 
 				case "editText":
 
