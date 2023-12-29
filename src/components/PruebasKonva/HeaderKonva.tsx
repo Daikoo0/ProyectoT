@@ -103,6 +103,8 @@ const HeaderLines = ({ x, y, width, height, categories }) => {
     return <Group>{linesAndText}</Group>;
 };
 
+const MIN_WIDTH = 100; // Ancho mínimo para las columnas
+const MAX_WIDTH = 500; // Ancho máximo para las columnas
 
 const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, value, onResize }) => {
     const halfWidth = width / 2;
@@ -164,8 +166,20 @@ const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width,
                 height={height}
                 onDragMove={(e) => {
                     const node = e.target;
-                    const newWidth = node.x() - x + dragHandleWidth;
-
+                    let newX = node.x();
+                    let newWidth = newX - x + dragHandleWidth;
+            
+                    // Asegurarse de que el nuevo ancho esté dentro de los límites
+                    if (newWidth > MAX_WIDTH) {
+                        newWidth = MAX_WIDTH;
+                        newX = x + newWidth - dragHandleWidth;
+                    } else if (newWidth < MIN_WIDTH) {
+                        newWidth = MIN_WIDTH;
+                        newX = x + newWidth - dragHandleWidth;
+                    }
+            
+                    // Actualizar la posición x del DraggableRect y el ancho de la columna
+                    node.x(newX);
                     onResize(columnIndex, newWidth);
                 }}
             />

@@ -475,12 +475,14 @@ const App = () => {
       //   );
       // } else 
       if (activeCell) {
-        setData((prev) => {
-          return {
-            ...prev,
-            [`${activeCell.rowIndex},${activeCell.columnIndex}`]: "",
-          };
-        });
+        socket.send(JSON.stringify({
+          action: 'editText',
+          data: {
+            "key": Header[activeCell.columnIndex],
+            "value": "",
+            "rowIndex": activeCell.rowIndex
+          }
+        }));
         gridRef.current.resetAfterIndices(activeCell);
       }
     },
@@ -591,6 +593,9 @@ const App = () => {
                       fill="white"
                       stroke="blue"
                       fontSize={12}
+                      wrap="word" // word: Texto entero, none: Texto hasta el borde
+                      
+                      //verticalAlign="top"
                       {...props}
                     />
                   );
