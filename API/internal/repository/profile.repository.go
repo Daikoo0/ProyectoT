@@ -56,7 +56,7 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	// Define el filtro usando bson.M en lugar de bson.D
 	filter := bson.M{
 		"_id": objectID,
@@ -78,8 +78,6 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 		}
 		return -1, err
 	}
-	log.Println("///////////////////////////////")
-	log.Println(room)
 
 	for i := 0; i < 3; i++ {
 		// Verificar si el índice existe en la lista de miembros
@@ -87,7 +85,7 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 			switch v := miembro.(type) {
 			case string:
 				if v == correo {
-					return i, nil 
+					return i, nil
 				}
 			case primitive.A:
 				for _, correoEnLista := range v {
@@ -98,7 +96,7 @@ func (r *repo) GetPermission(ctx context.Context, correo string, proyectID strin
 			}
 		}
 	}
-	return -1, nil // Correo no encontrado en ninguna lista	
+	return -1, nil // Correo no encontrado en ninguna lista
 }
 
 func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.Data, error) {
@@ -131,4 +129,3 @@ func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.Data, error
 	return projects, nil
 
 }
-	

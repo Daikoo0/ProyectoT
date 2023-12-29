@@ -54,7 +54,6 @@ const App = () => {
   const [heightShape, setHeight] = useState<number>(initialHeight);
 
   const [lastPositionID, setLastPositionID] = useState({ x: 200, y: 200 });
-
   //Figuras / Poligonos 
   const [Header, setHeader] = useState([]);
   const [shapes, setShapes] = useState([]);
@@ -81,11 +80,11 @@ const App = () => {
 
   const getCellValue = useCallback(
     ({ rowIndex, columnIndex }) => {
-        const key = Header[columnIndex];
-        return data[key] && data[key][rowIndex];
+      const key = Header[columnIndex];
+      return data[key] && data[key][rowIndex];
     },
     [data]
-);
+  );
 
   //---------------// PATRONES Y EDICION //---------------//
 
@@ -107,8 +106,8 @@ const App = () => {
 
   // websocket instanciacion
   const { project } = useParams();
-
-  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [socket, setSocket] = useState(null);
+  const isPageActive = useRef(true);
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -292,18 +291,35 @@ const App = () => {
 
   // Instancia del socket cuando se monta el componente
   useEffect(() => {
-    const newSocket = new WebSocket(`ws://localhost:3001/ws/${project}`);
-    setSocket(newSocket);
+    // Función para conectar el WebSocket
+    const connectWebSocket = () => {
+      const newSocket = new WebSocket(`ws://localhost:3001/ws/${project}`);
+      setSocket(newSocket);
 
-    newSocket.onclose = () => {
-      console.log('reconecting... Reconnect will be attempted in 1 second.');
-      setTimeout(() => {
-        setSocket(new WebSocket(`ws://localhost:3001/ws/${project}`));
-      }, 1000);
+      newSocket.onopen = () => {
+        console.log('Socket connected.');
+      };
+
+      newSocket.onclose = () => {
+        console.log('Socket closed.');
+        if (isPageActive.current) {
+          console.log('Attempting to reconnect in 3 second...');
+          setTimeout(() => {
+            if (isPageActive.current) {
+              connectWebSocket();
+            }
+          }, 3000);
+        }
+      };
     };
 
+    connectWebSocket();
+
     return () => {
-      newSocket.close();
+      isPageActive.current = false; // Indica que la página ya no está activa
+      if (socket) {
+        socket.close();
+      }
     };
   }, [project]);
 
@@ -321,11 +337,20 @@ const App = () => {
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
             break;
-          
+
+          case 'editText':
+            setData(prev => {
+              const newData = { ...prev };
+              const key = shapeN.key;
+              newData[key] = { ...newData[key], [shapeN.rowIndex]: shapeN.value };
+
+              return newData;
+            });
+            break
 
           default:
-          // Manejar cualquier situación no contemplada
-          break;
+            // Manejar cualquier situación no contemplada
+            break;
         }
 
       };
@@ -339,7 +364,8 @@ const App = () => {
       document.addEventListener("keydown", handleKeyDown);
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
-        socket.close(), socket.send(JSON.stringify({ action: 'close' })), document.removeEventListener("keydown", handleKeyDown);
+        socket.close(), 
+        document.removeEventListener("keydown", handleKeyDown);
 
       };
     }
@@ -392,17 +418,28 @@ const App = () => {
     onSubmit: (value, { rowIndex, columnIndex }, nextActiveCell) => {
       console.log('On submit');
       console.log(data);
-    
-      setData(prev => {
-        const newData = { ...prev };
-        const key = Header[columnIndex];
-        newData[key] = { ...newData[key], [rowIndex]: value };
-    
-        return newData;
-      });
-    
+
+      // Actualizar el estado con el nuevo valor, local
+      // setData(prev => {
+      //   const newData = { ...prev };
+      //   const key = Header[columnIndex];
+      //   newData[key] = { ...newData[key], [rowIndex]: value };
+
+      //   return newData;
+      // });
+      console.log(Header[columnIndex], value, rowIndex)
+      // Enviar el nuevo valor al socket
+      socket.send(JSON.stringify({
+        action: 'editText',
+        data: {
+          "key": Header[columnIndex],
+          "value": value,
+          "rowIndex": rowIndex
+        }
+      }));
+
       gridRef.current.resizeColumns([columnIndex]);
-    
+
       // Seleccionar la siguiente celda
       if (nextActiveCell) {
         setActiveCell(nextActiveCell);

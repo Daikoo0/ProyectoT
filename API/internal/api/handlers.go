@@ -3,9 +3,9 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"time"
 
@@ -20,6 +20,11 @@ import (
 
 type responseMessage struct {
 	Message string `json:"message"`
+}
+
+type GeneralMessage struct {
+	Action string          `json:"action"`
+	Data   json.RawMessage `json:"data"`
 }
 
 type ProjectResponse struct {
@@ -220,39 +225,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		room.Config)
 	proyect.Active = append(proyect.Active, conn)
 
-	log.Println(proyect.Data["Edad"])
+	log.Println(proyect.Active)
 
-	/////////////////////////////////
-	//enviar los datos que hay en la base de datos
-	// for _, row := range proyect.Data {
-	// 	rowBytes, err := json.Marshal(row)
-	// 	if err != nil {
-	// 		errMessage := "Error: Incorrect format"
-	// 		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
-	// 	}
-	// 	conn.WriteMessage(websocket.TextMessage, rowBytes)
-
-	// }
-	//------------------ Enviar la configuracion Gabriel ------------------//
-	// configRoom := make(map[string]interface{})
-	// configRoom["action"] = "settingsRoom"
-	// configRoom["config"] = room.Config
-
-	// configBytes, err := json.Marshal(configRoom)
-	// if err != nil {
-	// 	errMessage := "Error: cannot sent room config"
-	// 	conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
-	// }
-	// conn.WriteMessage(websocket.TextMessage, configBytes)
-
-	//----------------- Enviar la configuracion Update --------------------//
-	// configRoom2 := make(map[string]interface{})
-	// configRoom2["action"] = "header"
-
-	dataRoom := make(map[string]interface{})
-	dataRoom["action"] = "data"
-	dataRoom["data"] = proyect.Data
-
+	// Sacamos la conf y la transformamos a []
 	datos := proyect.Config["columns"].(map[string]interface{})
 
 	orden := []string{"Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"}
@@ -268,14 +243,18 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		}
 	}
 
-	dataRoom["config"] = claves
-
+	// Enviar configuracion y datos de la sala
+	dataRoom := map[string]interface{}{
+		"action": "data",
+		"data":   proyect.Data,
+		"config": claves,
+	}
+	// Trnasformar el mapa a JSON y envio a clientes
 	databytes, err := json.Marshal(dataRoom)
 	if err != nil {
 		errMessage := "Error: cannot sent room config"
 		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 	}
-
 	conn.WriteMessage(websocket.TextMessage, databytes)
 
 	if err == nil {
@@ -290,9 +269,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 			}
 
 			if permission != 2 {
-				var dataMap map[string]interface{}
+				var dataMap GeneralMessage
 				err := json.Unmarshal([]byte(msg), &dataMap)
-				undo := true
+				//undo := true
 				if err != nil {
 					log.Println("le falta el id a la wea")
 					log.Fatal(err)
@@ -301,118 +280,152 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				log.Println(dataMap) // Informacion recibida
 
 				// Switch para las acciones
-				switch dataMap["action"] {
-				case "añadir":
+				switch dataMap.Action {
+				// case "añadir":
 
-					if val, ok := dataMap["id"]; ok && val != nil {
-						idPolygon := int(val.(float64))
-						XPolygon := dataMap["x"].(float64)
-						YPolygon := dataMap["y"].(float64)
-						height := dataMap["height"].(float64)
-						width := dataMap["width"].(float64)
+				// 	if val, ok := dataMap["id"]; ok && val != nil {
+				// 		idPolygon := int(val.(float64))
+				// 		XPolygon := dataMap["x"].(float64)
+				// 		YPolygon := dataMap["y"].(float64)
+				// 		height := dataMap["height"].(float64)
+				// 		width := dataMap["width"].(float64)
 
-						log.Println("agregar")
+				// 		log.Println("agregar")
 
-						type Property struct {
-							Content  string
-							Optional bool
-							Vertical bool
-						}
+				// 		type Property struct {
+				// 			Content  string
+				// 			Optional bool
+				// 			Vertical bool
+				// 		}
 
-						initialTexts := map[string]Property{
-							"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
-							"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
-							"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
-							"Formación":                {Content: "vacío", Optional: true, Vertical: true},
-							"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
-							"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
-							"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
-							"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
-						}
+				// 		initialTexts := map[string]Property{
+				// 			"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
+				// 			"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
+				// 			"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
+				// 			"Formación":                {Content: "vacío", Optional: true, Vertical: true},
+				// 			"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
+				// 			"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
+				// 			"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
+				// 			"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
+				// 		}
 
-						type Circle struct {
-							X       float64
-							Y       float64
-							Radius  float64
-							Movable bool
-						}
+				// 		type Circle struct {
+				// 			X       float64
+				// 			Y       float64
+				// 			Radius  float64
+				// 			Movable bool
+				// 		}
 
-						// Define la estructura para un Polígono.
-						type Polygon struct {
-							X           float64
-							Y           float64
-							ColorFill   string
-							ColorStroke string
-							Zoom        float64
-							Rotation    float64
-							Tension     float64
-							File        int
-							FileOption  int
-							Height      float64
-							Circles     []Circle
-						}
+				// 		// Define la estructura para un Polígono.
+				// 		type Polygon struct {
+				// 			X           float64
+				// 			Y           float64
+				// 			ColorFill   string
+				// 			ColorStroke string
+				// 			Zoom        float64
+				// 			Rotation    float64
+				// 			Tension     float64
+				// 			File        int
+				// 			FileOption  int
+				// 			Height      float64
+				// 			Circles     []Circle
+				// 		}
 
-						// Define la estructura principal.
-						type Shape struct {
-							Id      int
-							Polygon Polygon
-							Text    map[string]Property
-						}
+				// 		// Define la estructura principal.
+				// 		type Shape struct {
+				// 			Id      int
+				// 			Polygon Polygon
+				// 			Text    map[string]Property
+				// 		}
 
-						newShape := Shape{
-							Id: idPolygon, // numero de fila
-							Polygon: Polygon{
-								X:           0,
-								Y:           0,
-								ColorFill:   "white",
-								ColorStroke: "black",
-								Zoom:        100,
-								Rotation:    0,
-								Tension:     0.5,
-								File:        0,
-								FileOption:  0,
-								Height:      100,
-								Circles: []Circle{
-									{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
-									{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
-									{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
-									{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
-								},
-							},
-							Text: initialTexts,
-						}
-						jsonBytes, err := json.Marshal(newShape)
-						if err != nil {
-							log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-						}
+				// 		newShape := Shape{
+				// 			Id: idPolygon, // numero de fila
+				// 			Polygon: Polygon{
+				// 				X:           0,
+				// 				Y:           0,
+				// 				ColorFill:   "white",
+				// 				ColorStroke: "black",
+				// 				Zoom:        100,
+				// 				Rotation:    0,
+				// 				Tension:     0.5,
+				// 				File:        0,
+				// 				FileOption:  0,
+				// 				Height:      100,
+				// 				Circles: []Circle{
+				// 					{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
+				// 					{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
+				// 					{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
+				// 					{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
+				// 				},
+				// 			},
+				// 			Text: initialTexts,
+				// 		}
+				// 		jsonBytes, err := json.Marshal(newShape)
+				// 		if err != nil {
+				// 			log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+				// 		}
 
-						for _, client := range proyect.Active {
-							err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-							if err != nil {
-								log.Println(err)
-							}
-						}
-					} else {
-						// Manejar el error o el caso de valor nulo
-						log.Println(val, ok)
-					}
+				// 		for _, client := range proyect.Active {
+				// 			err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+				// 			if err != nil {
+				// 				log.Println(err)
+				// 			}
+				// 		}
+				// 	} else {
+				// 		// Manejar el error o el caso de valor nulo
+				// 		log.Println(val, ok)
+				// 	}
 
-				case "test":
-					log.Println("testiando")
+				case "editText":
 
-				}
-				if dataMap["action"] == "undo" {
-					log.Println("deshacer")
-					temp, err := rooms[roomID].Temp.Pop() // esto estaba con el nombre no con la id
-					log.Println(temp)
+					var editTextData dtos.EditText
+					err := json.Unmarshal(dataMap.Data, &editTextData)
 					if err != nil {
-						errMessage := "Error: la pila esta vacia"
-						log.Println(errMessage)
-					} else {
-						dataMap = temp
-						undo = false
+						log.Println("Error")
 					}
+
+					key := editTextData.Key
+					value := editTextData.Value
+					rowIndex := editTextData.RowIndex
+
+					//Modificamos el valor del texto, en rooms
+					innerMap := rooms[roomID].Data[key].(map[string]interface{})
+					innerMap[strconv.Itoa(rowIndex)] = value
+
+					// Enviar informacion a los clientes
+					msgData := map[string]interface{}{
+						"action":   "editText",
+						"key":      key,
+						"value":    value,
+						"rowIndex": rowIndex,
+					}
+
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println(err)
+						}
+					}
+
 				}
+
+				// if dataMap["action"] == "undo" {
+				// 	log.Println("deshacer")
+				// 	temp, err := rooms[roomID].Temp.Pop() // esto estaba con el nombre no con la id
+				// 	log.Println(temp)
+				// 	if err != nil {
+				// 		errMessage := "Error: la pila esta vacia"
+				// 		log.Println(errMessage)
+				// 	} else {
+				// 		dataMap = temp
+				// 		undo = false
+				// 	}
+				// }
 
 				// if dataMap["action"] == "delete" {
 				// 	id := int(dataMap["id"].(float64))
@@ -455,90 +468,90 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				// 	}
 
 				// }
-				if dataMap["action"] == "text" {
-					id := int(dataMap["id"].(float64))
-					log.Printf("Editando texto capa %s", string(rune(id)))
+				// if dataMap["action"] == "text" {
+				// 	id := int(dataMap["id"].(float64))
+				// 	log.Printf("Editando texto capa %s", string(rune(id)))
 
-					if undo {
-						temporal := make(map[string]interface{})
-						temporal["action"] = "text"
-						temporal["id"] = float64(id)
-						temporal["text"] = rooms[roomID].Data["text"]
+				// 	if undo {
+				// 		temporal := make(map[string]interface{})
+				// 		temporal["action"] = "text"
+				// 		temporal["id"] = float64(id)
+				// 		temporal["text"] = rooms[roomID].Data["text"]
 
-						rooms[roomID].Temp.Push(temporal)
-					}
-					rooms[roomID].Data["text"] = dataMap["text"]
+				// 		rooms[roomID].Temp.Push(temporal)
+				// 	}
+				// 	rooms[roomID].Data["text"] = dataMap["text"]
 
-					responseJSON, err := json.Marshal(dataMap)
-					if err != nil {
-						log.Println("Error al convertir a JSON:", err)
-					}
+				// 	responseJSON, err := json.Marshal(dataMap)
+				// 	if err != nil {
+				// 		log.Println("Error al convertir a JSON:", err)
+				// 	}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-						if err != nil {
-							log.Println(err)
-						}
-					}
-				}
+				// 	for _, client := range proyect.Active {
+				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+				// 		if err != nil {
+				// 			log.Println(err)
+				// 		}
+				// 	}
+				// }
 
-				if dataMap["action"] == "polygon" {
-					id := int(dataMap["id"].(float64))
-					log.Println(id)
-					log.Printf("Editando polygon capa %s", fmt.Sprint(id))
+				// if dataMap["action"] == "polygon" {
+				// 	id := int(dataMap["id"].(float64))
+				// 	log.Println(id)
+				// 	log.Printf("Editando polygon capa %s", fmt.Sprint(id))
 
-					if undo {
-						temporal := make(map[string]interface{})
-						temporal["action"] = "polygon"
-						temporal["id"] = float64(id)
-						temporal["polygon"] = rooms[roomID].Data["polygon"]
+				// 	if undo {
+				// 		temporal := make(map[string]interface{})
+				// 		temporal["action"] = "polygon"
+				// 		temporal["id"] = float64(id)
+				// 		temporal["polygon"] = rooms[roomID].Data["polygon"]
 
-						rooms[roomID].Temp.Push(temporal)
-					}
+				// 		rooms[roomID].Temp.Push(temporal)
+				// 	}
 
-					rooms[roomID].Data["polygon"] = dataMap["polygon"]
+				// 	rooms[roomID].Data["polygon"] = dataMap["polygon"]
 
-					responseJSON, err := json.Marshal(dataMap)
-					if err != nil {
-						log.Println("Error al convertir a JSON:", err)
-					}
+				// 	responseJSON, err := json.Marshal(dataMap)
+				// 	if err != nil {
+				// 		log.Println("Error al convertir a JSON:", err)
+				// 	}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-						log.Println(string(responseJSON))
-						if err != nil {
-							log.Println(err)
-						}
-					}
-				}
+				// 	for _, client := range proyect.Active {
+				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+				// 		log.Println(string(responseJSON))
+				// 		if err != nil {
+				// 			log.Println(err)
+				// 		}
+				// 	}
+				// }
 
-				if dataMap["action"] == "settingsRoom" {
-					log.Printf("Editando config room")
+				// if dataMap["action"] == "settingsRoom" {
+				// 	log.Printf("Editando config room")
 
-					if undo {
-						temporal := make(map[string]interface{})
-						temporal["action"] = "settingsRoom"
-						temporal["config"] = rooms[roomID].Config
-						rooms[roomID].Temp.Push(temporal)
-					}
+				// 	if undo {
+				// 		temporal := make(map[string]interface{})
+				// 		temporal["action"] = "settingsRoom"
+				// 		temporal["config"] = rooms[roomID].Config
+				// 		rooms[roomID].Temp.Push(temporal)
+				// 	}
 
-					for key, newValue := range dataMap["config"].(map[string]interface{}) {
-						rooms[roomID].Config[key] = newValue
-					}
+				// 	for key, newValue := range dataMap["config"].(map[string]interface{}) {
+				// 		rooms[roomID].Config[key] = newValue
+				// 	}
 
-					responseJSON, err := json.Marshal(dataMap["config"])
-					if err != nil {
-						log.Println("Error al convertir a JSON:", err)
-					}
+				// 	responseJSON, err := json.Marshal(dataMap["config"])
+				// 	if err != nil {
+				// 		log.Println("Error al convertir a JSON:", err)
+				// 	}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-						log.Println(string(responseJSON))
-						if err != nil {
-							log.Println(err)
-						}
-					}
-				}
+				// 	for _, client := range proyect.Active {
+				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
+				// 		log.Println(string(responseJSON))
+				// 		if err != nil {
+				// 			log.Println(err)
+				// 		}
+				// 	}
+				// }
 
 				//if dataMap["action"] == "añadir" {
 				// 	id := int(dataMap["id"].(float64))
@@ -662,13 +675,13 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				// }
 
-				if dataMap["action"] == "save" {
-					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
-					if err != nil {
-						log.Println("No se guardo la data")
-					}
-				}
+				// if dataMap["action"] == "save" {
+				// 	log.Println("guardando...")
+				// 	err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
+				// 	if err != nil {
+				// 		log.Println("No se guardo la data")
+				// 	}
+				// }
 
 				// if dataMap["action"] == "height" {
 				// 	id := int(dataMap["id"].(float64)) // id de la capa seleccionada
