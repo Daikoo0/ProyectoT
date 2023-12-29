@@ -2,11 +2,14 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import Grid, { Cell as DefaultCell, useSelection, useEditable } from "@rowsncolumns/grid";
 import { Rect, Text, Group, Circle } from "react-konva";
 import HeaderKonva from "../PruebasKonva/HeaderKonva";
+import CellText from "../PruebasKonva/CellText";
 import Polygon2 from "./Polygon2";
 import Json from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
 import SelectTheme from "../Web/SelectTheme";
 import { useParams } from "react-router-dom";
+import Fosil from "../Editor/Fosil";
+import { Html } from "react-konva-utils";
 
 // Componente de Celda Personalizado
 const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
@@ -109,29 +112,30 @@ const App = () => {
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true);
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [fosils, setFosils] = useState([]);
 
 
-  const [config, setConfig] = useState(
-    {
-      action: 'settingsRoom',
-      config: {
-        columns: {
-          'Arcilla-Limo-Arena-Grava': { enabled: true },
-          'Sistema': { enabled: true },
-          'Edad': { enabled: true },
-          'Formación': { enabled: true },
-          'Miembro': { enabled: true },
-          'Estructuras y/o fósiles': { enabled: true, content: [], optional: true, vertical: false },// aqui
-          'Facie': { enabled: true },
-          'Ambiente depositacional': { enabled: true },
-          'Descripción': { enabled: true }
-        },
-        scale: 50,
-        // fosiles : { content: [], optional : true, vertical : false} 
-      }
-    }
-  )
+  // const [config, setConfig] = useState(
+  //   {
+  //     action: 'settingsRoom',
+  //     config: {
+  //       columns: {
+  //         'Arcilla-Limo-Arena-Grava': { enabled: true },
+  //         'Sistema': { enabled: true },
+  //         'Edad': { enabled: true },
+  //         'Formación': { enabled: true },
+  //         'Miembro': { enabled: true },
+  //         'Estructuras y/o fósiles': { enabled: true, content: [], optional: true, vertical: false },// aqui
+  //         'Facie': { enabled: true },
+  //         'Ambiente depositacional': { enabled: true },
+  //         'Descripción': { enabled: true }
+  //       },
+  //       scale: 50,
+  //       // fosiles : { content: [], optional : true, vertical : false} 
+  //     }
+  //   }
+  // )
 
   const HandleUndo = () => {
     console.log("deshacer")
@@ -159,19 +163,19 @@ const App = () => {
 
   const handleCheckBox = (e, column) => {
 
-    const prevConfigState = { ...config };
+    // const prevConfigState = { ...config };
 
-    if (e.target.checked) {
+    // if (e.target.checked) {
 
-      prevConfigState.config.columns[column].enabled = true;
-      setConfig(prevConfigState);
-      socket.send(JSON.stringify(prevConfigState));
+    //   prevConfigState.config.columns[column].enabled = true;
+    //   setConfig(prevConfigState);
+    //   socket.send(JSON.stringify(prevConfigState));
 
-    } else {
-      prevConfigState.config.columns[column].enabled = false;
-      setConfig(prevConfigState);
-      socket.send(JSON.stringify(prevConfigState));
-    }
+    // } else {
+    //   prevConfigState.config.columns[column].enabled = false;
+    //   setConfig(prevConfigState);
+    //   socket.send(JSON.stringify(prevConfigState));
+    // }
 
   }
 
@@ -179,8 +183,98 @@ const App = () => {
 
   // Seleccion de patron / Pattern
   const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
+  const [sideBar, setSideBar] = useState<boolean>(false);
 
   //const [newWidth, setNewWidth] = useState(100);
+
+
+  //---------// SLIDER //---------//
+  // Evento del slider de zoom 
+  const handleSliderZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSliderZoom(Number(event.target.value));
+    if (selectedShapeIndex !== null) {
+      const updatedShapes = [...shapes];
+      updatedShapes[selectedShapeIndex].polygon.zoom = Number(event.target.value);
+      //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+      setShapes(updatedShapes);
+    }
+  };
+
+  // Evento de slider de rotacion
+  const handleSliderRotation = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSliderRotation(Number(event.target.value));
+    if (selectedShapeIndex !== null) {
+      const updatedShapes = [...shapes];
+      updatedShapes[selectedShapeIndex].polygon.rotation = Number(event.target.value);
+      //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+      setShapes(updatedShapes);
+    }
+  };
+
+  const SliderDrop = () => {
+    if (selectedShapeIndex !== null) {
+      //socket.send(JSON.stringify(shapes[selectedShapeIndex]));
+
+      //sendSocket("polygon", selectedShapeIndex);
+
+    }
+  };
+
+  // Evento de slider de tension
+  const handleSliderTension = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSliderTension(Number(event.target.value));
+    if (selectedShapeIndex !== null) {
+      const updatedShapes = [...shapes];
+      updatedShapes[selectedShapeIndex].polygon.tension = Number(event.target.value);
+      // //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+      // setShapes(updatedShapes);
+      //sendSocket("polygon", selectedShapeIndex);
+    }
+  }
+
+
+  const handleChangeHeight = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHeight(Number(event.target.value));
+    const newHeight = Number(event.target.value);
+
+  }
+
+  // Evento de seleccion de patron
+  const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOption(event.target.value);
+    if (selectedShapeIndex !== null) {
+      const updatedShapes = [...shapes];
+      updatedShapes[selectedShapeIndex].polygon.file = Json[event.target.value];
+      updatedShapes[selectedShapeIndex].polygon.fileOption = event.target.value;
+
+      //sendSocket("polygon", selectedShapeIndex);
+    }
+  };
+
+  // Evento de cambio color de relleno
+  const handleColorChangeFill = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setColorFill(event.target.value);
+    if (selectedShapeIndex !== null) {
+      const updatedShapes = [...shapes];
+      updatedShapes[selectedShapeIndex].polygon.colorfill = event.target.value;
+
+      // sendSocket("polygon", selectedShapeIndex);
+      //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+      //setShapes(updatedShapes);
+    }
+  };
+
+  // Evento de cambio color de trazo 
+  const handleColorChangeStroke = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setColorStroke(event.target.value);
+    if (selectedShapeIndex !== null) {
+      const updatedShapes = [...shapes];
+      updatedShapes[selectedShapeIndex].polygon.colorstroke = event.target.value;
+      //sendSocket("polygon", selectedShapeIndex);
+      //socket.send(JSON.stringify(updatedShapes[selectedShapeIndex]));
+      //setShapes(updatedShapes);
+    }
+  };
 
   const OptionsBar = () => {
 
@@ -347,6 +441,12 @@ const App = () => {
               return newData;
             });
             break
+          case 'añadir':
+
+            break
+          case 'fosil':
+            
+            break
 
           default:
             // Manejar cualquier situación no contemplada
@@ -364,8 +464,8 @@ const App = () => {
       document.addEventListener("keydown", handleKeyDown);
       // Limpiar la conexión WebSocket cuando el componente se desmonta
       return () => {
-        socket.close(), 
-        document.removeEventListener("keydown", handleKeyDown);
+        socket.close(),
+          document.removeEventListener("keydown", handleKeyDown);
 
       };
     }
@@ -450,6 +550,7 @@ const App = () => {
       console.log(data)
       if (rowIndex === 0) return false;
       if (Header[columnIndex] === "Litologia") return false;
+      if (Header[columnIndex] === "Estructura fosil") return false;
       return true;
     },
     onDelete: (activeCell, selections) => {
@@ -534,100 +635,279 @@ const App = () => {
   // Renderizado de la Grilla
   return (
     <>
-      <div>
+      <div className="drawer drawer-end">
+        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
+        <div className="drawer-content">
 
-        <OptionsBar />
+          <main className="flex-1 p-4">
+            <OptionsBar />
 
 
-        <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+            <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
 
-          <Grid
-            ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
-            width={width} // Ancho Stage
-            height={height} // Altura Stage
-            columnCount={columnCount} // Número total de columnas
-            rowCount={rowCount} // Número total de filas
-            frozenRows={frozenRows}
-            columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-            rowHeight={(index) => {
-              if (index === 0) return 110;
-              return 100;
-            }}
-            //rowHeight={() => 40} // Altura de las filas en la grilla principal
-            activeCell={activeCell}
-            //frozenColumns={frozenColumns} // Número de columnas congeladas
-            //itemRenderer={Cell} // Renderizador personalizado para las celdas de la grilla
-            itemRenderer={(props) => {
-              //console.log(props)
-              if (props.rowIndex === 0) {
+              <Grid
+                ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
+                width={width} // Ancho Stage
+                height={height} // Altura Stage
+                columnCount={columnCount} // Número total de columnas
+                rowCount={rowCount} // Número total de filas
+                frozenRows={frozenRows}
+                columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+                rowHeight={(index) => {
+                  if (index === 0) return 110;
+                  return 100;
+                }}
+                //rowHeight={() => 40} // Altura de las filas en la grilla principal
+                activeCell={activeCell}
+                //frozenColumns={frozenColumns} // Número de columnas congeladas
+                //itemRenderer={Cell} // Renderizador personalizado para las celdas de la grilla
+                itemRenderer={(props) => {
+                  //console.log(props)
+                  if (props.rowIndex === 0) {
 
-                // Renderizar el Encabezado para la primera fila
-                return (
-                  <HeaderKonva
-                    value={Header[props.columnIndex]}
-                    onResize={handleResize}
-                    {...props}
-                  />
-                )
-              } else {
-                // Renderizar celdas normales para el resto de la grilla
-                if (Header[props.columnIndex] === "Litologia") {
+                    // Renderizar el Encabezado para la primera fila
+                    return (
+                    
+                        <HeaderKonva
+                          value={Header[props.columnIndex]}
+                          onResize={handleResize}
+                          {...props}
+                        />
+                        
+                    )
 
-                  return (
-                    <Cell
-                      value={polygons[`${props.rowIndex},${props.columnIndex}`]}
-                      x={props.x}
-                      y={props.y}
-                      width={props.width}
-                      height={props.height}
-                      {...props}
-                    />
-                  );
+                    
+                  } else {
 
-                } else {
-                  //const puntero = 
-                  return (
-                    <DefaultCell
-                      value={data[Header[props.columnIndex]][props.rowIndex]}
-                      align="center"
-                      fill="white"
-                      stroke="blue"
-                      fontSize={12}
-                      wrap="word" // word: Texto entero, none: Texto hasta el borde
+                    if (Header[props.columnIndex] === "Estructura fosil"  && props.rowIndex === 1) {
+
+
+                      <Group x={400} y={100} heightShape={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
+                      <Rect
+                        key={`header-fosils`}
+                        x={0}
+                        y={0}
+                        width={150}
+                        heightShape={lastPositionID.y - 200}
+                        fill="transparent"
+                        stroke="black"
+                      />
+
+                      <Html
+                        groupProps={{ x: 0, y: 0 }}
+                        divProps={{
+                          style: {
+                            width: 150,
+                            overflow: 'hidden',
+                            background: 'none',
+                            outline: 'none',
+                            border: 'red',
+                            padding: '0px',
+                            margin: '0px',
+                            color: 'red',
+                            //  backgroundColor : 'blue'
+                          },
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 150,
+                            height: lastPositionID.y - 200,
+                            background: 'none',
+                            border: 'none',
+                            padding: '0px',
+                            margin: '0px',
+                            outline: 'none',
+                            overflow: 'auto',
+                            fontSize: '18px',
+                            fontFamily: 'sans-serif',
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+
+                            // const prevConfigState = { ...config };
+                            // prevConfigState.config.columns['Estructuras y/o fósiles'].content.push({
+                            //   'x': e.nativeEvent.offsetX,
+                            //   'y': e.nativeEvent.offsetY,
+                            //   'src': dragUrl.current
+                            // });
+
+                            // setConfig(prevConfigState);
+                            // socket.send(JSON.stringify(prevConfigState));
+                            // // sendConfig(copia, true, socket);
+                            // console.log(config)
+                          }}
+
+                        >
+
+                        </div>
+                      </Html>
+                      {/* {config.config.columns['Estructuras fosiles'].content.map((img, index) => (
+                        <>
+                          <Fosil img={img} index={index} />
+                        </>
+                      ))} */}
+
+                    </Group>
+
                       
-                      //verticalAlign="top"
-                      {...props}
-                    />
-                  );
-                }
-                // <Cell
-                //   value={data[`${props.rowIndex},${props.columnIndex}`]}
-                //   height={props.height}
-                //   x={props.x}
-                //   y={props.y} 
-                //   width={props.width}
-                //   {...props}
-                // />
+                    }else
 
-              }
-            }}
-            //{...selectionProps} // Propiedades del hook useSelection
-            //{...editableProps} // Editar lo que esta en la celda
-            {...safeProps}
-            //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
+                    // Renderizar celdas normales para el resto de la grilla
+                    if (Header[props.columnIndex] === "Litologia") {
 
-            //Permite el cuadro azul que muestra la selección
-            onKeyDown={(...args) => {
-              selectionProps.onKeyDown(...args);
-              editableProps.onKeyDown(...args);
-            }}
-            onMouseDown={(...args) => {
-              selectionProps.onMouseDown(...args);
-              editableProps.onMouseDown(...args);
-            }}
-          />
-          {editorComponent}
+                      return (
+                        <Cell
+                          value={polygons[`${props.rowIndex},${props.columnIndex}`]}
+                          x={props.x}
+                          y={props.y}
+                          width={props.width}
+                          height={props.height}
+                          {...props}
+                        />
+                      );
 
+                    } else if(Header[props.columnIndex] !== "Estructura fosil") {
+                      //const puntero = 
+                      return (
+                        // <DefaultCell
+                        //   value={data[Header[props.columnIndex]][props.rowIndex]}
+
+                        //   fill="white" // Color de celda
+                        //   stroke="blue" // Color del borde 
+                        //   fontSize={12} // Tamaño de fuente	
+                        //   align="center" // left: Izquierda, center: Centro, right: Derecha
+                        //   wrap="word" // word, char, none
+                        //   verticalAlign="middle" // top: Arriba, middle: Centro, bottom: Abajo
+                        //   fontStyle="normal" //
+                        //   padding={5} // Espacio entre el texto y el borde de la celda
+                        //   elipsis={true} // Si el texto es más largo que el ancho de la celda, se muestra el texto completo o no
+                        //   //'direction',
+                        //   // 'fontFamily',
+                        //   // 'fontSize',
+                        //   // 'fontStyle',
+                        //   // 'fontVariant',
+                        //   // 'padding',
+                        //   // 'align',
+                        //   // 'verticalAlign',
+                        //   // 'lineHeight',
+                        //   // 'text',
+                        //   // 'width',
+                        //   // 'height',
+                        //   // 'wrap',
+                        //   // 'ellipsis',
+                        //   // 'letterSpacing',
+
+                        //   {...props}
+                        // />
+                        <CellText
+                          value={data[Header[props.columnIndex]][props.rowIndex]}
+                          {...props}
+                        />
+                      );
+                    }
+                    // <Cell
+                    //   value={data[`${props.rowIndex},${props.columnIndex}`]}
+                    //   height={props.height}
+                    //   x={props.x}
+                    //   y={props.y} 
+                    //   width={props.width}
+                    //   {...props}
+                    // />
+
+                  }
+                }}
+                //{...selectionProps} // Propiedades del hook useSelection
+                //{...editableProps} // Editar lo que esta en la celda
+                {...safeProps}
+                //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
+
+                //Permite el cuadro azul que muestra la selección
+                onKeyDown={(...args) => {
+                  selectionProps.onKeyDown(...args);
+                  editableProps.onKeyDown(...args);
+                }}
+                onMouseDown={(...args) => {
+                  selectionProps.onMouseDown(...args);
+                  editableProps.onMouseDown(...args);
+                }}
+              />
+              {editorComponent}
+
+            </div>
+
+            <div className="drawer-side">
+              <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+              <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                {/* Sidebar content here */}
+
+                <li className="menu-title">Proyecto</li>
+                <li>
+                  <p>Seleccionar opción de Pattern: </p>
+                  <select value={selectedOption} onChange={handleOptionChange} className='select select-bordered w-full max-w-xs'>
+                    {Object.keys(Json).map(option => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+
+                <li>
+                  <p>Seleccionar color Fill: <input type="color" value={ColorFill} onChange={handleColorChangeFill} /> </p>
+                </li>
+
+                <li>
+                  <p>Seleccionar color Stroke:<input type="color" value={ColorStroke} onChange={handleColorChangeStroke} /></p>
+
+                </li>
+
+                <li>
+                  <p>Tension de lineas: {sliderTension}</p>
+                  <input
+                    type="range"
+                    min={0}
+                    max={2.5}
+                    step={0.1}
+                    value={sliderTension}
+                    onChange={handleSliderTension}
+                    onMouseUp={SliderDrop}
+                  />
+                </li>
+
+                <li>
+                  <p>Cambiar alto de capa seleccionada: </p>
+                  <input type="number" value={heightShape} onChange={handleChangeHeight} />
+                </li>
+
+                <li>
+                  <p>Valor Zoom: {sliderZoom}</p>
+                  <input
+                    type="range"
+                    min={50}
+                    max={300}
+                    value={sliderZoom}
+                    onChange={handleSliderZoom}
+                    onMouseUp={SliderDrop}
+                  />
+                </li>
+
+                <li>
+                  <p>Valor Rotacion: {sliderRotation}</p>
+                  <input
+                    type="range"
+                    min={0}
+                    max={180}
+                    value={sliderRotation}
+                    onChange={handleSliderRotation}
+                    onMouseUp={SliderDrop}
+                  />
+                </li>
+
+              </ul>
+
+            </div>
+          </main>
         </div>
       </div>
     </>

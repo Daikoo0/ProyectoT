@@ -354,6 +354,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					// 	log.Println(val, ok)
 					// }
 
+				// Edicion de texto
 				case "editText":
 
 					var editTextData dtos.EditText
@@ -389,6 +390,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println(err)
 						}
 					}
+
+					//case "editStyleText"
 
 				}
 
