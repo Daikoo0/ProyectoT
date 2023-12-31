@@ -277,50 +277,48 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Fatal(err)
 				}
 
-				log.Println(dataMap) // Informacion recibida
+				log.Println(dataMap, "eeee") // Informacion recibida
 
 				// Switch para las acciones
 				switch dataMap.Action {
 				case "añadir":
 
 					var addData dtos.Add
-
 					err := json.Unmarshal(dataMap.Data, &addData)
 					if err != nil {
-						log.Println("Error")
+						log.Println("Error al deserializar: ", err)
 					}
 
-					//if val, ok := addData.Id; ok && val != nil {
-					idPolygon := addData.Id
+					//if val, ok := addData.Id; ok && val != nil
+					idPolygon := addData.RowIndex
 					XPolygon := addData.X
 					YPolygon := addData.Y
 					height := addData.Height
 					width := addData.Width
 
-					log.Println("agregar")
+					// type Property struct {
+					// 	Content  string
+					// 	Optional bool
+					// 	Vertical bool
+					// }
 
-					type Property struct {
-						Content  string
-						Optional bool
-						Vertical bool
-					}
-
-					initialTexts := map[string]Property{
-						"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
-						"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
-						"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
-						"Formación":                {Content: "vacío", Optional: true, Vertical: true},
-						"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
-						"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
-						"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
-						"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
-					}
+					// initialTexts := map[string]Property{
+					// 	"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
+					// 	"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
+					// 	"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
+					// 	"Formación":                {Content: "vacío", Optional: true, Vertical: true},
+					// 	"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
+					// 	"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
+					// 	"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
+					// 	"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
+					// }
 
 					newShape := map[string]interface{}{
-						"id": idPolygon, // numero de fila
+						"action":   "añadir",
+						"rowIndex": idPolygon, // numero de fila
 						"Polygon": map[string]interface{}{
-							"x":           0,
-							"y":           0,
+							"x":           XPolygon,
+							"y":           YPolygon,
 							"ColorFill":   "white",
 							"colorStroke": "black",
 							"zoom":        100,
@@ -336,7 +334,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 								{"x": XPolygon, "y": YPolygon + height, "radius": 5, "movable": false},
 							},
 						},
-						"Text": initialTexts,
+						// "Text": initialTexts,
 					}
 					jsonBytes, err := json.Marshal(newShape)
 					if err != nil {

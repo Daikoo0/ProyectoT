@@ -1,76 +1,78 @@
 import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
+import useImage from 'use-image';
 
-const Polygon = ({ x, y, Width, Height, Tension, onClick }) => {
-
-
-  const [circles, setCircles] = useState([
-    {
-      "x": x,
-      "y": y,
-      "radius": 5,
-      "movable": false
-    },
-    {
-      "movable": true,
-      "x": x + Width,
-      "y": y,
-      "radius": 5
-    },
-    {
-      "x": x + Width,
-      "y": y + Height,
-      "radius": 5,
-      "movable": true
-    },
-    {
-      "x": x,
-      "y": y + Height,
-      "radius": 5,
-      "movable": false
-    }
-  ]);
+const Polygon = ({ x, y, Width, Height, onClick,ColorFill, ColorStroke, Zoom, Rotation, Tension, File, circles,setCircles}) => {
 
 
+  // const [circles, setCircles] = useState([
+  //   {
+  //     "x": x,
+  //     "y": y,
+  //     "radius": 5,
+  //     "movable": false
+  //   },
+  //   {
+  //     "movable": true,
+  //     "x": x + Width,
+  //     "y": y,
+  //     "radius": 5
+  //   },
+  //   {
+  //     "x": x + Width,
+  //     "y": y + Height,
+  //     "radius": 5,
+  //     "movable": true
+  //   },
+  //   {
+  //     "x": x,
+  //     "y": y + Height,
+  //     "radius": 5,
+  //     "movable": false
+  //   }
+  // ]);
+
+
+console.log(typeof(circles))
   const circlesToPoints = (circles) => {
     return circles.map((circle) => [circle.x, circle.y]).flat();
   };
 
   const [polygonPoints, setPolygonPoints] = useState(circlesToPoints(circles));
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    const updatedCircles = [
-      {
-        "x": x,
-        "y": y,
-        "radius": 5,
-        "movable": false
-      },
-      {
-        "movable": true,
-        "x": x + Width/2,
-        "y": y,
-        "radius": 5
-      },
-      {
-        "x": x + Width/2,
-        "y": y + Height,
-        "radius": 5,
-        "movable": true
-      },
-      {
-        "x": x,
-        "y": y + Height,
-        "radius": 5,
-        "movable": false
-      }
-    ];
+  //   const updatedCircles = [
+  //     {
+  //       "x": x,
+  //       "y": y,
+  //       "radius": 5,
+  //       "movable": false
+  //     },
+  //     {
+  //       "movable": true,
+  //       "x": x + Width/2,
+  //       "y": y,
+  //       "radius": 5
+  //     },
+  //     {
+  //       "x": x + Width/2,
+  //       "y": y + Height,
+  //       "radius": 5,
+  //       "movable": true
+  //     },
+  //     {
+  //       "x": x,
+  //       "y": y + Height,
+  //       "radius": 5,
+  //       "movable": false
+  //     }
+  //   ];
 
-    setPolygonPoints(circlesToPoints(updatedCircles));
-    setCircles(updatedCircles);
+  //   setPolygonPoints(circlesToPoints(updatedCircles));
+  //   setCircles(updatedCircles);
 
-  }, [Width, Height, x, y]);
+  // }, [Width, Height, x, y]);
 
   // Crear puntos en las lineas 
   const handlePolygonClick = (e) => {
@@ -164,6 +166,89 @@ const Polygon = ({ x, y, Width, Height, Tension, onClick }) => {
 
   };
 
+  
+  const [svgContent, setSvgContent] = useState('');
+
+
+      // Cambio SVG 
+      useEffect(() => {
+        if(File === 0){
+            setSvgContent('');
+            return;
+        }
+
+        const imageURL = new URL('../../assets/patrones/'+File+'.svg', import.meta.url).href
+
+        fetch(imageURL)
+        .then(response => response.text())
+        .then(svgText => {
+            
+          const lines = svgText.split('\n');
+          const updatedLines = lines.map((line) => {
+            if (line.includes('<rect') && line.includes('fill=')) {
+              return line.replace(/fill='[^']+'/g, `fill='${ColorFill}'`);
+            } else if (line.includes('<g') && line.includes('stroke=')) {
+              return line.replace(/stroke='[^']+'/g, `stroke='${ColorStroke}'`);
+            }
+            return line;
+          });
+
+          const updatedSvgContent = updatedLines.join('\n');
+          setSvgContent(updatedSvgContent);
+        
+        });
+
+    }, [File]);
+
+    // Cambio Color Con svg Cargado 
+    useEffect(() => {
+          if(File === 0){
+              setSvgContent('');
+              return;
+          }
+
+          const lines = svgContent.split('\n');
+          const updatedLines = lines.map((line) => {
+            if (line.includes('<rect') && line.includes('fill=')) {
+              return line.replace(/fill='[^']+'/g, `fill='${ColorFill}'`);
+            } else if (line.includes('<g') && line.includes('stroke=')) {
+              return line.replace(/stroke='[^']+'/g, `stroke='${ColorStroke}'`);
+            }
+            return line;
+            });
+
+          const updatedSvgContent = updatedLines.join('\n');
+          setSvgContent(updatedSvgContent);
+
+    }, [ColorFill, ColorStroke]);
+
+    // Cambio SVG Zoom
+    useEffect(() => {
+     
+          if(File === 0){
+            setSvgContent('');
+            return;
+          }
+
+          const lines = svgContent.split('\n');
+          const updatedLines = lines.map((line) => {
+          if (line.includes('<svg') && line.includes('width=') && line.includes('height=')) {
+            return line.replace(/width="[^"]*"/g, `width="${Zoom}"`)
+                 .replace(/height="[^"]*"/g, `height="${Zoom}"`);
+          }
+          return line;
+          });
+  
+          const updatedSvgContent = updatedLines.join('\n');
+          setSvgContent(updatedSvgContent);
+
+
+    }, [Zoom]);
+
+    const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
+
+
+
 
   return (
     <>
@@ -184,7 +269,7 @@ const Polygon = ({ x, y, Width, Height, Tension, onClick }) => {
           x={circle.x}
           y={circle.y}
           radius={circle.radius}
-          stroke="#ff0000"
+          stroke={"red"}
           strokeWidth={1}
           draggable={circle.movable}
           dragBoundFunc={(pos) => ({ x: Math.max(Math.min(pos.x, maxX), minX), y: circle.y })}

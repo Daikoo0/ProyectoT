@@ -1,3 +1,5 @@
+
+
 import { useRef, useState, useCallback, useEffect } from "react";
 import Grid, { Cell as DefaultCell, useSelection, useEditable } from "@rowsncolumns/grid";
 import { Rect, Text, Group, Circle } from "react-konva";
@@ -13,23 +15,26 @@ import { Html } from "react-konva-utils";
 
 // Componente de Celda Personalizado
 const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
-  //const text = `${rowIndex}x${columnIndex}`;
-  const fill = "white";
-  // Aquí puedes añadir más lógica según tus necesidades
+
   return (
     <>
       {/* <Rect x={x} y={y} height={height} width={width} fill={fill} stroke="grey" strokeWidth={0.5} /> */}
       {/* <Text x={x} y={y} height={height} width={width} text={value} fontStyle="normal" verticalAlign="middle" align="center" /> */}
       <Polygon2
-        x={x}
-        y={y}
-        Width={width}
-        Height={height}
-        Tension={0.5}
+        x={value.x}
+        y={value.y}
+        Width={value.width}
+        Height={value.height}
+        Tension={value.tension}
         //circles={dataCircle}
         setCircles={() => console.log("Cambio de circulos")}
         onClick={() => console.log("Click en poligono")}
-
+        ColorFill={value.ColorFill}
+        ColorStroke={value.colorStroke}
+        Zoom={value.zoom} 
+        Rotation={value.rotation}
+        File={value.file}
+        circles={value.circles}
       />
 
       {/* <Circle x={x} y={y} radius={10} fill="red" stroke="grey" strokeWidth={0.5} draggable /> */}
@@ -47,16 +52,62 @@ const App = () => {
     "2,2": "Cocos"
   });
 
+  const setCircles = (index, circles, send, socket) => {
+    const updatedShapes = [...shapes];
+    updatedShapes[index].polygon.circles = circles;
+    setShapes(updatedShapes);
+    if (send) {
+      console.log("Send: Circulos")
+      //  sendSocket("polygon", index);
+      //socket.send(JSON.stringify(updatedShapes[index]));
+    }
+  }
+
+  // const [polygons, setPolygons] = useState({
+  //   "2,1": <Polygon2 x={100} y={100} Width={100} Height={300} Tension={1} onClick={""} />
+  // });
   const [polygons, setPolygons] = useState({
-    "2,1": <Polygon2 x={100} y={100} Width={100} Height={300} Tension={1} onClick={""} />
+    "2,5": 
+    { x: 100,
+      y : 100,  Width: 100,  Height: 100,  Tension: 1,  onClick: "",  
+    setCircles: "a", 
+    ColorFill: "#ccc",  ColorStroke: "#ccc",  Zoom: 100,  Rotation: 0,  File: 0, 
+    circles: [
+      {
+        "x": 100,
+        "y": 100,
+        "radius": 5,
+        "movable": false
+      },
+      {
+        "x": 100 + 100,
+        "y": 100,
+        "radius": 5,
+        "movable": true,
+      },
+      {
+        "x": 100 + 100,
+        "y": 100 + 100,
+        "radius": 5,
+        "movable": true
+      },
+      {
+        "x": 100,
+        "y": 100 + 100,
+        "radius": 5,
+        "movable": false
+      }
+    ]} 
+
   });
+
 
   //---------------// CAPAS Y GRID //---------------//
   // Alto de la capa
   const [initialHeight] = useState(100);
   const [heightShape, setHeight] = useState<number>(initialHeight);
 
-  const [lastPositionID, setLastPositionID] = useState({ x: 200, y: 200 });
+  const [lastPositionID, setLastPositionID] = useState({ x: 1000, y: 110 });
   //Figuras / Poligonos 
   const [Header, setHeader] = useState([]);
   const [shapes, setShapes] = useState([]);
@@ -69,7 +120,7 @@ const App = () => {
   const height = 800;
 
 
-  const [rowCount, setRowCount] = useState(3);
+  const [rowCount, setRowCount] = useState(1);
   const [columnCount, setColumnCount] = useState(0);
 
   const gridRef = useRef(null);
@@ -149,16 +200,16 @@ const App = () => {
 
 
   // contenido inicial de las columnas (borrar)
-  const [initialTexts] = useState({
-    'Arcilla-Limo-Arena-Grava': { content: "vacío", optional: false, vertical: false },
-    'Sistema': { content: "vacío", optional: true, vertical: true },
-    'Edad': { content: "vacío", optional: true, vertical: true },
-    'Formación': { content: "vacío", optional: true, vertical: true },
-    'Miembro': { content: "vacío", optional: true, vertical: true },
-    'Facie': { content: "vacío", optional: true, vertical: false },
-    'Ambiente depositacional': { content: "vacío", optional: true, vertical: false },
-    'Descripción': { content: "vacío", optional: true, vertical: false }
-  });
+  // const [initialTexts] = useState({
+  //   'Arcilla-Limo-Arena-Grava': { content: "vacío", optional: false, vertical: false },
+  //   'Sistema': { content: "vacío", optional: true, vertical: true },
+  //   'Edad': { content: "vacío", optional: true, vertical: true },
+  //   'Formación': { content: "vacío", optional: true, vertical: true },
+  //   'Miembro': { content: "vacío", optional: true, vertical: true },
+  //   'Facie': { content: "vacío", optional: true, vertical: false },
+  //   'Ambiente depositacional': { content: "vacío", optional: true, vertical: false },
+  //   'Descripción': { content: "vacío", optional: true, vertical: false }
+  // });
 
 
   const handleCheckBox = (e, column) => {
@@ -312,28 +363,28 @@ const App = () => {
               <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
 
                 {/* {Object.keys(initialTexts).map((key) => {
-                  const item = initialTexts[key];
-                  if (item.optional) {
-                    return (
-                      <li key={key}>
-                        <div style={{ display: 'flex' }}>
-                          <input
-                            type="checkbox"
-                            id={key}
-                            name={key}
-                            checked={config.config.columns[key].enabled}
-                            onChange={(e) => handleCheckBox(e, key)}
-                          />
-                          <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
-                            {key}
-                          </label>
-
-                        </div>
-                      </li>
-                    );
-                  }
-
-                })} */}
+                                            const item = initialTexts[key];
+                                            if (item.optional) {
+                                              return (
+                                                <li key={key}>
+                                                  <div style={{ display: 'flex' }}>
+                                                    <input
+                                                      type="checkbox"
+                                                      id={key}
+                                                      name={key}
+                                                      checked={config.config.columns[key].enabled}
+                                                      onChange={(e) => handleCheckBox(e, key)}
+                                                    />
+                                                    <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
+                                                      {key}
+                                                    </label>
+                          
+                                                  </div>
+                                                </li>
+                                              );
+                                            }
+                          
+                                          })} */}
               </ul>
             </div>
 
@@ -443,9 +494,25 @@ const App = () => {
             break
           case 'añadir':
 
+            console.log(shapeN.rowIndex)
+            var stenf = `${shapeN.rowIndex},5`;
+            setPolygons(prevPolygons => {
+
+              const newdata = { ...prevPolygons, [stenf]: shapeN.Polygon }
+              return newdata
+            });
+
+            // setPolygons(prev => {
+            //   const newData = { ...prev };
+            //   const id = shapeN.id;
+            //   newData[id] = { ...newData[id], [5]: shapeN.value };
+
+            //   return newData;
+            // });
+
             break
           case 'fosil':
-            
+
             break
 
           default:
@@ -473,30 +540,34 @@ const App = () => {
 
   useEffect(() => {
 
-    if (shapes.length > 0) {
+    console.log(shapes, "todo")
 
-      const coordA = shapes.reduce((maxCoords, objeto) => {
+    console.log(polygons, "todo polygons")
+
+    if (Object.values(polygons).length > 0) {
+
+      const coordA = Object.values(polygons).reduce((previousValue, currentValue) => {
+        console.log(previousValue.y,currentValue.y)
+        console.log(previousValue.x,currentValue.x)
         return {
-          x1: Math.max(maxCoords.x1, objeto.polygon.x1),
-          x2: Math.max(maxCoords.x2, objeto.polygon.x2),
-          y1: Math.max(maxCoords.y1, objeto.polygon.y1),
-          y2: Math.max(maxCoords.y2, objeto.polygon.y2),
+           x: Math.max(previousValue.y, currentValue.y),
+           y: Math.max(previousValue.y, currentValue.y),
         };
-      }, { x1: -Infinity, x2: -Infinity, y1: -Infinity, y2: -Infinity });
+      }, { x: -Infinity,  y: -Infinity });
 
-      if (coordA.y2 === -1000) {
+      if (coordA.y === -1000) {
         //setLastPositionSI({ x: 100, y: 100 })
         setLastPositionID({ x: 200, y: 200 })
       } else {
         console.log(coordA)
         //    setLastPositionSI({ x: coordA.x1, y: coordA.y2 })
-        setLastPositionID({ x: coordA.x2, y: coordA.y2 + 100 })
+        setLastPositionID({ x: coordA.x, y: coordA.y + 100 })
       }
 
 
     }
 
-  }, [shapes]);
+  }, [polygons]);
 
   // Funciones de selección y edición (del primer código)
   const { activeCell, selections, setActiveCell, ...selectionProps } = useSelection({
@@ -617,18 +688,21 @@ const App = () => {
 
   // Por Modificar 
   const addShape = () => {
-    //console.log("dadsdsa")
-    setRowCount(prevRowCount => prevRowCount + 1)
-    const send = {
-      action: "añadir",
-      id: rowCount,
-      x: lastPositionID.x - (columnWidthMap[1] || 200),
-      y: lastPositionID.y,
-      height: height,
-      width: width,
-    }
-    console.log(send)
-    socket.send(JSON.stringify(send));
+    setRowCount(prevRowCount => {
+      console.log(lastPositionID,"addshape")
+      const newCount = prevRowCount + 1
+      socket.send(JSON.stringify({
+        action: "añadir",
+        data: {
+          rowIndex: newCount,
+          x: lastPositionID.x,
+          y: lastPositionID.y,
+          height: 100,
+          width: 100
+        }
+      }));
+      return newCount;
+    });
 
   }
 
@@ -667,145 +741,146 @@ const App = () => {
 
                     // Renderizar el Encabezado para la primera fila
                     return (
-                    
-                        <HeaderKonva
-                          value={Header[props.columnIndex]}
-                          onResize={handleResize}
-                          {...props}
-                        />
-                        
+
+                      <HeaderKonva
+                        value={Header[props.columnIndex]}
+                        onResize={handleResize}
+                        {...props}
+                      />
+
                     )
 
-                    
+
                   } else {
 
-                    if (Header[props.columnIndex] === "Estructura fosil"  && props.rowIndex === 1) {
+                    if (Header[props.columnIndex] === "Estructura fosil" && props.rowIndex === 1) {
 
 
                       <Group x={400} y={100} heightShape={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
-                      <Rect
-                        key={`header-fosils`}
-                        x={0}
-                        y={0}
-                        width={150}
-                        heightShape={lastPositionID.y - 200}
-                        fill="transparent"
-                        stroke="black"
-                      />
+                        <Rect
+                          key={`header-fosils`}
+                          x={0}
+                          y={0}
+                          width={150}
+                          heightShape={lastPositionID.y - 200}
+                          fill="transparent"
+                          stroke="black"
+                        />
 
-                      <Html
-                        groupProps={{ x: 0, y: 0 }}
-                        divProps={{
-                          style: {
-                            width: 150,
-                            overflow: 'hidden',
-                            background: 'none',
-                            outline: 'none',
-                            border: 'red',
-                            padding: '0px',
-                            margin: '0px',
-                            color: 'red',
-                            //  backgroundColor : 'blue'
-                          },
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 150,
-                            height: lastPositionID.y - 200,
-                            background: 'none',
-                            border: 'none',
-                            padding: '0px',
-                            margin: '0px',
-                            outline: 'none',
-                            overflow: 'auto',
-                            fontSize: '18px',
-                            fontFamily: 'sans-serif',
+                        <Html
+                          groupProps={{ x: 0, y: 0 }}
+                          divProps={{
+                            style: {
+                              width: 150,
+                              overflow: 'hidden',
+                              background: 'none',
+                              outline: 'none',
+                              border: 'red',
+                              padding: '0px',
+                              margin: '0px',
+                              color: 'red',
+                              //  backgroundColor : 'blue'
+                            },
                           }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-
-                            // const prevConfigState = { ...config };
-                            // prevConfigState.config.columns['Estructuras y/o fósiles'].content.push({
-                            //   'x': e.nativeEvent.offsetX,
-                            //   'y': e.nativeEvent.offsetY,
-                            //   'src': dragUrl.current
-                            // });
-
-                            // setConfig(prevConfigState);
-                            // socket.send(JSON.stringify(prevConfigState));
-                            // // sendConfig(copia, true, socket);
-                            // console.log(config)
-                          }}
-
                         >
+                          <div
+                            style={{
+                              width: 150,
+                              height: lastPositionID.y - 200,
+                              background: 'none',
+                              border: 'none',
+                              padding: '0px',
+                              margin: '0px',
+                              outline: 'none',
+                              overflow: 'auto',
+                              fontSize: '18px',
+                              fontFamily: 'sans-serif',
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
 
-                        </div>
-                      </Html>
-                      {/* {config.config.columns['Estructuras fosiles'].content.map((img, index) => (
-                        <>
-                          <Fosil img={img} index={index} />
-                        </>
-                      ))} */}
+                              // const prevConfigState = { ...config };
+                              // prevConfigState.config.columns['Estructuras y/o fósiles'].content.push({
+                              //   'x': e.nativeEvent.offsetX,
+                              //   'y': e.nativeEvent.offsetY,
+                              //   'src': dragUrl.current
+                              // });
 
-                    </Group>
+                              // setConfig(prevConfigState);
+                              // socket.send(JSON.stringify(prevConfigState));
+                              // // sendConfig(copia, true, socket);
+                              // console.log(config)
+                            }}
 
-                      
-                    }else
+                          >
 
-                    // Renderizar celdas normales para el resto de la grilla
-                    if (Header[props.columnIndex] === "Litologia") {
+                          </div>
+                        </Html>
+                        {/* {config.config.columns['Estructuras fosiles'].content.map((img, index) => (
+                                                  <>
+                                                    <Fosil img={img} index={index} />
+                                                  </>
+                                                ))} */}
 
-                      return (
-                        <Cell
-                          value={polygons[`${props.rowIndex},${props.columnIndex}`]}
-                          x={props.x}
-                          y={props.y}
-                          width={props.width}
-                          height={props.height}
-                          {...props}
-                        />
-                      );
+                      </Group>
 
-                    } else if(Header[props.columnIndex] !== "Estructura fosil") {
-                      //const puntero = 
-                      return (
-                        // <DefaultCell
-                        //   value={data[Header[props.columnIndex]][props.rowIndex]}
 
-                        //   fill="white" // Color de celda
-                        //   stroke="blue" // Color del borde 
-                        //   fontSize={12} // Tamaño de fuente	
-                        //   align="center" // left: Izquierda, center: Centro, right: Derecha
-                        //   wrap="word" // word, char, none
-                        //   verticalAlign="middle" // top: Arriba, middle: Centro, bottom: Abajo
-                        //   fontStyle="normal" //
-                        //   padding={5} // Espacio entre el texto y el borde de la celda
-                        //   elipsis={true} // Si el texto es más largo que el ancho de la celda, se muestra el texto completo o no
-                        //   //'direction',
-                        //   // 'fontFamily',
-                        //   // 'fontSize',
-                        //   // 'fontStyle',
-                        //   // 'fontVariant',
-                        //   // 'padding',
-                        //   // 'align',
-                        //   // 'verticalAlign',
-                        //   // 'lineHeight',
-                        //   // 'text',
-                        //   // 'width',
-                        //   // 'height',
-                        //   // 'wrap',
-                        //   // 'ellipsis',
-                        //   // 'letterSpacing',
+                    } else
 
-                        //   {...props}
-                        // />
-                        <CellText
-                          value={data[Header[props.columnIndex]][props.rowIndex]}
-                          {...props}
-                        />
-                      );
-                    }
+                      // Renderizar celdas normales para el resto de la grilla
+                      if (Header[props.columnIndex] === "Litologia") {
+
+                        console.log(`${props.rowIndex+1},${props.columnIndex}`);
+                        return (
+                          <Cell
+                            value={polygons[`${props.rowIndex+1},${props.columnIndex}`] ? polygons[`${props.rowIndex+1},${props.columnIndex}`] : "a"}
+                            x={props.x}
+                            y={props.y}
+                            width={props.width}
+                            height={props.height}
+                            {...props}
+                          />
+                        );
+
+                      } else if (Header[props.columnIndex] !== "Estructura fosil") {
+                        //const puntero = 
+                        return (
+                          // <DefaultCell
+                          //   value={data[Header[props.columnIndex]][props.rowIndex]}
+
+                          //   fill="white" // Color de celda
+                          //   stroke="blue" // Color del borde 
+                          //   fontSize={12} // Tamaño de fuente	
+                          //   align="center" // left: Izquierda, center: Centro, right: Derecha
+                          //   wrap="word" // word, char, none
+                          //   verticalAlign="middle" // top: Arriba, middle: Centro, bottom: Abajo
+                          //   fontStyle="normal" //
+                          //   padding={5} // Espacio entre el texto y el borde de la celda
+                          //   elipsis={true} // Si el texto es más largo que el ancho de la celda, se muestra el texto completo o no
+                          //   //'direction',
+                          //   // 'fontFamily',
+                          //   // 'fontSize',
+                          //   // 'fontStyle',
+                          //   // 'fontVariant',
+                          //   // 'padding',
+                          //   // 'align',
+                          //   // 'verticalAlign',
+                          //   // 'lineHeight',
+                          //   // 'text',
+                          //   // 'width',
+                          //   // 'height',
+                          //   // 'wrap',
+                          //   // 'ellipsis',
+                          //   // 'letterSpacing',
+
+                          //   {...props}
+                          // />
+                          <CellText
+                            value={data[Header[props.columnIndex]][props.rowIndex]}
+                            {...props}
+                          />
+                        );
+                      }
                     // <Cell
                     //   value={data[`${props.rowIndex},${props.columnIndex}`]}
                     //   height={props.height}
