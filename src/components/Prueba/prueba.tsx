@@ -41,7 +41,7 @@ import { Html } from "react-konva-utils";
 
 const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
   //const text = `${rowIndex}x${columnIndex}`;
-  const fill = "white";
+  //const fill = "white";
   // Aquí puedes añadir más lógica según tus necesidades
   return (
     <>
@@ -53,7 +53,6 @@ const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
         Width={width}
         Height={height}
         Tension={0.5}
-        //circles={dataCircle}
         setCircles={() => console.log("Cambio de circulos")}
         onClick={() => console.log("Click en poligono")}
 
@@ -94,52 +93,44 @@ const App = () => {
   //-----------------// Datos //-----------------//
   const [data, setData] = useState({});
   const [Header, setHeader] = useState([]);
-  const [polygons, setPolygons] = useState({
-    "2,5":
+  const [polygons, setPolygons] = useState([
     {
-      x: 100,
-      y: 100, Width: 100, Height: 100, Tension: 1, onClick: "",
-      setCircles: "a",
-      ColorFill: "#ccc", ColorStroke: "#ccc", Zoom: 100, Rotation: 0, File: 0,
-      circles: [
-        {
-          "x": 100,
-          "y": 100,
-          "radius": 5,
-          "movable": false
-        },
-        {
-          "x": 100 + 100,
-          "y": 100,
-          "radius": 5,
-          "movable": true,
-        },
-        {
-          "x": 100 + 100,
-          "y": 100 + 100,
-          "radius": 5,
-          "movable": true
-        },
-        {
-          "x": 100,
-          "y": 100 + 100,
-          "radius": 5,
-          "movable": false
-        }
-      ]
+      "x": 0,
+      "y": 0,
+      "radius": 5,
+      "movable": false
+    },
+    {
+      "movable": true,
+      "x": 0.95,
+      "y": 0,
+      "radius": 5
+    },
+    {
+      "x": 0.6,
+      "y": 0.3,
+      "radius": 5,
+      "movable": true 
+    },
+    {
+      "x": 0.95,
+      "y": 0,
+      "radius": 5,
+      "movable": true
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "radius": 5,
+      "movable": false
     }
-
-  });
+  ]);
 
 
   //---------------// Varios //---------------//
 
-  const [lastPositionID, setLastPositionID] = useState({ x: 1000, y: 110 });
   const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
   const dragUrl = useRef(null);
-
-
-
 
   //---------------// useEffect Socket //---------------//
   // Conexion y desconexion del socket
@@ -239,29 +230,29 @@ const App = () => {
 
 
   //---------------// useEffect Varios //---------------//
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (Object.values(polygons).length > 0) {
+  //   if (Object.values(polygons).length > 0) {
 
-      const coordA = Object.values(polygons).reduce((previousValue, currentValue) => {
-        console.log(previousValue.y, currentValue.y)
-        console.log(previousValue.x, currentValue.x)
-        return {
-          x: Math.max(previousValue.y, currentValue.y),
-          y: Math.max(previousValue.y, currentValue.y),
-        };
-      }, { x: -Infinity, y: -Infinity });
+  //     const coordA = Object.values(polygons).reduce((previousValue, currentValue) => {
+  //       console.log(previousValue.y, currentValue.y)
+  //       console.log(previousValue.x, currentValue.x)
+  //       return {
+  //         x: Math.max(previousValue.y, currentValue.y),
+  //         y: Math.max(previousValue.y, currentValue.y),
+  //       };
+  //     }, { x: -Infinity, y: -Infinity });
 
-      if (coordA.y === -1000) {
-        //setLastPositionSI({ x: 100, y: 100 })
-        setLastPositionID({ x: 200, y: 200 })
-      } else {
-        console.log(coordA)
-        //    setLastPositionSI({ x: coordA.x1, y: coordA.y2 })
-        setLastPositionID({ x: coordA.x, y: coordA.y + 100 })
-      }
-    }
-  }, [polygons]);
+  //     if (coordA.y === -1000) {
+  //       //setLastPositionSI({ x: 100, y: 100 })
+  //       setLastPositionID({ x: 200, y: 200 })
+  //     } else {
+  //       console.log(coordA)
+  //       //    setLastPositionSI({ x: coordA.x1, y: coordA.y2 })
+  //       setLastPositionID({ x: coordA.x, y: coordA.y + 100 })
+  //     }
+  //   }
+  // }, [polygons]);
 
 
 
@@ -475,14 +466,15 @@ const App = () => {
   // Por Modificar 
   const addShape = () => {
     setRowCount(prevRowCount => {
-      console.log(lastPositionID, "addshape")
+      // console.log(lastPositionID, "addshape")
+      console.log(data["Litologia"])
       const newCount = prevRowCount + 1
       socket.send(JSON.stringify({
         action: "añadir",
         data: {
           rowIndex: newCount,
-          x: lastPositionID.x,
-          y: lastPositionID.y,
+          x: 0,//lastPositionID.x,
+          y: 0,//lastPositionID.y,
           height: 100,
           width: 100
         }
@@ -514,7 +506,9 @@ const App = () => {
           activeCell={activeCell}
           //frozenColumns={frozenColumns} // Número de columnas congeladas
           itemRenderer={(props) => {
-            //console.log(props)
+            console.log(props.rowIndex)
+
+            console.log(data["Litologia"])
             if (props.rowIndex === 0) {
 
               // Renderizar el Encabezado para la primera fila
@@ -526,14 +520,15 @@ const App = () => {
                 />
               )
 
-            } else if (Header[props.columnIndex] === "Estructura fosil") {
-              <Group x={400} y={100} heightShape={lastPositionID.y - 200} width={150} style={{ border: '1px solid red' }}>
+            } else if (Header[props.columnIndex] === "Estructura fosil" && props.rowIndex === data["Litologia"].length) {
+              
+              <Group heightShape={props.y} width={150} style={{ border: '1px solid red' }}>
                 <Rect
                   key={`header-fosils`}
                   x={0}
                   y={0}
                   width={150}
-                  heightShape={lastPositionID.y - 200}
+                  heightShape={data["Litologia"].length}
                   fill="transparent"
                   stroke="black"
                 />
@@ -557,7 +552,7 @@ const App = () => {
                   <div
                     style={{
                       width: 150,
-                      height: lastPositionID.y - 200,
+                      height: data["Litologia"].length,
                       background: 'none',
                       border: 'none',
                       padding: '0px',
