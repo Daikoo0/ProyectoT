@@ -4,6 +4,7 @@ import { Rect, Group } from "react-konva";
 import HeaderKonva from "../PruebasKonva/HeaderKonva";
 import CellText from "../PruebasKonva/CellText";
 import Polygon2 from "./Polygon2";
+import Polygon3 from "./Polygon3";
 import Json from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
 import SelectTheme from "../Web/SelectTheme";
@@ -12,28 +13,53 @@ import Fosil from "../Editor/Fosil";
 import { Html } from "react-konva-utils";
 
 // Componente de Celda Personalizado
-const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
+// const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
 
+//   return (
+//     <>
+//       {/* <Rect x={x} y={y} height={height} width={width} fill={fill} stroke="grey" strokeWidth={0.5} /> */}
+//       {/* <Text x={x} y={y} height={height} width={width} text={value} fontStyle="normal" verticalAlign="middle" align="center" /> */}
+//       <Polygon2
+//         x={value.x}
+//         y={value.y}
+//         Width={value.width}
+//         Height={value.height}
+//         Tension={value.tension}
+//         //circles={dataCircle}
+//         setCircles={() => console.log("Cambio de circulos")}
+//         onClick={() => console.log("Click en poligono")}
+//         ColorFill={value.ColorFill}
+//         ColorStroke={value.colorStroke}
+//         Zoom={value.zoom}
+//         Rotation={value.rotation}
+//         File={value.file}
+//         circles={value.circles}
+//       />
+//     </>
+//   );
+// };
+
+const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
+  //const text = `${rowIndex}x${columnIndex}`;
+  const fill = "white";
+  // Aquí puedes añadir más lógica según tus necesidades
   return (
     <>
       {/* <Rect x={x} y={y} height={height} width={width} fill={fill} stroke="grey" strokeWidth={0.5} /> */}
       {/* <Text x={x} y={y} height={height} width={width} text={value} fontStyle="normal" verticalAlign="middle" align="center" /> */}
-      <Polygon2
-        x={value.x}
-        y={value.y}
-        Width={value.width}
-        Height={value.height}
-        Tension={value.tension}
+      <Polygon3
+        x={x}
+        y={y}
+        Width={width}
+        Height={height}
+        Tension={0.5}
         //circles={dataCircle}
         setCircles={() => console.log("Cambio de circulos")}
         onClick={() => console.log("Click en poligono")}
-        ColorFill={value.ColorFill}
-        ColorStroke={value.colorStroke}
-        Zoom={value.zoom}
-        Rotation={value.rotation}
-        File={value.file}
-        circles={value.circles}
+
       />
+
+      {/* <Circle x={x} y={y} radius={10} fill="red" stroke="grey" strokeWidth={0.5} draggable /> */}
     </>
   );
 };
