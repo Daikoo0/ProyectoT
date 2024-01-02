@@ -1,35 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 
-const Polygon = ({ x, y, Width, Height, Tension, onClick }) => {
-
-
-    const [circles, setCircles] = useState([
-        {
-            "x": x,
-            "y": y,
-            "radius": 5,
-            "movable": false
-        },
-        {
-            "movable": true,
-            "x": x + Width,
-            "y": y,
-            "radius": 5
-        },
-        {
-            "x": x + Width,
-            "y": y + Height,
-            "radius": 5,
-            "movable": true
-        },
-        {
-            "x": x,
-            "y": y + Height,
-            "radius": 5,
-            "movable": false
-        }
-    ]);
+const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
 
 
     const circlesToPoints = (circles) => {
@@ -40,53 +12,20 @@ const Polygon = ({ x, y, Width, Height, Tension, onClick }) => {
 
     useEffect(() => {
 
-        const scaleFactorX = 0.95; // 95% del ancho de la celda
-        const scaleFactorY = 0.95; // 95% del alto de la celda
+        // const calculatedPoints = circles.map(point => ({
+        //     ...point,
+        //     x: x + point.scaleFactorX * Width,
+        //     y: y + point.scaleFactorY * Height,
+        // }));
 
-        const scaleFactorX2 = 0.6; // Por ejemplo, 60% del ancho de la celda
-        const scaleFactorY2 = 0.3; // Por ejemplo, 30% del alto de la celda
-
-        const updatedCircles = [
-            {
-                "x": x,
-                "y": y,
-                "radius": 5,
-                "movable": false
-            },
-            {
-                "movable": true,
-                "x": x + Width * scaleFactorX,
-                "y": y,
-                "radius": 5
-            },
-            {
-                "x": x + Width * scaleFactorX2,
-                "y": y + Height * scaleFactorY2,
-                "radius": 5,
-                "movable": true // o false, según tus necesidades
-            },
-            {
-                "x": x + Width * scaleFactorX,
-                "y": y + Height,
-                "radius": 5,
-                "movable": true
-            },
-            {
-                "x": x,
-                "y": y + Height,
-                "radius": 5,
-                "movable": false
-            }
-        ];
-
-        setPolygonPoints(circlesToPoints(updatedCircles));
-        setCircles(updatedCircles);
-
+        //setCircles(calculatedPoints) // Actualizar los puntos
+        setPolygonPoints(circlesToPoints(circles));
+        
     }, [Width, Height, x, y]);
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
-        onClick();
+        //onClick();
         const mousePos = e.target.getStage().getPointerPosition();
         const x = mousePos.x;
         const y = mousePos.y;

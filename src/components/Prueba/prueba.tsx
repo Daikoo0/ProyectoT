@@ -127,10 +127,14 @@ const App = () => {
   ]);
 
 
-  //---------------// Varios //---------------//
+  //---------------// Fosil (deletear) //---------------//
 
   const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
   const dragUrl = useRef(null);
+
+  //---------------// Menu de la derecha //---------------//
+  const [sideBar, setSideBar] = useState<boolean>(false);
+  const [sideBarMode, setSideBarMode] = useState<string>("");
 
   //---------------// useEffect Socket //---------------//
   // Conexion y desconexion del socket
@@ -177,12 +181,13 @@ const App = () => {
 
         switch (shapeN.action) {
           case 'data':
-            console.log(Object.keys(shapeN.data["Litologia"]).length)
-            setData(shapeN.data)
+            const { Litologia, ...textInfo } = shapeN.data;
+
+            setData(textInfo)
+            setPolygons(Litologia)
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
             setRowCount(Object.keys(shapeN.data["Litologia"]).length + 1)
-
 
             break;
 
@@ -278,6 +283,13 @@ const App = () => {
     gridRef.current.resizeColumns([columnIndex]);
   };
 
+  const processCircles = (circles, x, y, width, height) => {
+    return circles.map(circle => ({
+      ...circle,
+      x: x + circle.x * width,
+      y: y + circle.y * height
+    }));
+  };
 
   const handleOptionChangeF = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedFosil(String(event.target.value));
@@ -290,11 +302,6 @@ const App = () => {
       <>
         <div className="navbar bg-base-200">
           <div className="flex-none">
-
-            <div className="dropdown dropdown-end">
-              <SelectTheme />
-            </div>
-
             <div className="dropdown dropdown-end">
 
               <div className="tooltip tooltip-bottom" data-tip="Deshacer cambio">
@@ -412,6 +419,7 @@ const App = () => {
     onSubmit: (value, { rowIndex, columnIndex }, nextActiveCell) => {
       console.log('On submit');
       console.log(data);
+      console.log(polygons)
 
       // Enviar al socket
       socket.send(JSON.stringify({
@@ -487,144 +495,212 @@ const App = () => {
 
   }
 
+
+
   // Renderizado de la Grilla
   return (
     <>
       <OptionsBar />
+      <div className="drawer drawer-end">
+        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
+        <div className="drawer-content">
+          {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
 
-      <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+          <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
 
-        <Grid
-          ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
-          width={width} // Ancho Stage
-          height={height} // Altura Stage
-          columnCount={columnCount} // Número total de columnas
-          rowCount={rowCount} // Número total de filas
-          frozenRows={frozenRows}
-          columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-          rowHeight={(index) => {
-            if (index === 0) return 110;
-            return 100;
-          }}
-          activeCell={activeCell}
-          //frozenColumns={frozenColumns} // Número de columnas congeladas
-          itemRenderer={(props) => {
+            <Grid
+              ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
+              width={width} // Ancho Stage
+              height={height} // Altura Stage
+              columnCount={columnCount} // Número total de columnas
+              rowCount={rowCount} // Número total de filas
+              frozenRows={frozenRows}
+              columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+              rowHeight={(index) => {
+                if (index === 0) return 110;
+                return 100;
+              }}
+              activeCell={activeCell}
+              //frozenColumns={frozenColumns} // Número de columnas congeladas
+              itemRenderer={(props) => {
 
 
-            //console.log(Object.keys(data["Litologia"]).length);
+                //console.log(Object.keys(data["Litologia"]).length);
 
-            if (props.rowIndex === 0) {
+                if (props.rowIndex === 0) {
 
-              // Renderizar el Encabezado para la primera fila
-              return (
-                <HeaderKonva
-                  value={Header[props.columnIndex]}
-                  onResize={handleResize}
-                  {...props}
-                />
-              )
-
-            } else if (Header[props.columnIndex] === "Estructura fosil") {
-
-              if (props.rowIndex === rowCount - 1) {
-                console.log("Imprime litologia")
-                console.log(props)
-
-                return (
-                  <Group heightShape={props.y} width={150} style={{ border: '1px solid red' }}>
-                    <Rect
-                      key={`header-fosils`}
-                      x={props.x}
-                      y={110}
-                      width={props.width}
-                      //heightShape={heightShape}
-
-                      height={props.height * props.rowIndex}
-                      fill="red"
-                      stroke="red"
+                  // Renderizar el Encabezado para la primera fila
+                  return (
+                    <HeaderKonva
+                      value={Header[props.columnIndex]}
+                      onResize={handleResize}
+                      {...props}
                     />
+                  )
 
-                    <Html
-                      groupProps={{ x: 0, y: 0 }}
-                      divProps={{
-                        style: {
-                          width: 150,
-                          overflow: 'hidden',
-                          background: 'none',
-                          outline: 'none',
-                          border: 'red',
-                          padding: '0px',
-                          margin: '0px',
-                          color: 'red',
-                          //  backgroundColor : 'blue'
-                        },
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 150,
-                          height: data["Litologia"].length,
-                          background: 'none',
-                          border: 'none',
-                          padding: '0px',
-                          margin: '0px',
-                          outline: 'none',
-                          overflow: 'auto',
-                          fontSize: '18px',
-                          fontFamily: 'sans-serif',
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                        }}
+                } else if (Header[props.columnIndex] === "Estructura fosil") {
 
-                      >
-                      </div>
-                    </Html>
-                  </Group>
+                  if (props.rowIndex === rowCount - 1) {
+                    console.log("Imprime litologia")
+                    console.log(props)
+
+                    return (
+                      // <Group heightShape={props.y} width={props.width} style={{ border: '1px solid grey' }}>
+                      <>
+                        <Rect
+                          key={`header-fosils`}
+                          x={props.x}
+                          y={110}
+                          width={props.width}
+                          //heightShape={heightShape}
+                          height={props.height * props.rowIndex}
+                          fill="white"
+                          stroke="grey"
+                        />
+
+                        <Html
+                          groupProps={{ x: props.x, y: 110 }}
+                          divProps={{
+                            style: {
+                              width: props.width,
+                              overflow: 'hidden',
+                              background: 'none',
+                              outline: 'none',
+                              border: 'red',
+                              padding: '0px',
+                              margin: '0px',
+                              color: 'yellow',
+                              //   backgroundColor : 'yellow'
+                            },
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: props.width,
+                              height: props.height * props.rowIndex,
+                              // background: 'blue',
+                              border: 'none',
+                              padding: '0px',
+                              margin: '0px',
+                              outline: 'none',
+                              overflow: 'auto',
+                              fontSize: '18px',
+                              fontFamily: 'sans-serif',
+                            }}
 
 
-                )
+                            onDrop={(e) => {
+                              e.preventDefault();
+                            }}
+
+                            onClick={(e) => {
+                              setSideBar(true)
+                              setSideBarMode("fosil")
+                            }}
+
+                          >
+                          </div>
+                        </Html>
+                      </>
+                      // </Group>
+
+
+                    )
+                  }
+                  console.log("No imprime nada")
+                  return null;
+
+                } else if (Header[props.columnIndex] === "Litologia") {
+
+
+                  const processedCircles = processCircles(
+                    polygons[props.rowIndex]["circles"],
+                    props.x,
+                    props.y,
+                    props.width,
+                    props.height
+                  );
+                  console.log(props)
+                  console.log(processedCircles)
+
+                  return (
+                    <Polygon3
+                      x={props.x}
+                      y={props.y}
+                      Width={props.width}
+                      Height={props.height}
+                      Tension={0.5}
+                      circles={processedCircles}
+
+                    />
+                    // <CellText
+                    //   value={data[Header[props.columnIndex+1]][props.rowIndex+1]}
+                    //   {...props}
+                    // />
+                  );
+
+                } else {
+                  return (
+
+                    <CellText
+                      value={data[Header[props.columnIndex]][props.rowIndex]}
+                      {...props}
+                    />
+                  );
+                }
               }
-              console.log("No imprime nada")
-              return null;
+              }
+              {...safeProps}
+              //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
 
-            } else if (Header[props.columnIndex] === "Litologia") {
-              // Modificar esto
-              return (
-                <Cell
-                  value={polygons[`${props.rowIndex + 1},${props.columnIndex}`] ? polygons[`${props.rowIndex + 1},${props.columnIndex}`] : "a"}
-                  x={props.x}
-                  y={props.y}
-                  width={props.width}
-                  height={props.height}
-                  {...props}
-                />
-              );
+              //Permite el cuadro azul que muestra la selección
+              onKeyDown={(...args) => {
+                selectionProps.onKeyDown(...args);
+                editableProps.onKeyDown(...args);
+              }}
+              onMouseDown={(...args) => {
+                selectionProps.onMouseDown(...args);
+                editableProps.onMouseDown(...args);
+              }}
+            />
+            {editorComponent}
 
-            } else {
-              return (
-                <CellText
-                  value={data[Header[props.columnIndex]][props.rowIndex]}
-                  {...props}
-                />
-              );
-            }
+          </div>
+        </div>
+
+
+        {/* //-----------------// SIDEBAR //-----------------//*/}
+
+        <div className="drawer-side">
+          <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+          {
+            (() => {
+              switch (sideBarMode) {
+                case "fosil":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li><a href="#">Editando fosil</a></li>
+                    </ul>
+                  );
+                case "polygon":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li><a href="#">Editando polígono</a></li>
+                    </ul>
+                  );
+                case "text":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li><a href="#">Editando texto</a></li>
+                    </ul>
+                  );
+                default:
+                  return <></>;
+              }
+            })()
           }
-          }
-          {...safeProps}
-          //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
 
-          //Permite el cuadro azul que muestra la selección
-          onKeyDown={(...args) => {
-            selectionProps.onKeyDown(...args);
-            editableProps.onKeyDown(...args);
-          }}
-          onMouseDown={(...args) => {
-            selectionProps.onMouseDown(...args);
-            editableProps.onMouseDown(...args);
-          }}
-        />
-        {editorComponent}
+        </div>
 
       </div>
     </>

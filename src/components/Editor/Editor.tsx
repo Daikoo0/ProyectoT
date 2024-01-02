@@ -795,14 +795,6 @@ const CoordinateInputs: React.FC = () => {
   };
 
 
-  interface ImageComponentProps {
-    imageNames: any;
-    x: number;
-    y: number;
-    width: number;
-    heightShape: number
-  }
-
   return (
     <>
       <OptionsBar />
