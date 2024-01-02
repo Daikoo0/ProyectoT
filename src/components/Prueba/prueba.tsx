@@ -110,7 +110,7 @@ const App = () => {
       "x": 0.6,
       "y": 0.3,
       "radius": 5,
-      "movable": true 
+      "movable": true
     },
     {
       "x": 0.95,
@@ -177,9 +177,13 @@ const App = () => {
 
         switch (shapeN.action) {
           case 'data':
+            console.log(Object.keys(shapeN.data["Litologia"]).length)
             setData(shapeN.data)
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
+            setRowCount(Object.keys(shapeN.data["Litologia"]).length + 1)
+
+
             break;
 
           case 'editText':
@@ -193,7 +197,7 @@ const App = () => {
             break
 
           case 'añadir':
-            console.log(shapeN.rowIndex)
+
             var stenf = `${shapeN.rowIndex},5`;
             setPolygons(prevPolygons => {
 
@@ -467,7 +471,6 @@ const App = () => {
   const addShape = () => {
     setRowCount(prevRowCount => {
       // console.log(lastPositionID, "addshape")
-      console.log(data["Litologia"])
       const newCount = prevRowCount + 1
       socket.send(JSON.stringify({
         action: "añadir",
@@ -506,9 +509,10 @@ const App = () => {
           activeCell={activeCell}
           //frozenColumns={frozenColumns} // Número de columnas congeladas
           itemRenderer={(props) => {
-            console.log(props.rowIndex)
 
-            console.log(data["Litologia"])
+
+            //console.log(Object.keys(data["Litologia"]).length);
+
             if (props.rowIndex === 0) {
 
               // Renderizar el Encabezado para la primera fila
@@ -520,56 +524,70 @@ const App = () => {
                 />
               )
 
-            } else if (Header[props.columnIndex] === "Estructura fosil" && props.rowIndex === data["Litologia"].length) {
-              
-              <Group heightShape={props.y} width={150} style={{ border: '1px solid red' }}>
-                <Rect
-                  key={`header-fosils`}
-                  x={0}
-                  y={0}
-                  width={150}
-                  heightShape={data["Litologia"].length}
-                  fill="transparent"
-                  stroke="black"
-                />
+            } else if (Header[props.columnIndex] === "Estructura fosil") {
 
-                <Html
-                  groupProps={{ x: 0, y: 0 }}
-                  divProps={{
-                    style: {
-                      width: 150,
-                      overflow: 'hidden',
-                      background: 'none',
-                      outline: 'none',
-                      border: 'red',
-                      padding: '0px',
-                      margin: '0px',
-                      color: 'red',
-                      //  backgroundColor : 'blue'
-                    },
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 150,
-                      height: data["Litologia"].length,
-                      background: 'none',
-                      border: 'none',
-                      padding: '0px',
-                      margin: '0px',
-                      outline: 'none',
-                      overflow: 'auto',
-                      fontSize: '18px',
-                      fontFamily: 'sans-serif',
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                    }}
+              if (props.rowIndex === rowCount - 1) {
+                console.log("Imprime litologia")
+                console.log(props)
 
-                  >
-                  </div>
-                </Html>
-              </Group>
+                return (
+                  <Group heightShape={props.y} width={150} style={{ border: '1px solid red' }}>
+                    <Rect
+                      key={`header-fosils`}
+                      x={props.x}
+                      y={110}
+                      width={props.width}
+                      //heightShape={heightShape}
+
+                      height={props.height * props.rowIndex}
+                      fill="red"
+                      stroke="red"
+                    />
+
+                    <Html
+                      groupProps={{ x: 0, y: 0 }}
+                      divProps={{
+                        style: {
+                          width: 150,
+                          overflow: 'hidden',
+                          background: 'none',
+                          outline: 'none',
+                          border: 'red',
+                          padding: '0px',
+                          margin: '0px',
+                          color: 'red',
+                          //  backgroundColor : 'blue'
+                        },
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 150,
+                          height: data["Litologia"].length,
+                          background: 'none',
+                          border: 'none',
+                          padding: '0px',
+                          margin: '0px',
+                          outline: 'none',
+                          overflow: 'auto',
+                          fontSize: '18px',
+                          fontFamily: 'sans-serif',
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                        }}
+
+                      >
+                      </div>
+                    </Html>
+                  </Group>
+
+
+                )
+              }
+              console.log("No imprime nada")
+              return null;
+
             } else if (Header[props.columnIndex] === "Litologia") {
               // Modificar esto
               return (
