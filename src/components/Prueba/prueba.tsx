@@ -69,8 +69,6 @@ const App = () => {
   const [socket, setSocket] = useState(null); // Instancia del socket
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
-
-
   //-----------------// GRID //-----------------//
   const gridRef = useRef(null);
 
@@ -88,53 +86,37 @@ const App = () => {
   // Estado para el ancho de las columnas
   const [columnWidthMap, setColumnWidthMap] = useState({});
 
-
-
   //-----------------// Datos //-----------------//
   const [data, setData] = useState({});
   const [Header, setHeader] = useState([]);
-  const [polygons, setPolygons] = useState([
-    {
-      "x": 0,
-      "y": 0,
-      "radius": 5,
-      "movable": false
-    },
-    {
-      "movable": true,
-      "x": 0.95,
-      "y": 0,
-      "radius": 5
-    },
-    {
-      "x": 0.6,
-      "y": 0.3,
-      "radius": 5,
-      "movable": true
-    },
-    {
-      "x": 0.95,
-      "y": 0,
-      "radius": 5,
-      "movable": true
-    },
-    {
-      "x": 0,
-      "y": 0,
-      "radius": 5,
-      "movable": false
-    }
-  ]);
-
-
-  //---------------// Fosil (deletear) //---------------//
-
-  const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
-  const dragUrl = useRef(null);
+  const [polygons, setPolygons] = useState([]);
 
   //---------------// Menu de la derecha //---------------//
   const [sideBar, setSideBar] = useState<boolean>(false);
   const [sideBarMode, setSideBarMode] = useState<string>("");
+
+  //---------------// Menu de la derecha fosiles //---------------//
+
+  const [upperLimit, setUpperLimit] = useState('');
+  const [lowerLimit, setLowerLimit] = useState('');
+
+  const handleConfirm = () => {
+    console.log(upperLimit, lowerLimit);
+  };
+
+  // Seleccion de patron / Pattern
+  const [selectedOption, setSelectedOption] = useState<string>(Object.keys(Json)[0]);
+
+  // Evento de seleccion de patron
+  const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOption(event.target.value);
+    //if (selectedShapeIndex !== null) {
+    //   const updatedShapes = [...shapes];
+    //   updatedShapes[selectedShapeIndex].polygon.file = Json[event.target.value];
+    //   updatedShapes[selectedShapeIndex].polygon.fileOption = event.target.value;
+    //   sendSocket("polygon", selectedShapeIndex);
+    //}
+  };
 
   //---------------// useEffect Socket //---------------//
   // Conexion y desconexion del socket
@@ -291,17 +273,14 @@ const App = () => {
     }));
   };
 
-  const handleOptionChangeF = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedFosil(String(event.target.value));
-    console.log(event.target.value)
-  };
-
   const OptionsBar = () => {
 
     return (
       <>
         <div className="navbar bg-base-200">
           <div className="flex-none">
+
+            <SelectTheme />
             <div className="dropdown dropdown-end">
 
               <div className="tooltip tooltip-bottom" data-tip="Deshacer cambio">
@@ -364,7 +343,7 @@ const App = () => {
 
             </div>
 
-            <div className="dropdown dropdown-end" >
+            {/* <div className="dropdown dropdown-end" >
               <div className="tooltip tooltip-bottom" data-tip="Arrástralo">
                 <img
                   alt="lion"
@@ -378,9 +357,9 @@ const App = () => {
 
                 />
               </div>
-            </div>
+            </div> */}
 
-            <div className="dropdown dropdown-end" >
+            {/* <div className="dropdown dropdown-end" >
 
               <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={handleOptionChangeF}>
                 <option disabled selected>Añadir fósil</option>
@@ -388,7 +367,7 @@ const App = () => {
                   <option key={option} value={option}>{option}</option>
                 ))}
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
       </>
@@ -495,13 +474,39 @@ const App = () => {
 
   }
 
+  const mergedCells = [
+    {
+      top: 1,
+      left: 6,
+      right: 6,
+      bottom: 2,
+    }
+  ];
 
+  //boul 0.95
+  //cobb 0.91
+  //pebb 0.87
+  //gran 0.83
+  //vc 0.79
+  //c 0.75
+  //m 0.71
+  //f 0.67
+  //vf 0.63
+  //site 0.59
+  //clay 0.55
 
   // Renderizado de la Grilla
   return (
     <>
       <OptionsBar />
+      <div style={{
+        width: "100%",
+        height: "40px"
+      }}>
+
+      </div>
       <div className="drawer drawer-end">
+
         <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
         <div className="drawer-content">
           {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
@@ -515,6 +520,7 @@ const App = () => {
               columnCount={columnCount} // Número total de columnas
               rowCount={rowCount} // Número total de filas
               frozenRows={frozenRows}
+              mergedCells={mergedCells}
               columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
               rowHeight={(index) => {
                 if (index === 0) return 110;
@@ -540,75 +546,39 @@ const App = () => {
 
                 } else if (Header[props.columnIndex] === "Estructura fosil") {
 
-                  if (props.rowIndex === rowCount - 1) {
-                    console.log("Imprime litologia")
-                    console.log(props)
+                  //    if (props.rowIndex === rowCount - 1) {
+                  console.log("Imprime litologia")
+                  console.log(props)
 
-                    return (
-                      // <Group heightShape={props.y} width={props.width} style={{ border: '1px solid grey' }}>
-                      <>
-                        <Rect
-                          key={`header-fosils`}
-                          x={props.x}
-                          y={110}
-                          width={props.width}
-                          //heightShape={heightShape}
-                          height={props.height * props.rowIndex}
-                          fill="white"
-                          stroke="grey"
-                        />
+                  return (
+                    // <Group heightShape={props.y} width={props.width} style={{ border: '1px solid grey' }}>
 
-                        <Html
-                          groupProps={{ x: props.x, y: 110 }}
-                          divProps={{
-                            style: {
-                              width: props.width,
-                              overflow: 'hidden',
-                              background: 'none',
-                              outline: 'none',
-                              border: 'red',
-                              padding: '0px',
-                              margin: '0px',
-                              color: 'yellow',
-                              //   backgroundColor : 'yellow'
-                            },
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: props.width,
-                              height: props.height * props.rowIndex,
-                              // background: 'blue',
-                              border: 'none',
-                              padding: '0px',
-                              margin: '0px',
-                              outline: 'none',
-                              overflow: 'auto',
-                              fontSize: '18px',
-                              fontFamily: 'sans-serif',
-                            }}
+                    <>
+                      <Rect
+                        key={`fosils`}
+                        x={props.x}
+                        y={110}
+                        width={props.width}
+                        //heightShape={heightShape}
+                        height={props.height * props.rowIndex}
+                        fill="white"
+                        stroke="grey"
+                        onClick={(e) => {
+                          setSideBar(true);
+                          setSideBarMode("fosil");
+                          const clickX = e.evt.clientX;
+                          const clickY = e.evt.clientY;
+                          const rectX = e.target.x();
+                          const rectY = e.target.y();
+                          const relativeX = clickX - rectX;
+                          const relativeY = clickY - rectY;
+                          console.log(`Relative Click Coordinates: X: ${relativeX}, Y: ${relativeY}`);
+                        }}
+                      />
+                    </>
+                  )
+                  // }
 
-
-                            onDrop={(e) => {
-                              e.preventDefault();
-                            }}
-
-                            onClick={(e) => {
-                              setSideBar(true)
-                              setSideBarMode("fosil")
-                            }}
-
-                          >
-                          </div>
-                        </Html>
-                      </>
-                      // </Group>
-
-
-                    )
-                  }
-                  console.log("No imprime nada")
-                  return null;
 
                 } else if (Header[props.columnIndex] === "Litologia") {
 
@@ -624,15 +594,30 @@ const App = () => {
                   console.log(processedCircles)
 
                   return (
-                    <Polygon3
-                      x={props.x}
-                      y={props.y}
-                      Width={props.width}
-                      Height={props.height}
-                      Tension={0.5}
-                      circles={processedCircles}
+                    <>
 
-                    />
+                      <Polygon3
+                        x={props.x}
+                        y={props.y}
+                        Width={props.width}
+                        Height={props.height}
+                        Tension={0.5}
+                        circles={processedCircles}
+
+                      />
+                      <Rect
+                        x={props.x}
+                        y={props.y}
+                        height={props.height}
+                        width={95}
+                        fill={"transparent"}
+                        onClick={(e) => {
+                          setSideBar(true)
+                          setSideBarMode("polygon")
+                        }}
+                      >
+                      </Rect>
+                    </>
                     // <CellText
                     //   value={data[Header[props.columnIndex+1]][props.rowIndex+1]}
                     //   {...props}
@@ -676,22 +661,86 @@ const App = () => {
           {
             (() => {
               switch (sideBarMode) {
-                case "fosil":
-                  return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li><a href="#">Editando fosil</a></li>
-                    </ul>
-                  );
                 case "polygon":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li><a href="#">Editando polígono</a></li>
+                      <li className="menu-title">Editando polígono</li>
+                      <li>
+                        <p>Seleccionar opción de Pattern: </p>
+                        <select value={selectedOption} onChange={handleOptionChange} className='select select-bordered w-full max-w-xs'>
+                          {Object.keys(Json).map(option => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </li>
+
+                      <input type="range" min={0.51} max={0.95} className="range" step={0.04} />
+                      <div className="w-full flex justify-between text-xs">
+                        <span className="-rotate-90">s/n</span>
+                        <span className="-rotate-90">clay</span>
+                        <span className="-rotate-90">silt</span>
+                        <span className="-rotate-90">vf</span>
+                        <span className="-rotate-90">f</span>
+                        <span className="-rotate-90">m</span>
+                        <span className="-rotate-90">c</span>
+                        <span className="-rotate-90">vc</span>
+                        <span className="-rotate-90">grain</span>
+                        <span className="-rotate-90">pebb</span>
+                        <span className="-rotate-90">cobb</span>
+                        <span className="-rotate-90">boul</span>
+
+                        {/* <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span>
+                        <span>|</span> */}
+
+                      </div>
+                    </ul>
+
+                  );
+                case "fosil":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Fósiles</li>
+
+                      <div className="grid h-20 card bg-base-300 rounded-box place-items-center">
+                        <li>Agregar nuevo fósil:</li>
+                        <li>
+                        </li>
+                        <li>
+                         límite superior (metros):
+                          <input
+                            type="number"
+                            value={upperLimit}
+                            onChange={(e) => setUpperLimit(e.target.value)}
+                          />
+                        </li>
+                        <li>
+                          Límite inferior (metros):
+                          <input
+                            type="number"
+                            value={lowerLimit}
+                            onChange={(e) => setLowerLimit(e.target.value)}
+                          />
+                        </li>
+                        <button className="btn btn-primary" onClick={handleConfirm}>Confirm</button>
+                      </div>
                     </ul>
                   );
                 case "text":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li><a href="#">Editando texto</a></li>
+                      <li className="menu-title">Editando texto</li>
                     </ul>
                   );
                 default:
