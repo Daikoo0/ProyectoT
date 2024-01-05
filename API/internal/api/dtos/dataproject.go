@@ -3,7 +3,7 @@ package dtos
 import "github.com/gorilla/websocket"
 
 type DataProject struct {
-	Config         string `json: "config"`
+	Config         string `json:"config"`
 	Data           string `json:"data"`
 	WebSocketConns map[string]*websocket.Conn
 }
@@ -18,9 +18,14 @@ type EditText struct {
 // Case add
 
 type Add struct {
-	X        int `json:"x"`
-	Y        int `json:"y"`
-	Height   int `json:"height"`
-	Width    int `json:"width"`
 	RowIndex int `json:"rowIndex"`
+	Height   int `json:"height"`
+}
+
+// case fosil
+
+type Fosil struct {
+	UpperLimit     int    `json:"upperLimit"`
+	LowerLimit     int    `json:"lowerLimit"`
+	SelectedFossil string `json:"selectedFosil"`
 }

@@ -70,7 +70,8 @@ const App = () => {
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
   //-----------------// GRID //-----------------//
-  const gridRef = useRef(null);
+  const gridRef = useRef(null); 
+  const headerGridRef = useRef(null);
 
   // Dimensiones de la grilla
   const width = 1700;
@@ -90,6 +91,7 @@ const App = () => {
   const [data, setData] = useState({});
   const [Header, setHeader] = useState([]);
   const [polygons, setPolygons] = useState([]);
+  const [fossils, setFossils] = useState([])
 
   //---------------// Menu de la derecha //---------------//
   const [sideBar, setSideBar] = useState<boolean>(false);
@@ -99,9 +101,19 @@ const App = () => {
 
   const [upperLimit, setUpperLimit] = useState('');
   const [lowerLimit, setLowerLimit] = useState('');
+  const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
 
   const handleConfirm = () => {
     console.log(upperLimit, lowerLimit);
+    socket.send(JSON.stringify({
+      action: 'addFosil',
+      data: {
+        "upperLimit": parseInt(upperLimit),
+        "lowerLimit": parseInt(lowerLimit),
+        "selectedFosil": selectedFosil,
+      }
+    }));
+
   };
 
   // Seleccion de patron / Pattern
@@ -163,13 +175,22 @@ const App = () => {
 
         switch (shapeN.action) {
           case 'data':
-            const { Litologia, ...textInfo } = shapeN.data;
+            const { Litologia, ...rest } = shapeN.data;
+
+            // Extraes 'estructuras y fosiles' del resto de los datos
+            const estructurasYFosiles = rest['Estructura fosil'];
+
+            // Eliminas 'estructuras y fosiles' de 'rest' para evitar duplicaciones
+            delete rest['Estructura fosil'];
+
+            // Ahora tienes 'Litologia', 'estructurasYFosiles', y el resto de los datos sin estas dos propiedades
+            const textInfo = rest;
 
             setData(textInfo)
             setPolygons(Litologia)
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
-            setRowCount(Object.keys(shapeN.data["Litologia"]).length + 1)
+            setRowCount(Object.keys(shapeN.data["Litologia"]).length)
 
             break;
 
@@ -184,25 +205,19 @@ const App = () => {
             break
 
           case 'añadir':
-
-            var stenf = `${shapeN.rowIndex},5`;
-            setPolygons(prevPolygons => {
-
-              const newdata = { ...prevPolygons, [stenf]: shapeN.Polygon }
-              return newdata
+            console.log(shapeN.rowIndex)
+            setPolygons(prev => {
+              const newData = { ...prev };
+              newData[shapeN.rowIndex] = shapeN.value;
+              return newData;
             });
-
-            // setPolygons(prev => {
-            //   const newData = { ...prev };
-            //   const id = shapeN.id;
-            //   newData[id] = { ...newData[id], [5]: shapeN.value };
-
-            //   return newData;
-            // });
+            setRowCount(prev => prev + 1)
 
             break
-          case 'fosil':
-
+          case 'addFosil':
+            const newFosil = shapeN;
+            setFossils(prevArray => [...prevArray, newFosil]);
+            console.log(fossils)
             break
 
           default:
@@ -454,24 +469,15 @@ const App = () => {
     ...safeProps
   } = editableProps;
 
-  // Por Modificar 
-  const addShape = () => {
-    setRowCount(prevRowCount => {
-      // console.log(lastPositionID, "addshape")
-      const newCount = prevRowCount + 1
-      socket.send(JSON.stringify({
-        action: "añadir",
-        data: {
-          rowIndex: newCount,
-          x: 0,//lastPositionID.x,
-          y: 0,//lastPositionID.y,
-          height: 100,
-          width: 100
-        }
-      }));
-      return newCount;
-    });
 
+  const addShape = () => {
+    socket.send(JSON.stringify({
+      action: 'añadir',
+      data: {
+        "height": 200,
+        "rowIndex": rowCount
+      }
+    }));
   }
 
   const mergedCells = [
@@ -479,7 +485,7 @@ const App = () => {
       top: 1,
       left: 6,
       right: 6,
-      bottom: 2,
+      bottom: rowCount - 1,
     }
   ];
 
@@ -512,6 +518,29 @@ const App = () => {
           {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
 
           <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+            <Grid
+              ref={headerGridRef} // Referencia para manipular el encabezado desde otros componentes
+              columnCount={columnCount} // Número total de columnas
+              rowCount={1} // Solo una fila para el encabezado
+              width={width} // Ancho del encabezado, normalmente igual al de la grilla principal
+              height={height} // Altura del encabezado
+              columnWidth={(index) => columnWidthMap[index] || 100} // Ancho de la columna, obtenido del estado
+              rowHeight={() => 110} // Altura de las filas en el encabezado
+              showScrollbar={false} // Esconder la barra de desplazamiento para el encabezado
+              itemRenderer={(props) => {
+                return (
+                    <HeaderKonva
+                      value={Header[props.columnIndex]}
+                      onResize={handleResize}
+                      {...props}
+                    />
+                  )
+              }}
+            />
+
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
 
             <Grid
               ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
@@ -525,30 +554,26 @@ const App = () => {
               rowHeight={(index) => {
                 if (index === 0) return 110;
                 return 100;
+                //polygons[index]["height"]
               }}
               activeCell={activeCell}
               //frozenColumns={frozenColumns} // Número de columnas congeladas
               itemRenderer={(props) => {
 
+                // if (props.rowIndex === 0) {
 
-                //console.log(Object.keys(data["Litologia"]).length);
+                //   // Renderizar el Encabezado para la primera fila
+                //   return (
+                //     <HeaderKonva
+                //       value={Header[props.columnIndex]}
+                //       onResize={handleResize}
+                //       {...props}
+                //     />
+                //   )
 
-                if (props.rowIndex === 0) {
+                // } else 
+                if (Header[props.columnIndex] === "Estructura fosil") {
 
-                  // Renderizar el Encabezado para la primera fila
-                  return (
-                    <HeaderKonva
-                      value={Header[props.columnIndex]}
-                      onResize={handleResize}
-                      {...props}
-                    />
-                  )
-
-                } else if (Header[props.columnIndex] === "Estructura fosil") {
-
-                  //    if (props.rowIndex === rowCount - 1) {
-                  console.log("Imprime litologia")
-                  console.log(props)
 
                   return (
                     // <Group heightShape={props.y} width={props.width} style={{ border: '1px solid grey' }}>
@@ -575,6 +600,12 @@ const App = () => {
                           console.log(`Relative Click Coordinates: X: ${relativeX}, Y: ${relativeY}`);
                         }}
                       />
+                      {fossils.map((img, index) => (
+                        
+                          <Fosil img={img} index={index} />
+                        
+                      ))}
+
                     </>
                   )
                   // }
@@ -590,8 +621,8 @@ const App = () => {
                     props.width,
                     props.height
                   );
-                  console.log(props)
-                  console.log(processedCircles)
+                  // console.log(props)
+                  // console.log(processedCircles)
 
                   return (
                     <>
@@ -625,8 +656,8 @@ const App = () => {
                   );
 
                 } else {
-                  return (
 
+                  return (
                     <CellText
                       value={data[Header[props.columnIndex]][props.rowIndex]}
                       {...props}
@@ -713,12 +744,23 @@ const App = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Fósiles</li>
 
-                      <div className="grid h-20 card bg-base-300 rounded-box place-items-center">
+                      <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
                         <li>Agregar nuevo fósil:</li>
                         <li>
+                          <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
+                            <option disabled selected>Elige el tipo de fósil</option>
+                            {Object.keys(fosilJson).map(option => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
                         </li>
                         <li>
-                         límite superior (metros):
+                          <img
+                            alt="None"
+                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />
+                        </li>
+                        <li>
+                          límite superior (metros):
                           <input
                             type="number"
                             value={upperLimit}

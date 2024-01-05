@@ -289,54 +289,39 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("Error al deserializar: ", err)
 					}
 
-					//if val, ok := addData.Id; ok && val != nil
-					idPolygon := addData.RowIndex
-					XPolygon := addData.X
-					YPolygon := addData.Y
+					rowIndex := addData.RowIndex
 					height := addData.Height
-					width := addData.Width
-
-					// type Property struct {
-					// 	Content  string
-					// 	Optional bool
-					// 	Vertical bool
-					// }
-
-					// initialTexts := map[string]Property{
-					// 	"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
-					// 	"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
-					// 	"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
-					// 	"Formación":                {Content: "vacío", Optional: true, Vertical: true},
-					// 	"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
-					// 	"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
-					// 	"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
-					// 	"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
-					// }
 
 					newShape := map[string]interface{}{
-						"action":   "añadir",
-						"rowIndex": idPolygon, // numero de fila
-						"Polygon": map[string]interface{}{
-							"x":           XPolygon,
-							"y":           YPolygon,
-							"ColorFill":   "white",
-							"colorStroke": "black",
-							"zoom":        100,
-							"rotation":    0,
-							"tension":     0.5,
-							"file":        0,
-							"fileOption":  0,
-							"height":      100,
-							"circles": []map[string]interface{}{
-								{"x": XPolygon, "y": YPolygon, "radius": 5, "movable": false},
-								{"x": XPolygon + width, "y": YPolygon, "radius": 5, "movable": true},
-								{"x": XPolygon + width, "y": YPolygon + height, "radius": 5, "movable": true},
-								{"x": XPolygon, "y": YPolygon + height, "radius": 5, "movable": false},
-							},
+						"x":           0,
+						"y":           0,
+						"ColorFill":   "white",
+						"colorStroke": "black",
+						"zoom":        100,
+						"rotation":    0,
+						"tension":     0.5,
+						"file":        0,
+						"fileOption":  0,
+						"height":      height,
+						"circles": []map[string]interface{}{
+							{"x": 0, "y": 0, "radius": 5, "movable": false},
+							{"x": 0.5, "y": 0, "radius": 5, "movable": true},
+							{"x": 0.5, "y": 1, "radius": 5, "movable": true},
+							{"x": 0, "y": 1, "radius": 5, "movable": false},
 						},
-						// "Text": initialTexts,
 					}
-					jsonBytes, err := json.Marshal(newShape)
+
+					innerMap := rooms[roomID].Data["Litologia"].(map[string]interface{})
+					innerMap[strconv.Itoa(rowIndex)] = newShape
+
+					// Enviar informacion a los clientes
+					msgData := map[string]interface{}{
+						"action":   "añadir",
+						"rowIndex": rowIndex,
+						"value":    newShape,
+					}
+
+					jsonBytes, err := json.Marshal(msgData)
 					if err != nil {
 						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
 					}
@@ -391,6 +376,45 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					//case "editStyleText"
 
+				case "addFosil":
+					var fosil dtos.Fosil
+					err := json.Unmarshal(dataMap.Data, &fosil)
+					if err != nil {
+						log.Println("Error", err)
+					}
+
+					upper := fosil.UpperLimit
+					lower := fosil.LowerLimit
+					posImage := (lower + upper) / 2
+					srcFosil := fosil.SelectedFossil
+
+					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+
+					log.Println(len(innerMap), "inermap")
+					log.Println(lower, upper, posImage, "delfront")
+					// Enviar informacion a los clientes
+					msgData := map[string]interface{}{
+						"action":        "addFosil",
+						"posImage":      posImage,
+						"lower":         lower,
+						"upper":         upper,
+						"selectedFosil": srcFosil,
+					}
+
+					innerMap = append(innerMap, msgData)
+					rooms[roomID].Data["Estructura fosil"] = innerMap
+
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println(err)
+						}
+					}
 				}
 
 				// if dataMap["action"] == "undo" {

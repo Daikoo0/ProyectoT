@@ -120,7 +120,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 			"Miembro":                 map[int]interface{}{},
 			"Espesor":                 map[int]interface{}{},
 			"Litologia":               map[int]interface{}{},
-			"Estructura fosil":        map[int]interface{}{},
+			"Estructura fosil":        []interface{}{},
 			"Facie":                   map[int]interface{}{},
 			"Ambiente Depositacional": map[int]interface{}{},
 			"Descripcion":             map[int]interface{}{},
