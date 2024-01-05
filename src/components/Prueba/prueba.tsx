@@ -70,7 +70,7 @@ const App = () => {
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
   //-----------------// GRID //-----------------//
-  const gridRef = useRef(null); 
+  const gridRef = useRef(null);
   const headerGridRef = useRef(null);
 
   // Dimensiones de la grilla
@@ -78,7 +78,7 @@ const App = () => {
   const height = 800;
 
   // Número de filas y columnas
-  const [rowCount, setRowCount] = useState(1);
+  const [rowCount, setRowCount] = useState(0);
   const [columnCount, setColumnCount] = useState(0);
 
   // Número de filas congeladas (Fijas)
@@ -190,7 +190,7 @@ const App = () => {
             setPolygons(Litologia)
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
-            setRowCount(Object.keys(shapeN.data["Litologia"]).length)
+            //setRowCount(Object.keys(shapeN.data["Litologia"]).length)
 
             break;
 
@@ -211,7 +211,7 @@ const App = () => {
               newData[shapeN.rowIndex] = shapeN.value;
               return newData;
             });
-            setRowCount(prev => prev + 1)
+            //setRowCount(prev => prev + 1)
 
             break
           case 'addFosil':
@@ -221,7 +221,7 @@ const App = () => {
             break
 
           default:
-            // Manejar cualquier situación no contemplada
+            console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
         }
 
@@ -236,6 +236,17 @@ const App = () => {
 
 
   //---------------// useEffect Varios //---------------//
+  const polygonCountRef = useRef(Object.keys(polygons).length);
+
+  useEffect(() => {
+    const currentCount = Object.keys(polygons).length;
+    if (currentCount !== polygonCountRef.current) {
+      setRowCount(currentCount);
+      polygonCountRef.current = currentCount;
+      console.log(currentCount)
+    }
+  }, [polygons]);
+
   // useEffect(() => {
 
   //   if (Object.values(polygons).length > 0) {
@@ -278,6 +289,8 @@ const App = () => {
       [columnIndex]: newWidth
     }));
     gridRef.current.resizeColumns([columnIndex]);
+    headerGridRef.current.resizeColumns([columnIndex]);
+
   };
 
   const processCircles = (circles, x, y, width, height) => {
@@ -406,6 +419,7 @@ const App = () => {
     rowCount,
     columnCount,
     gridRef,
+
     selections,
     activeCell,
     getValue: getCellValue,
@@ -434,7 +448,6 @@ const App = () => {
     canEdit: ({ rowIndex, columnIndex }) => {
       console.log('Can edit', columnIndex, rowIndex);
       console.log(data)
-      if (rowIndex === 0) return false;
       if (Header[columnIndex] === "Litologia") return false;
       if (Header[columnIndex] === "Estructura fosil") return false;
       return true;
@@ -482,10 +495,10 @@ const App = () => {
 
   const mergedCells = [
     {
-      top: 1,
+      top: 0,
       left: 6,
       right: 6,
-      bottom: rowCount - 1,
+      bottom: rowCount -1,
     }
   ];
 
@@ -517,75 +530,99 @@ const App = () => {
         <div className="drawer-content">
           {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
 
-          <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+
             <Grid
-              ref={headerGridRef} // Referencia para manipular el encabezado desde otros componentes
+              ref={headerGridRef} // Referencia para manipular la grilla principal desde otros componentes
+              width={width} // Ancho Stage
+              height={110} // Altura Stage
               columnCount={columnCount} // Número total de columnas
-              rowCount={1} // Solo una fila para el encabezado
-              width={width} // Ancho del encabezado, normalmente igual al de la grilla principal
-              height={height} // Altura del encabezado
-              columnWidth={(index) => columnWidthMap[index] || 100} // Ancho de la columna, obtenido del estado
-              rowHeight={() => 110} // Altura de las filas en el encabezado
-              showScrollbar={false} // Esconder la barra de desplazamiento para el encabezado
+              rowCount={1} // Número total de filas
+              columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+              rowHeight={() => { return 110; }}
+              showScrollbar={false}
               itemRenderer={(props) => {
                 return (
-                    <HeaderKonva
-                      value={Header[props.columnIndex]}
-                      onResize={handleResize}
-                      {...props}
-                    />
-                  )
-              }}
+                  <HeaderKonva
+                    value={Header[props.columnIndex]}
+                    onResize={handleResize}
+                    {...props}
+                  />
+                )
+              }
+              }
             />
-
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+          {rowCount !== 0 ? 
 
+          <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+            
             <Grid
               ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
               width={width} // Ancho Stage
               height={height} // Altura Stage
               columnCount={columnCount} // Número total de columnas
               rowCount={rowCount} // Número total de filas
-              frozenRows={frozenRows}
               mergedCells={mergedCells}
               columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-              rowHeight={(index) => {
-                if (index === 0) return 110;
-                return 100;
-                //polygons[index]["height"]
+              rowHeight={(index) => { 
+                if(polygons[index]){
+                return polygons[index]["height"]; 
+                }else{
+                  return 200;
+                }
               }}
               activeCell={activeCell}
-              //frozenColumns={frozenColumns} // Número de columnas congeladas
               itemRenderer={(props) => {
 
-                // if (props.rowIndex === 0) {
-
-                //   // Renderizar el Encabezado para la primera fila
-                //   return (
-                //     <HeaderKonva
-                //       value={Header[props.columnIndex]}
-                //       onResize={handleResize}
-                //       {...props}
-                //     />
-                //   )
-
-                // } else 
-                if (Header[props.columnIndex] === "Estructura fosil") {
-
+                if (Header[props.columnIndex] === "Litologia") {
+                
+                  const processedCircles = processCircles(
+                    polygons[props.rowIndex]["circles"],
+                    props.x,
+                    props.y,
+                    props.width,
+                    props.height
+                  );
 
                   return (
-                    // <Group heightShape={props.y} width={props.width} style={{ border: '1px solid grey' }}>
+                    <>
+                      <Polygon3
+                        x={props.x}
+                        y={props.y}
+                        Width={props.width}
+                        Height={props.height}
+                        Tension={0.5}
+                        circles={processedCircles}
+                      />
 
+                      <Rect
+                        x={props.x}
+                        y={props.y}
+                        height={props.height}
+                        width={95}
+                        fill={"transparent"}
+                        onClick={() => {
+                          setSideBar(true)
+                          setSideBarMode("polygon")
+                        }}
+                      >
+                      </Rect>
+                    </>
+                  );
+
+                } else if (Header[props.columnIndex] === "Estructura fosil") {
+
+                  return (
                     <>
                       <Rect
                         key={`fosils`}
                         x={props.x}
-                        y={110}
+                        y={props.y}
                         width={props.width}
                         //heightShape={heightShape}
-                        height={props.height * props.rowIndex}
+                        height={props.height}
                         fill="white"
                         stroke="grey"
                         onClick={(e) => {
@@ -601,62 +638,15 @@ const App = () => {
                         }}
                       />
                       {fossils.map((img, index) => (
-                        
-                          <Fosil img={img} index={index} />
-                        
+
+                        <Fosil img={img} index={index} />
+
                       ))}
 
                     </>
                   )
-                  // }
-
-
-                } else if (Header[props.columnIndex] === "Litologia") {
-
-
-                  const processedCircles = processCircles(
-                    polygons[props.rowIndex]["circles"],
-                    props.x,
-                    props.y,
-                    props.width,
-                    props.height
-                  );
-                  // console.log(props)
-                  // console.log(processedCircles)
-
-                  return (
-                    <>
-
-                      <Polygon3
-                        x={props.x}
-                        y={props.y}
-                        Width={props.width}
-                        Height={props.height}
-                        Tension={0.5}
-                        circles={processedCircles}
-
-                      />
-                      <Rect
-                        x={props.x}
-                        y={props.y}
-                        height={props.height}
-                        width={95}
-                        fill={"transparent"}
-                        onClick={(e) => {
-                          setSideBar(true)
-                          setSideBarMode("polygon")
-                        }}
-                      >
-                      </Rect>
-                    </>
-                    // <CellText
-                    //   value={data[Header[props.columnIndex+1]][props.rowIndex+1]}
-                    //   {...props}
-                    // />
-                  );
-
                 } else {
-
+                  console.log(props.rowIndex)
                   return (
                     <CellText
                       value={data[Header[props.columnIndex]][props.rowIndex]}
@@ -667,7 +657,9 @@ const App = () => {
               }
               }
               {...safeProps}
-              //showFillHandle={!isEditInProgress} // Mostrar el controlador de relleno si no se está editando
+              onScroll={({ scrollLeft }) => {
+                headerGridRef.current.scrollTo({ scrollLeft });
+              }}
 
               //Permite el cuadro azul que muestra la selección
               onKeyDown={(...args) => {
@@ -682,6 +674,7 @@ const App = () => {
             {editorComponent}
 
           </div>
+          : <div></div>}
         </div>
 
 
