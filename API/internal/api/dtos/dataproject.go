@@ -28,4 +28,5 @@ type Fosil struct {
 	UpperLimit     int    `json:"upperLimit"`
 	LowerLimit     int    `json:"lowerLimit"`
 	SelectedFossil string `json:"selectedFosil"`
+	RelativeX      int    `json:"relativeX"`
 }

@@ -4,22 +4,22 @@ import { useEffect, useState } from "react";
 import useImage from 'use-image';
 import fosilJson from '../../fossil.json';
 
-const Fosil = (img, index) => {
-    console.log(img)
+const Fosil = ({img, index,x}) => {
+    console.log(img,x+img.relativeX)
 
     const [svgContent, setSvgContent] = useState('');
 
     useEffect(() => {
         //if(File === 0){
-        if (!img.img.selectedFosil) {
+        if (!img.selectedFosil) {
             setSvgContent('');
             return;
         }
 
         //const imageURL = new URL('../../assets/patrones/'+File+'.svg', import.meta.url).href
-        //const imageURL = new URL(img.img.posImage, import.meta.url).href
-        const imageURL = new URL('../../assets/fosiles/'+fosilJson[img.img.selectedFosil]+'.svg', import.meta.url).href
-        console.log(img.img)
+        //const imageURL = new URL(img.posImage, import.meta.url).href
+        const imageURL = new URL('../../assets/fosiles/'+fosilJson[img.selectedFosil]+'.svg', import.meta.url).href
+        console.log(img)
 
         fetch(imageURL)
             .then(response => response.text())
@@ -30,32 +30,32 @@ const Fosil = (img, index) => {
 
             });
 
-    }, [img.img.selectedFosil]);
+    }, [img.selectedFosil]);
 
-    const [image] = useImage(!img.img.selectedFosil ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
+    const [image] = useImage(!img.selectedFosil ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
     return (
         <React.Fragment key={index}>
             <Line
-                points={[(img.img.x || 20) + 15, img.img.posImage - 25, (img.img.x || 20) + 15, img.img.posImage + 50]}
+                points={[(x+img.relativeX || 20) + 10, img.lower, (x+img.relativeX || 20) + 10, img.upper]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Line
-                points={[img.img.x || 20, img.img.lower, (img.img.x || 20) + 30, img.img.lower]}
+                points={[x+img.relativeX || 20, img.lower, (x+img.relativeX || 20) + 30, img.lower]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Line
-                points={[img.img.x || 20, img.img.upper, (img.img.x || 20) + 30, img.img.upper]}
+                points={[x+img.relativeX || 20, img.upper, (x+img.relativeX || 20) + 30, img.upper]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Image
-                x={img.img.x || 20}
-                y={img.img.posImage}
-                width={30}
-                height={30}
+                x={x+img.relativeX || 20}
+                y={img.posImage-10}
+                width={20}
+                height={20}
                 image={image}
             />
         </React.Fragment>

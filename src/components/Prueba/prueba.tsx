@@ -102,6 +102,7 @@ const App = () => {
   const [upperLimit, setUpperLimit] = useState('');
   const [lowerLimit, setLowerLimit] = useState('');
   const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
+  const [relativeX, setRelativeX] = useState<number>(0)
 
   const handleConfirm = () => {
     console.log(upperLimit, lowerLimit);
@@ -111,6 +112,7 @@ const App = () => {
         "upperLimit": parseInt(upperLimit),
         "lowerLimit": parseInt(lowerLimit),
         "selectedFosil": selectedFosil,
+        "relativeX": relativeX
       }
     }));
 
@@ -518,12 +520,6 @@ const App = () => {
   return (
     <>
       <OptionsBar />
-      <div style={{
-        width: "100%",
-        height: "40px"
-      }}>
-
-      </div>
       <div className="drawer drawer-end">
 
         <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
@@ -615,7 +611,8 @@ const App = () => {
                 } else if (Header[props.columnIndex] === "Estructura fosil") {
 
                   return (
-                    <>
+                    
+                    <Group>
                       <Rect
                         key={`fosils`}
                         x={props.x}
@@ -634,16 +631,17 @@ const App = () => {
                           const rectY = e.target.y();
                           const relativeX = clickX - rectX;
                           const relativeY = clickY - rectY;
-                          console.log(`Relative Click Coordinates: X: ${relativeX}, Y: ${relativeY}`);
+                          console.log(`Relative Click Coordinates: X: ${relativeX}), Y: ${relativeY}`);
+                        setRelativeX(relativeX)
                         }}
-                      />
+                     />
                       {fossils.map((img, index) => (
 
-                        <Fosil img={img} index={index} />
+                        <Fosil img={img} index={index} x={props.x}/>
 
                       ))}
-
-                    </>
+</Group>
+                    
                   )
                 } else {
                   console.log(props.rowIndex)

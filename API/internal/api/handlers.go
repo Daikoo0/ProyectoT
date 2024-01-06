@@ -387,6 +387,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					lower := fosil.LowerLimit
 					posImage := (lower + upper) / 2
 					srcFosil := fosil.SelectedFossil
+					relativeX := fosil.RelativeX
 
 					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
 
@@ -399,10 +400,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"lower":         lower,
 						"upper":         upper,
 						"selectedFosil": srcFosil,
+						"relativeX":     relativeX,
 					}
 
 					innerMap = append(innerMap, msgData)
 					rooms[roomID].Data["Estructura fosil"] = innerMap
+					log.Println(rooms[roomID].Data["Estructura fosil"], "este es")
 
 					jsonMsg, err := json.Marshal(msgData)
 					if err != nil {
