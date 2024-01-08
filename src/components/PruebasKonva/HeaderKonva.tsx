@@ -9,6 +9,7 @@ interface HeaderKonvaProps {
     height?: number;
     columnIndex?: number;
     value?: string;
+    highestRelativeX?: number;
 }
 
 // Barras de desplazamiento
@@ -103,13 +104,17 @@ const HeaderLines = ({ x, y, width, height, categories }) => {
     return <Group>{linesAndText}</Group>;
 };
 
-const MIN_WIDTH = 100; // Ancho mínimo para las columnas
-const MAX_WIDTH = 500; // Ancho máximo para las columnas
 
-const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, value, onResize }) => {
+
+const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width, height, value, onResize, highestRelativeX }) => {
     const halfWidth = width / 2;
     const text = value;
     const fill = "#eee";
+    const MIN_WIDTH = 100; // Ancho mínimo para las columnas
+    const MAX_WIDTH = 250; // Ancho máximo para las columnas
+    
+    const FOSSIL_MAX_WIDTH = 300; 
+    const FOSSIL_MIN_WIDTH = highestRelativeX+24 || 200;
 
     return (
         <Group>
@@ -169,16 +174,18 @@ const HeaderComponent: React.FC<HeaderKonvaProps> = ({ columnIndex, x, y, width,
                     let newX = node.x();
                     let newWidth = newX - x + dragHandleWidth;
             
-                    // Asegurarse de que el nuevo ancho esté dentro de los límites
-                    if (newWidth > MAX_WIDTH) {
-                        newWidth = MAX_WIDTH;
+                    let maxWidth = text === 'Estructura fosil' ? FOSSIL_MAX_WIDTH : MAX_WIDTH;
+                    let minWidth = text === 'Estructura fosil' ? FOSSIL_MIN_WIDTH : MIN_WIDTH;
+            
+                
+                    if (newWidth > maxWidth) {
+                        newWidth = maxWidth;
                         newX = x + newWidth - dragHandleWidth;
-                    } else if (newWidth < MIN_WIDTH) {
-                        newWidth = MIN_WIDTH;
+                    } else if (newWidth < minWidth) {
+                        newWidth = minWidth;
                         newX = x + newWidth - dragHandleWidth;
                     }
             
-                    // Actualizar la posición x del DraggableRect y el ancho de la columna
                     node.x(newX);
                     onResize(columnIndex, newWidth);
                 }}

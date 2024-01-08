@@ -51,17 +51,17 @@ const Fosil = ({img, index,x,sideBarState,setSideBarState,idClickFosil,setIdClic
                 onClick={a}
             />
             <Line
-                points={[(x+img.relativeX || 20)-10, img.lower, (x+img.relativeX || 20) + 30, img.lower]}
+                points={[(x+img.relativeX || 20), img.lower, (x+img.relativeX || 20) + 20, img.lower]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Line
-                points={[(x+img.relativeX || 20)-10, img.upper, (x+img.relativeX || 20) + 30, img.upper]}
+                points={[(x+img.relativeX || 20), img.upper, (x+img.relativeX || 20) + 20, img.upper]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Image
-                x={x+img.relativeX || 20}
+                x={(x+img.relativeX)-2 || 20}
                 y={img.posImage-12}
                 width={24}
                 height={24}

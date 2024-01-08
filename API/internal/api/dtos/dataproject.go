@@ -32,9 +32,8 @@ type Fosil struct {
 }
 
 type EditFosil struct {
-	IdFosil        int
+	IdFosil        int    `json:"idFosil"`
 	UpperLimit     int    `json:"upperLimit"`
 	LowerLimit     int    `json:"lowerLimit"`
 	SelectedFossil string `json:"selectedFosil"`
-	RelativeX      int    `json:"relativeX"`
 }

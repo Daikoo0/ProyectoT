@@ -174,8 +174,19 @@ const App = () => {
         "relativeX": relativeX
       }
     }));
-
   };
+
+  const handleFosilEdit = () => {
+    socket.send(JSON.stringify({
+      action: 'addFosil',
+      data: {
+        "idFosil": idClickFosil,
+        "upperLimit": parseInt(upperLimit),
+        "lowerLimit": parseInt(lowerLimit),
+        "selectedFosil": selectedFosil
+      }
+    }));
+  }
 
   // Seleccion de patron / Pattern
   const [selectedOption, setSelectedOption] = useState<string>(Object.keys(Json)[0]);
@@ -239,10 +250,10 @@ const App = () => {
             const { Litologia, ...rest } = shapeN.data;
 
             // Extraes 'estructuras y fosiles' del resto de los datos
-            const estructurasYFosiles = rest['Estructura fosil'];
+           //p const estructurasYFosiles = rest['Estructura fosil'];
 
             // Eliminas 'estructuras y fosiles' de 'rest' para evitar duplicaciones
-            delete rest['Estructura fosil'];
+         //   delete rest['Estructura fosil'];
 
             // Ahora tienes 'Litologia', 'estructurasYFosiles', y el resto de los datos sin estas dos propiedades
             const textInfo = rest;
@@ -251,6 +262,7 @@ const App = () => {
             setPolygons(Litologia)
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
+            setFossils(rest['Estructura fosil'])
             //setRowCount(Object.keys(shapeN.data["Litologia"]).length)
 
             break;
@@ -276,12 +288,9 @@ const App = () => {
 
             break
           case 'addFosil':
-            
-            setFossils(prevFossils => {
-              const newFossils = [...prevFossils];
-              newFossils[prevFossils.length+1] = shapeN;
-              return newFossils;
-            });
+            // const newFossils = [...fossils];
+            // newFossils[fossils.length+1] = shapeN;
+            setFossils(prevfossils => [...prevfossils,shapeN]);
             break
 
           default:
@@ -606,7 +615,7 @@ const App = () => {
         <div id="este" className="drawer-content">
           {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
 
-          <div ref={divRef} style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+          <div ref={divRef} style={{ display: "flex", flexDirection: "column" }}>
 
             <Grid
               ref={headerGridRef} // Referencia para manipular la grilla principal desde otros componentes
@@ -618,21 +627,24 @@ const App = () => {
               rowHeight={() => { return 110; }}
               showScrollbar={false}
               itemRenderer={(props) => {
+                let highestRelativeX = fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX);
+      
                 return (
                   <HeaderKonva
                     value={Header[props.columnIndex]}
                     onResize={handleResize}
+                    highestRelativeX={highestRelativeX}
                     {...props}
                   />
                 )
               }
               }
             />
-            {/* </div> */}
+            </div>
 
             {rowCount !== 0 ?
 
-              // <div ref={divRef}  style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+              <div ref={divRef}  style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
               <>
                 <Grid
                   ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
@@ -760,11 +772,12 @@ console.log(fossils)
                 {editorComponent}
 
               </>
+      </div>
               : <div></div>
             }
           </div>
 
-        </div>
+         {/* </div> */}
 
 
 
@@ -869,9 +882,40 @@ console.log(fossils)
                     </ul>
                   );
                 case "editFosil":
-                  return(<ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                 // const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
+                  return(
+                  <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                   <li className="menu-title">Editando fósil</li>
-                  <li>{idClickFosil}</li>
+                  <li>
+                          <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
+                            <option disabled selected>Elige el tipo de fósil</option>
+                            {Object.keys(fosilJson).map(option => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        </li>
+                        <li>
+                          <img
+                            alt="None"
+                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />
+                        </li>
+                        <li>
+                          límite superior (metros):
+                          <input
+                            type="number"
+                            value={upperLimit}
+                            onChange={(e) => setUpperLimit(e.target.value)}
+                          />
+                        </li>
+                        <li>
+                          Límite inferior (metros):
+                          <input
+                            type="number"
+                            value={lowerLimit}
+                            onChange={(e) => setLowerLimit(e.target.value)}
+                          />
+                        </li>
+                        <button className="btn btn-primary" onClick={handleFosilEdit}>Confirm</button>
                 </ul>)
              
                 default:

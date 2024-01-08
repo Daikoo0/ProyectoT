@@ -446,7 +446,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							itemMap["lower"] = fosil.LowerLimit
 							itemMap["upper"] = fosil.UpperLimit
 							itemMap["selectedFosil"] = fosil.SelectedFossil
-							itemMap["relativeX"] = fosil.RelativeX
 
 							// Reemplaza el fósil antiguo en innerMap con el actualizado
 							innerMap[i] = itemMap
