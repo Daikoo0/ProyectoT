@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import Grid, { useSelection, useEditable } from "@rowsncolumns/grid";
-import { Rect, Group } from "react-konva";
+import { Rect, Group, Stage } from "react-konva";
 import HeaderKonva from "../PruebasKonva/HeaderKonva";
 import CellText from "../PruebasKonva/CellText";
 import Polygon2 from "./Polygon2";
@@ -11,6 +11,10 @@ import SelectTheme from "../Web/SelectTheme";
 import { useParams } from "react-router-dom";
 import Fosil from "../Editor/Fosil";
 import { Html } from "react-konva-utils";
+import jsPDF from 'jspdf';
+import domtoimage from 'dom-to-image';
+
+
 
 // Componente de Celda Personalizado
 // const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
@@ -64,6 +68,55 @@ const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
 };
 
 const App = () => {
+
+  const divRef = useRef(null);
+
+
+  const exportarDivAPdf = async () => {
+    const divRefCurrent = divRef.current;
+    if (divRefCurrent) {
+      const pdf = new jsPDF();
+
+      // Supongamos que tienes una función que itera sobre los elementos de texto
+      // y los agrega al PDF. Debes crear esta función según la estructura de tu HTML.
+      const addTextElementsToPDF = (pdf, element) => {
+        // Asumimos que 'element' es el div que contiene el texto que quieres agregar
+        const textElements = element.querySelectorAll('.texto-seleccionable'); // Ajusta el selector según sea necesario
+        textElements.forEach(el => {
+          // Añadir el texto al PDF. Aquí necesitas calcular las posiciones 'x' y 'y' según sea necesario.
+          pdf.text(el.textContent, 10, 10);
+        });
+      };
+
+      // Agrega texto al PDF antes de convertir el div a imagen
+      addTextElementsToPDF(pdf, divRefCurrent);
+
+      // Convertir el div a imagen para el contenido no textual (como canvas)
+      const dataUrl = await domtoimage.toPng(divRefCurrent);
+      const img = new Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        // Calcular la proporción para mantener la relación de aspecto
+        const imgWidth = img.width;
+        const imgHeight = img.height;
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
+
+        // Agregar la imagen al PDF
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+        // Guardar el PDF
+        pdf.save('tuArchivo.pdf');
+      };
+    }
+  };
+
+  const HandleSave = () => {
+    console.log("guardando..")
+    socket.send(JSON.stringify({ action: "save" }));
+    //socket.send(JSON.stringify({action:"delete", id: selectedShapeID}));
+  };
+
   //-----------------// Socket //-----------------//
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null); // Instancia del socket
@@ -94,8 +147,13 @@ const App = () => {
   const [fossils, setFossils] = useState([])
 
   //---------------// Menu de la derecha //---------------//
-  const [sideBar, setSideBar] = useState<boolean>(false);
-  const [sideBarMode, setSideBarMode] = useState<string>("");
+  // const [sideBar, setSideBar] = useState<boolean>(false);
+  // const [sideBarMode, setSideBarMode] = useState<string>("");
+
+  const [sideBarState, setSideBarState] = useState({
+    sideBar: false,
+    sideBarMode: ""
+});
 
   //---------------// Menu de la derecha fosiles //---------------//
 
@@ -103,6 +161,7 @@ const App = () => {
   const [lowerLimit, setLowerLimit] = useState('');
   const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
   const [relativeX, setRelativeX] = useState<number>(0)
+  const [idClickFosil, setIdClickFosil] = useState<number>(0);
 
   const handleConfirm = () => {
     console.log(upperLimit, lowerLimit);
@@ -217,9 +276,12 @@ const App = () => {
 
             break
           case 'addFosil':
-            const newFosil = shapeN;
-            setFossils(prevArray => [...prevArray, newFosil]);
-            console.log(fossils)
+            
+            setFossils(prevFossils => {
+              const newFossils = [...prevFossils];
+              newFossils[prevFossils.length+1] = shapeN;
+              return newFossils;
+            });
             break
 
           default:
@@ -310,6 +372,7 @@ const App = () => {
         <div className="navbar bg-base-200">
           <div className="flex-none">
 
+            <button onClick={HandleSave}>Guardar Cambios</button>
             <SelectTheme />
             <div className="dropdown dropdown-end">
 
@@ -333,6 +396,9 @@ const App = () => {
                 </div>
 
               </div>
+
+
+
               <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
 
                 {/* {Object.keys(initialTexts).map((key) => {
@@ -367,6 +433,17 @@ const App = () => {
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
+                  </svg>
+                </div>
+              </div>
+
+            </div>
+
+            <div onClick={exportarDivAPdf} className="dropdown dropdown-end" >
+              <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                  <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
                   </svg>
                 </div>
               </div>
@@ -500,7 +577,7 @@ const App = () => {
       top: 0,
       left: 6,
       right: 6,
-      bottom: rowCount -1,
+      bottom: rowCount - 1,
     }
   ];
 
@@ -522,11 +599,14 @@ const App = () => {
       <OptionsBar />
       <div className="drawer drawer-end">
 
-        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBar} onClick={() => setSideBar(false)} />
-        <div className="drawer-content">
+        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBarState.sideBar} onClick={() =>  setSideBarState({
+            sideBar: false,
+            sideBarMode: ""
+        })} />
+        <div id="este" className="drawer-content">
           {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
 
-          <div style={{ display: "flex", flexDirection: "column" }}>
+          <div ref={divRef} style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
 
             <Grid
               ref={headerGridRef} // Referencia para manipular la grilla principal desde otros componentes
@@ -548,132 +628,144 @@ const App = () => {
               }
               }
             />
+            {/* </div> */}
+
+            {rowCount !== 0 ?
+
+              // <div ref={divRef}  style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+              <>
+                <Grid
+                  ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
+                  width={width} // Ancho Stage
+                  height={height} // Altura Stage
+                  columnCount={columnCount} // Número total de columnas
+                  rowCount={rowCount} // Número total de filas
+                  mergedCells={mergedCells}
+                  columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+                  rowHeight={(index) => {
+                    if (polygons[index]) {
+                      return polygons[index]["height"];
+                    } else {
+                      return 200;
+                    }
+                  }}
+                  activeCell={activeCell}
+                  itemRenderer={(props) => {
+
+                    if (Header[props.columnIndex] === "Litologia") {
+
+                      console.log(polygons)
+
+                      const processedCircles = processCircles(
+                        polygons[props.rowIndex]["circles"],
+                        props.x,
+                        props.y,
+                        props.width,
+                        props.height
+                      );
+
+                      return (
+                        <>
+                          <Polygon3
+                            x={props.x}
+                            y={props.y}
+                            Width={props.width}
+                            Height={props.height}
+                            Tension={0.5}
+                            circles={processedCircles}
+                          />
+
+                          <Rect
+                            x={props.x}
+                            y={props.y}
+                            height={props.height}
+                            width={95}
+                            fill={"transparent"}
+                            onClick={() => {
+                              setSideBarState({
+                                sideBar: true,
+                                sideBarMode: "polygon"
+                            })
+                            }}
+                          >
+                          </Rect>
+                        </>
+                      );
+
+                    } else if (Header[props.columnIndex] === "Estructura fosil") {
+console.log(fossils)
+                      return (
+
+                        <Group>
+                          <Rect
+                            key={`fosils`}
+                            x={props.x}
+                            y={props.y}
+                            width={props.width}
+                            //heightShape={heightShape}
+                            height={props.height}
+                            fill="white"
+                            stroke="grey"
+                            onClick={(e) => {
+                              setSideBarState({
+                                sideBar: true,
+                                sideBarMode: "fosil"
+                            })
+                              const clickX = e.evt.clientX;
+                              const clickY = e.evt.clientY;
+                              const rectX = e.target.x();
+                              const rectY = e.target.y();
+                              const relativeX = clickX - rectX;
+                              const relativeY = clickY - rectY;
+                              console.log(`Relative Click Coordinates: X: ${relativeX}), Y: ${relativeY}`);
+                              setRelativeX(relativeX)
+                            }}
+                          />
+                          {fossils.map((img, index) => (
+
+                            <Fosil img={img} index={index} x={props.x} 
+                            sideBarState={sideBarState} setSideBarState={setSideBarState} 
+                            idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}/>
+
+                          ))}
+                        </Group>
+
+                      )
+                    } else {
+                      console.log(props.rowIndex)
+                      return (
+                        <CellText
+                          value={data[Header[props.columnIndex]][props.rowIndex]}
+                          {...props}
+                        />
+                      );
+                    }
+                  }
+                  }
+                  {...safeProps}
+                  onScroll={({ scrollLeft }) => {
+                    headerGridRef.current.scrollTo({ scrollLeft });
+                  }}
+
+                  //Permite el cuadro azul que muestra la selección
+                  onKeyDown={(...args) => {
+                    selectionProps.onKeyDown(...args);
+                    editableProps.onKeyDown(...args);
+                  }}
+                  onMouseDown={(...args) => {
+                    selectionProps.onMouseDown(...args);
+                    editableProps.onMouseDown(...args);
+                  }}
+                />
+                {editorComponent}
+
+              </>
+              : <div></div>
+            }
           </div>
 
-          {rowCount !== 0 ? 
-
-          <div style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
-            
-            <Grid
-              ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
-              width={width} // Ancho Stage
-              height={height} // Altura Stage
-              columnCount={columnCount} // Número total de columnas
-              rowCount={rowCount} // Número total de filas
-              mergedCells={mergedCells}
-              columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-              rowHeight={(index) => { 
-                if(polygons[index]){
-                return polygons[index]["height"]; 
-                }else{
-                  return 200;
-                }
-              }}
-              activeCell={activeCell}
-              itemRenderer={(props) => {
-
-                if (Header[props.columnIndex] === "Litologia") {
-                
-                  const processedCircles = processCircles(
-                    polygons[props.rowIndex]["circles"],
-                    props.x,
-                    props.y,
-                    props.width,
-                    props.height
-                  );
-
-                  return (
-                    <>
-                      <Polygon3
-                        x={props.x}
-                        y={props.y}
-                        Width={props.width}
-                        Height={props.height}
-                        Tension={0.5}
-                        circles={processedCircles}
-                      />
-
-                      <Rect
-                        x={props.x}
-                        y={props.y}
-                        height={props.height}
-                        width={95}
-                        fill={"transparent"}
-                        onClick={() => {
-                          setSideBar(true)
-                          setSideBarMode("polygon")
-                        }}
-                      >
-                      </Rect>
-                    </>
-                  );
-
-                } else if (Header[props.columnIndex] === "Estructura fosil") {
-
-                  return (
-                    
-                    <Group>
-                      <Rect
-                        key={`fosils`}
-                        x={props.x}
-                        y={props.y}
-                        width={props.width}
-                        //heightShape={heightShape}
-                        height={props.height}
-                        fill="white"
-                        stroke="grey"
-                        onClick={(e) => {
-                          setSideBar(true);
-                          setSideBarMode("fosil");
-                          const clickX = e.evt.clientX;
-                          const clickY = e.evt.clientY;
-                          const rectX = e.target.x();
-                          const rectY = e.target.y();
-                          const relativeX = clickX - rectX;
-                          const relativeY = clickY - rectY;
-                          console.log(`Relative Click Coordinates: X: ${relativeX}), Y: ${relativeY}`);
-                        setRelativeX(relativeX)
-                        }}
-                     />
-                      {fossils.map((img, index) => (
-
-                        <Fosil img={img} index={index} x={props.x}/>
-
-                      ))}
-</Group>
-                    
-                  )
-                } else {
-                  console.log(props.rowIndex)
-                  return (
-                    <CellText
-                      value={data[Header[props.columnIndex]][props.rowIndex]}
-                      {...props}
-                    />
-                  );
-                }
-              }
-              }
-              {...safeProps}
-              onScroll={({ scrollLeft }) => {
-                headerGridRef.current.scrollTo({ scrollLeft });
-              }}
-
-              //Permite el cuadro azul que muestra la selección
-              onKeyDown={(...args) => {
-                selectionProps.onKeyDown(...args);
-                editableProps.onKeyDown(...args);
-              }}
-              onMouseDown={(...args) => {
-                selectionProps.onMouseDown(...args);
-                editableProps.onMouseDown(...args);
-              }}
-            />
-            {editorComponent}
-
-          </div>
-          : <div></div>}
         </div>
+
 
 
         {/* //-----------------// SIDEBAR //-----------------//*/}
@@ -682,7 +774,7 @@ const App = () => {
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
           {
             (() => {
-              switch (sideBarMode) {
+              switch (sideBarState.sideBarMode) {
                 case "polygon":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -776,6 +868,12 @@ const App = () => {
                       <li className="menu-title">Editando texto</li>
                     </ul>
                   );
+                case "editFosil":
+                  return(<ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                  <li className="menu-title">Editando fósil</li>
+                  <li>{idClickFosil}</li>
+                </ul>)
+             
                 default:
                   return <></>;
               }
@@ -787,6 +885,8 @@ const App = () => {
       </div>
     </>
   );
+
 };
+
 
 export default App;

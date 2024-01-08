@@ -391,11 +391,15 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
 
-					log.Println(len(innerMap), "inermap")
-					log.Println(lower, upper, posImage, "delfront")
+					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(relativeX))
+					if err != nil {
+						log.Println("Error al convertir la cadena a entero:", err)
+					}
+
 					// Enviar informacion a los clientes
 					msgData := map[string]interface{}{
 						"action":        "addFosil",
+						"idFosil":       concatenatedInt,
 						"posImage":      posImage,
 						"lower":         lower,
 						"upper":         upper,
@@ -405,7 +409,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					innerMap = append(innerMap, msgData)
 					rooms[roomID].Data["Estructura fosil"] = innerMap
-					log.Println(rooms[roomID].Data["Estructura fosil"], "este es")
 
 					jsonMsg, err := json.Marshal(msgData)
 					if err != nil {
@@ -418,6 +421,55 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println(err)
 						}
 					}
+
+				case "save":
+					log.Println("guardando...")
+					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
+					if err != nil {
+						log.Println("No se guardo la data")
+					}
+
+				case "editFosil":
+					var fosil dtos.EditFosil
+					err := json.Unmarshal(dataMap.Data, &fosil)
+					if err != nil {
+						log.Println("Error al deserializar el fósil:", err)
+					}
+
+					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+
+					for i, item := range innerMap {
+						itemMap := item.(map[string]interface{})
+						if itemMap["idFosil"].(int) == fosil.IdFosil {
+							// Aquí actualizamos el fósil con la nueva información
+							itemMap["posImage"] = (fosil.LowerLimit + fosil.UpperLimit) / 2
+							itemMap["lower"] = fosil.LowerLimit
+							itemMap["upper"] = fosil.UpperLimit
+							itemMap["selectedFosil"] = fosil.SelectedFossil
+							itemMap["relativeX"] = fosil.RelativeX
+
+							// Reemplaza el fósil antiguo en innerMap con el actualizado
+							innerMap[i] = itemMap
+
+							// Enviamos la información actualizada a los clientes
+							jsonMsg, err := json.Marshal(itemMap)
+							if err != nil {
+								log.Fatal("Error al serializar el mensaje:", err)
+							}
+
+							for _, client := range proyect.Active {
+								err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+								if err != nil {
+									log.Println("Error al enviar mensaje:", err)
+								}
+							}
+
+							break // Salir del bucle una vez que se encuentra y se actualiza el fósil
+						}
+					}
+
+					rooms[roomID].Data["Estructura fosil"] = innerMap
+
 				}
 
 				// if dataMap["action"] == "undo" {

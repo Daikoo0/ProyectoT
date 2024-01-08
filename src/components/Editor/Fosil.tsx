@@ -4,10 +4,18 @@ import { useEffect, useState } from "react";
 import useImage from 'use-image';
 import fosilJson from '../../fossil.json';
 
-const Fosil = ({img, index,x}) => {
+const Fosil = ({img, index,x,sideBarState,setSideBarState,idClickFosil,setIdClickFosil}) => {
     console.log(img,x+img.relativeX)
 
     const [svgContent, setSvgContent] = useState('');
+
+    const a = () => {
+        setSideBarState({
+            sideBar: true,
+            sideBarMode: "editFosil"
+        })
+        setIdClickFosil(img.idFosil);
+    }
 
     useEffect(() => {
         //if(File === 0){
@@ -40,23 +48,25 @@ const Fosil = ({img, index,x}) => {
                 points={[(x+img.relativeX || 20) + 10, img.lower, (x+img.relativeX || 20) + 10, img.upper]}
                 stroke="grey"
                 dash={[2, 2]}
+                onClick={a}
             />
             <Line
-                points={[x+img.relativeX || 20, img.lower, (x+img.relativeX || 20) + 30, img.lower]}
+                points={[(x+img.relativeX || 20)-10, img.lower, (x+img.relativeX || 20) + 30, img.lower]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Line
-                points={[x+img.relativeX || 20, img.upper, (x+img.relativeX || 20) + 30, img.upper]}
+                points={[(x+img.relativeX || 20)-10, img.upper, (x+img.relativeX || 20) + 30, img.upper]}
                 stroke="grey"
                 dash={[2, 2]}
             />
             <Image
                 x={x+img.relativeX || 20}
-                y={img.posImage-10}
-                width={20}
-                height={20}
+                y={img.posImage-12}
+                width={24}
+                height={24}
                 image={image}
+                onClick={a}
             />
         </React.Fragment>
 
