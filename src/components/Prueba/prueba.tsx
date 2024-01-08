@@ -627,8 +627,9 @@ const App = () => {
               rowHeight={() => { return 110; }}
               showScrollbar={false}
               itemRenderer={(props) => {
-                let highestRelativeX = fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX);
-      
+                let highestRelativeX = fossils.length>0?
+                 fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX)
+                  : 200
                 return (
                   <HeaderKonva
                     value={Header[props.columnIndex]}
@@ -733,13 +734,15 @@ console.log(fossils)
                               setRelativeX(relativeX)
                             }}
                           />
-                          {fossils.map((img, index) => (
+                          {fossils.length>0?
+
+                          fossils.map((img, index) => (
 
                             <Fosil img={img} index={index} x={props.x} 
                             sideBarState={sideBarState} setSideBarState={setSideBarState} 
                             idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}/>
 
-                          ))}
+                          )): <></>}
                         </Group>
 
                       )
