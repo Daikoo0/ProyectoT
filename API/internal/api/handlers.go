@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -311,8 +312,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						},
 					}
 
-					innerMap := rooms[roomID].Data["Litologia"].(map[string]interface{})
-					innerMap[strconv.Itoa(rowIndex)] = newShape
+					// innerMap := rooms[roomID].Data["Litologia"].(map[string]interface{})
+					// innerMap[strconv.Itoa(rowIndex)] = newShape
+
+					InsertRowInLitologiaAndUpdateIndices(roomID, rowIndex, newShape)
 
 					// Enviar informacion a los clientes
 					msgData := map[string]interface{}{
@@ -864,6 +867,60 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	conn.Close()
 	RemoveElement(roomID, conn)
 	return nil
+}
+
+func InsertRowInLitologiaAndUpdateIndices(roomID string, rowIndex int, newLitologiaData interface{}) {
+	roomData, exists := rooms[roomID]
+	if !exists {
+		fmt.Println("Room not found")
+		return
+	}
+
+	// Procesa la clave "Litologia" de manera especial
+	if litologia, ok := roomData.Data["Litologia"].(map[string]interface{}); ok {
+		// Desplaza los elementos existentes en "Litologia" para hacer espacio para el nuevo
+		for i := len(litologia) - 1; i >= rowIndex; i-- {
+			litologia[strconv.Itoa(i+1)] = litologia[strconv.Itoa(i)]
+		}
+		// Inserta los nuevos datos en "Litologia"
+		litologia[strconv.Itoa(rowIndex)] = newLitologiaData
+	} else {
+		fmt.Println("Litologia data not found or invalid type")
+	}
+
+	// Para todas las otras claves, solo mueve los índices
+	for key, value := range roomData.Data {
+		// Ignora "Litologia" y "Estructura fosil"
+		if key == "Litologia" || key == "Estructura fosil" {
+			continue
+		}
+
+		innerMap, ok := value.(map[string]interface{})
+		if !ok {
+			fmt.Println("Invalid data type for key:", key)
+			continue
+		}
+
+		newMap := make(map[string]interface{})
+
+		// Recorre el mapa original
+		for k, v := range innerMap {
+			i, err := strconv.Atoi(k)
+			if err != nil {
+				fmt.Println("Invalid key type, expected integer:", k)
+				continue
+			}
+
+			if i >= rowIndex {
+				newMap[strconv.Itoa(i+1)] = v
+			} else {
+				newMap[k] = v
+			}
+		}
+
+		roomData.Data[key] = newMap
+
+	}
 }
 
 func (a *API) HandleInviteUser(c echo.Context) error {
