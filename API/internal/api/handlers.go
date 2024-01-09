@@ -430,45 +430,95 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 
 				case "editFosil":
-					var fosil dtos.EditFosil
-					err := json.Unmarshal(dataMap.Data, &fosil)
+					var fosilEdit dtos.EditFosil
+					err := json.Unmarshal(dataMap.Data, &fosilEdit)
 					if err != nil {
-						log.Println("Error al deserializar el fósil:", err)
+						log.Println("Error deserializando fósil:", err)
+						break
 					}
 
+					idFosilEdit := fosilEdit.IdFosil
 					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
-
-					for i, item := range innerMap {
-						itemMap := item.(map[string]interface{})
-						if itemMap["idFosil"].(int) == fosil.IdFosil {
-							// Aquí actualizamos el fósil con la nueva información
-							itemMap["posImage"] = (fosil.LowerLimit + fosil.UpperLimit) / 2
-							itemMap["lower"] = fosil.LowerLimit
-							itemMap["upper"] = fosil.UpperLimit
-							itemMap["selectedFosil"] = fosil.SelectedFossil
-
-							// Reemplaza el fósil antiguo en innerMap con el actualizado
-							innerMap[i] = itemMap
-
-							// Enviamos la información actualizada a los clientes
-							jsonMsg, err := json.Marshal(itemMap)
-							if err != nil {
-								log.Fatal("Error al serializar el mensaje:", err)
-							}
-
-							for _, client := range proyect.Active {
-								err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-								if err != nil {
-									log.Println("Error al enviar mensaje:", err)
-								}
-							}
-
-							break // Salir del bucle una vez que se encuentra y se actualiza el fósil
+					var newInnerMap primitive.A
+					// Eliminar el fósil antiguo
+					for _, item := range innerMap {
+						fosilMap := item.(map[string]interface{})
+						elid := int(fosilMap["idFosil"].(int))
+						if elid != idFosilEdit {
+							newInnerMap = append(newInnerMap, fosilMap)
 						}
 					}
 
-					rooms[roomID].Data["Estructura fosil"] = innerMap
+					// Agregar el nuevo fósil
+					posImage := (fosilEdit.LowerLimit + fosilEdit.UpperLimit) / 2
+					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(fosilEdit.RelativeX))
+					if err != nil {
+						log.Println("Error al convertir la cadena a entero:", err)
+					}
 
+					msgData := map[string]interface{}{
+						"action":        "editFosil",
+						"idFosil":       concatenatedInt,
+						"posImage":      posImage,
+						"lower":         fosilEdit.LowerLimit,
+						"upper":         fosilEdit.UpperLimit,
+						"selectedFosil": fosilEdit.SelectedFossil,
+						"relativeX":     fosilEdit.RelativeX,
+					}
+
+					newInnerMap = append(newInnerMap, msgData)
+					rooms[roomID].Data["Estructura fosil"] = newInnerMap
+
+					// Enviar información actualizada a los clientes
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal("Error al serializar mensaje:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println("Error al enviar mensaje:", err)
+						}
+					}
+
+				case "deleteFosil":
+					var fosilID dtos.DeleteFosil
+					err := json.Unmarshal(dataMap.Data, &fosilID)
+					if err != nil {
+						log.Println("Error deserializando fósil:", err)
+						break
+					}
+
+					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+					var newInnerMap primitive.A
+
+					for _, item := range innerMap {
+						fosilMap := item.(map[string]interface{})
+						elid := int(fosilMap["idFosil"].(int))
+						if elid != fosilID.IdFosil {
+							newInnerMap = append(newInnerMap, fosilMap)
+						}
+					}
+					rooms[roomID].Data["Estructura fosil"] = newInnerMap
+
+					msgData := map[string]interface{}{
+						"action":  "deleteFosil",
+						"idFosil": fosilID,
+					}
+
+					// Enviar información actualizada a los clientes
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal("Error al serializar mensaje:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println("Error al enviar mensaje:", err)
+						}
+					}
 				}
 
 				// if dataMap["action"] == "undo" {

@@ -153,7 +153,7 @@ const App = () => {
   const [sideBarState, setSideBarState] = useState({
     sideBar: false,
     sideBarMode: ""
-});
+  });
 
   //---------------// Menu de la derecha fosiles //---------------//
 
@@ -176,14 +176,26 @@ const App = () => {
     }));
   };
 
-  const handleFosilEdit = () => {
+  const handleDeleteFosil = () => {
     socket.send(JSON.stringify({
-      action: 'addFosil',
+      action: 'deleteFosil',
+      data: {
+        "idFosil": idClickFosil,
+      }
+    }));
+  }
+
+  const handleFosilEdit = () => {
+
+    const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
+    socket.send(JSON.stringify({
+      action: 'editFosil',
       data: {
         "idFosil": idClickFosil,
         "upperLimit": parseInt(upperLimit),
         "lowerLimit": parseInt(lowerLimit),
-        "selectedFosil": selectedFosil
+        "selectedFosil": selectedFosil,
+        "relativeX": foundFossil.relativeX
       }
     }));
   }
@@ -250,10 +262,10 @@ const App = () => {
             const { Litologia, ...rest } = shapeN.data;
 
             // Extraes 'estructuras y fosiles' del resto de los datos
-           //p const estructurasYFosiles = rest['Estructura fosil'];
+            //p const estructurasYFosiles = rest['Estructura fosil'];
 
             // Eliminas 'estructuras y fosiles' de 'rest' para evitar duplicaciones
-         //   delete rest['Estructura fosil'];
+            //   delete rest['Estructura fosil'];
 
             // Ahora tienes 'Litologia', 'estructurasYFosiles', y el resto de los datos sin estas dos propiedades
             const textInfo = rest;
@@ -288,11 +300,24 @@ const App = () => {
 
             break
           case 'addFosil':
-            // const newFossils = [...fossils];
-            // newFossils[fossils.length+1] = shapeN;
-            setFossils(prevfossils => [...prevfossils,shapeN]);
+            setFossils(prevfossils => [...prevfossils, shapeN]);
             break
-
+          case 'editFosil':
+            const updatedFossils = fossils.filter(fossil => fossil.idFosil !== idClickFosil);
+            setFossils([...updatedFossils, shapeN]);
+            setSideBarState({
+              sideBar: false,
+              sideBarMode: ""
+            })
+            break
+          case 'deleteFosil':
+            const updatedFosils = fossils.filter(fossil => fossil.idFosil !== shapeN.idFosil);
+            setFossils(updatedFosils);
+            setSideBarState({
+              sideBar: false,
+              sideBarMode: ""
+            })
+            break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
@@ -608,9 +633,9 @@ const App = () => {
       <OptionsBar />
       <div className="drawer drawer-end">
 
-        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBarState.sideBar} onClick={() =>  setSideBarState({
-            sideBar: false,
-            sideBarMode: ""
+        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBarState.sideBar} onClick={() => setSideBarState({
+          sideBar: false,
+          sideBarMode: ""
         })} />
         <div id="este" className="drawer-content">
           {/* <label htmlFor="my-drawer" className="drawer-button btn btn-primary">Open drawer</label> */}
@@ -627,8 +652,8 @@ const App = () => {
               rowHeight={() => { return 110; }}
               showScrollbar={false}
               itemRenderer={(props) => {
-                let highestRelativeX = fossils.length>0?
-                 fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX)
+                let highestRelativeX = fossils.length > 0 ?
+                  fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX)
                   : 200
                 return (
                   <HeaderKonva
@@ -641,11 +666,11 @@ const App = () => {
               }
               }
             />
-            </div>
+          </div>
 
-            {rowCount !== 0 ?
+          {rowCount !== 0 ?
 
-              <div ref={divRef}  style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
+            <div ref={divRef} style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
               <>
                 <Grid
                   ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
@@ -698,7 +723,7 @@ const App = () => {
                               setSideBarState({
                                 sideBar: true,
                                 sideBarMode: "polygon"
-                            })
+                              })
                             }}
                           >
                           </Rect>
@@ -706,7 +731,7 @@ const App = () => {
                       );
 
                     } else if (Header[props.columnIndex] === "Estructura fosil") {
-console.log(fossils)
+                      console.log(fossils)
                       return (
 
                         <Group>
@@ -723,7 +748,7 @@ console.log(fossils)
                               setSideBarState({
                                 sideBar: true,
                                 sideBarMode: "fosil"
-                            })
+                              })
                               const clickX = e.evt.clientX;
                               const clickY = e.evt.clientY;
                               const rectX = e.target.x();
@@ -734,15 +759,16 @@ console.log(fossils)
                               setRelativeX(relativeX)
                             }}
                           />
-                          {fossils.length>0?
+                          {fossils.length > 0 ?
 
-                          fossils.map((img, index) => (
+                            fossils.map((img, index) => (
 
-                            <Fosil img={img} index={index} x={props.x} 
-                            sideBarState={sideBarState} setSideBarState={setSideBarState} 
-                            idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}/>
+                              <Fosil img={img} index={index} x={props.x}
+                                sideBarState={sideBarState} setSideBarState={setSideBarState}
+                                idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}
+                              />
 
-                          )): <></>}
+                            )) : <></>}
                         </Group>
 
                       )
@@ -775,12 +801,12 @@ console.log(fossils)
                 {editorComponent}
 
               </>
-      </div>
-              : <div></div>
-            }
-          </div>
+            </div>
+            : <div></div>
+          }
+        </div>
 
-         {/* </div> */}
+        {/* </div> */}
 
 
 
@@ -885,42 +911,61 @@ console.log(fossils)
                     </ul>
                   );
                 case "editFosil":
-                 // const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
-                  return(
-                  <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                  <li className="menu-title">Editando fósil</li>
-                  <li>
-                          <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
-                            <option disabled selected>Elige el tipo de fósil</option>
-                            {Object.keys(fosilJson).map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                        </li>
-                        <li>
-                          <img
+                  // onClickFosil();
+                  const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Editando fósil</li>
+                      <li>
+                        <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
+                          <option disabled selected>Selecciona un fósil</option>
+                          {Object.keys(fosilJson).map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </li>
+                      <li>
+
+                        <div className="flex w-full">
+                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">  <img
                             alt="None"
-                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />
-                        </li>
-                        <li>
-                          límite superior (metros):
-                          <input
-                            type="number"
-                            value={upperLimit}
-                            onChange={(e) => setUpperLimit(e.target.value)}
-                          />
-                        </li>
-                        <li>
-                          Límite inferior (metros):
-                          <input
-                            type="number"
-                            value={lowerLimit}
-                            onChange={(e) => setLowerLimit(e.target.value)}
-                          />
-                        </li>
-                        <button className="btn btn-primary" onClick={handleFosilEdit}>Confirm</button>
-                </ul>)
-             
+                            src={`../src/assets/fosiles/${foundFossil ? fosilJson[foundFossil.selectedFosil] : fosilJson[1]}.svg`} />
+                          </div>
+                          <div className="divider divider-horizontal">
+
+                            <svg className="w-10 h-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                            </svg>
+                          </div>
+                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">   <img
+                            alt="None"
+                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} /></div>
+                        </div>
+
+
+                      </li>
+                      <li>
+                        límite superior (metros):
+                        <input
+                          type="number"
+                          placeholder={foundFossil ? foundFossil.upper : null}
+                          value={upperLimit}
+                          onChange={(e) => setUpperLimit(e.target.value)}
+                        />
+                      </li>
+                      <li>
+                        Límite inferior (metros):
+                        <input
+                          type="number"
+                          placeholder={foundFossil ? foundFossil.lower : null}
+                          value={lowerLimit}
+                          onChange={(e) => setLowerLimit(e.target.value)}
+                        />
+                      </li>
+                      <li> <button className="btn btn-primary" onClick={handleFosilEdit}>Confirmar edición</button></li>
+                      <li><button className="btn btn-primary" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
+                    </ul>)
+
                 default:
                   return <></>;
               }
