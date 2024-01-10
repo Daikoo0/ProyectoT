@@ -339,6 +339,21 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					// 	// Manejar el error o el caso de valor nulo
 					// 	log.Println(val, ok)
 					// }
+				case "delete":
+
+					var deleteData dtos.Delete
+					err := json.Unmarshal(dataMap.Data, &deleteData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+					}
+
+					rowIndex := deleteData.RowIndex
+
+					// Eliminar el elemento en el índice encontrado
+					RemoveRowAndUpdateIndices(roomID, rowIndex)
+
+					// Para revisar:
+					//rooms[roomID].Data["Litologia"] = append(rooms[roomID].Data["Litologia"][:rowIndex], rooms[roomID].Data["Litologia"][rowIndex+1:]...)
 
 				// Edicion de texto
 				case "editText":
@@ -376,8 +391,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println(err)
 						}
 					}
-
-					//case "editStyleText"
 
 				case "addFosil":
 					var fosil dtos.Fosil
@@ -867,6 +880,46 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	conn.Close()
 	RemoveElement(roomID, conn)
 	return nil
+}
+
+func RemoveRowAndUpdateIndices(roomID string, rowIndex int) {
+	roomData, exists := rooms[roomID]
+	if !exists {
+		fmt.Println("Room not found")
+		return
+	}
+
+	for key, value := range roomData.Data {
+		innerMap, ok := value.(map[string]interface{})
+		if !ok {
+			fmt.Println("Invalid data type for key:", key)
+			continue
+		}
+
+		newMap := make(map[string]interface{})
+
+		// Elimina el elemento en rowIndex y actualiza los índices de los elementos restantes
+		for k, v := range innerMap {
+			i, err := strconv.Atoi(k)
+			if err != nil {
+				fmt.Println("Invalid key type, expected integer:", k)
+				continue
+			}
+
+			if i == rowIndex {
+				// No incluir este elemento
+				continue
+			}
+
+			if i > rowIndex {
+				newMap[strconv.Itoa(i-1)] = v
+			} else {
+				newMap[k] = v
+			}
+		}
+
+		roomData.Data[key] = newMap
+	}
 }
 
 func InsertRowInLitologiaAndUpdateIndices(roomID string, rowIndex int, newLitologiaData interface{}) {

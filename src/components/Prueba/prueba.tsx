@@ -532,11 +532,9 @@ const App = () => {
     rowCount,
     columnCount,
     gridRef,
-
     selections,
     activeCell,
     getValue: getCellValue,
-
     onSubmit: (value, { rowIndex, columnIndex }, nextActiveCell) => {
       console.log('On submit');
       console.log(data);
@@ -560,7 +558,6 @@ const App = () => {
 
     canEdit: ({ rowIndex, columnIndex }) => {
       console.log('Can edit', columnIndex, rowIndex);
-      console.log(data)
       if (Header[columnIndex] === "Litologia") return false;
       if (Header[columnIndex] === "Estructura fosil") return false;
       return true;
@@ -692,8 +689,6 @@ const App = () => {
 
                     if (Header[props.columnIndex] === "Litologia") {
 
-                      console.log(polygons)
-
                       const processedCircles = processCircles(
                         polygons[props.rowIndex]["circles"],
                         props.x,
@@ -731,7 +726,7 @@ const App = () => {
                       );
 
                     } else if (Header[props.columnIndex] === "Estructura fosil") {
-                      console.log(fossils)
+                     
                       return (
 
                         <Group>
@@ -773,7 +768,7 @@ const App = () => {
 
                       )
                     } else {
-                      console.log(props.rowIndex)
+                      
                       return (
                         <CellText
                           value={data[Header[props.columnIndex]][props.rowIndex]}
@@ -787,7 +782,6 @@ const App = () => {
                   onScroll={({ scrollLeft }) => {
                     headerGridRef.current.scrollTo({ scrollLeft });
                   }}
-
                   //Permite el cuadro azul que muestra la selección
                   onKeyDown={(...args) => {
                     selectionProps.onKeyDown(...args);
@@ -861,6 +855,18 @@ const App = () => {
                         <span>|</span> */}
 
                       </div>
+
+                      <li>
+                        <button className="btn btn-primary" onClick={() => {
+                          socket.send(JSON.stringify({
+                            action: 'delete',
+                            data: {
+                              "rowIndex": 0
+                            }
+                          }));
+
+                        } }>Delete</button>
+                      </li>
                     </ul>
 
                   );

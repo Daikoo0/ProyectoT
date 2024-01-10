@@ -16,14 +16,16 @@ type EditText struct {
 }
 
 // Case add
-
 type Add struct {
 	RowIndex int `json:"rowIndex"`
 	Height   int `json:"height"`
 }
 
-// case fosil
+type Delete struct {
+	RowIndex int `json:"rowIndex"`
+}
 
+// case fosil
 type Fosil struct {
 	UpperLimit     int    `json:"upperLimit"`
 	LowerLimit     int    `json:"lowerLimit"`
