@@ -346,18 +346,21 @@ const App = () => {
               sideBarMode: ""
             })
             break
-          case 'column':
-            const index = Header.indexOf(shapeN.column);
-            // Copia el array para no mutar el estado directamente
-            let newArray = [...Header];
+          case 'columns':
+            // const index = Header.indexOf(shapeN.column);
+            // // Copia el array para no mutar el estado directamente
+            // let newArray = [...Header];
 
-            if (shapeN.isVisible) {
-              newArray.push(shapeN.column);
-            } else if(!shapeN.isVisible) {
-              newArray.splice(index, 1);
-            }
-            console.log(newArray)
-            setHeader(newArray);
+            // if (shapeN.isVisible) {
+            //   newArray.push(shapeN.column);
+            // } else if(!shapeN.isVisible) {
+            //   newArray.splice(index, 1);
+            // }
+            // console.log(newArray)
+            //setHeader(newArray);
+            setHeader(shapeN.columns)
+            setColumnCount(shapeN.columns.length)
+           // setHeader(shapeN.column)
             break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -618,8 +621,8 @@ const App = () => {
   const mergedCells = [
     {
       top: 0,
-      left: 6,
-      right: 6,
+      left: Header.indexOf("Estructura fosil"),
+      right: Header.indexOf("Estructura fosil"),
       bottom: rowCount - 1,
     }
   ];
@@ -689,7 +692,7 @@ const App = () => {
                   columnCount={columnCount} // Número total de columnas
                   rowCount={rowCount} // Número total de filas
                   mergedCells={mergedCells}
-                  showScrollbar={false}
+                 // showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
                   rowHeight={(index) => {
                     if (polygons[index]) {

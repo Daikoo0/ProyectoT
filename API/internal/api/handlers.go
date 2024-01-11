@@ -546,18 +546,23 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					datos := rooms[roomID].Config["columns"].(map[string]interface{})
 					datos[column.Column] = column.IsVisible
 
-					rooms[roomID].Config["columns"] = datos
+					// Crear un slice para almacenar las columnas ordenadas
+					//orderedColumns := make([]interface{}, len(orden))
+					var orderedVisibleColumns []string
 
-					log.Println(datos)
-					log.Println(column)
-
-					msgData := map[string]interface{}{
-						"action":    "column",
-						"column":    column.Column,
-						"isVisible": column.IsVisible,
+					// Llenar el slice con los datos de las columnas en el orden correcto
+					for _, colName := range orden {
+						if isVisible, ok := datos[colName].(bool); ok && isVisible {
+							// Si la columna es visible (IsVisible == true), agregar su nombre al slice.
+							orderedVisibleColumns = append(orderedVisibleColumns, colName)
+						}
 					}
 
-					// Enviar información actualizada a los clientes
+					msgData := map[string]interface{}{
+						"action":  "columns",
+						"columns": orderedVisibleColumns,
+					}
+
 					jsonMsg, err := json.Marshal(msgData)
 					if err != nil {
 						log.Fatal("Error al serializar mensaje:", err)
