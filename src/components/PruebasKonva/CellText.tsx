@@ -27,7 +27,7 @@ const CellText: React.FC<CellTextProps> = ({ x, y, width, height, value }) => {
                 fill="black" // Color de letra
                 //stroke="blue" // Color del borde 
                 fontSize={12} // Tamaño de fuente	
-                align="right" // left: Izquierda, center: Centro, right: Derecha
+                align="justify" // left: Izquierda, center: Centro, right: Derecha, justificado : justify
                 verticalAlign="middle" // top: Arriba, middle: Centro, bottom: Abajo
                 wrap="word" // word, char, none
                 fontStyle="bold" // normal, bold, italic, bold italic - Cursiva, negrita, etc.

@@ -71,6 +71,27 @@ const App = () => {
 
   const divRef = useRef(null);
 
+  const handleColumns = (e, key) => {
+    if (e.target.checked) {
+      socket.send(JSON.stringify({
+        action: 'columns',
+        data: {
+          'column': key,
+          'isVisible': true,
+        },
+      }));
+    } else {
+      socket.send(JSON.stringify({
+        action: 'columns',
+        data: {
+          'column': key,
+          'isVisible': false,
+        },
+      }));
+    }
+  }
+
+
 
   const exportarDivAPdf = async () => {
     const divRefCurrent = divRef.current;
@@ -144,7 +165,7 @@ const App = () => {
   const [data, setData] = useState({});
   const [Header, setHeader] = useState([]);
   const [polygons, setPolygons] = useState([]);
-  const [fossils, setFossils] = useState([])
+  const [fossils, setFossils] = useState([]);
 
   //---------------// Menu de la derecha //---------------//
   // const [sideBar, setSideBar] = useState<boolean>(false);
@@ -175,6 +196,13 @@ const App = () => {
       }
     }));
   };
+
+  const config = () => {
+    setSideBarState({
+      sideBar: true,
+      sideBarMode: "config"
+    })
+  }
 
   const handleDeleteFosil = () => {
     socket.send(JSON.stringify({
@@ -318,6 +346,19 @@ const App = () => {
               sideBarMode: ""
             })
             break
+          case 'column':
+            const index = Header.indexOf(shapeN.column);
+            // Copia el array para no mutar el estado directamente
+            let newArray = [...Header];
+
+            if (shapeN.isVisible) {
+              newArray.push(shapeN.column);
+            } else if(!shapeN.isVisible) {
+              newArray.splice(index, 1);
+            }
+            console.log(newArray)
+            setHeader(newArray);
+            break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
@@ -422,43 +463,14 @@ const App = () => {
 
             <div className="dropdown dropdown-end">
 
-              <div className="tooltip tooltip-bottom" data-tip="Agregar/quitar columna">
+              <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 18">
-                    <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z" />
+                  <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
                   </svg>
                 </div>
 
               </div>
-
-
-
-              <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-
-                {/* {Object.keys(initialTexts).map((key) => {
-                                            const item = initialTexts[key];
-                                            if (item.optional) {
-                                              return (
-                                                <li key={key}>
-                                                  <div style={{ display: 'flex' }}>
-                                                    <input
-                                                      type="checkbox"
-                                                      id={key}
-                                                      name={key}
-                                                      checked={config.config.columns[key].enabled}
-                                                      onChange={(e) => handleCheckBox(e, key)}
-                                                    />
-                                                    <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
-                                                      {key}
-                                                    </label>
-                          
-                                                  </div>
-                                                </li>
-                                              );
-                                            }
-                          
-                                          })} */}
-              </ul>
             </div>
 
             <div onClick={addShape} className="dropdown dropdown-end" >
@@ -649,6 +661,7 @@ const App = () => {
               rowHeight={() => { return 110; }}
               showScrollbar={false}
               itemRenderer={(props) => {
+                console.log(fossils)
                 let highestRelativeX = fossils.length > 0 ?
                   fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX)
                   : 200
@@ -676,6 +689,7 @@ const App = () => {
                   columnCount={columnCount} // Número total de columnas
                   rowCount={rowCount} // Número total de filas
                   mergedCells={mergedCells}
+                  showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
                   rowHeight={(index) => {
                     if (polygons[index]) {
@@ -726,7 +740,7 @@ const App = () => {
                       );
 
                     } else if (Header[props.columnIndex] === "Estructura fosil") {
-                     
+
                       return (
 
                         <Group>
@@ -768,7 +782,7 @@ const App = () => {
 
                       )
                     } else {
-                      
+
                       return (
                         <CellText
                           value={data[Header[props.columnIndex]][props.rowIndex]}
@@ -865,7 +879,7 @@ const App = () => {
                             }
                           }));
 
-                        } }>Delete</button>
+                        }}>Delete</button>
                       </li>
                     </ul>
 
@@ -970,6 +984,33 @@ const App = () => {
                       </li>
                       <li> <button className="btn btn-primary" onClick={handleFosilEdit}>Confirmar edición</button></li>
                       <li><button className="btn btn-primary" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
+                    </ul>)
+                case "config":
+
+                  const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Configuración</li>
+                      {list.map((key) => {
+                        if (key != "Espesor" && key != "Litologia") {
+                          return (
+                            <li key={key}>
+                              <div style={{ display: 'flex' }}>
+                                <input
+                                  type="checkbox"
+                                  id={key}
+                                  name={key}
+                                  checked={Header.includes(key) ? true : false}
+                                  onChange={(e) => handleColumns(e, key)}
+                                />
+                                <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
+                                  {key}
+                                </label>
+                              </div>
+                            </li>
+                          );
+                        }
+                      })}
                     </ul>)
 
                 default:

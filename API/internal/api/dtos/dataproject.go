@@ -44,3 +44,8 @@ type EditFosil struct {
 type DeleteFosil struct {
 	IdFosil int `json:"idFosil"`
 }
+
+type Column struct {
+	Column    string `json:"column"`
+	IsVisible bool   `json:"isVisible"`
+}

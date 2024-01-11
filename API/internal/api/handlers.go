@@ -535,6 +535,40 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println("Error al enviar mensaje:", err)
 						}
 					}
+
+				case "columns":
+					var column dtos.Column
+					err := json.Unmarshal(dataMap.Data, &column)
+					if err != nil {
+						log.Println("Error deserializando fósil:", err)
+						break
+					}
+					datos := rooms[roomID].Config["columns"].(map[string]interface{})
+					datos[column.Column] = column.IsVisible
+
+					rooms[roomID].Config["columns"] = datos
+
+					log.Println(datos)
+					log.Println(column)
+
+					msgData := map[string]interface{}{
+						"action":    "column",
+						"column":    column.Column,
+						"isVisible": column.IsVisible,
+					}
+
+					// Enviar información actualizada a los clientes
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal("Error al serializar mensaje:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println("Error al enviar mensaje:", err)
+						}
+					}
 				}
 
 				// if dataMap["action"] == "undo" {
