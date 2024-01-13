@@ -312,33 +312,53 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						},
 					}
 
-					// innerMap := rooms[roomID].Data["Litologia"].(map[string]interface{})
-					// innerMap[strconv.Itoa(rowIndex)] = newShape
+					if rowIndex == -1 { // Agrega al final
 
-					InsertRowInLitologiaAndUpdateIndices(roomID, rowIndex, newShape)
+						litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
 
-					// Enviar informacion a los clientes
-					msgData := map[string]interface{}{
-						"action":   "añadir",
-						"rowIndex": rowIndex,
-						"value":    newShape,
-					}
+						litologia[strconv.Itoa(len(litologia))] = newShape
 
-					jsonBytes, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-						if err != nil {
-							log.Println(err)
+						// Enviar informacion a los clientes
+						msgData := map[string]interface{}{
+							"action":   "añadirEnd",
+							"rowIndex": len(litologia) - 1,
+							"value":    newShape,
 						}
+
+						jsonBytes, err := json.Marshal(msgData)
+						if err != nil {
+							log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+						}
+
+						for _, client := range proyect.Active {
+							err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+							if err != nil {
+								log.Println(err)
+							}
+						}
+
+					} else { // Agrega en el índice encontrado
+						InsertRowInLitologiaAndUpdateIndices(roomID, rowIndex, newShape)
+
+						msgData := map[string]interface{}{
+							"action": "añadir",
+							"data":   rooms[roomID].Data,
+						}
+
+						jsonBytes, err := json.Marshal(msgData)
+						if err != nil {
+							log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+						}
+
+						for _, client := range proyect.Active {
+							err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+							if err != nil {
+								log.Println(err)
+							}
+						}
+
 					}
-					// } else {
-					// 	// Manejar el error o el caso de valor nulo
-					// 	log.Println(val, ok)
-					// }
+
 				case "delete":
 
 					var deleteData dtos.Delete

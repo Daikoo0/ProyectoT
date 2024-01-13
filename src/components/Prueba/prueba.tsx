@@ -286,27 +286,17 @@ const App = () => {
         console.log(shapeN)
 
         switch (shapeN.action) {
-          case 'data':
-            const { Litologia, ...rest } = shapeN.data;
+          case 'data': {
+            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
 
-            // Extraes 'estructuras y fosiles' del resto de los datos
-            //p const estructurasYFosiles = rest['Estructura fosil'];
-
-            // Eliminas 'estructuras y fosiles' de 'rest' para evitar duplicaciones
-            //   delete rest['Estructura fosil'];
-
-            // Ahora tienes 'Litologia', 'estructurasYFosiles', y el resto de los datos sin estas dos propiedades
-            const textInfo = rest;
-
-            setData(textInfo)
+            setData(rest)
             setPolygons(Litologia)
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
-            setFossils(rest['Estructura fosil'])
-            //setRowCount(Object.keys(shapeN.data["Litologia"]).length)
+            setFossils(estructuraFosil)
 
             break;
-
+          }
           case 'editText':
             setData(prev => {
               const newData = { ...prev };
@@ -316,17 +306,24 @@ const App = () => {
               return newData;
             });
             break
+          
+          case 'añadir':{
+            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
 
-          case 'añadir':
+            setData(rest)
+            setPolygons(Litologia)
+ 
+            break;
+          }
+          case 'añadirEnd':
             console.log(shapeN.rowIndex)
             setPolygons(prev => {
               const newData = { ...prev };
               newData[shapeN.rowIndex] = shapeN.value;
               return newData;
             });
-            //setRowCount(prev => prev + 1)
-
             break
+
           case 'addFosil':
             setFossils(prevfossils => [...prevfossils, shapeN]);
             break
@@ -613,7 +610,7 @@ const App = () => {
       action: 'añadir',
       data: {
         "height": 200,
-        "rowIndex": rowCount
+        "rowIndex": -1
       }
     }));
   }
@@ -664,7 +661,7 @@ const App = () => {
               rowHeight={() => { return 110; }}
               showScrollbar={false}
               itemRenderer={(props) => {
-                console.log(fossils)
+                
                 let highestRelativeX = fossils.length > 0 ?
                   fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX)
                   : 200
@@ -721,7 +718,7 @@ const App = () => {
                             y={props.y}
                             Width={props.width}
                             Height={props.height}
-                            Tension={0.5}
+                            Tension={0}
                             circles={processedCircles}
                           />
 

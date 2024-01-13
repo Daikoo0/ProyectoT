@@ -20,7 +20,7 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
 
         //setCircles(calculatedPoints) // Actualizar los puntos
         setPolygonPoints(circlesToPoints(circles));
-        
+
     }, [Width, Height, x, y]);
 
     // Crear puntos en las lineas 
@@ -83,9 +83,10 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
     const maxX = 6000;
 
     const handleSceneFunc = (ctx, shape) => {
-        //const tension = 1;
         const points = shape.points();
-        ctx.beginPath();
+        
+        // Dibuja la primera seccion
+        ctx.beginPath(); 
         ctx.moveTo(points[0], points[1]);
         ctx.lineTo(points[2], points[3]);
 
@@ -104,14 +105,29 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
         }
 
+        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.fill();
+
+        ctx.strokeStyle = "red";
+        ctx.stroke();
+
+        // Segunda seccion (Linea Punteada)
+        ctx.beginPath();
+        ctx.moveTo(points[points.length - 4], points[points.length - 3]);
         ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        ctx.setLineDash([10, 10]);
+        ctx.strokeStyle = "purple";
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+       
+        // Linea de cierre
+        ctx.beginPath();
+        ctx.moveTo(points[points.length - 2], points[points.length - 1]);
         ctx.lineTo(points[0], points[1]);
-        ctx.fill();
-        ctx.strokeShape(shape);
 
-
-        ctx.fill();
-        ctx.strokeShape(shape);
+        ctx.strokeStyle = "green";
+        ctx.stroke();
 
     };
 
@@ -122,7 +138,7 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
                 points={polygonPoints}
                 closed
                 strokeWidth={2.5}
-                stroke={'black'}
+                //stroke={'red'}
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
                 onClick={handlePolygonClick}
