@@ -84,9 +84,10 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
 
     const handleSceneFunc = (ctx, shape) => {
         const points = shape.points();
-        
+
         // Dibuja la primera seccion
-        ctx.beginPath(); 
+        ctx.beginPath();
+
         ctx.moveTo(points[0], points[1]);
         ctx.lineTo(points[2], points[3]);
 
@@ -105,32 +106,32 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
         }
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        ctx.fill();
-
-        ctx.strokeStyle = "red";
-        ctx.stroke();
-
-        // Segunda seccion (Linea Punteada)
-        ctx.beginPath();
         ctx.moveTo(points[points.length - 4], points[points.length - 3]);
         ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-        ctx.setLineDash([10, 10]);
-        ctx.strokeStyle = "purple";
-        ctx.stroke();
-        ctx.setLineDash([]);
-        
-       
-        // Linea de cierre
-        ctx.beginPath();
-        ctx.moveTo(points[points.length - 2], points[points.length - 1]);
-        ctx.lineTo(points[0], points[1]);
 
-        ctx.strokeStyle = "green";
-        ctx.stroke();
+        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        ctx.lineTo(points[0], points[1]);
+        ctx.fillStyle = "red"
+        ctx.fill()
+        //ctx.closePath()
+    
+               ctx.strokeStyle = "black";
+               ctx.stroke()
+                ctx.beginPath()
+                ctx.moveTo(points[points.length - 4], points[points.length - 3]);
+                ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+                ctx.strokeStyle = "white";
+                ctx.setLineDash([4, 4]);ctx.stroke()
+                ctx.fillStyle = "white"
+                ctx.fill()
+             
+
+        //ctx.strokeStyle = "green";
+        // ctx.stroke()
+      //  ctx.fillStrokeShape(shape);
 
     };
-
+console.log(polygonPoints)
 
     return (
         <>

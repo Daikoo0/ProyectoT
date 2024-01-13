@@ -13,7 +13,10 @@ import Fosil from "../Editor/Fosil";
 import { Html } from "react-konva-utils";
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image';
-
+//import React from 'react';
+import ReactQuill from 'react-quill';
+import PropTypes from 'prop-types';
+import 'react-quill/dist/quill.snow.css';
 
 
 // Componente de Celda Personalizado
@@ -496,37 +499,14 @@ const App = () => {
 
             </div>
 
-            {/* <div className="dropdown dropdown-end" >
-              <div className="tooltip tooltip-bottom" data-tip="Arrástralo">
-                <img
-                  alt="lion"
-                  src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`}
-                  draggable="true"
-                  onDragStart={(e) => {
-
-                    dragUrl.current = '../../assets/fosiles/' + fosilJson[selectedFosil] + '.svg';
-                    console.log(selectedFosil)
-                  }}
-
-                />
-              </div>
-            </div> */}
-
-            {/* <div className="dropdown dropdown-end" >
-
-              <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={handleOptionChangeF}>
-                <option disabled selected>Añadir fósil</option>
-                {Object.keys(fosilJson).map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div> */}
+           
           </div>
         </div>
       </>
     );
   };
 
+  
 
 
 
@@ -635,6 +615,68 @@ const App = () => {
   //vf 0.63
   //site 0.59
   //clay 0.55
+
+
+
+  const Editor = ({ placeholder }) => {
+    const [editorHtml, setEditorHtml] = useState('');
+  
+    const handleChange = html => {
+      setEditorHtml(html);
+  
+    };
+    return (
+      <div>
+        <ReactQuill
+          onChange={handleChange}
+          value={editorHtml}
+          modules={Editor.modules}
+          formats={Editor.formats}
+          bounds={'.ap'}
+          placeholder={placeholder}
+        />
+       
+      </div>
+    );
+  };
+  
+  /*
+   * Quill modules to attach to editor
+   * See https://quilljs.com/docs/modules/ for complete options
+   */
+  Editor.modules = {
+    toolbar: [
+      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+      [{size: []}],
+      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+      [{'list': 'ordered'}, {'list': 'bullet'}, 
+       {'indent': '-1'}, {'indent': '+1'}],
+      ['link', 'image', 'video'],
+      ['clean']
+    ],
+    clipboard: {
+      // toggle to add extra line breaks when pasting HTML:
+      matchVisual: false,
+    }
+  };
+  
+  /* 
+   * Quill editor formats
+   * See https://quilljs.com/docs/formats/
+   */
+  Editor.formats = [
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video'
+  ];
+  
+  /* 
+   * PropType validation
+   */
+  Editor.propTypes = {
+    placeholder: PropTypes.string,
+  };
 
   // Renderizado de la Grilla
   return (
@@ -784,9 +826,18 @@ const App = () => {
                     } else {
 
                       return (
-                        <CellText
-                          value={data[Header[props.columnIndex]][props.rowIndex]}
-                          {...props}
+                        // <CellText
+                        //   value={data[Header[props.columnIndex]][props.rowIndex]}
+                        //   {...props}
+                        // />
+
+                        <Rect x={props.x} y={props.y} height={props.height} width={props.width} fill={"white"} stroke="grey" strokeWidth={1}
+                        onClick={(e)=>
+                          setSideBarState({
+                            sideBar: true,
+                            sideBarMode: "text"
+                          }) 
+                        }
                         />
                       );
                     }
@@ -928,6 +979,7 @@ const App = () => {
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando texto</li>
+                      <Editor placeholder={'Write something...'}/>
                     </ul>
                   );
                 case "editFosil":
