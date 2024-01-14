@@ -173,6 +173,7 @@ const App = () => {
   //---------------// Menu de la derecha //---------------//
   // const [sideBar, setSideBar] = useState<boolean>(false);
   // const [sideBarMode, setSideBarMode] = useState<string>("");
+  const [insertValue, setinsertValue] = useState(0);
 
   const [sideBarState, setSideBarState] = useState({
     sideBar: false,
@@ -297,7 +298,6 @@ const App = () => {
             setHeader(shapeN.config)
             setColumnCount(shapeN.config.length)
             setFossils(estructuraFosil)
-
             break;
           }
           case 'editText':
@@ -309,13 +309,13 @@ const App = () => {
               return newData;
             });
             break
-          
-          case 'añadir':{
+
+          case 'añadir': {
             const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
 
             setData(rest)
             setPolygons(Litologia)
- 
+
             break;
           }
           case 'añadirEnd':
@@ -327,6 +327,14 @@ const App = () => {
             });
             break
 
+          case 'delete': {
+            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
+
+            setPolygons(Litologia)
+            setData(rest)
+
+            break;
+          }
           case 'addFosil':
             setFossils(prevfossils => [...prevfossils, shapeN]);
             break
@@ -360,7 +368,7 @@ const App = () => {
             //setHeader(newArray);
             setHeader(shapeN.columns)
             setColumnCount(shapeN.columns.length)
-           // setHeader(shapeN.column)
+            // setHeader(shapeN.column)
             break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -476,8 +484,7 @@ const App = () => {
               </div>
             </div>
 
-            <div onClick={addShape} className="dropdown dropdown-end" >
-              {/* onClick={(e) => addShape(rowCount,lastPositionID.x - (columnWidthMap[1] || 200),lastPositionID.y,heightShape,(columnWidthMap[1] || 200))} */}
+            <div onClick={() => setSideBarState({sideBar: true, sideBarMode: "añadirCapa"})} className="dropdown dropdown-end" >
               <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
@@ -485,8 +492,27 @@ const App = () => {
                   </svg>
                 </div>
               </div>
-
             </div>
+
+            {/* <div className="dropdown dropdown-right">
+              <div tabIndex={0} role="button" className="btn m-1">
+                <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
+                </svg>
+
+              </div>
+              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                <li><button onClick={() => addShape(0)} type="button">Insertar filas encima</button></li>
+                
+                <li>
+                  <button onClick={() => addShape(insertValue)} type="button">Insertar filas</button>
+                  <input onChange={(e) => setinsertValue(Number(e.target.value))} value={insertValue} type="number" id="inputNumber" name="inputNumber" min="0" max={rowCount} />
+                </li>
+
+                <li><button onClick={() => addShape(-1)} type="button">Insertar filas debajo</button></li>
+              </ul>
+            </div> */}
+
 
             <div onClick={exportarDivAPdf} className="dropdown dropdown-end" >
               <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
@@ -585,12 +611,13 @@ const App = () => {
   } = editableProps;
 
 
-  const addShape = () => {
+  const addShape = (row) => {
+
     socket.send(JSON.stringify({
       action: 'añadir',
       data: {
         "height": 200,
-        "rowIndex": -1
+        "rowIndex": row
       }
     }));
   }
@@ -703,7 +730,7 @@ const App = () => {
               rowHeight={() => { return 110; }}
               showScrollbar={false}
               itemRenderer={(props) => {
-                
+
                 let highestRelativeX = fossils.length > 0 ?
                   fossils.reduce((max, fossil) => fossil.relativeX > max ? fossil.relativeX : max, fossils[0].relativeX)
                   : 200
@@ -731,7 +758,7 @@ const App = () => {
                   columnCount={columnCount} // Número total de columnas
                   rowCount={rowCount} // Número total de filas
                   mergedCells={mergedCells}
-                 // showScrollbar={false}
+                  // showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
                   rowHeight={(index) => {
                     if (polygons[index]) {
@@ -742,104 +769,105 @@ const App = () => {
                   }}
                   activeCell={activeCell}
                   itemRenderer={(props) => {
+                    if (polygons[props.rowIndex]) {
+                      if (Header[props.columnIndex] === "Litologia") {
 
-                    if (Header[props.columnIndex] === "Litologia") {
+                        const processedCircles = processCircles(
+                          polygons[props.rowIndex]["circles"],
+                          props.x,
+                          props.y,
+                          props.width,
+                          props.height
+                        );
 
-                      const processedCircles = processCircles(
-                        polygons[props.rowIndex]["circles"],
-                        props.x,
-                        props.y,
-                        props.width,
-                        props.height
-                      );
+                        return (
+                          <>
+                            <Polygon3
+                              x={props.x}
+                              y={props.y}
+                              Width={props.width}
+                              Height={props.height}
+                              Tension={0}
+                              circles={processedCircles}
+                            />
 
-                      return (
-                        <>
-                          <Polygon3
-                            x={props.x}
-                            y={props.y}
-                            Width={props.width}
-                            Height={props.height}
-                            Tension={0}
-                            circles={processedCircles}
+                            <Rect
+                              x={props.x}
+                              y={props.y}
+                              height={props.height}
+                              width={95}
+                              fill={"transparent"}
+                              onClick={() => {
+                                setSideBarState({
+                                  sideBar: true,
+                                  sideBarMode: "polygon"
+                                })
+                              }}
+                            >
+                            </Rect>
+                          </>
+                        );
+
+                      } else if (Header[props.columnIndex] === "Estructura fosil") {
+
+                        return (
+
+                          <Group>
+                            <Rect
+                              key={`fosils`}
+                              x={props.x}
+                              y={props.y}
+                              width={props.width}
+                              //heightShape={heightShape}
+                              height={props.height}
+                              fill="white"
+                              stroke="grey"
+                              onClick={(e) => {
+                                setSideBarState({
+                                  sideBar: true,
+                                  sideBarMode: "fosil"
+                                })
+                                const clickX = e.evt.clientX;
+                                const clickY = e.evt.clientY;
+                                const rectX = e.target.x();
+                                const rectY = e.target.y();
+                                const relativeX = clickX - rectX;
+                                const relativeY = clickY - rectY;
+                                console.log(`Relative Click Coordinates: X: ${relativeX}), Y: ${relativeY}`);
+                                setRelativeX(relativeX)
+                              }}
+                            />
+                            {fossils.length > 0 ?
+
+                              fossils.map((img, index) => (
+
+                                <Fosil img={img} index={index} x={props.x}
+                                  sideBarState={sideBarState} setSideBarState={setSideBarState}
+                                  idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}
+                                />
+
+                              )) : <></>}
+                          </Group>
+
+                        )
+                      } else {
+
+                        return (
+                          // <CellText
+                          //   value={data[Header[props.columnIndex]][props.rowIndex]}
+                          //   {...props}
+                          // />
+  
+                          <Rect x={props.x} y={props.y} height={props.height} width={props.width} fill={"white"} stroke="grey" strokeWidth={1}
+                          onClick={(e)=>
+                            setSideBarState({
+                              sideBar: true,
+                              sideBarMode: "text"
+                            }) 
+                          }
                           />
-
-                          <Rect
-                            x={props.x}
-                            y={props.y}
-                            height={props.height}
-                            width={95}
-                            fill={"transparent"}
-                            onClick={() => {
-                              setSideBarState({
-                                sideBar: true,
-                                sideBarMode: "polygon"
-                              })
-                            }}
-                          >
-                          </Rect>
-                        </>
-                      );
-
-                    } else if (Header[props.columnIndex] === "Estructura fosil") {
-
-                      return (
-
-                        <Group>
-                          <Rect
-                            key={`fosils`}
-                            x={props.x}
-                            y={props.y}
-                            width={props.width}
-                            //heightShape={heightShape}
-                            height={props.height}
-                            fill="white"
-                            stroke="grey"
-                            onClick={(e) => {
-                              setSideBarState({
-                                sideBar: true,
-                                sideBarMode: "fosil"
-                              })
-                              const clickX = e.evt.clientX;
-                              const clickY = e.evt.clientY;
-                              const rectX = e.target.x();
-                              const rectY = e.target.y();
-                              const relativeX = clickX - rectX;
-                              const relativeY = clickY - rectY;
-                              console.log(`Relative Click Coordinates: X: ${relativeX}), Y: ${relativeY}`);
-                              setRelativeX(relativeX)
-                            }}
-                          />
-                          {fossils.length > 0 ?
-
-                            fossils.map((img, index) => (
-
-                              <Fosil img={img} index={index} x={props.x}
-                                sideBarState={sideBarState} setSideBarState={setSideBarState}
-                                idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}
-                              />
-
-                            )) : <></>}
-                        </Group>
-
-                      )
-                    } else {
-
-                      return (
-                        // <CellText
-                        //   value={data[Header[props.columnIndex]][props.rowIndex]}
-                        //   {...props}
-                        // />
-
-                        <Rect x={props.x} y={props.y} height={props.height} width={props.width} fill={"white"} stroke="grey" strokeWidth={1}
-                        onClick={(e)=>
-                          setSideBarState({
-                            sideBar: true,
-                            sideBarMode: "text"
-                          }) 
-                        }
-                        />
-                      );
+                        );
+                      }
                     }
                   }
                   }
@@ -876,6 +904,24 @@ const App = () => {
           {
             (() => {
               switch (sideBarState.sideBarMode) {
+                case "añadirCapa":
+                  return(
+
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Añadir capa</li>
+                      <li>
+                        <button onClick={() => addShape(0)} type="button">Insertar filas encima</button>
+                      </li>
+                      <li className="flex flex-row">
+                        <button onClick={() => addShape(insertValue)} type="button">Insertar filas</button>
+                        <input onChange={(e) => setinsertValue(Number(e.target.value))} value={insertValue} type="number" id="inputNumber" name="inputNumber" min="0" max={rowCount} />
+                      </li>
+                      <li>
+                        <button onClick={() => addShape(-1)} type="button">Insertar filas debajo</button>
+                      </li>
+                    </ul>
+                  );
+
                 case "polygon":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -926,7 +972,7 @@ const App = () => {
                           socket.send(JSON.stringify({
                             action: 'delete',
                             data: {
-                              "rowIndex": 0
+                              "rowIndex": activeCell.rowIndex
                             }
                           }));
 

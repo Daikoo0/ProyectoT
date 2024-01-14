@@ -375,6 +375,23 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					// Para revisar:
 					//rooms[roomID].Data["Litologia"] = append(rooms[roomID].Data["Litologia"][:rowIndex], rooms[roomID].Data["Litologia"][rowIndex+1:]...)
 
+					msgData := map[string]interface{}{
+						"action": "delete",
+						"data":   rooms[roomID].Data,
+					}
+
+					jsonBytes, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
+						if err != nil {
+							log.Println(err)
+						}
+					}
+
 				// Edicion de texto
 				case "editText":
 
@@ -949,6 +966,11 @@ func RemoveRowAndUpdateIndices(roomID string, rowIndex int) {
 	}
 
 	for key, value := range roomData.Data {
+
+		if key == "Estructura fosil" {
+			continue
+		}
+
 		innerMap, ok := value.(map[string]interface{})
 		if !ok {
 			fmt.Println("Invalid data type for key:", key)
