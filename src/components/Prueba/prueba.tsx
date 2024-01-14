@@ -10,13 +10,12 @@ import fosilJson from '../../fossil.json';
 import SelectTheme from "../Web/SelectTheme";
 import { useParams } from "react-router-dom";
 import Fosil from "../Editor/Fosil";
-import { Html } from "react-konva-utils";
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image';
-//import React from 'react';
 import ReactQuill from 'react-quill';
 import PropTypes from 'prop-types';
 import 'react-quill/dist/quill.snow.css';
+import { Html } from "react-konva-utils";
 
 
 // Componente de Celda Personalizado
@@ -484,7 +483,7 @@ const App = () => {
               </div>
             </div>
 
-            <div onClick={() => setSideBarState({sideBar: true, sideBarMode: "añadirCapa"})} className="dropdown dropdown-end" >
+            <div onClick={() => setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" })} className="dropdown dropdown-end" >
               <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
@@ -525,14 +524,14 @@ const App = () => {
 
             </div>
 
-           
+
           </div>
         </div>
       </>
     );
   };
 
-  
+
 
 
 
@@ -645,12 +644,13 @@ const App = () => {
 
 
 
-  const Editor = ({ placeholder }) => {
-    const [editorHtml, setEditorHtml] = useState('');
-  
+  const Editor = ({ placeholder, text }) => {
+    const [editorHtml, setEditorHtml] = useState(text);
+
     const handleChange = html => {
+      console.log(html)
       setEditorHtml(html);
-  
+
     };
     return (
       <div>
@@ -662,22 +662,32 @@ const App = () => {
           bounds={'.ap'}
           placeholder={placeholder}
         />
-       
+
+        {/* Boton para mandar editor html por socket */}
+        <button onClick={() => {
+          socket.send(JSON.stringify({
+            action: 'editText',
+            data: {
+              "key": Header[activeCell.columnIndex],
+              "value": editorHtml,
+              "rowIndex": activeCell.rowIndex
+            }
+          }));
+          gridRef.current.resizeColumns([activeCell.columnIndex]);
+        }}>Enviar</button>
       </div>
     );
   };
-  
-  /*
-   * Quill modules to attach to editor
-   * See https://quilljs.com/docs/modules/ for complete options
-   */
+
+
   Editor.modules = {
     toolbar: [
-      [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-      [{size: []}],
+      [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+      [{ size: [] }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{'list': 'ordered'}, {'list': 'bullet'}, 
-       {'indent': '-1'}, {'indent': '+1'}],
+      [{ 'color': [] }, { 'background': [] }],  
+      [{ 'list': 'ordered' }, { 'list': 'bullet' },
+      { 'indent': '-1' }, { 'indent': '+1' }],
       ['link', 'image', 'video'],
       ['clean']
     ],
@@ -686,24 +696,22 @@ const App = () => {
       matchVisual: false,
     }
   };
-  
-  /* 
-   * Quill editor formats
-   * See https://quilljs.com/docs/formats/
-   */
+
   Editor.formats = [
     'header', 'font', 'size',
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet', 'indent',
-    'link', 'image', 'video'
+    'link', 'image', 'video',
+    'background', 'color'
   ];
-  
+
   /* 
    * PropType validation
    */
   Editor.propTypes = {
     placeholder: PropTypes.string,
   };
+
 
   // Renderizado de la Grilla
   return (
@@ -851,21 +859,54 @@ const App = () => {
 
                         )
                       } else {
+                        const borderWidth = 2;
+                        const x = props.x;
+                        const y = props.y;
+                        const width = props.width;
+                        const height = props.height;
+
+                        const htmlContent = data[Header[props.columnIndex]][props.rowIndex];
 
                         return (
+
+                          <Html
+                            divProps={{
+                              style: {
+                                zIndex: 0,
+                                top: `${y}px`,
+                                left: `${x}px`,
+                                position: "absolute",
+                                width: `${width}px`,
+                                height: `${height}px`,
+                                background: "white",
+                                border: `${borderWidth}px solid black`,
+                              }
+                            }}
+                          >
+                            <div style={{ minHeight: "100%", minWidth: "100%" }}
+                            dangerouslySetInnerHTML={{ __html: htmlContent }}
+                            onClick={(e)=>
+                             setSideBarState({
+                               sideBar: true,
+                               sideBarMode: "text"
+                             }) 
+                           }>
+
+                     
+                            </div>
+                          </Html>
+
+
+
+
                           // <CellText
                           //   value={data[Header[props.columnIndex]][props.rowIndex]}
                           //   {...props}
                           // />
-  
-                          <Rect x={props.x} y={props.y} height={props.height} width={props.width} fill={"white"} stroke="grey" strokeWidth={1}
-                          onClick={(e)=>
-                            setSideBarState({
-                              sideBar: true,
-                              sideBarMode: "text"
-                            }) 
-                          }
-                          />
+
+                          
+
+
                         );
                       }
                     }
@@ -905,7 +946,7 @@ const App = () => {
             (() => {
               switch (sideBarState.sideBarMode) {
                 case "añadirCapa":
-                  return(
+                  return (
 
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Añadir capa</li>
@@ -1025,7 +1066,11 @@ const App = () => {
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando texto</li>
-                      <Editor placeholder={'Write something...'}/>
+                      <Editor
+                        placeholder={'Write something...'}
+                        text={data[Header[activeCell.columnIndex]][activeCell.rowIndex]}
+
+                      />
                     </ul>
                   );
                 case "editFosil":

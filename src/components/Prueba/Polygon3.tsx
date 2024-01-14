@@ -131,7 +131,7 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
       //  ctx.fillStrokeShape(shape);
 
     };
-console.log(polygonPoints)
+
 
     return (
         <>
