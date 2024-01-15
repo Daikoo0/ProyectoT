@@ -26,9 +26,11 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
         //onClick();
+        e.preventDefault()
         const mousePos = e.target.getStage().getPointerPosition();
         const x = mousePos.x;
         const y = mousePos.y;
+        console.log("Creacion de puntos1")
 
         const updatedCircles = [...circles];
         let insertIndex = -1;
@@ -106,29 +108,59 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
         }
 
-        ctx.moveTo(points[points.length - 4], points[points.length - 3]);
+        ctx.lineTo(points[points.length - 4], points[points.length - 3]);
+
+        //-------------------- linea recta debajo del contacto --------------------//
+        //ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+
+
+        //--------------------- linea curvas debajo del contacto --------------------//
+
+        const arcSize = 10;
+        const length = Math.abs(points[points.length - 4] - points[points.length - 2]);
+        const number = length / arcSize;
+        for (var i = 0; i < number; i++) {
+            var xPos = (length - i * arcSize) + points[points.length - 2];
+            ctx.lineTo(xPos, points[points.length - 3]);
+            const midX = xPos - arcSize / 2;
+            const midY = points[points.length - 3];
+            if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
+                break;
+            } else
+                if (i % 2 === 0) {
+                    ctx.arc(midX, midY, arcSize / 2, Math.PI, 0, true);
+                } else {
+                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                }
+        }
         ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
-        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+
+        //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
+
         ctx.lineTo(points[0], points[1]);
-        ctx.fillStyle = "red"
+        ctx.fillStyle = "white"
         ctx.fill()
-        //ctx.closePath()
-    
-               ctx.strokeStyle = "black";
-               ctx.stroke()
-                ctx.beginPath()
-                ctx.moveTo(points[points.length - 4], points[points.length - 3]);
-                ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-                ctx.strokeStyle = "white";
-                ctx.setLineDash([4, 4]);ctx.stroke()
-                ctx.fillStyle = "white"
-                ctx.fill()
-             
+        ctx.lineWidth = 0.3;
+        ctx.strokeStyle = "black";
+        //ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.stroke()
 
-        //ctx.strokeStyle = "green";
+        //-------------------- linea dash extra del contacto (por eliminar) --------------------//
+        // ctx.beginPath()
+        // ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        // ctx.setLineDash([4,4])
+        // ctx.lineWidth = 1;
+        // ctx.strokeStyle = "black";
         // ctx.stroke()
-      //  ctx.fillStrokeShape(shape);
+
+        //---------------------// Signo de pregunta del contacto //--------------------//
+        // ctx.font = '18px Arial'; 
+        // ctx.textAlign = 'center';
+        // ctx.textBaseline = 'middle'; 
+        // ctx.fillStyle = 'black';
+        // ctx.fillText('?', Math.abs((points[points.length - 4] + points[points.length - 2]) / 2), points[points.length - 3]);
+        // ctx.strokeText('?', Math.abs((points[points.length - 4] + points[points.length - 2]) / 2), points[points.length - 3]);
 
     };
 
