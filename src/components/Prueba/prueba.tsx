@@ -805,7 +805,7 @@ const App = () => {
                             />
 
                             <Rect
-                              x={props.x}
+                              x={props.x - 10}
                               y={props.y}
                               height={props.height}
                               width={95}

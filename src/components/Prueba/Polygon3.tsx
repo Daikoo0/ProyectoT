@@ -16,37 +16,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
 
     }, [Width, Height, x, y, circles]);
 
-    // Crear puntos en las lineas 
-    const handlePolygonClick = (e) => {
-        const mousePos = e.target.getStage().getPointerPosition();
-        const Mx = mousePos.x;
-        const My = mousePos.y;
-
-        const updatedCircles = [...circles];
-        let insertIndex = -1;
-
-        for (let i = 0; i < updatedCircles.length - 1; i++) {
-            const s_x = updatedCircles[i].x;
-            const s_y = updatedCircles[i].y;
-            const e_x = updatedCircles[i + 1].x;
-            const e_y = updatedCircles[i + 1].y;
-
-            if (
-                ((s_x <= Mx && Mx <= e_x) || (e_x <= Mx && Mx <= s_x)) &&
-                ((s_y <= My && My <= e_y) || (e_y <= My && My <= s_y))
-            ) {
-                insertIndex = i + 1;
-                break;
-            }
-        }
-
-        if (insertIndex !== -1) {
-            const originalY = (My - y) / Height;
-            const point = { x: 0.5, y: originalY, radius: 5, movable: true };
-            
-            setCircles(rowIndex, insertIndex, point)
-        }
-    };
+   
 
     // Todos los eventos de los circulos
     const addEventToCircle = (index) => {
@@ -158,18 +128,62 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
         ctx.strokeShape(shape);
     };
 
+     // Crear puntos en las lineas 
+     const handlePolygonClick = (e) => {
+        const mousePos = e.target.getStage().getPointerPosition();
+        const Mx = mousePos.x;
+        const My = mousePos.y;
+
+        const updatedCircles = [...circles];
+        let insertIndex = -1;
+
+        const tolerance = 10; 
+
+        for (let i = 0; i < updatedCircles.length - 1; i++) {
+            const s_x = updatedCircles[i].x;
+            const s_y = updatedCircles[i].y;
+            const e_x = updatedCircles[i + 1].x;
+            const e_y = updatedCircles[i + 1].y;
+        
+            const inXRange = (s_x - tolerance <= Mx && Mx <= e_x + tolerance) || (e_x - tolerance <= Mx && Mx <= s_x + tolerance);
+            const inYRange = (s_y - tolerance <= My && My <= e_y + tolerance) || (e_y - tolerance <= My && My <= s_y + tolerance);
+        
+            if (inXRange && inYRange) {
+                insertIndex = i + 1;
+                break;
+            }
+        }
+
+        if (insertIndex !== -1) {
+            const originalY = (My - y) / Height;
+            const point = { x: 0.5, y: originalY, radius: 5, movable: true };
+            
+            setCircles(rowIndex, insertIndex, point)
+        }
+    };
+
+    const handleMouseEnter = () => {
+        document.body.style.cursor = 'pointer'; 
+      };
+      
+      const handleMouseLeave = () => {
+        document.body.style.cursor = 'default';  
+      };
 
     return (
         <>
             <Line
                 points={polygonPoints}
                 closed
-                strokeWidth={2.5}
+                strokeWidth={5}
+                hitStrokeWidth={10}
                 stroke={'transparent'}
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
                 onClick={handlePolygonClick}
                 sceneFunc={handleSceneFunc}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
             />
             {circles.map((circle, index) => (
                 <Circle
