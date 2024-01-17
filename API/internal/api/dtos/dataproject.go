@@ -21,8 +21,23 @@ type Add struct {
 	Height   int `json:"height"`
 }
 
+// Case delete
 type Delete struct {
 	RowIndex int `json:"rowIndex"`
+}
+
+// Circle
+type Circle struct {
+	X       float32 `json:"x"`
+	Y       float32 `json:"y"`
+	Radius  int     `json:"radius"`
+	Movable bool    `json:"movable"`
+}
+
+// AddCircle
+type AddCircle struct {
+	RowIndex  int      `json:"rowIndex"`
+	NewCircle []Circle `json:"newCircle"`
 }
 
 // case fosil

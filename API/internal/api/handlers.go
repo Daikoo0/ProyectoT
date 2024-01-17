@@ -392,6 +392,42 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						}
 					}
 
+				case "addCircle":
+
+					var addCircleData dtos.AddCircle
+					err := json.Unmarshal(dataMap.Data, &addCircleData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+					}
+
+					rowIndex := addCircleData.RowIndex
+					newCircle := addCircleData.NewCircle
+
+					litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
+
+					// Agregar el nuevo círculo
+					innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
+					innerMap["circles"] = newCircle
+
+					// Enviar informacion a los clientes
+					msgData := map[string]interface{}{
+						"action":    "addCircle",
+						"rowIndex":  rowIndex,
+						"newCircle": newCircle,
+					}
+
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println(err)
+						}
+					}
+
 				// Edicion de texto
 				case "editText":
 

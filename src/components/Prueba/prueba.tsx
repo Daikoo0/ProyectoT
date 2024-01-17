@@ -45,29 +45,6 @@ import { Html } from "react-konva-utils";
 //   );
 // };
 
-const Cell = ({ rowIndex, columnIndex, x, y, width, height, value }) => {
-  //const text = `${rowIndex}x${columnIndex}`;
-  //const fill = "white";
-  // Aquí puedes añadir más lógica según tus necesidades
-  return (
-    <>
-      {/* <Rect x={x} y={y} height={height} width={width} fill={fill} stroke="grey" strokeWidth={0.5} /> */}
-      {/* <Text x={x} y={y} height={height} width={width} text={value} fontStyle="normal" verticalAlign="middle" align="center" /> */}
-      <Polygon3
-        x={x}
-        y={y}
-        Width={width}
-        Height={height}
-        Tension={0.5}
-        setCircles={() => console.log("Cambio de circulos")}
-        onClick={() => console.log("Click en poligono")}
-
-      />
-
-      {/* <Circle x={x} y={y} radius={10} fill="red" stroke="grey" strokeWidth={0.5} draggable /> */}
-    </>
-  );
-};
 
 const App = () => {
 
@@ -334,6 +311,15 @@ const App = () => {
 
             break;
           }
+
+          case 'addCircle':
+            setPolygons(prev => {
+              const newData = { ...prev };
+              newData[shapeN.rowIndex]["circles"] = shapeN.newCircle;
+              return newData;
+            });
+            break
+
           case 'addFosil':
             setFossils(prevfossils => [...prevfossils, shapeN]);
             break
@@ -712,6 +698,23 @@ const App = () => {
     placeholder: PropTypes.string,
   };
 
+  // Update polygons[rowIndex][circles]
+  const updateCircles = (rowIndex: number, insertIndex: number, newCircle: any) => {
+    console.log(rowIndex, insertIndex, newCircle)
+    const update = polygons[rowIndex]["circles"]
+  
+    update.splice(insertIndex, 0, newCircle);
+
+    socket.send(JSON.stringify({
+      action: 'addCircle',
+      data: {
+        "rowIndex": rowIndex,
+        "newCircle": update
+      }
+    }));
+
+  };
+
 
   // Renderizado de la Grilla
   return (
@@ -795,8 +798,10 @@ const App = () => {
                               y={props.y}
                               Width={props.width}
                               Height={props.height}
-                              Tension={0}
+                              Tension={1}
                               circles={processedCircles}
+                              rowIndex={props.rowIndex}
+                              setCircles={updateCircles}
                             />
 
                             <Rect

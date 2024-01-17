@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 
-const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
+const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }) => {
 
 
     const circlesToPoints = (circles) => {
@@ -12,25 +12,15 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
 
     useEffect(() => {
 
-        // const calculatedPoints = circles.map(point => ({
-        //     ...point,
-        //     x: x + point.scaleFactorX * Width,
-        //     y: y + point.scaleFactorY * Height,
-        // }));
-
-        //setCircles(calculatedPoints) // Actualizar los puntos
         setPolygonPoints(circlesToPoints(circles));
 
-    }, [Width, Height, x, y]);
+    }, [Width, Height, x, y, circles]);
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
-        //onClick();
-        e.preventDefault()
         const mousePos = e.target.getStage().getPointerPosition();
-        const x = mousePos.x;
-        const y = mousePos.y;
-        console.log("Creacion de puntos1")
+        const Mx = mousePos.x;
+        const My = mousePos.y;
 
         const updatedCircles = [...circles];
         let insertIndex = -1;
@@ -42,8 +32,8 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
             const e_y = updatedCircles[i + 1].y;
 
             if (
-                ((s_x <= x && x <= e_x) || (e_x <= x && x <= s_x)) &&
-                ((s_y <= y && y <= e_y) || (e_y <= y && y <= s_y))
+                ((s_x <= Mx && Mx <= e_x) || (e_x <= Mx && Mx <= s_x)) &&
+                ((s_y <= My && My <= e_y) || (e_y <= My && My <= s_y))
             ) {
                 insertIndex = i + 1;
                 break;
@@ -51,12 +41,10 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
         }
 
         if (insertIndex !== -1) {
-            const point = { x, y, radius: 5, movable: true };
-            updatedCircles.splice(insertIndex, 0, point);
-
-            console.log("Creacion de puntos")
-            //setCircles(updatedCircles, true);
-            setPolygonPoints(circlesToPoints(updatedCircles));
+            const originalY = (My - y) / Height;
+            const point = { x: 0.5, y: originalY, radius: 5, movable: true };
+            
+            setCircles(rowIndex, insertIndex, point)
         }
     };
 
@@ -108,7 +96,7 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
         }
 
-        ctx.lineTo(points[points.length - 4], points[points.length - 3]);
+        //ctx.lineTo(points[points.length - 4], points[points.length - 3]);
 
         //-------------------- linea recta debajo del contacto --------------------//
         //ctx.lineTo(points[points.length - 2], points[points.length - 1]);
@@ -121,17 +109,22 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
         const number = length / arcSize;
         for (var i = 0; i < number; i++) {
             var xPos = (length - i * arcSize) + points[points.length - 2];
-            ctx.lineTo(xPos, points[points.length - 3]);
+            // ctx.moveTo(xPos, points[points.length - 3]);
+
             const midX = xPos - arcSize / 2;
             const midY = points[points.length - 3];
+
             if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
                 break;
-            } else
-                if (i % 2 === 0) {
-                    ctx.arc(midX, midY, arcSize / 2, Math.PI, 0, true);
-                } else {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                }
+            }
+            else if (i % 2 === 0) {
+                ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+
+            }
+            else {
+                ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+
+            }
         }
         ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
@@ -162,6 +155,7 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
         // ctx.fillText('?', Math.abs((points[points.length - 4] + points[points.length - 2]) / 2), points[points.length - 3]);
         // ctx.strokeText('?', Math.abs((points[points.length - 4] + points[points.length - 2]) / 2), points[points.length - 3]);
 
+        ctx.strokeShape(shape);
     };
 
 
@@ -171,7 +165,7 @@ const Polygon = ({ x, y, Width, Height, circles, Tension }) => {
                 points={polygonPoints}
                 closed
                 strokeWidth={2.5}
-                //stroke={'red'}
+                stroke={'transparent'}
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
                 onClick={handlePolygonClick}
