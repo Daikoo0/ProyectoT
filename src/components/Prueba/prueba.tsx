@@ -16,6 +16,7 @@ import ReactQuill from 'react-quill';
 import PropTypes from 'prop-types';
 import 'react-quill/dist/quill.snow.css';
 import { Html } from "react-konva-utils";
+import Contacts from '../../contacts.json';
 
 
 // Componente de Celda Personalizado
@@ -155,6 +156,9 @@ const App = () => {
     sideBar: false,
     sideBarMode: ""
   });
+  //----------------// Menu derecha contactos //------------------------//
+
+  const [selectedContact, setSelectedContact] = useState('')
 
   //---------------// Menu de la derecha fosiles //---------------//
 
@@ -181,6 +185,12 @@ const App = () => {
     setSideBarState({
       sideBar: true,
       sideBarMode: "config"
+    })
+  }
+  const contacts = () => {
+    setSideBarState({
+      sideBar: true,
+      sideBarMode: "contacts"
     })
   }
 
@@ -510,6 +520,11 @@ const App = () => {
 
             </div>
 
+            <div className="tooltip tooltip-bottom" onClick={contacts} data-tip="Contacto">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                 cambiar contacto
+                </div>
+              </div>
 
           </div>
         </div>
@@ -724,7 +739,7 @@ const App = () => {
   };
 
   const updateCirclePoint = (index, insertIndex, x) => {
-    console.log("se envio:" ,index, insertIndex, x)
+    console.log("se envio:", index, insertIndex, x)
 
     const update = polygons[index]["circles"]
     update[insertIndex].x = x;
@@ -824,6 +839,7 @@ const App = () => {
                               rowIndex={props.rowIndex}
                               setCircles={updateCircles}
                               openModalPoint={openModalPoint}
+                              Contact={selectedContact}
                             />
 
                             <Rect
@@ -967,28 +983,28 @@ const App = () => {
           <dialog id="modalPoint" className="modal">
             <div className="modal-box">
               <form method="dialog" onSubmit={() => updateCirclePoint(modalData.index, modalData.insertIndex, modalData.x)}>
-               <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => {setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x}/>
-               <div className="w-full flex justify-between text-xs">
-                 <span className="-rotate-90">s/n</span>
-                 <span className="-rotate-90">clay</span>
-                 <span className="-rotate-90">silt</span>
-                 <span className="-rotate-90">vf</span>
-                 <span className="-rotate-90">f</span>
-                 <span className="-rotate-90">m</span>
-                 <span className="-rotate-90">c</span>
-                 <span className="-rotate-90">vc</span>
-                 <span className="-rotate-90">grain</span>
-                 <span className="-rotate-90">pebb</span>
-                 <span className="-rotate-90">cobb</span>
-                 <span className="-rotate-90">boul</span>
+                <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x} />
+                <div className="w-full flex justify-between text-xs">
+                  <span className="-rotate-90">s/n</span>
+                  <span className="-rotate-90">clay</span>
+                  <span className="-rotate-90">silt</span>
+                  <span className="-rotate-90">vf</span>
+                  <span className="-rotate-90">f</span>
+                  <span className="-rotate-90">m</span>
+                  <span className="-rotate-90">c</span>
+                  <span className="-rotate-90">vc</span>
+                  <span className="-rotate-90">grain</span>
+                  <span className="-rotate-90">pebb</span>
+                  <span className="-rotate-90">cobb</span>
+                  <span className="-rotate-90">boul</span>
 
-                 
-               </div>
+
+                </div>
                 <button className="btn btn-primary">Submit</button>
               </form>
 
               <div className="modal-action">
-                <form method="dialog" onSubmit={() =>setModalData({ index: null, insertIndex: null, x: 0.51 })}>
+                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51 })}>
                   <button className="btn">Close</button>
                 </form>
               </div>
@@ -1214,6 +1230,22 @@ const App = () => {
                           );
                         }
                       })}
+                    </ul>)
+
+                case "contacts":
+                  return (
+
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Contacto</li>
+                      <li>
+                        <select className="select select-bordered w-full max-w-xs" value={selectedContact} onChange={(e) => { setSelectedContact(String(e.target.value)) }}>
+                          <option disabled selected>Selecciona un fósil</option>
+                          {Object.keys(Contacts).map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </li>
+
                     </ul>)
 
                 default:

@@ -220,13 +220,35 @@
         "question": true
     },
     "1121": {
-        "dash": [],
+        "dash":  [
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            10
+        ],
         "lineWidth": 9,
         "arcs": false,
         "question": false
     },
     "1122": {
-        "dash": [],
+        "dash": [
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            10
+        ],
         "lineWidth": 9,
         "arcs": false,
         "question": true
