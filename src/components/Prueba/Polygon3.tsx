@@ -16,7 +16,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
 
     }, [Width, Height, x, y, circles]);
 
-   
+
 
     // Todos los eventos de los circulos
     const addEventToCircle = (index) => {
@@ -128,8 +128,8 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
         ctx.strokeShape(shape);
     };
 
-     // Crear puntos en las lineas 
-     const handlePolygonClick = (e) => {
+    // Crear puntos en las lineas 
+    const handlePolygonClick = (e) => {
         const mousePos = e.target.getStage().getPointerPosition();
         const Mx = mousePos.x;
         const My = mousePos.y;
@@ -137,17 +137,17 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
         const updatedCircles = [...circles];
         let insertIndex = -1;
 
-        const tolerance = 10; 
+        const tolerance = 10;
 
         for (let i = 0; i < updatedCircles.length - 1; i++) {
             const s_x = updatedCircles[i].x;
             const s_y = updatedCircles[i].y;
             const e_x = updatedCircles[i + 1].x;
             const e_y = updatedCircles[i + 1].y;
-        
+
             const inXRange = (s_x - tolerance <= Mx && Mx <= e_x + tolerance) || (e_x - tolerance <= Mx && Mx <= s_x + tolerance);
             const inYRange = (s_y - tolerance <= My && My <= e_y + tolerance) || (e_y - tolerance <= My && My <= s_y + tolerance);
-        
+
             if (inXRange && inYRange) {
                 insertIndex = i + 1;
                 break;
@@ -157,18 +157,38 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
         if (insertIndex !== -1) {
             const originalY = (My - y) / Height;
             const point = { x: 0.5, y: originalY, radius: 5, movable: true };
-            
+
             setCircles(rowIndex, insertIndex, point)
         }
     };
 
     const handleMouseEnter = () => {
-        document.body.style.cursor = 'pointer'; 
-      };
-      
-      const handleMouseLeave = () => {
-        document.body.style.cursor = 'default';  
-      };
+        document.body.style.cursor = 'pointer';
+    };
+
+    const handleMouseLeave = () => {
+        document.body.style.cursor = 'default';
+    };
+
+
+    const handleSceneFunc2 = (ctx, shape) => {
+
+        const points = shape.points();
+        ctx.beginPath()
+        ctx.moveTo(points[points.length - 4], points[points.length - 3]);
+        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        ctx.fillStyle = "white"
+        ctx.lineWidth = 3
+        ctx.fill()
+        ctx.beginPath()
+        ctx.setLineDash([2, 12])
+        ctx.fillStyle = "black"
+        ctx.lineWidth = 9
+        ctx.moveTo(points[points.length - 4], points[points.length - 3]);
+        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        ctx.stroke()
+
+    }
 
     return (
         <>
@@ -199,6 +219,10 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
                     {...addEventToCircle(index)}
                 />
             ))}
+            <Line
+                points={polygonPoints}
+                sceneFunc={handleSceneFunc2}
+            />
         </>
 
     );

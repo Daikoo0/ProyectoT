@@ -1,0 +1,366 @@
+{
+    "111": {
+        "dash": [],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": false
+    },
+    "112": {
+        "dash": [],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": true
+    },
+    "113": {
+        "dash": [
+            20,
+            4
+        ],
+        "lineWidth": 1,
+        "arcs": false,
+        "question": false
+    },
+    "114": {
+        "dash": [
+            20,
+            4
+        ],
+        "lineWidth": 1,
+        "arcs": false,
+        "question": true
+    },
+    "115": {
+        "dash": [
+            10,
+            4
+        ],
+        "lineWidth": 1,
+        "arcs": false,
+        "question": false
+    },
+    "116": {
+        "dash": [
+            10,
+            4
+        ],
+        "lineWidth": 1,
+        "arcs": false,
+        "question": true
+    },
+    "117": {
+        "dash": [
+            5,
+            4
+        ],
+        "lineWidth": 1,
+        "arcs": false,
+        "question": false
+    },
+    "118": {
+        "dash": [
+            5,
+            4
+        ],
+        "lineWidth": 1,
+        "arcs": false,
+        "question": true
+    },
+    "119": {
+        "dash": "[((points[points.length - 4]-points[points.length - 2])/2)-8, 3, 3,4,3,3]",
+        "lineWidth": 2,
+        "arcs": false,
+        "question": false
+    },
+    "1110": {
+        "dash": "[((points[points.length - 4]-points[points.length - 2])/2)-8, 3, 3,4,3,3]",
+        "lineWidth": 2,
+        "arcs": false,
+        "question": true
+    },
+    "1111": {
+        "dash": [
+            28,
+            2,
+            2,
+            2,
+            2,
+            2
+        ],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": false
+    },
+    "1112": {
+        "dash": [
+            28,
+            2,
+            2,
+            2,
+            2,
+            2
+        ],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": true
+    },
+    "1113": {
+        "dash": [
+            17,
+            2,
+            2,
+            2,
+            2,
+            2
+        ],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": false
+    },
+    "1114": {
+        "dash": [
+            17,
+            2,
+            2,
+            2,
+            2,
+            2
+        ],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": true
+    },
+    "1115": {
+        "dash": [
+            10,
+            2,
+            2,
+            2,
+            2,
+            2
+        ],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": false
+    },
+    "1116": {
+        "dash": [
+            10,
+            2,
+            2,
+            2,
+            2,
+            2
+        ],
+        "lineWidth": 2,
+        "arcs": false,
+        "question": true
+    },
+    "1117": {
+        "dash": [
+            1,
+            2
+        ],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": false
+    },
+    "1118": {
+        "dash": [
+            1,
+            2
+        ],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": true
+    },
+    "1119": {
+        "dash": [
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            10
+        ],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": false
+    },
+    "1120": {
+        "dash": [
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            10
+        ],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": true
+    },
+    "1121": {
+        "dash": [],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": false
+    },
+    "1122": {
+        "dash": [],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": true
+    },
+    "1123": {
+        "dash": [
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            10
+        ],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": false
+    },
+    "1124": {
+        "dash": [
+            0.8,
+            2.5,
+            0.8,
+            2.5,
+            0.8,
+            10
+        ],
+        "lineWidth": 9,
+        "arcs": false,
+        "question": true
+    },
+    "1125": {
+        "dash": [],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": false
+    },
+    "1126": {
+        "dash": [],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": true
+    },
+    "1127": {
+        "dash": [
+            22,
+            8
+        ],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": false
+    },
+    "1128": {
+        "dash": [
+            22,
+            8
+        ],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": true
+    },
+    "1129": {
+        "dash": [
+            10,
+            8
+        ],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": false
+    },
+    "1130": {
+        "dash": [
+            10,
+            8
+        ],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": true
+    },
+    "1131": {
+        "dash": [
+            0,
+            8,
+            4,
+            6,
+            4,
+            8
+        ],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": false
+    },
+    "1132": {
+        "dash": [
+            0,
+            8,
+            4,
+            6,
+            4,
+            8
+        ],
+        "lineWidth": 2,
+        "arcs": true,
+        "question": true
+    },
+    "1133": {
+        "dash": [],
+        "dash2": [1,12],
+        "lineWidth": 1,
+        "lineWidth2": 9,
+        "arcs": false,
+        "question": false
+    },
+    "1134": {
+        "dash": [],
+        "dash2": [1,12],
+        "lineWidth": 1,
+        "lineWidth2": 9,
+        "arcs": false,
+        "question": true
+    },
+    "1135": {
+        "dash": [16,10],
+        "dash2": [1,12],
+        "lineWidth": 1,
+        "lineWidth2": 9,
+        "arcs": false,
+        "question": false
+    },
+    "1136": {
+        "dash": [16,10],
+        "dash2": [1,12],
+        "lineWidth": 1,
+        "lineWidth2": 9,
+        "arcs": false,
+        "question": true
+    }
+}
