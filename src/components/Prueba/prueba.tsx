@@ -671,7 +671,7 @@ const App = () => {
       [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
       [{ size: [] }],
       ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-      [{ 'color': [] }, { 'background': [] }],  
+      [{ 'color': [] }, { 'background': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' },
       { 'indent': '-1' }, { 'indent': '+1' }],
       ['link', 'image', 'video'],
@@ -702,7 +702,7 @@ const App = () => {
   const updateCircles = (rowIndex: number, insertIndex: number, newCircle: any) => {
     console.log(rowIndex, insertIndex, newCircle)
     const update = polygons[rowIndex]["circles"]
-  
+
     update.splice(insertIndex, 0, newCircle);
 
     socket.send(JSON.stringify({
@@ -715,6 +715,27 @@ const App = () => {
 
   };
 
+  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.51 });
+
+  const openModalPoint = (index, insertIndex, x) => {
+    (document.getElementById('modalPoint') as HTMLDialogElement).showModal();
+    console.log(index, x)
+    setModalData({ index, insertIndex, x });
+  };
+
+  const updateCirclePoint = (index, insertIndex, x) => {
+    console.log("se envio:" ,index, insertIndex, x)
+
+    const update = polygons[index]["circles"]
+    update[insertIndex].x = x;
+
+    setPolygons(prev => {
+      const newData = { ...prev };
+      newData[index]["circles"] = update;
+      return newData;
+    });
+
+  }
 
   // Renderizado de la Grilla
   return (
@@ -802,6 +823,7 @@ const App = () => {
                               circles={processedCircles}
                               rowIndex={props.rowIndex}
                               setCircles={updateCircles}
+                              openModalPoint={openModalPoint}
                             />
 
                             <Rect
@@ -889,15 +911,15 @@ const App = () => {
                             }}
                           >
                             <div style={{ minHeight: "100%", minWidth: "100%" }}
-                            dangerouslySetInnerHTML={{ __html: htmlContent }}
-                            onClick={(e)=>
-                             setSideBarState({
-                               sideBar: true,
-                               sideBarMode: "text"
-                             }) 
-                           }>
+                              dangerouslySetInnerHTML={{ __html: htmlContent }}
+                              onClick={(e) =>
+                                setSideBarState({
+                                  sideBar: true,
+                                  sideBarMode: "text"
+                                })
+                              }>
 
-                     
+
                             </div>
                           </Html>
 
@@ -909,7 +931,7 @@ const App = () => {
                           //   {...props}
                           // />
 
-                          
+
 
 
                         );
@@ -940,6 +962,39 @@ const App = () => {
         </div>
 
         {/* </div> */}
+
+        <>
+          <dialog id="modalPoint" className="modal">
+            <div className="modal-box">
+              <form method="dialog" onSubmit={() => updateCirclePoint(modalData.index, modalData.insertIndex, modalData.x)}>
+               <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => {setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x}/>
+               <div className="w-full flex justify-between text-xs">
+                 <span className="-rotate-90">s/n</span>
+                 <span className="-rotate-90">clay</span>
+                 <span className="-rotate-90">silt</span>
+                 <span className="-rotate-90">vf</span>
+                 <span className="-rotate-90">f</span>
+                 <span className="-rotate-90">m</span>
+                 <span className="-rotate-90">c</span>
+                 <span className="-rotate-90">vc</span>
+                 <span className="-rotate-90">grain</span>
+                 <span className="-rotate-90">pebb</span>
+                 <span className="-rotate-90">cobb</span>
+                 <span className="-rotate-90">boul</span>
+
+                 
+               </div>
+                <button className="btn btn-primary">Submit</button>
+              </form>
+
+              <div className="modal-action">
+                <form method="dialog" onSubmit={() =>setModalData({ index: null, insertIndex: null, x: 0.51 })}>
+                  <button className="btn">Close</button>
+                </form>
+              </div>
+            </div>
+          </dialog>
+        </>
 
 
 
@@ -983,7 +1038,7 @@ const App = () => {
                         </select>
                       </li>
 
-                      <input type="range" min={0.51} max={0.95} className="range" step={0.04} />
+                      <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { console.log(e.target.value) }} />
                       <div className="w-full flex justify-between text-xs">
                         <span className="-rotate-90">s/n</span>
                         <span className="-rotate-90">clay</span>

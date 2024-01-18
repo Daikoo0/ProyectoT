@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 
-const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }) => {
+const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, openModalPoint}) => {
 
 
     const circlesToPoints = (circles) => {
@@ -26,15 +26,18 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
                 console.log("Soltar punto")
                 //setCircles(updatedCircles, true);
             },
-            ondragMove: (e) => {
-                const updatedCircles = [...circles];
-                updatedCircles[index].x = e.target.x();
 
-                console.log("Movimiento de puntos")
-                //setCircles(updatedCircles, false);
-                setPolygonPoints(circlesToPoints(updatedCircles));
+            
 
-            },
+            // ondragMove: (e) => {
+            //     const updatedCircles = [...circles];
+            //     updatedCircles[index].x = e.target.x();
+
+            //     console.log("Movimiento de puntos")
+            //     //setCircles(updatedCircles, false);
+            //     setPolygonPoints(circlesToPoints(updatedCircles));
+
+            // },
 
         };
     };
@@ -214,8 +217,14 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles }
                     radius={circle.radius}
                     stroke="#ff0000"
                     strokeWidth={1}
-                    draggable={circle.movable}
-                    dragBoundFunc={(pos) => ({ x: Math.max(Math.min(pos.x, maxX), minX), y: circle.y })}
+                    //draggable={circle.movable}
+                    //dragBoundFunc={(pos) => ({ x: Math.max(Math.min(pos.x, maxX), minX), y: circle.y })}
+                    onClick={ () => {
+                        if (circle.movable){
+                            //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
+                            openModalPoint(rowIndex, index, (circle.x - x) / Height);
+                        }
+                    }}
                     {...addEventToCircle(index)}
                 />
             ))}
