@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import Contacts from '../../contacts.json';
 
-const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, openModalPoint, upperContact, limit, ColorFill, selected }) => {
+const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, openModalPoint, upperContact, ColorFill, selected, lowerContact, lowerLimit, upperLimit }) => {
 
-    var contact = Contacts[String(upperContact)]
-    if (upperContact) {
-        contact = JSON.parse(JSON.stringify(Contacts[String(upperContact)]))
+    console.log(Contacts[String(upperContact)], Contacts[String(lowerContact)])
+    var upperContact = Contacts[String(upperContact)]
+    if (upperContact !== undefined) {
+        upperContact = JSON.parse(JSON.stringify(upperContact))
     }
+
+    var lowerContact = Contacts[String(lowerContact)]
+    if (lowerContact !== undefined) {
+        lowerContact = JSON.parse(JSON.stringify(lowerContact))
+    }
+
     const circlesToPoints = (circles) => {
         return circles.map((circle) => [circle.x, circle.y]).flat();
     };
@@ -49,42 +56,63 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
     const handleSceneFunc = (ctx, shape) => {
         const points = shape.points();
+        var upperLimit = upperLimit ? upperLimit : (points[2] - x) / Width
 
-
-        ctx.beginPath();
-
-        ctx.moveTo(points[0], points[1]);
-        if (contact && contact.arcs) {
-            //--------------------- linea curvas debajo del contacto --------------------//
-            //  console.log((limit*Width)+x,points[0])
+        let region = new Path2D();
+        region.moveTo(points[0], points[1]);
+        if (upperContact && upperContact.arcs) {
+            //--------------------- linea curvas -------------------//
             var arcSize = 10;
-            var length = Math.abs((limit*Width)+x - points[0]);
+            var length = Math.abs(Width - points[0]);
             var number = length / arcSize;
             for (var i = 0; i < number; i++) {
                 var xPos = (length - i * arcSize) + points[0];
 
                 const midX = xPos - arcSize / 2;
                 const midY = points[1];
-
-                if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
+                
+              
+                if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0]) ) {
                     break;
                 }
                 else if (i % 2 === 0) {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                    
+                    region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+
                 }
                 else {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                    region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
                 }
             }
+            region.moveTo(Width, points[3]);
 
-            ctx.moveTo(points[2], points[3]);
+            // var length = Math.abs(Width - points[2]);
+            // var number = length / arcSize;
+            // for (var i = 0; i < number; i++) {
+            //     var xPos = (length - i * arcSize) + points[2];
+
+            //     const midX = xPos - arcSize / 2;
+            //     const midY = points[1];
+
+            //     if ((i % 2 === 0 && xPos - arcSize < points[2]) || (i % 2 !== 0 && xPos < points[2])) {
+            //         break;
+            //     }
+            //     else if (i % 2 === 0) {
+            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+
+            //     }
+            //     else {
+            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+            //     }
+            // }
+
+
+            region.moveTo(points[2], points[3]);
 
 
         } else {
             //  -------------------- linea recta debajo del contacto --------------------//
 
-            ctx.lineTo(points[2], points[3]);
+            region.lineTo(points[2], points[3]);
         }
 
 
@@ -100,62 +128,75 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
             const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * Tension;
             const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * Tension;
 
-            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
+            region.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
         }
 
-        //ctx.lineTo(points[points.length - 4], points[points.length - 3]);
+        region.lineTo(points[points.length - 4], points[points.length - 3]);
+
+        if (lowerContact && lowerContact.arcs) {
+            var arcSize = 10;
+            var length = Math.abs(Width - points[points.length - 2]);
+            var number = length / arcSize;
+            for (var i = 0; i < number; i++) {
+                var xPos = (length - i * arcSize) + points[points.length - 2];
+                // ctx.moveTo(xPos, points[points.length - 3]);
+
+                const midX = xPos - arcSize / 2;
+                const midY = points[points.length - 3];
+
+               
+                if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
+                    break;
+                }
+                else if (i % 2 === 0) {
+                    region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+
+                }
+                else {
+                    region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+
+                }
+            }
+            region.lineTo(points[points.length - 2], points[points.length - 1]);
+
+            // var length = Math.abs(Width - points[points.length - 4]);
+            // var number = length / arcSize;
+            // for (var i = 0; i < number; i++) {
+            //     var xPos = (length - i * arcSize) + points[points.length - 4];
+
+            //     const midX = xPos - arcSize / 2;
+            //     const midY = points[points.length - 3];
+
+            //     if ((i % 2 === 0 && xPos - arcSize < points[points.length - 4]) || (i % 2 !== 0 && xPos < points[points.length - 4])) {
+            //         break;
+            //     }
+            //     else if (i % 2 === 0) {
+            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+
+            //     }
+            //     else {
+            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+            //     }
+            // }
+            // region.lineTo(points[points.length - 2], points[points.length - 1]);
 
 
-        //     if (contact && contact.arcs) {
-        //         //--------------------- linea curvas debajo del contacto --------------------//
+        } else {
+            //-------------------- linea recta debajo del contacto --------------------//
+            region.lineTo(points[points.length - 2], points[points.length - 1]);
+        }
 
-        //         const arcSize = 10;
-        //         const length = Math.abs(points[points.length - 4] - points[points.length - 2]);
-        //         const number = length / arcSize;
-        //         for (var i = 0; i < number; i++) {
-        //             var xPos = (length - i * arcSize) + points[points.length - 2];
-
-        //             const midX = xPos - arcSize / 2;
-        //             const midY = points[points.length - 3];
-
-        //             if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
-        //                 break;
-        //             }
-        //             else if (i % 2 === 0) {
-        //                 ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-
-        //             }
-        //             else {
-        //                 ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-
-        //             }
-        //         }
-        //        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-
-        //    } else {
-        //       //  -------------------- linea recta debajo del contacto --------------------//
-        //        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-        //    }
-        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        //region.lineTo(points[points.length - 2], points[points.length - 1]);
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
 
-        ctx.lineTo(points[0], points[1]);
+        region.lineTo(points[0], points[1]);
+        ctx.clip(region, "evenodd")
         ctx.fillStyle = ColorFill
-        ctx.fill()
+        ctx.fillRect(points[0], points[1] - 10, Width, points[points.length - 3] + 20)
         ctx.lineWidth = 0.3;
         ctx.strokeStyle = "black";
-        //ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.stroke()
-
-        //-------------------- linea dash extra del contacto (por eliminar) --------------------//
-        // ctx.beginPath()
-        // ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-        // ctx.setLineDash([4,4])
-        // ctx.lineWidth = 1;
-        // ctx.strokeStyle = "black";
-        // ctx.stroke()
-
         ctx.strokeShape(shape);
     };
 
@@ -207,43 +248,43 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     const handleSceneFunc2 = (ctx, shape) => {
 
         const points = shape.points();
-        if (contact) {
+        if (upperContact) {
             ctx.beginPath()
             ctx.moveTo(points[points.length - 4], points[points.length - 3]);
             ctx.lineTo(points[points.length - 2], points[points.length - 1]);
             ctx.moveTo(points[0], points[1]);
-            ctx.lineTo((limit * Width) + x, points[3]);
+            ctx.lineTo((upperLimit * Width) + x, points[3]);
             ctx.lineWidth = 2
-            ctx.strokeStyle = "white"
+            ctx.strokeStyle = "transparent"
             ctx.stroke()
             ctx.beginPath()
-            ctx.setLineDash(typeof (contact.dash) === "string" ? eval(contact.dash) : contact.dash)
+            ctx.setLineDash(typeof (upperContact.dash) === "string" ? eval(upperContact.dash) : upperContact.dash)
             ctx.strokeStyle = "black"
-            ctx.lineWidth = contact.lineWidth
+            ctx.lineWidth = upperContact.lineWidth
             ctx.moveTo(points[0], points[1]);
-            ctx.lineTo((limit * Width) + x, points[3]);
+            ctx.lineTo((upperLimit * Width) + x, points[3]);
             ctx.stroke()
 
-            if (contact.dash2) {
+            if (upperContact.dash2) {
 
                 ctx.beginPath()
-                ctx.setLineDash(typeof (contact.dash2) === "string" ? eval(contact.dash2) : contact.dash2)
+                ctx.setLineDash(typeof (upperContact.dash2) === "string" ? eval(upperContact.dash2) : upperContact.dash2)
                 ctx.strokeStyle = "black"
-                ctx.lineWidth = contact.lineWidth2
-                ctx.moveTo(points[0], points[1] - contact.lineWidth2 / 2);
-                ctx.lineTo((limit * Width) + x, points[3] - contact.lineWidth2 / 2);
+                ctx.lineWidth = upperContact.lineWidth2
+                ctx.moveTo(points[0], points[1] - upperContact.lineWidth2 / 2);
+                ctx.lineTo((upperLimit * Width) + x, points[3] - upperContact.lineWidth2 / 2);
                 ctx.stroke()
             }
 
 
         }
-        if (contact && contact.question) {
+        if (upperContact && upperContact.question) {
             //---------------------// Signo de pregunta del contacto //--------------------//
             ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = 'black';
-            ctx.fillText('?', Math.abs(((limit * Width) + x - points[0]) / 2), points[1]);
+            ctx.fillText('?', Math.abs(((upperLimit * Width) + x - points[0]) / 2), points[1]);
         }
 
     }
@@ -276,7 +317,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         //ctx.strokeStyle = "red";
         ctx.strokeShape(shape); //Necesario para las funciones
         ctx.stroke()
-        
+
     };
 
     return (
@@ -291,8 +332,8 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 //fillPatternRotation={Rotation}
                 //onClick={handlePolygonClick}
                 sceneFunc={handleSceneFunc}
-                //onMouseEnter={handleMouseEnter}
-                //onMouseLeave={handleMouseLeave}
+            //onMouseEnter={handleMouseEnter}
+            //onMouseLeave={handleMouseLeave}
             />
 
             <Line
@@ -305,7 +346,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
                 onClick={selected ? handlePolygonClick : null}
-                
+
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             />

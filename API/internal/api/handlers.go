@@ -311,7 +311,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							{"x": 0, "y": 1, "radius": 5, "movable": false},
 						},
 						"upperContact": nil,
-						"limit":        nil,
+						"lowerContact": nil,
+						"upperLimit":   nil,
+						"lowerLimit":   nil,
 					}
 
 					if rowIndex == -1 { // Agrega al final

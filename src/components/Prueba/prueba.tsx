@@ -198,15 +198,18 @@ const App = () => {
   const addContact = () => {
     const newPolygons = polygons
     var circleTop = newPolygons[selectedPolygon].circles[newPolygons[selectedPolygon].circles.length - 2]
-    //if (selectedPolygon + 1 <= polygons.length) {
-     // console.log(newPolygons[selectedPolygon+1])
-        newPolygons[selectedPolygon+1].limit = circleTop.x
-        newPolygons[selectedPolygon+1].upperContact = selectedContact
-        newPolygons[selectedPolygon+1].ColorFill = "green"
-       
-        setPolygons(newPolygons) 
-    //}
-    console.log(polygons[selectedPolygon+1])
+    var circleBottom = newPolygons[selectedPolygon + 1].circles[2]
+    newPolygons[selectedPolygon].lowerContact = selectedContact
+    newPolygons[selectedPolygon].ColorFill = "red"
+    newPolygons[selectedPolygon].lowerLimit = Math.max(circleTop.x, circleBottom.x)
+    newPolygons[selectedPolygon + 1].upperLimit = Math.max(circleTop.x, circleBottom.x)
+    newPolygons[selectedPolygon + 1].upperContact = selectedContact
+    newPolygons[selectedPolygon + 1].ColorFill = "green"
+
+    setPolygons(newPolygons)
+
+    console.log(polygons[selectedPolygon])
+    console.log(polygons[selectedPolygon + 1])
   }
 
   const handleDeleteFosil = () => {
@@ -855,9 +858,11 @@ const App = () => {
                               setCircles={updateCircles}
                               openModalPoint={openModalPoint}
                               upperContact={polygons[props.rowIndex]["upperContact"]}
-                              limit={polygons[props.rowIndex]["limit"]}
+                              lowerContact={polygons[props.rowIndex]["lowerContact"]}
+                              lowerLimit={polygons[props.rowIndex]["lowerLimit"]}
+                              upperLimit={polygons[props.rowIndex]["upperLimit"]}
                               ColorFill={polygons[props.rowIndex]["ColorFill"]}
-                              selected = {activeCell?.rowIndex === props.rowIndex && activeCell?.columnIndex === props.columnIndex}
+                              selected={activeCell?.rowIndex === props.rowIndex && activeCell?.columnIndex === props.columnIndex}
                             />
 
                             <Rect
