@@ -310,6 +310,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							{"x": 0.5, "y": 1, "radius": 5, "movable": true},
 							{"x": 0, "y": 1, "radius": 5, "movable": false},
 						},
+						"upperContact": nil,
+						"limit":        nil,
 					}
 
 					if rowIndex == -1 { // Agrega al final

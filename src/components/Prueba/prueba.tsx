@@ -159,6 +159,7 @@ const App = () => {
   //----------------// Menu derecha contactos //------------------------//
 
   const [selectedContact, setSelectedContact] = useState('')
+  const [selectedPolygon, setSelectedPolygon] = useState<number>(0);
 
   //---------------// Menu de la derecha fosiles //---------------//
 
@@ -192,6 +193,20 @@ const App = () => {
       sideBar: true,
       sideBarMode: "contacts"
     })
+  }
+
+  const addContact = () => {
+    const newPolygons = polygons
+    var circleTop = newPolygons[selectedPolygon].circles[newPolygons[selectedPolygon].circles.length - 2]
+    //if (selectedPolygon + 1 <= polygons.length) {
+     // console.log(newPolygons[selectedPolygon+1])
+        newPolygons[selectedPolygon+1].limit = circleTop.x
+        newPolygons[selectedPolygon+1].upperContact = selectedContact
+        newPolygons[selectedPolygon+1].ColorFill = "green"
+       
+        setPolygons(newPolygons) 
+    //}
+    console.log(polygons[selectedPolygon+1])
   }
 
   const handleDeleteFosil = () => {
@@ -521,10 +536,10 @@ const App = () => {
             </div>
 
             <div className="tooltip tooltip-bottom" onClick={contacts} data-tip="Contacto">
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                 cambiar contacto
-                </div>
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                cambiar contacto
               </div>
+            </div>
 
           </div>
         </div>
@@ -839,7 +854,10 @@ const App = () => {
                               rowIndex={props.rowIndex}
                               setCircles={updateCircles}
                               openModalPoint={openModalPoint}
-                              Contact={selectedContact}
+                              upperContact={polygons[props.rowIndex]["upperContact"]}
+                              limit={polygons[props.rowIndex]["limit"]}
+                              ColorFill={polygons[props.rowIndex]["ColorFill"]}
+                              selected = {activeCell?.rowIndex === props.rowIndex && activeCell?.columnIndex === props.columnIndex}
                             />
 
                             <Rect
@@ -1233,18 +1251,30 @@ const App = () => {
                     </ul>)
 
                 case "contacts":
+
                   return (
 
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Contacto</li>
+                      <li className="menu-title">Agregar/cambiar contacto</li>
                       <li>
+                        Selecciona una capa
+                        <select className="select select-bordered w-full max-w-xs" value={selectedPolygon} onChange={(e) => { setSelectedPolygon(Number(e.target.value)) }}>
+                          <option disabled selected>Selecciona una capa</option>
+                          {Object.keys(polygons).map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </li>
+                      <li>
+                        Selecciona un contacto para la capa
                         <select className="select select-bordered w-full max-w-xs" value={selectedContact} onChange={(e) => { setSelectedContact(String(e.target.value)) }}>
-                          <option disabled selected>Selecciona un fósil</option>
+                          <option disabled selected>Selecciona un contacto</option>
                           {Object.keys(Contacts).map(option => (
                             <option key={option} value={option}>{option}</option>
                           ))}
                         </select>
                       </li>
+                      <li><button onClick={addContact}>Aceptar</button></li>
 
                     </ul>)
 

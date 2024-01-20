@@ -2,17 +2,18 @@ import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import Contacts from '../../contacts.json';
 
-const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, openModalPoint, Contact }) => {
+const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, openModalPoint, upperContact, limit, ColorFill, selected }) => {
 
-    var contact = Contacts[String(Contact)]
-    if (Contact) {
-        contact = JSON.parse(JSON.stringify(Contacts[String(Contact)]))
+    var contact = Contacts[String(upperContact)]
+    if (upperContact) {
+        contact = JSON.parse(JSON.stringify(Contacts[String(upperContact)]))
     }
     const circlesToPoints = (circles) => {
         return circles.map((circle) => [circle.x, circle.y]).flat();
     };
 
     const [polygonPoints, setPolygonPoints] = useState(circlesToPoints(circles));
+    console.log(polygonPoints)
 
     useEffect(() => {
 
@@ -28,7 +29,6 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 console.log("Soltar punto")
                 //setCircles(updatedCircles, true);
             },
-
 
 
             // ondragMove: (e) => {
@@ -50,11 +50,43 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     const handleSceneFunc = (ctx, shape) => {
         const points = shape.points();
 
-        // Dibuja la primera seccion
+
         ctx.beginPath();
 
         ctx.moveTo(points[0], points[1]);
-        ctx.lineTo(points[2], points[3]);
+        if (contact && contact.arcs) {
+            //--------------------- linea curvas debajo del contacto --------------------//
+            //  console.log((limit*Width)+x,points[0])
+            var arcSize = 10;
+            var length = Math.abs((limit*Width)+x - points[0]);
+            var number = length / arcSize;
+            for (var i = 0; i < number; i++) {
+                var xPos = (length - i * arcSize) + points[0];
+
+                const midX = xPos - arcSize / 2;
+                const midY = points[1];
+
+                if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
+                    break;
+                }
+                else if (i % 2 === 0) {
+                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                    
+                }
+                else {
+                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                }
+            }
+
+            ctx.moveTo(points[2], points[3]);
+
+
+        } else {
+            //  -------------------- linea recta debajo del contacto --------------------//
+
+            ctx.lineTo(points[2], points[3]);
+        }
+
 
         for (let n = 0; n < points.length - 2; n += 2) {
             const prevPoint = { x: points[n - 2], y: points[n - 1] };
@@ -74,43 +106,42 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         //ctx.lineTo(points[points.length - 4], points[points.length - 3]);
 
 
+        //     if (contact && contact.arcs) {
+        //         //--------------------- linea curvas debajo del contacto --------------------//
 
-        if (contact && contact.arcs) {
-            //--------------------- linea curvas debajo del contacto --------------------//
+        //         const arcSize = 10;
+        //         const length = Math.abs(points[points.length - 4] - points[points.length - 2]);
+        //         const number = length / arcSize;
+        //         for (var i = 0; i < number; i++) {
+        //             var xPos = (length - i * arcSize) + points[points.length - 2];
 
-            const arcSize = 10;
-            const length = Math.abs(points[points.length - 4] - points[points.length - 2]);
-            const number = length / arcSize;
-            for (var i = 0; i < number; i++) {
-                var xPos = (length - i * arcSize) + points[points.length - 2];
-                // ctx.moveTo(xPos, points[points.length - 3]);
+        //             const midX = xPos - arcSize / 2;
+        //             const midY = points[points.length - 3];
 
-                const midX = xPos - arcSize / 2;
-                const midY = points[points.length - 3];
+        //             if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
+        //                 break;
+        //             }
+        //             else if (i % 2 === 0) {
+        //                 ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
 
-                if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
-                    break;
-                }
-                else if (i % 2 === 0) {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+        //             }
+        //             else {
+        //                 ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
 
-                }
-                else {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+        //             }
+        //         }
+        //        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
-                }
-            }
-            ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-
-        } else {
-            //-------------------- linea recta debajo del contacto --------------------//
-            ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-        }
+        //    } else {
+        //       //  -------------------- linea recta debajo del contacto --------------------//
+        //        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+        //    }
+        ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
 
         ctx.lineTo(points[0], points[1]);
-        ctx.fillStyle = "white"
+        ctx.fillStyle = ColorFill
         ctx.fill()
         ctx.lineWidth = 0.3;
         ctx.strokeStyle = "black";
@@ -130,6 +161,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
+        console.log("clcik")
         const mousePos = e.target.getStage().getPointerPosition();
         const Mx = mousePos.x;
         const My = mousePos.y;
@@ -137,7 +169,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         const updatedCircles = [...circles];
         let insertIndex = -1;
 
-        const tolerance = 10;
+        const tolerance = 7;
 
         for (let i = 0; i < updatedCircles.length - 1; i++) {
             const s_x = updatedCircles[i].x;
@@ -163,6 +195,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     };
 
     const handleMouseEnter = () => {
+        console.log("Entro a la linea")
         document.body.style.cursor = 'pointer';
     };
 
@@ -179,7 +212,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
             ctx.moveTo(points[points.length - 4], points[points.length - 3]);
             ctx.lineTo(points[points.length - 2], points[points.length - 1]);
             ctx.moveTo(points[0], points[1]);
-            ctx.lineTo(points[2], points[3]);
+            ctx.lineTo((limit * Width) + x, points[3]);
             ctx.lineWidth = 2
             ctx.strokeStyle = "white"
             ctx.stroke()
@@ -187,18 +220,18 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
             ctx.setLineDash(typeof (contact.dash) === "string" ? eval(contact.dash) : contact.dash)
             ctx.strokeStyle = "black"
             ctx.lineWidth = contact.lineWidth
-            ctx.moveTo(points[points.length - 4], points[points.length - 3]);
-            ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+            ctx.moveTo(points[0], points[1]);
+            ctx.lineTo((limit * Width) + x, points[3]);
             ctx.stroke()
 
-            if(contact.dash2) {
-                
+            if (contact.dash2) {
+
                 ctx.beginPath()
                 ctx.setLineDash(typeof (contact.dash2) === "string" ? eval(contact.dash2) : contact.dash2)
                 ctx.strokeStyle = "black"
                 ctx.lineWidth = contact.lineWidth2
-                ctx.moveTo(points[points.length - 4], points[points.length - 3]-contact.lineWidth2/2);
-                ctx.lineTo(points[points.length - 2], points[points.length - 1]-contact.lineWidth2/2);
+                ctx.moveTo(points[0], points[1] - contact.lineWidth2 / 2);
+                ctx.lineTo((limit * Width) + x, points[3] - contact.lineWidth2 / 2);
                 ctx.stroke()
             }
 
@@ -210,33 +243,80 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = 'black';
-            ctx.fillText('?', Math.abs((points[points.length - 4] + points[points.length - 2]) / 2), points[points.length - 3]);
+            ctx.fillText('?', Math.abs(((limit * Width) + x - points[0]) / 2), points[1]);
         }
 
     }
+
+    const handleSceneFunc3 = (ctx, shape) => {
+
+        const points = shape.points();
+
+        ctx.beginPath();
+
+        ctx.lineTo(points[2], points[3]);
+
+        for (let n = 0; n < points.length - 2; n += 2) {
+            const prevPoint = { x: points[n - 2], y: points[n - 1] };
+            const currentPoint = { x: points[n], y: points[n + 1] };
+            const nextPoint = { x: points[n + 2], y: points[n + 3] };
+            const afterNextPoint = { x: points[n + 4], y: points[n + 5] };
+
+            const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * Tension;
+            const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * Tension;
+
+            const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * Tension;
+            const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * Tension;
+
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, nextPoint.x, nextPoint.y);
+        }
+
+
+        //ctx.lineWidth = 0.3;
+        //ctx.strokeStyle = "red";
+        ctx.strokeShape(shape); //Necesario para las funciones
+        ctx.stroke()
+        
+    };
 
     return (
         <>
             <Line
                 points={polygonPoints}
                 closed
-                strokeWidth={5}
-                hitStrokeWidth={10}
+                strokeWidth={1}
+                //hitStrokeWidth={7}
                 stroke={'transparent'}
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
-                onClick={handlePolygonClick}
+                //onClick={handlePolygonClick}
                 sceneFunc={handleSceneFunc}
+                //onMouseEnter={handleMouseEnter}
+                //onMouseLeave={handleMouseLeave}
+            />
+
+            <Line
+                points={polygonPoints}
+                sceneFunc={handleSceneFunc3}
+                //closed
+                //strokeWidth={1}
+                hitStrokeWidth={2}
+                stroke={'transparent'}
+                //fillPatternImage={image}
+                //fillPatternRotation={Rotation}
+                onClick={selected ? handlePolygonClick : null}
+                
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             />
-            {circles.map((circle, index) => (
+
+            {selected && circles.map((circle, index) => (
                 <Circle
                     //  key={index}
                     key={`circle-${index}`}
                     x={circle.x}
                     y={circle.y}
-                    radius={circle.radius}
+                    radius={7}
                     stroke="#ff0000"
                     strokeWidth={1}
                     //draggable={circle.movable}
