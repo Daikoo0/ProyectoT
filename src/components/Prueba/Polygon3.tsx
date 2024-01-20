@@ -51,9 +51,6 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         };
     };
 
-    const minX = 0;
-    const maxX = 6000;
-
     const handleSceneFunc = (ctx, shape) => {
         const points = shape.points();
         var upperLimit = upperLimit ? upperLimit : (points[2] - x) / Width
@@ -192,36 +189,28 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
         region.lineTo(points[0], points[1]);
         ctx.clip(region, "evenodd")
-        ctx.fillStyle = ColorFill
+        //ctx.fillStyle = ColorFill
         ctx.fillRect(points[0], points[1] - 10, Width, points[points.length - 3] + 20)
-        ctx.lineWidth = 0.3;
-        ctx.strokeStyle = "black";
-        ctx.stroke()
-        ctx.strokeShape(shape);
+        //ctx.lineWidth = 0.3;
+        //ctx.strokeStyle = "black";
+        //ctx.stroke()
+        //ctx.strokeShape(shape);
+        ctx.fillStrokeShape(shape);
     };
 
     // Crear puntos en las lineas 
     const handlePolygonClick = (e) => {
-        console.log("clcik")
         const mousePos = e.target.getStage().getPointerPosition();
-        const Mx = mousePos.x;
         const My = mousePos.y;
 
         const updatedCircles = [...circles];
         let insertIndex = -1;
 
-        const tolerance = 7;
-
-        for (let i = 0; i < updatedCircles.length - 1; i++) {
-            const s_x = updatedCircles[i].x;
-            const s_y = updatedCircles[i].y;
-            const e_x = updatedCircles[i + 1].x;
-            const e_y = updatedCircles[i + 1].y;
-
-            const inXRange = (s_x - tolerance <= Mx && Mx <= e_x + tolerance) || (e_x - tolerance <= Mx && Mx <= s_x + tolerance);
-            const inYRange = (s_y - tolerance <= My && My <= e_y + tolerance) || (e_y - tolerance <= My && My <= s_y + tolerance);
-
-            if (inXRange && inYRange) {
+        for (let i = 1; i < updatedCircles.length - 2; i++) {
+            const start_y = updatedCircles[i].y;
+            const end_y = updatedCircles[i + 1].y;
+    
+            if ((start_y <= My && My <= end_y) || (end_y <= My && My <= start_y)) {
                 insertIndex = i + 1;
                 break;
             }
@@ -316,8 +305,9 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         //ctx.lineWidth = 0.3;
         //ctx.strokeStyle = "red";
         ctx.strokeShape(shape); //Necesario para las funciones
-        ctx.stroke()
 
+        //ctx.stroke()
+        //ctx.fillStrokeShape(shape);
     };
 
     return (
@@ -325,9 +315,10 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
             <Line
                 points={polygonPoints}
                 closed
-                strokeWidth={1}
+                strokeWidth={0.3}
                 //hitStrokeWidth={7}
-                stroke={'transparent'}
+                stroke={'black'}
+                fill={ColorFill}
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
                 //onClick={handlePolygonClick}
@@ -341,7 +332,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 sceneFunc={handleSceneFunc3}
                 //closed
                 //strokeWidth={1}
-                hitStrokeWidth={2}
+                hitStrokeWidth={10}
                 stroke={'transparent'}
                 //fillPatternImage={image}
                 //fillPatternRotation={Rotation}
@@ -350,7 +341,6 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
             />
-
             {selected && circles.map((circle, index) => (
                 <Circle
                     //  key={index}
