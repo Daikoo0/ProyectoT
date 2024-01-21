@@ -862,6 +862,10 @@ const App = () => {
                               lowerLimit={polygons[props.rowIndex]["lowerLimit"]}
                               upperLimit={polygons[props.rowIndex]["upperLimit"]}
                               ColorFill={polygons[props.rowIndex]["ColorFill"]}
+                              ColorStroke={polygons[props.rowIndex]["colorStroke"]}
+                              File={polygons[props.rowIndex]["file"]}
+                              Rotation={polygons[props.rowIndex]["rotation"]}
+                              Zoom={polygons[props.rowIndex]["zoom"]}
                               selected={activeCell?.rowIndex === props.rowIndex && activeCell?.columnIndex === props.columnIndex}
                             />
 

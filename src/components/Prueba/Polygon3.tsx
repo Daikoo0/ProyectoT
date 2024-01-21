@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Line, Circle } from 'react-konva';
 import Contacts from '../../contacts.json';
+import useImage from 'use-image';
 
-const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, openModalPoint, upperContact, ColorFill, selected, lowerContact, lowerLimit, upperLimit }) => {
-
-    console.log(Contacts[String(upperContact)], Contacts[String(lowerContact)])
+const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, File, Zoom, Rotation,
+    openModalPoint, upperContact, ColorFill, ColorStroke, selected, lowerContact, lowerLimit, upperLimit
+}) => {
+    console.log("zoom: ", Zoom, " rotation: ", Rotation, " file: ", File, " colorFill: ", ColorFill, " colorStroke: ", ColorStroke)
     var upperContact = Contacts[String(upperContact)]
     if (upperContact !== undefined) {
         upperContact = JSON.parse(JSON.stringify(upperContact))
@@ -20,13 +22,65 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     };
 
     const [polygonPoints, setPolygonPoints] = useState(circlesToPoints(circles));
-    console.log(polygonPoints)
+    const [svgContent, setSvgContent] = useState('');
 
     useEffect(() => {
 
         setPolygonPoints(circlesToPoints(circles));
 
     }, [Width, Height, x, y, circles]);
+
+
+    useEffect(() => {
+        if (File === 0) {
+            setSvgContent('');
+            return;
+        }
+
+        // Función para cargar y actualizar el contenido SVG inicial
+        const updateSvgContent = (svgText) => {
+            let updatedSvg = svgText;
+            updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+            setSvgContent(updatedSvg);
+        };
+
+        // Si el SVG no está cargado, lo carga
+        if (!svgContent) {
+            const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
+            fetch(imageURL)
+                .then(response => response.text())
+                .then(updateSvgContent);
+        } else {
+            // Si el SVG ya está cargado, solo actualiza los colores o el zoom
+            let updatedSvg = svgContent;
+            updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+            setSvgContent(updatedSvg);
+        }
+
+    }, [File, ColorFill, ColorStroke, Zoom]);
+
+    function updateSvg(svgText, colorFill, colorStroke, zoom) {
+        // Actualizar colores de relleno y trazo
+        let updatedSvg = svgText.replace(/<rect[^>]+fill='[^']+'/g, (match) => {
+            return match.replace(/fill='[^']+'/g, `fill='${colorFill}'`);
+        }).replace(/<g[^>]+stroke='[^']+'/g, (match) => {
+            return match.replace(/stroke='[^']+'/g, `stroke='${colorStroke}'`);
+        });
+
+        // Actualizar dimensiones para el zoom si es necesario
+        if (zoom) {
+            updatedSvg = updatedSvg.replace(/<svg[^>]+/g, (match) => {
+                return match.replace(/width="[^"]*"/g, `width="${zoom}"`)
+                    .replace(/height="[^"]*"/g, `height="${zoom}"`);
+            });
+        }
+
+        return updatedSvg;
+    }
+
+
+    const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
+
 
     // Todos los eventos de los circulos
     const addEventToCircle = (index) => {
@@ -67,25 +121,25 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
                 const midX = xPos - arcSize / 2;
                 const midY = points[1];
-                
-              
-                if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0]) ) {
+
+
+                if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
                     break;
                 }
                 else if (i % 2 === 0) {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                      if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2]) ) {
-                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                }
+                    if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
+                        region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                    }
 
                 }
                 else {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                      if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2]) ) {
-                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                }
+                    if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
+                        region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                    }
 
-                    
+
                 }
             }
             region.moveTo(Width, points[3]);
@@ -129,22 +183,22 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 const midX = xPos - arcSize / 2;
                 const midY = points[points.length - 3];
 
-               
+
                 if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
                     break;
                 }
                 else if (i % 2 === 0) {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-  if ((i % 2 === 0 && xPos - arcSize >  points[points.length - 4]) || (i % 2 !== 0 && xPos >  points[points.length - 4]) ) {
-                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                }
+                    if ((i % 2 === 0 && xPos - arcSize > points[points.length - 4]) || (i % 2 !== 0 && xPos > points[points.length - 4])) {
+                        region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                    }
 
                 }
                 else {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                      if ((i % 2 === 0 && xPos - arcSize >  points[points.length - 4]) || (i % 2 !== 0 && xPos >  points[points.length - 4]) ) {
+                    if ((i % 2 === 0 && xPos - arcSize > points[points.length - 4]) || (i % 2 !== 0 && xPos > points[points.length - 4])) {
                         region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                }
+                    }
 
                 }
             }
@@ -160,19 +214,33 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
 
-         region.lineTo(points[0], points[1]);
-        
+        region.lineTo(points[0], points[1]);
+
         ctx.clip(region, "evenodd")
         //ctx.fillStyle = ColorFill
-        ctx.fillStyle = ColorFill;
+        //ctx.fillStyle = ColorFill;
         ctx.fill(region, "evenodd");
-      //  ctx.fillRect(points[0], points[1] - 10, Width, points[points.length - 3] + 20)
-       // ctx.fill()
+        //  ctx.fillRect(points[0], points[1] - 10, Width, points[points.length - 3] + 20)
+        // ctx.fill()
         //ctx.lineWidth = 0.3;
         //ctx.strokeStyle = "black";
         //ctx.stroke()
-        //ctx.strokeShape(shape);
-        ctx.fillStrokeShape(shape);
+        ctx.strokeShape(shape);
+        //ctx.fillStrokeShape(shape);
+
+        if (image) {
+            ctx.fillStyle = ctx.createPattern(image, 'repeat');
+
+            const radians = (Rotation * Math.PI) / 180;
+
+            ctx.rotate(radians);
+
+        } else {
+            ctx.fillStyle = 'white';
+        }
+
+        ctx.fill();
+        ctx.strokeShape(shape);
     };
 
     // Crear puntos en las lineas 
@@ -186,7 +254,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         for (let i = 1; i < updatedCircles.length - 2; i++) {
             const start_y = updatedCircles[i].y;
             const end_y = updatedCircles[i + 1].y;
-    
+
             if ((start_y <= My && My <= end_y) || (end_y <= My && My <= start_y)) {
                 insertIndex = i + 1;
                 break;
