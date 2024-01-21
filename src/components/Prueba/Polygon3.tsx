@@ -74,33 +74,21 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 }
                 else if (i % 2 === 0) {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                      if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2]) ) {
+                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                }
 
                 }
                 else {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                      if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2]) ) {
+                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                }
+
+                    
                 }
             }
             region.moveTo(Width, points[3]);
-
-            // var length = Math.abs(Width - points[2]);
-            // var number = length / arcSize;
-            // for (var i = 0; i < number; i++) {
-            //     var xPos = (length - i * arcSize) + points[2];
-
-            //     const midX = xPos - arcSize / 2;
-            //     const midY = points[1];
-
-            //     if ((i % 2 === 0 && xPos - arcSize < points[2]) || (i % 2 !== 0 && xPos < points[2])) {
-            //         break;
-            //     }
-            //     else if (i % 2 === 0) {
-            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-
-            //     }
-            //     else {
-            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-            //     }
-            // }
 
 
             region.moveTo(points[2], points[3]);
@@ -147,35 +135,20 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 }
                 else if (i % 2 === 0) {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+  if ((i % 2 === 0 && xPos - arcSize >  points[points.length - 4]) || (i % 2 !== 0 && xPos >  points[points.length - 4]) ) {
+                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                }
 
                 }
                 else {
                     region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                      if ((i % 2 === 0 && xPos - arcSize >  points[points.length - 4]) || (i % 2 !== 0 && xPos >  points[points.length - 4]) ) {
+                        region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                }
 
                 }
             }
             region.lineTo(points[points.length - 2], points[points.length - 1]);
-
-            // var length = Math.abs(Width - points[points.length - 4]);
-            // var number = length / arcSize;
-            // for (var i = 0; i < number; i++) {
-            //     var xPos = (length - i * arcSize) + points[points.length - 4];
-
-            //     const midX = xPos - arcSize / 2;
-            //     const midY = points[points.length - 3];
-
-            //     if ((i % 2 === 0 && xPos - arcSize < points[points.length - 4]) || (i % 2 !== 0 && xPos < points[points.length - 4])) {
-            //         break;
-            //     }
-            //     else if (i % 2 === 0) {
-            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-
-            //     }
-            //     else {
-            //         region.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-            //     }
-            // }
-            // region.lineTo(points[points.length - 2], points[points.length - 1]);
 
 
         } else {
@@ -187,10 +160,14 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
 
-        region.lineTo(points[0], points[1]);
+         region.lineTo(points[0], points[1]);
+        
         ctx.clip(region, "evenodd")
         //ctx.fillStyle = ColorFill
-        ctx.fillRect(points[0], points[1] - 10, Width, points[points.length - 3] + 20)
+        ctx.fillStyle = ColorFill;
+        ctx.fill(region, "evenodd");
+      //  ctx.fillRect(points[0], points[1] - 10, Width, points[points.length - 3] + 20)
+       // ctx.fill()
         //ctx.lineWidth = 0.3;
         //ctx.strokeStyle = "black";
         //ctx.stroke()
