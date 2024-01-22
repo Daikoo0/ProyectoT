@@ -4,7 +4,7 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
 
 
     const handleSceneFunc = (ctx, shape) => {
-     //   const points = shape.points();
+        //   const points = shape.points();
         //var upperLimit = upperLimit ? upperLimit : (points[2] - x) / Width
 
         const points = shape.points();
@@ -110,6 +110,7 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
             //-------------------- linea recta debajo del contacto --------------------//
             ctx.lineTo(points[points.length - 2], points[points.length - 1]);
         }
+        ctx.lineTo(points[0],points[1])
 
         //ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
@@ -122,10 +123,10 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
 
     return (
         <Line
-        points={points}
+            points={points}
             closed
-            stroke='black'
             sceneFunc={handleSceneFunc}
+            fillRule='evenodd'
             fillPatternImage={image}
         />
     );
