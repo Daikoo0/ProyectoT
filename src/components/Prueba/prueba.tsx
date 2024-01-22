@@ -17,6 +17,7 @@ import PropTypes from 'prop-types';
 import 'react-quill/dist/quill.snow.css';
 import { Html } from "react-konva-utils";
 import Contacts from '../../contacts.json';
+import Ruler from "./Ruler2";
 
 
 // Componente de Celda Personalizado
@@ -146,6 +147,9 @@ const App = () => {
   const [Header, setHeader] = useState([]);
   const [polygons, setPolygons] = useState([]);
   const [fossils, setFossils] = useState([]);
+  //---------------// regla // --------------//
+
+  const [isInverted,setIsInverted] = useState(false);
 
   //---------------// Menu de la derecha //---------------//
   // const [sideBar, setSideBar] = useState<boolean>(false);
@@ -596,6 +600,7 @@ const App = () => {
       console.log('Can edit', columnIndex, rowIndex);
       if (Header[columnIndex] === "Litologia") return false;
       if (Header[columnIndex] === "Estructura fosil") return false;
+      if (Header[columnIndex] === "Espesor") return false;
       return true;
     },
 
@@ -645,6 +650,12 @@ const App = () => {
       top: 0,
       left: Header.indexOf("Estructura fosil"),
       right: Header.indexOf("Estructura fosil"),
+      bottom: rowCount - 1,
+    },
+    {
+      top: 0,
+      left: Header.indexOf("Espesor"),
+      right: Header.indexOf("Espesor"),
       bottom: rowCount - 1,
     }
   ];
@@ -929,7 +940,32 @@ const App = () => {
                           </Group>
 
                         )
-                      } else {
+                      } 
+                      else if (Header[props.columnIndex] === "Espesor") {
+
+                        return (
+                       <Group
+                       onClick={() => {
+                        setSideBarState({
+                          sideBar: true,
+                          sideBarMode: "Espesor"
+                        })
+                      }}
+                       >
+                             <Ruler
+                              key={`Espesor`}
+                              x={props.x}
+                              y={props.y}
+                              width={props.width}
+                              height={props.height}
+                              isInverted={isInverted}
+                            
+                            />
+</Group>
+                        )
+                        }
+                      
+                      else {
                         const borderWidth = 2;
                         const x = props.x;
                         const y = props.y;
@@ -1287,6 +1323,17 @@ const App = () => {
                       <li><button onClick={addContact}>Aceptar</button></li>
 
                     </ul>)
+
+case "Espesor":
+
+return(
+  <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+  <li className="menu-title">Invertir regla</li>
+  <li><button onClick={()=>setIsInverted(false)}>Hacia abajo</button></li>
+  <li><button onClick={()=>setIsInverted(true)}>Hacia arriba</button></li>
+  </ul>
+)
+
 
                 default:
                   return <></>;
