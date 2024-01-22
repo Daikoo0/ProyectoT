@@ -847,6 +847,7 @@ const App = () => {
 
                         return (
                           <>
+                          
                             <Polygon3
                               x={props.x}
                               y={props.y}
