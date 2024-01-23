@@ -8,7 +8,7 @@ import LineFill from './LineFill';
 const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, File, Zoom, Rotation,
     openModalPoint, upperContact, ColorFill, ColorStroke, selected, lowerContact, lowerLimit, upperLimit
 }) => {
-    console.log("zoom: ", Zoom, " rotation: ", Rotation, " file: ", File, " colorFill: ", ColorFill, " colorStroke: ", ColorStroke)
+   
     var upperContact = Contacts[String(upperContact)]
     if (upperContact !== undefined) {
         upperContact = JSON.parse(JSON.stringify(upperContact))

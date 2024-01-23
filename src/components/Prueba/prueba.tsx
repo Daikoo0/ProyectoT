@@ -120,6 +120,7 @@ const App = () => {
   };
 
   //-----------------// Socket //-----------------//
+  const [scale, setScale] = useState(1);
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null); // Instancia del socket
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
@@ -149,12 +150,13 @@ const App = () => {
   const [fossils, setFossils] = useState([]);
   //---------------// regla // --------------//
 
-  const [isInverted,setIsInverted] = useState(false);
+  const [isInverted, setIsInverted] = useState(false);
 
   //---------------// Menu de la derecha //---------------//
   // const [sideBar, setSideBar] = useState<boolean>(false);
   // const [sideBarMode, setSideBarMode] = useState<string>("");
   const [insertValue, setinsertValue] = useState(0);
+  const [insertHeight, setinsertHeight] = useState(20);
 
   const [sideBarState, setSideBarState] = useState({
     sideBar: false,
@@ -460,6 +462,12 @@ const App = () => {
 
   };
 
+
+
+  const handleScaleChange = (newScale) => {
+    setScale(newScale);
+  };
+
   const processCircles = (circles, x, y, width, height) => {
     return circles.map(circle => ({
       ...circle,
@@ -548,6 +556,18 @@ const App = () => {
               </div>
             </div>
 
+            <select value={scale} className="select select-primary w-full max-w-xs" onChange={(e) => setScale(Number(e.target.value))}>
+              <option value={10}>1:10</option>
+              <option value={5}>1:20</option>
+              <option value={4}>1:25</option>
+              <option value={2}>1:50</option>
+              <option value={1}>1:100</option>
+              <option value={0.5}>1:200</option>
+              <option value={0.4}>1:250</option>
+              <option value={0.2}>1:500</option>
+
+            </select>
+
           </div>
         </div>
       </>
@@ -634,12 +654,12 @@ const App = () => {
   } = editableProps;
 
 
-  const addShape = (row) => {
+  const addShape = (row, height) => {
 
     socket.send(JSON.stringify({
       action: 'añadir',
       data: {
-        "height": 200,
+        "height": height,
         "rowIndex": row
       }
     }));
@@ -773,13 +793,44 @@ const App = () => {
     const update = polygons[index]["circles"]
     update[insertIndex].x = x;
 
+    // setPolygons(prev => {
+    //   const newData = { ...prev };
+    //   newData[index]["circles"] = update;
+    //   return newData;
+    // });
+
+    socket.send(JSON.stringify({
+      action: 'addCircle',
+      data: {
+        "rowIndex": index,
+        "newCircle": update
+      }
+    }));
+
+  }
+
+  const deleteCirclePoint = (index, insertIndex) => {
+    console.log("se envio:", index, insertIndex)
+
+    const update = polygons[index]["circles"]
+    update.splice(insertIndex, 1);
+
     setPolygons(prev => {
       const newData = { ...prev };
       newData[index]["circles"] = update;
       return newData;
     });
 
+    // socket.send(JSON.stringify({
+    //   action: 'addCircle',
+    //   data: {
+    //     "rowIndex": index,
+    //     "newCircle": update
+    //   }
+    // }));
+
   }
+
 
   // Renderizado de la Grilla
   return (
@@ -805,6 +856,7 @@ const App = () => {
               columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
               rowHeight={() => { return 110; }}
               showScrollbar={false}
+              frozenColumns={1}
               itemRenderer={(props) => {
 
                 let highestRelativeX = fossils.length > 0 ?
@@ -828,6 +880,7 @@ const App = () => {
             <div ref={divRef} style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
               <>
                 <Grid
+                  key={scale}
                   ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
                   width={width} // Ancho Stage
                   height={height} // Altura Stage
@@ -837,8 +890,10 @@ const App = () => {
                   // showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
                   rowHeight={(index) => {
+                    console.log(index)
                     if (polygons[index]) {
-                      return polygons[index]["height"];
+                      const baseHeight = polygons[index]["height"];
+                      return baseHeight * scale;
                     } else {
                       return 200;
                     }
@@ -858,7 +913,7 @@ const App = () => {
 
                         return (
                           <>
-                          
+
                             <Polygon3
                               x={props.x}
                               y={props.y}
@@ -940,31 +995,32 @@ const App = () => {
                           </Group>
 
                         )
-                      } 
+                      }
                       else if (Header[props.columnIndex] === "Espesor") {
 
                         return (
-                       <Group
-                       onClick={() => {
-                        setSideBarState({
-                          sideBar: true,
-                          sideBarMode: "Espesor"
-                        })
-                      }}
-                       >
-                             <Ruler
+                          <Group
+                            onClick={() => {
+                              setSideBarState({
+                                sideBar: true,
+                                sideBarMode: "Espesor"
+                              })
+                            }}
+                          >
+                            <Ruler
                               key={`Espesor`}
                               x={props.x}
                               y={props.y}
                               width={props.width}
                               height={props.height}
+                              scale={scale}
                               isInverted={isInverted}
-                            
+
                             />
-</Group>
+                          </Group>
                         )
-                        }
-                      
+                      }
+
                       else {
                         const borderWidth = 2;
                         const x = props.x;
@@ -992,7 +1048,7 @@ const App = () => {
                           >
                             <div style={{ minHeight: "100%", minWidth: "100%" }}
                               dangerouslySetInnerHTML={{ __html: htmlContent }}
-                              onClick={(e) =>
+                              onClick={() =>
                                 setSideBarState({
                                   sideBar: true,
                                   sideBarMode: "text"
@@ -1068,6 +1124,12 @@ const App = () => {
               </form>
 
               <div className="modal-action">
+                <form method="dialog" onSubmit={() => deleteCirclePoint( modalData.index, modalData.insertIndex)}>
+                  <button className="btn btn-error">Delete</button>
+                </form>
+              </div>
+
+              <div className="modal-action">
                 <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51 })}>
                   <button className="btn">Close</button>
                 </form>
@@ -1090,15 +1152,18 @@ const App = () => {
 
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Añadir capa</li>
+
+                      <li><input onChange={(e) => setinsertHeight(Number(e.target.value))} value={insertHeight} type="number" min="20" /></li>
+
                       <li>
-                        <button onClick={() => addShape(0)} type="button">Insertar filas encima</button>
+                        <button onClick={() => addShape(0, insertHeight)} type="button">Insertar filas encima</button>
                       </li>
                       <li className="flex flex-row">
-                        <button onClick={() => addShape(insertValue)} type="button">Insertar filas</button>
+                        <button onClick={() => addShape(insertValue, insertHeight)} type="button">Insertar filas</button>
                         <input onChange={(e) => setinsertValue(Number(e.target.value))} value={insertValue} type="number" id="inputNumber" name="inputNumber" min="0" max={rowCount} />
                       </li>
                       <li>
-                        <button onClick={() => addShape(-1)} type="button">Insertar filas debajo</button>
+                        <button onClick={() => addShape(-1, insertHeight)} type="button">Insertar filas debajo</button>
                       </li>
                     </ul>
                   );
@@ -1324,15 +1389,15 @@ const App = () => {
 
                     </ul>)
 
-case "Espesor":
+                case "Espesor":
 
-return(
-  <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-  <li className="menu-title">Invertir regla</li>
-  <li><button onClick={()=>setIsInverted(false)}>Hacia abajo</button></li>
-  <li><button onClick={()=>setIsInverted(true)}>Hacia arriba</button></li>
-  </ul>
-)
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Invertir regla</li>
+                      <li><button onClick={() => setIsInverted(false)}>Hacia abajo</button></li>
+                      <li><button onClick={() => setIsInverted(true)}>Hacia arriba</button></li>
+                    </ul>
+                  )
 
 
                 default:

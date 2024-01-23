@@ -31,7 +31,6 @@ function LineClick({points, handlePolygonClick, Tension}) {
     };
 
     const handleMouseEnter = () => {
-        console.log("Entro a la linea")
         document.body.style.cursor = 'pointer';
     };
 

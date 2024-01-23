@@ -293,6 +293,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					rowIndex := addData.RowIndex
 					height := addData.Height
 
+					log.Println(rowIndex, height)
+
 					newShape := map[string]interface{}{
 						"x":           0,
 						"y":           0,

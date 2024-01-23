@@ -1,16 +1,14 @@
-import React from 'react';
-import { Stage, Layer, Rect, Line, Text } from 'react-konva';
+import { Rect, Line, Text } from 'react-konva';
 
-const Ruler = ({ x, y, width, height, isInverted = false }) => {
+const Ruler = ({ x, y, width, height, isInverted = false, scale }) => {
 
   const marks = [];
-  for (let i = 0; i <= height; i += 50) {
-    // Calculamos la posición dependiendo de si está invertido o no
-    const position =  i;
-    // El texto se ajusta en función de si está invertido
-    const text = isInverted ? `${(height - i) / 100} m` : `${i / 100} m`;
+  for (let i = 0; i <= height; i += 50 * scale) { // Ajustar el paso de las marcas según la escala
+    // Calcula la posición y el texto teniendo en cuenta la escala
+    const position = i;
+    const text = isInverted ? `${(height - i) / (100 * scale)} m` : `${i / (100 * scale)} m`;
 
-    if (i % 100 === 0) {
+    if (i % (100 * scale) === 0) {
       marks.push(
         <Line
           key={`line-${i}`}

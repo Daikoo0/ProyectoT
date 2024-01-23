@@ -73,6 +73,7 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
 
         ctx.lineTo(points[points.length - 4], points[points.length - 3]);
 
+        
         if (lowerContact && lowerContact.arcs) {
             var arcSize = 10;
             var length = Math.abs(Width - points[points.length - 2]);
@@ -115,7 +116,7 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
         //ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
-
+        ctx.stroke()
         ctx.closePath();
         ctx.fillStrokeShape(shape);
     };
