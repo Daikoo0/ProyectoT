@@ -323,8 +323,8 @@ const App = () => {
           case 'añadir': {
             const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
 
-            setData(rest)
             setPolygons(Litologia)
+            setData(rest)
 
             break;
           }
@@ -414,7 +414,7 @@ const App = () => {
       polygonCountRef.current = currentCount;
       console.log(currentCount)
     }
-  }, [polygons]);
+  }, [polygons]); 
 
   // useEffect(() => {
 
@@ -880,7 +880,7 @@ const App = () => {
             <div ref={divRef} style={{ display: "flex", flexDirection: "column", position: "absolute" }}>
               <>
                 <Grid
-                  key={scale}
+                  key={`${scale}-${rowCount}`}
                   ref={gridRef} // Referencia para manipular la grilla principal desde otros componentes
                   width={width} // Ancho Stage
                   height={height} // Altura Stage
@@ -889,6 +889,8 @@ const App = () => {
                   mergedCells={mergedCells}
                   // showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
+                  
+                  activeCell={activeCell}
                   rowHeight={(index) => {
                     console.log(index)
                     if (polygons[index]) {
@@ -898,7 +900,6 @@ const App = () => {
                       return 200;
                     }
                   }}
-                  activeCell={activeCell}
                   itemRenderer={(props) => {
                     if (polygons[props.rowIndex]) {
                       if (Header[props.columnIndex] === "Litologia") {
