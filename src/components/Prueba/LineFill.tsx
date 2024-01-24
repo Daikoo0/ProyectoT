@@ -23,24 +23,24 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
                 const midX = xPos - arcSize / 2;
                 const midY = points[1];
 
-
-                if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
-                    break;
-                }
-                else if (i % 2 === 0) {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                    if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
+                if ((i % 2 === 0 && xPos - arcSize < points[2]) || (i % 2 !== 0 && xPos < points[2])) {
+                    if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
+                        break;
+                    }
+                    else if (i % 2 === 0) {
                         ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                    }
+                        // if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
+                        //     ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                        // }
 
-                }
-                else {
-                    ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                    if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
+                    }
+                    else {
                         ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                        // if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
+                        //     ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                        // }
+
                     }
-
-
                 }
             }
             ctx.moveTo(Width, points[3]);
@@ -73,36 +73,33 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
 
         ctx.lineTo(points[points.length - 4], points[points.length - 3]);
 
-        
+
         if (lowerContact && lowerContact.arcs) {
             var arcSize = 10;
             var length = Math.abs(Width - points[points.length - 2]);
             var number = length / arcSize;
             for (var i = 0; i < number; i++) {
                 var xPos = (length - i * arcSize) + points[points.length - 2];
-                // ctx.moveTo(xPos, points[points.length - 3]);
 
                 const midX = xPos - arcSize / 2;
                 const midY = points[points.length - 3];
 
-
+                if ((i % 2 === 0 && xPos - arcSize <  points[points.length - 4]) || (i % 2 !== 0 && xPos <  points[points.length - 4])) {
+                  
                 if ((i % 2 === 0 && xPos - arcSize < points[points.length - 2]) || (i % 2 !== 0 && xPos < points[points.length - 2])) {
                     break;
                 }
                 else if (i % 2 === 0) {
                     ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                    if ((i % 2 === 0 && xPos - arcSize > points[points.length - 4]) || (i % 2 !== 0 && xPos > points[points.length - 4])) {
-                        ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                    }
+                    
 
                 }
                 else {
                     ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                    if ((i % 2 === 0 && xPos - arcSize > points[points.length - 4]) || (i % 2 !== 0 && xPos > points[points.length - 4])) {
-                        ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                    }
+                    
 
                 }
+            }
             }
             ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
@@ -111,12 +108,12 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
             //-------------------- linea recta debajo del contacto --------------------//
             ctx.lineTo(points[points.length - 2], points[points.length - 1]);
         }
-        ctx.lineTo(points[0],points[1])
+        ctx.lineTo(points[0], points[1])
 
         //ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
-       // ctx.stroke()
+   
         ctx.closePath();
         ctx.fillStrokeShape(shape);
     };
@@ -128,6 +125,7 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
             closed
             sceneFunc={handleSceneFunc}
             fillRule='evenodd'
+            stroke={"black"}
             fillPatternImage={image}
         />
     );

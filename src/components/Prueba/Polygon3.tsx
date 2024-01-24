@@ -142,36 +142,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         const points = shape.points();
 
         if (upperContact) {
-            if (upperContact.arcs) {
-                var arcSize = 10;
-                var length = Math.abs(Width - points[0]);
-                var number = length / arcSize;
-                for (var i = 0; i < number; i++) {
-                    var xPos = (length - i * arcSize) + points[0];
-                    const midX = xPos - arcSize / 2;
-                    const midY = points[1];
-
-                    if ((i % 2 === 0 && xPos - arcSize < (upperLimit * Width) + x) || (i % 2 !== 0 && xPos < (upperLimit * Width) + x)) {
-                        if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
-                            break;
-                        }
-                        else {
-                            // Comenzar un nuevo camino para cada arco
-                            ctx.beginPath();
-                            if (i % 2 === 0) {
-                                ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                            }
-                            else {
-                                ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                            }
-                            // Aplicar el trazo al arco actual
-                            ctx.strokeStyle = "black";
-                            ctx.lineWidth = 2;
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
+         
 
             if (upperContact.dash) {
                 ctx.beginPath()
