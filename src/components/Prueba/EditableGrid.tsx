@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback} from "react";
-import Grid, { Cell as DefaultCell, useSelection, useEditable, useSizer as useAutoSizer } from "@rowsncolumns/grid";
+import Grid, { Cell as DefaultCell, useSelection, useEditable } from "@rowsncolumns/grid";
 //import { Rect, Text, Group, RegularPolygon } from "react-konva";
 
 

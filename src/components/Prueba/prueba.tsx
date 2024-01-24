@@ -1,9 +1,9 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import Grid, { useSelection, useEditable } from "@rowsncolumns/grid";
-import { Rect, Group, Stage } from "react-konva";
+import { Rect, Group } from "react-konva";
 import HeaderKonva from "../PruebasKonva/HeaderKonva";
-import CellText from "../PruebasKonva/CellText";
-import Polygon2 from "./Polygon2";
+//import CellText from "../PruebasKonva/CellText";
+//import Polygon2 from "./Polygon2";
 import Polygon3 from "./Polygon3";
 import Json from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
@@ -138,7 +138,7 @@ const App = () => {
   const [columnCount, setColumnCount] = useState(0);
 
   // Número de filas congeladas (Fijas)
-  const frozenRows = 1; // Header congelado
+ // const frozenRows = 1; // Header congelado
 
   // Estado para el ancho de las columnas
   const [columnWidthMap, setColumnWidthMap] = useState({});
@@ -465,9 +465,9 @@ const App = () => {
 
 
 
-  const handleScaleChange = (newScale) => {
-    setScale(newScale);
-  };
+  // const handleScaleChange = (newScale) => {
+  //   setScale(newScale);
+  // };
 
   const processCircles = (circles, x, y, width, height) => {
     return circles.map(circle => ({
@@ -625,7 +625,7 @@ const App = () => {
       return true;
     },
 
-    onDelete: (activeCell, selections) => {
+    onDelete: (activeCell) => {
       if (activeCell) {
         socket.send(JSON.stringify({
           action: 'editText',
@@ -926,7 +926,7 @@ const App = () => {
                               openModalPoint={openModalPoint}
                               upperContact={polygons[props.rowIndex]["upperContact"]}
                               lowerContact={polygons[props.rowIndex]["lowerContact"]}
-                              lowerLimit={polygons[props.rowIndex]["lowerLimit"]}
+                          //    lowerLimit={polygons[props.rowIndex]["lowerLimit"]}
                               upperLimit={polygons[props.rowIndex]["upperLimit"]}
                               ColorFill={polygons[props.rowIndex]["ColorFill"]}
                               ColorStroke={polygons[props.rowIndex]["colorStroke"]}
@@ -987,8 +987,8 @@ const App = () => {
                               fossils.map((img, index) => (
 
                                 <Fosil img={img} index={index} x={props.x}
-                                  sideBarState={sideBarState} setSideBarState={setSideBarState}
-                                  idClickFosil={idClickFosil} setIdClickFosil={setIdClickFosil}
+                                  setSideBarState={setSideBarState}
+                                  setIdClickFosil={setIdClickFosil}
                                 />
 
                               )) : <></>}

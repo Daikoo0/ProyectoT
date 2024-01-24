@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import useImage from 'use-image';
 import fosilJson from '../../fossil.json';
 
-const Fosil = ({img, index,x,sideBarState,setSideBarState,idClickFosil,setIdClickFosil}) => {
+const Fosil = ({img, index,x,setSideBarState,setIdClickFosil}) => {
     console.log(img,x+img.relativeX)
 
     const [svgContent, setSvgContent] = useState('');

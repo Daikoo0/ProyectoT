@@ -6,7 +6,7 @@ import LineClick from './LineClick';
 import LineFill from './LineFill';
 
 const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, File, Zoom, Rotation,
-    openModalPoint, upperContact, ColorFill, ColorStroke, selected, lowerContact, lowerLimit, upperLimit
+    openModalPoint, upperContact, ColorFill, ColorStroke, selected, lowerContact, upperLimit
 }) => {
 
     var upperContact = Contacts[String(upperContact)]
@@ -88,7 +88,8 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     const addEventToCircle = (index) => {
         return {
             onMouseUp: () => {
-                const updatedCircles = [...circles];
+                console.log(index)
+              //  const updatedCircles = [...circles];
                 console.log("Soltar punto")
                 //setCircles(updatedCircles, true);
             },
@@ -198,10 +199,8 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 lowerContact={lowerContact}
                 image={image}
                 Width={Width}
-                x={x}
                 Tension={Tension}
                 Rotation={Rotation}
-                ColorFill={ColorFill}
 
             />
 

@@ -1,11 +1,11 @@
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
-import Editor from './components/Editor/Editor.tsx'
+//import Editor from './components/Editor/Editor.tsx'
 import Login from './pages/Login.tsx'
 import Register from './pages/Register.tsx'
 import Home from './pages/Home.tsx'
-import Shape from './components/Prueba/shape.tsx'
+//import Shape from './components/Prueba/shape.tsx'
 import App from './App.tsx'
 import { ThemeProvider } from './Context/theme-context.tsx'
 import AuthMiddleware from './Context/AuthMiddleware.tsx'
@@ -43,17 +43,13 @@ const router = createBrowserRouter([
     element: <AuthMiddleware> <AddUserToRoom/> </AuthMiddleware>,
   },
   {
-    path: "/prueba/:project",
-    element: <AuthMiddleware><Editor/></AuthMiddleware>,
-  },
-  {
     path: "/create",
     element: <AuthMiddleware> <ParticipantForm/> </AuthMiddleware>,
   },
-  {
-    path: "/image",
-    element: <Shape/>,
-  },
+  // {
+  //   path: "/image",
+  //   element: <Shape/>,
+  // },
   {
     path: "/app",
     element: <App/>,

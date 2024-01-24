@@ -1,8 +1,9 @@
 import { Line } from 'react-konva';
 
-function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Tension, image, Rotation }) {
+function LineFill({ points, Width, upperContact, lowerContact, Tension, image, Rotation }) {
 
 
+    console.log(Rotation)
     const handleSceneFunc = (ctx, shape) => {
         //   const points = shape.points();
         //var upperLimit = upperLimit ? upperLimit : (points[2] - x) / Width
