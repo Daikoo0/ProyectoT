@@ -1,6 +1,6 @@
 import { Rect, Line, Text } from 'react-konva';
 
-const Ruler = ({ x, y, width, height, isInverted = false, scale }) => {
+const Ruler = ({ x, y, width, height, isInverted, scale }) => {
 
   const marks = [];
   for (let i = 0; i <= height; i += 50 * scale) { // Ajustar el paso de las marcas según la escala

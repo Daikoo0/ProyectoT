@@ -130,8 +130,8 @@ const App = () => {
   const headerGridRef = useRef(null);
 
   // Dimensiones de la grilla
-  const width = 1700;
-  const height = 800;
+  const width = window.innerWidth-15;
+  const height =  window.innerHeight-200;
 
   // Número de filas y columnas
   const [rowCount, setRowCount] = useState(0);
@@ -204,14 +204,15 @@ const App = () => {
   const addContact = () => {
     const newPolygons = polygons
     var circleTop = newPolygons[selectedPolygon].circles[newPolygons[selectedPolygon].circles.length - 2]
-    var circleBottom = newPolygons[selectedPolygon + 1].circles[2]
     newPolygons[selectedPolygon].lowerContact = selectedContact
-    newPolygons[selectedPolygon].ColorFill = "red"
-    newPolygons[selectedPolygon].lowerLimit = Math.max(circleTop.x, circleBottom.x)
-    newPolygons[selectedPolygon + 1].upperLimit = Math.max(circleTop.x, circleBottom.x)
-    newPolygons[selectedPolygon + 1].upperContact = selectedContact
-    newPolygons[selectedPolygon + 1].ColorFill = "green"
-
+    if (newPolygons[selectedPolygon + 1]) {
+      var circleBottom = newPolygons[selectedPolygon + 1].circles[2]
+      newPolygons[selectedPolygon].lowerLimit = Math.max(circleTop.x, circleBottom.x)
+      newPolygons[selectedPolygon + 1].upperLimit = Math.max(circleTop.x, circleBottom.x)
+      newPolygons[selectedPolygon + 1].upperContact = selectedContact
+    }else{
+      newPolygons[selectedPolygon].lowerLimit = circleTop.x
+    }
     setPolygons(newPolygons)
 
     console.log(polygons[selectedPolygon])
@@ -414,7 +415,7 @@ const App = () => {
       polygonCountRef.current = currentCount;
       console.log(currentCount)
     }
-  }, [polygons]); 
+  }, [polygons]);
 
   // useEffect(() => {
 
@@ -729,7 +730,6 @@ const App = () => {
     );
   };
 
-
   Editor.modules = {
     toolbar: [
       [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
@@ -739,7 +739,7 @@ const App = () => {
       [{ 'list': 'ordered' }, { 'list': 'bullet' },
       { 'indent': '-1' }, { 'indent': '+1' }],
       ['link', 'image', 'video'],
-      ['clean']
+      ['clean'],[{'align':["right", "center", "justify"]}]
     ],
     clipboard: {
       // toggle to add extra line breaks when pasting HTML:
@@ -752,7 +752,7 @@ const App = () => {
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet', 'indent',
     'link', 'image', 'video',
-    'background', 'color'
+    'background', 'color','align'
   ];
 
   /* 
@@ -856,7 +856,6 @@ const App = () => {
               columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
               rowHeight={() => { return 110; }}
               showScrollbar={false}
-              frozenColumns={1}
               itemRenderer={(props) => {
 
                 let highestRelativeX = fossils.length > 0 ?
@@ -889,7 +888,7 @@ const App = () => {
                   mergedCells={mergedCells}
                   // showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-                  
+
                   activeCell={activeCell}
                   rowHeight={(index) => {
                     console.log(index)
@@ -1125,7 +1124,7 @@ const App = () => {
               </form>
 
               <div className="modal-action">
-                <form method="dialog" onSubmit={() => deleteCirclePoint( modalData.index, modalData.insertIndex)}>
+                <form method="dialog" onSubmit={() => deleteCirclePoint(modalData.index, modalData.insertIndex)}>
                   <button className="btn btn-error">Delete</button>
                 </form>
               </div>

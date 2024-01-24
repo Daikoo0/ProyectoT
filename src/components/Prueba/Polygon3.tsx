@@ -8,7 +8,7 @@ import LineFill from './LineFill';
 const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, File, Zoom, Rotation,
     openModalPoint, upperContact, ColorFill, ColorStroke, selected, lowerContact, lowerLimit, upperLimit
 }) => {
-   
+
     var upperContact = Contacts[String(upperContact)]
     if (upperContact !== undefined) {
         upperContact = JSON.parse(JSON.stringify(upperContact))
@@ -134,28 +134,54 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         }
     };
 
-    
+
 
 
     const handleSceneFunc2 = (ctx, shape) => {
 
         const points = shape.points();
+
         if (upperContact) {
-            ctx.beginPath()
-            ctx.moveTo(points[points.length - 4], points[points.length - 3]);
-            ctx.lineTo(points[points.length - 2], points[points.length - 1]);
-            ctx.moveTo(points[0], points[1]);
-            ctx.lineTo((upperLimit * Width) + x, points[3]);
-            ctx.lineWidth = 2
-            ctx.strokeStyle = "transparent"
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.setLineDash(typeof (upperContact.dash) === "string" ? eval(upperContact.dash) : upperContact.dash)
-            ctx.strokeStyle = "black"
-            ctx.lineWidth = upperContact.lineWidth
-            ctx.moveTo(points[0], points[1]);
-            ctx.lineTo((upperLimit * Width) + x, points[3]);
-            ctx.stroke()
+            if (upperContact.arcs) {
+                var arcSize = 10;
+                var length = Math.abs(Width - points[0]);
+                var number = length / arcSize;
+                for (var i = 0; i < number; i++) {
+                    var xPos = (length - i * arcSize) + points[0];
+                    const midX = xPos - arcSize / 2;
+                    const midY = points[1];
+
+                    if ((i % 2 === 0 && xPos - arcSize < (upperLimit * Width) + x) || (i % 2 !== 0 && xPos < (upperLimit * Width) + x)) {
+                        if ((i % 2 === 0 && xPos - arcSize < points[0]) || (i % 2 !== 0 && xPos < points[0])) {
+                            break;
+                        }
+                        else {
+                            // Comenzar un nuevo camino para cada arco
+                            ctx.beginPath();
+                            if (i % 2 === 0) {
+                                ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
+                            }
+                            else {
+                                ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
+                            }
+                            // Aplicar el trazo al arco actual
+                            ctx.strokeStyle = "black";
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            if (upperContact.dash) {
+                ctx.beginPath()
+                ctx.setLineDash(typeof (upperContact.dash) === "string" ? eval(upperContact.dash) : upperContact.dash)
+                ctx.strokeStyle = "black"
+                ctx.lineWidth = upperContact.lineWidth
+                ctx.moveTo(points[0], points[1]);
+                ctx.lineTo((upperLimit * Width) + x, points[3]);
+                ctx.stroke()
+            }
 
             if (upperContact.dash2) {
 
@@ -168,6 +194,16 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 ctx.stroke()
             }
 
+            if (upperContact.question) {
+                //---------------------// Signo de pregunta del contacto //--------------------//
+                ctx.beginPath()
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'black';
+                ctx.fillText('?', Math.abs(((upperLimit * Width) + x + points[0]) / 2), points[1]);
+
+            }
 
         }
         if (upperContact && upperContact.question) {
@@ -181,7 +217,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
     }
 
-    
+
 
     return (
         <>
@@ -195,7 +231,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 Tension={Tension}
                 Rotation={Rotation}
                 ColorFill={ColorFill}
-                
+
             />
 
             <LineClick
@@ -204,7 +240,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 Tension={Tension}
             />
 
-            
+
             {selected && circles.map((circle, index) => (
                 <Circle
                     //  key={index}
@@ -225,10 +261,10 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                     {...addEventToCircle(index)}
                 />
             ))}
-            {/* <Line
+            <Line
                 points={polygonPoints}
                 sceneFunc={handleSceneFunc2}
-            /> */}
+            />
         </>
 
     );

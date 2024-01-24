@@ -116,7 +116,7 @@ function LineFill({ points, x, Width, upperContact, lowerContact, ColorFill, Ten
         //ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
-        ctx.stroke()
+       // ctx.stroke()
         ctx.closePath();
         ctx.fillStrokeShape(shape);
     };
