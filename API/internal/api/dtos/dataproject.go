@@ -1,6 +1,8 @@
 package dtos
 
-import "github.com/gorilla/websocket"
+import (
+	"github.com/gorilla/websocket"
+)
 
 type DataProject struct {
 	Config         string `json:"config"`
@@ -63,4 +65,9 @@ type DeleteFosil struct {
 type Column struct {
 	Column    string `json:"column"`
 	IsVisible bool   `json:"isVisible"`
+}
+
+type EditPolygon struct {
+	RowIndex   int         `json:"rowIndex"`
+	NewPolygon interface{} `json:"newPolygon"`
 }

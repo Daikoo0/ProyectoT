@@ -130,15 +130,15 @@ const App = () => {
   const headerGridRef = useRef(null);
 
   // Dimensiones de la grilla
-  const width = window.innerWidth-15;
-  const height =  window.innerHeight-200;
+  const width = window.innerWidth - 15;
+  const height = window.innerHeight - 200;
 
   // Número de filas y columnas
   const [rowCount, setRowCount] = useState(0);
   const [columnCount, setColumnCount] = useState(0);
 
   // Número de filas congeladas (Fijas)
- // const frozenRows = 1; // Header congelado
+  // const frozenRows = 1; // Header congelado
 
   // Estado para el ancho de las columnas
   const [columnWidthMap, setColumnWidthMap] = useState({});
@@ -210,7 +210,7 @@ const App = () => {
       newPolygons[selectedPolygon].lowerLimit = Math.max(circleTop.x, circleBottom.x)
       newPolygons[selectedPolygon + 1].upperLimit = Math.max(circleTop.x, circleBottom.x)
       newPolygons[selectedPolygon + 1].upperContact = selectedContact
-    }else{
+    } else {
       newPolygons[selectedPolygon].lowerLimit = circleTop.x
     }
     setPolygons(newPolygons)
@@ -243,19 +243,6 @@ const App = () => {
     }));
   }
 
-  // Seleccion de patron / Pattern
-  const [selectedOption, setSelectedOption] = useState<string>(Object.keys(Json)[0]);
-
-  // Evento de seleccion de patron
-  const handleOptionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedOption(event.target.value);
-    //if (selectedShapeIndex !== null) {
-    //   const updatedShapes = [...shapes];
-    //   updatedShapes[selectedShapeIndex].polygon.file = Json[event.target.value];
-    //   updatedShapes[selectedShapeIndex].polygon.fileOption = event.target.value;
-    //   sendSocket("polygon", selectedShapeIndex);
-    //}
-  };
 
   //---------------// useEffect Socket //---------------//
   // Conexion y desconexion del socket
@@ -329,6 +316,13 @@ const App = () => {
 
             break;
           }
+          case 'polygon':
+            setPolygons(prev => {
+              const newData = { ...prev };
+              newData[shapeN.rowIndex] = shapeN.polygon;
+              return newData;
+            });
+            break
           case 'añadirEnd':
             console.log(shapeN.rowIndex)
             setPolygons(prev => {
@@ -375,21 +369,10 @@ const App = () => {
             })
             break
           case 'columns':
-            // const index = Header.indexOf(shapeN.column);
-            // // Copia el array para no mutar el estado directamente
-            // let newArray = [...Header];
-
-            // if (shapeN.isVisible) {
-            //   newArray.push(shapeN.column);
-            // } else if(!shapeN.isVisible) {
-            //   newArray.splice(index, 1);
-            // }
-            // console.log(newArray)
-            //setHeader(newArray);
             setHeader(shapeN.columns)
             setColumnCount(shapeN.columns.length)
-            // setHeader(shapeN.column)
             break
+          
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
@@ -739,7 +722,7 @@ const App = () => {
       [{ 'list': 'ordered' }, { 'list': 'bullet' },
       { 'indent': '-1' }, { 'indent': '+1' }],
       ['link', 'image', 'video'],
-      ['clean'],[{'align':["right", "center", "justify"]}]
+      ['clean'], [{ 'align': ["right", "center", "justify"] }]
     ],
     clipboard: {
       // toggle to add extra line breaks when pasting HTML:
@@ -752,7 +735,7 @@ const App = () => {
     'bold', 'italic', 'underline', 'strike', 'blockquote',
     'list', 'bullet', 'indent',
     'link', 'image', 'video',
-    'background', 'color','align'
+    'background', 'color', 'align'
   ];
 
   /* 
@@ -830,6 +813,29 @@ const App = () => {
     // }));
 
   }
+
+
+  const handlePolygonChange = (event, nombre, index) => {
+
+    var val = event.target.value;
+
+    if (nombre === "file") {
+      val = Json[String(event.target.value)]
+      console.log(val)
+    }
+    const updatedPolygon = polygons[index];
+    updatedPolygon[nombre] = val;
+
+    socket.send(JSON.stringify({
+      action: 'polygon',
+      data: {
+        "rowIndex": index,
+        "newPolygon": updatedPolygon,
+      }
+    }));
+
+
+  };
 
 
   // Renderizado de la Grilla
@@ -919,14 +925,14 @@ const App = () => {
                               y={props.y}
                               Width={props.width}
                               Height={props.height}
-                              Tension={1}
+                              Tension={polygons[props.rowIndex]["tension"]}
                               circles={processedCircles}
                               rowIndex={props.rowIndex}
                               setCircles={updateCircles}
                               openModalPoint={openModalPoint}
                               upperContact={polygons[props.rowIndex]["upperContact"]}
                               lowerContact={polygons[props.rowIndex]["lowerContact"]}
-                          //    lowerLimit={polygons[props.rowIndex]["lowerLimit"]}
+                              //    lowerLimit={polygons[props.rowIndex]["lowerLimit"]}
                               upperLimit={polygons[props.rowIndex]["upperLimit"]}
                               ColorFill={polygons[props.rowIndex]["ColorFill"]}
                               ColorStroke={polygons[props.rowIndex]["colorStroke"]}
@@ -1172,18 +1178,7 @@ const App = () => {
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando polígono</li>
-                      <li>
-                        <p>Seleccionar opción de Pattern: </p>
-                        <select value={selectedOption} onChange={handleOptionChange} className='select select-bordered w-full max-w-xs'>
-                          {Object.keys(Json).map(option => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </li>
-
-                      <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { console.log(e.target.value) }} />
+                      {/* <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { console.log(e.target.value) }} />
                       <div className="w-full flex justify-between text-xs">
                         <span className="-rotate-90">s/n</span>
                         <span className="-rotate-90">clay</span>
@@ -1198,20 +1193,72 @@ const App = () => {
                         <span className="-rotate-90">cobb</span>
                         <span className="-rotate-90">boul</span>
 
-                        {/* <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span>
-                        <span>|</span> */}
+                      </div> */}
 
-                      </div>
+                      <li>
+                        <p>Seleccionar opción de Pattern: </p>
+                        <select onChange={(e) => handlePolygonChange(e, "file", activeCell.rowIndex)} className='select select-bordered w-full max-w-xs'>
+                          {Object.keys(Json).map(option => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </li>
+
+
+                      <li>
+                        <p>Seleccionar color Fill: <input type="color" onChange={(e) => handlePolygonChange(e, "ColorFill", activeCell.rowIndex)} /> </p>
+                      </li>
+
+                      <li>
+                        <p>Seleccionar color Stroke:<input type="color" onChange={(e) => handlePolygonChange(e, "colorStroke", activeCell.rowIndex)} /></p>
+
+                      </li>
+
+                      <li>
+                        <p>Tension de lineas: </p>
+                        <input
+                          type="range"
+                          min={0}
+                          max={2.5}
+                          step={0.1}
+                          defaultValue={polygons[activeCell.rowIndex]["tension"]}
+                          //value={sliderTension}
+                          //    onChange={(e) => handlePolygonChange(e, "tension", activeCell.rowIndex)} 
+                          onMouseUp={(e) => handlePolygonChange(e, "tension", activeCell.rowIndex)}
+                        />
+                      </li>
+
+                      <li>
+                        <p>Cambiar alto de capa seleccionada: </p>
+                        <input type="number" onChange={(e) => handlePolygonChange(e, "height", activeCell.rowIndex)} />
+                      </li>
+
+                      <li>
+                        <p>Valor Zoom:</p>
+                        <input
+                          type="range"
+                          min={50}
+                          max={300}
+                          defaultValue={polygons[activeCell.rowIndex]["zoom"]}
+                          //  onChange={handleSliderZoom}
+                          onMouseUp={(e) => handlePolygonChange(e, "zoom", activeCell.rowIndex)}
+                        />
+                      </li>
+
+                      <li>
+                        <p>Valor Rotacion: </p>
+                        <input
+                          type="range"
+                          min={0}
+                          max={180}
+                          defaultValue={polygons[activeCell.rowIndex]["rotation"]}
+                          // value={sliderRotation}
+                          //onChange={handleSliderRotation}
+                          onMouseUp={(e) => handlePolygonChange(e, "rotation", activeCell.rowIndex)}
+                        />
+                      </li>
 
                       <li>
                         <button className="btn btn-primary" onClick={() => {
@@ -1222,7 +1269,7 @@ const App = () => {
                             }
                           }));
 
-                        }}>Delete</button>
+                        }}>Eliminar capa</button>
                       </li>
                     </ul>
 

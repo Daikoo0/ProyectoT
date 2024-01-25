@@ -127,6 +127,7 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
             sceneFunc={handleSceneFunc}
             fillRule='evenodd'
             stroke={"black"}
+            fillPatternRotation={Rotation}
             fillPatternImage={image}
         />
     );

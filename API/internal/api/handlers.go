@@ -296,15 +296,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Println(rowIndex, height)
 
 					newShape := map[string]interface{}{
-						"x":           0,
-						"y":           0,
 						"ColorFill":   "white",
 						"colorStroke": "black",
 						"zoom":        100,
 						"rotation":    0,
 						"tension":     0.5,
 						"file":        0,
-						"fileOption":  0,
 						"height":      height,
 						"circles": []map[string]interface{}{
 							{"x": 0, "y": 0, "radius": 5, "movable": false},
@@ -619,7 +616,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					var column dtos.Column
 					err := json.Unmarshal(dataMap.Data, &column)
 					if err != nil {
-						log.Println("Error deserializando fósil:", err)
+						log.Println("Error deserializando columna:", err)
 						break
 					}
 					datos := rooms[roomID].Config["columns"].(map[string]interface{})
@@ -653,6 +650,35 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println("Error al enviar mensaje:", err)
 						}
 					}
+				case "polygon":
+					var polygon dtos.EditPolygon
+					err := json.Unmarshal(dataMap.Data, &polygon)
+					if err != nil {
+						log.Println("Error deserializando el polygon:", err)
+						break
+					}
+					innerMap := rooms[roomID].Data["Litologia"].(map[string]interface{})
+					innerMap[strconv.Itoa(polygon.RowIndex)] = polygon.NewPolygon
+					rooms[roomID].Data["Litologia"] = innerMap
+
+					msgData := map[string]interface{}{
+						"action":   "polygon",
+						"rowIndex": polygon.RowIndex,
+						"polygon":  polygon.NewPolygon,
+					}
+
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal("Error al serializar mensaje:", err)
+					}
+
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println("Error al enviar mensaje:", err)
+						}
+					}
+
 				}
 
 				// if dataMap["action"] == "undo" {

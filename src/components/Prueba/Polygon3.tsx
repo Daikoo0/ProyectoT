@@ -59,6 +59,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
             setSvgContent(updatedSvg);
         }
 
+
     }, [File, ColorFill, ColorStroke, Zoom]);
 
     function updateSvg(svgText, colorFill, colorStroke, zoom) {
@@ -81,7 +82,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     }
 
 
-    const [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
+     var [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
 
     // Todos los eventos de los circulos
@@ -188,7 +189,6 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         }
 
     }
-
 
 
     return (
