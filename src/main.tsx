@@ -14,6 +14,8 @@ import AddUserToRoom from "./pages/Invite.user.tsx"
 import ParticipantForm from "./pages/create.proyect.tsx"
 import About from "./pages/About.tsx"
 import EditableGrid from './components/Prueba/EditableGrid.tsx'
+import Testsvg from './components/Prueba/Polygon2.tsx'
+import VariableRowHeight from './components/Prueba/Editor3.tsx'
 
 const router = createBrowserRouter([
 
@@ -46,10 +48,10 @@ const router = createBrowserRouter([
     path: "/create",
     element: <AuthMiddleware> <ParticipantForm/> </AuthMiddleware>,
   },
-  // {
-  //   path: "/image",
-  //   element: <Shape/>,
-  // },
+  {
+    path: "/svg",
+    element: <Testsvg/>,
+  },
   {
     path: "/app",
     element: <App/>,
@@ -57,6 +59,10 @@ const router = createBrowserRouter([
   {
     path: "/editablegrid",
     element: <EditableGrid/>,
+  },
+  {
+    path: "/editor3",
+    element: <VariableRowHeight/>,
   },
   
 ]);

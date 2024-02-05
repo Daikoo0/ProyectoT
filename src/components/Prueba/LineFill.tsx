@@ -1,6 +1,6 @@
 import { Line } from 'react-konva';
 
-function LineFill({ points, Width, upperContact, lowerContact, Tension, image, Rotation }) {
+function LineFill({ points, Width, upperContact, lowerContact, Tension, image, Rotation, colorfill }) {
 
 
     console.log(Rotation)
@@ -44,7 +44,7 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
                     }
                 }
             }
-            ctx.moveTo(Width, points[3]);
+         //   ctx.moveTo(Width, points[3]);
 
 
             ctx.moveTo(points[2], points[3]);
@@ -102,7 +102,7 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
                 }
             }
             }
-            ctx.lineTo(points[points.length - 2], points[points.length - 1]);
+         //   ctx.lineTo(points[points.length - 2], points[points.length - 1]);
 
 
         } else {
@@ -115,7 +115,7 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
 
         //----------------------------// stroke, fill y lado izquierdo//-------------------------------//
    
-        ctx.closePath();
+        //ctx.closePath();
         ctx.fillStrokeShape(shape);
     };
 
@@ -126,7 +126,7 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
             closed
             sceneFunc={handleSceneFunc}
             fillRule='evenodd'
-            stroke={"black"}
+            stroke={colorfill}
             fillPatternRotation={Rotation}
             fillPatternImage={image}
         />

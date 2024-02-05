@@ -8,10 +8,12 @@ const AuthMiddleware = ({ children }) => {
 
     async function Auth() {
         try {
-            const response = await fetch("http://localhost:3001/users/auth", {
+            const response = await fetch("http://192.168.1.20:3001/users/auth", {
                 method: "GET",
                 credentials: "include",
             });
+
+            console.log(response)
 
             if (!response.ok) {
                 throw new Error(`Authentication failed with status ${response.status}`);

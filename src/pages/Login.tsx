@@ -17,9 +17,29 @@ function Login() {
     setPassword(e.target.value);
   };
 
-  async function handleLogin() {
+// Puedes crear una función genérica para realizar solicitudes HTTP
+async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    throw error;
+  }
+}
 
-    const response = await fetch("http://localhost:3001/users/login", {
+console.log(import.meta.env.VITE_API_URL)
+
+async function handleLogin() {
+  try {
+    const url = `${import.meta.env.VITE_API_URL}/users/login`;
+    const options = {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -29,9 +49,11 @@ function Login() {
         email: Correo,
         password: password,
       }),
-    });
+    };
 
+    const response = await fetchWithTimeout(url, options);
     const data = await response.json();
+
     console.log(response.status, data);
 
     if (response.status === 200) {
@@ -39,10 +61,14 @@ function Login() {
       navigate('/home');
     }
     else {
-      setMessage("Usuario o contraseña incorrecta")
+      setMessage("Usuario o contraseña incorrecta");
     }
+  } catch (error) {
+    console.error("Error en la solicitud:", error);
+    setMessage("Error al iniciar sesión. Por favor, inténtelo de nuevo.");
+  }
+}
 
-  };
 
   return (
     <div className="hero min-h-screen bg-base-200">

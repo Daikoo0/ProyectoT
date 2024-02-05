@@ -7,7 +7,7 @@ const Navbar = ({ logohidden }) => {
 
   const logout = async () => {
     try {
-      await fetch('http://localhost:3001/users/logout', {
+      await fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
         method: 'POST', 
         credentials: 'include', // Incluye las cookies en la solicitud
       });

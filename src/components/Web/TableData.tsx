@@ -44,7 +44,7 @@ const TableData = ({ Data }) => {
         e.preventDefault();
         console.log(selectproject)
         console.log(usuarios)
-        const response = await fetch(`http://localhost:3001/rooms/${selectproject}/invite`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${selectproject}/invite`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

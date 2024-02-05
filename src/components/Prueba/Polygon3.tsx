@@ -199,16 +199,17 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                 lowerContact={lowerContact}
                 image={image}
                 Width={Width}
+                colorfill={rowIndex === 1? "red" : "black"}
                 Tension={Tension}
                 Rotation={Rotation}
 
             />
 
-            <LineClick
+            {/* <LineClick
                 points={polygonPoints}
                 handlePolygonClick={handlePolygonClick}
                 Tension={Tension}
-            />
+            /> */}
 
 
             {selected && circles.map((circle, index) => (
@@ -231,10 +232,10 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
                     {...addEventToCircle(index)}
                 />
             ))}
-            <Line
+            {/* <Line
                 points={polygonPoints}
                 sceneFunc={handleSceneFunc2}
-            />
+            /> */}
         </>
 
     );

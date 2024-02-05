@@ -124,12 +124,14 @@ func (a *API) LoginUser(c echo.Context) error {
 	cookie := &http.Cookie{
 		Name:     "Authorization",
 		Value:    token,
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
+		Secure:   false,                // Cambiar en produccion a true
+		SameSite: http.SameSiteLaxMode, // cambiar en produccion a SameSiteNoneMode
 		HttpOnly: true,
 		Path:     "/",
 		//Expires:  time.Now().Add(10 * time.Second), // tiempo de vida de la cookie
 	}
+
+	log.Print(cookie)
 
 	c.SetCookie(cookie)                                                // Setea la cookie en el navegador
 	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK

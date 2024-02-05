@@ -249,7 +249,7 @@ const App = () => {
   useEffect(() => {
 
     const connectWebSocket = () => {
-      const newSocket = new WebSocket(`ws://localhost:3001/ws/${project}`);
+      const newSocket = new WebSocket(`ws://${import.meta.env.VITE_API_SHORT_URL}/ws/${project}`);
       setSocket(newSocket);
 
       newSocket.onopen = () => {
@@ -372,7 +372,7 @@ const App = () => {
             setHeader(shapeN.columns)
             setColumnCount(shapeN.columns.length)
             break
-          
+
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
@@ -894,16 +894,15 @@ const App = () => {
                   mergedCells={mergedCells}
                   // showScrollbar={false}
                   columnWidth={(index) => columnWidthMap[index] || 200} // Ancho de las columnas, obtenido del estado
-
                   activeCell={activeCell}
                   rowHeight={(index) => {
-                    console.log(index)
                     if (polygons[index]) {
                       const baseHeight = polygons[index]["height"];
                       return baseHeight * scale;
                     } else {
                       return 200;
                     }
+                    
                   }}
                   itemRenderer={(props) => {
                     if (polygons[props.rowIndex]) {
