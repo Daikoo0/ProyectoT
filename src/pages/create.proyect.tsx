@@ -65,7 +65,7 @@ const ParticipantForm = () => {
 
     console.log(Data);
 
-    const response = await fetch(`http://localhost:3001/rooms/create`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

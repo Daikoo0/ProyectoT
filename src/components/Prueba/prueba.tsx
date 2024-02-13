@@ -1051,7 +1051,7 @@ const App = () => {
                               }
                             }}
                           >
-                            <div style={{ minHeight: "100%", minWidth: "100%" }}
+                            <div className="ql-editor" style={{ minHeight: "100%", minWidth: "100%" }}
                               dangerouslySetInnerHTML={{ __html: htmlContent }}
                               onClick={() =>
                                 setSideBarState({

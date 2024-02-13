@@ -1,53 +1,30 @@
-import 'react-data-grid/lib/styles.css';
-import DataGrid from 'react-data-grid';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { useState } from 'react';
+import Tabla from './Tabla'; // Asegúrate de importar el componente correctamente
+import Polygon from './Polygon4';
 
-const columns = [
-  { key: 'id', name: 'ID', width: 80 },
-  {
-    key: 'title',
-    name: 'Title',
-    formatter: ({ row }) => (
-      <div style={{ whiteSpace: 'normal', lineHeight: '20px', display: 'flex', alignItems: 'center' }}>
+const Grid = () => {
 
-        {row.title}
-      </div>
-    )
-  }
-];
+  
+  const [alturas,setAlturas] = useState([100,200,100,250])
 
-const rows = [
-  {
-    id: 0, title: <svg width="100%" height="100%">
-      <rect width="100%" height="100%" fill="red" />
-      <line x1="0" y1="50" x2="50%" y2="50" stroke="black" />
-      <circle cx="50%" cy="100" r="30" stroke="blue" />
-    </svg>
-  },
-  { id: 1, title: 'Demo' }
-];
+  const datosIniciales = {
+    nombres: ["Juan", "María", "Pedro", "Ana"],
+    edades: [28, 34, 45, 29],
+    ciudades: ["Bogotá", "Medellín", "Cali", '<p class="ql-align-justify"><span class="ql-font-monospace">es simplemente el texto de relleno de las imprentas y archivos de texto. Lorem Ipsum ha sido el texto de relleno estándar de las industrias desde el año 1500cuando un impresor (N. del T. persona que se dedica a la imprenta)</span></p>'],
+    Litologia: [16, <Polygon Height={alturas[1]} />, <Polygon Height={alturas[2]} />, 29],
+  };
 
-function App() {
-  const [height, setHeight] = useState(90);
+  const [datos, setDatos] = useState(datosIniciales);
+
+
 
   return (
-    <div>
-      <DataGrid
-        columns={columns}
-        rows={rows}
-        rowHeight={(e) => {
-          if (e.id == 1) return 80;
-          else return height;
-        }}
-        defaultColumnOptions={{
-          resizable: true,
-          sortable: true
-        }}
-      />
-      <label>cambio height</label>
-      <input type="number" onChange={(e) => setHeight(Number(e.target.value))}></input>
-    </div>
+    <>
+      <Tabla datos={datos} alturas={alturas}/>
+    </>
   );
 }
 
-export default App;
+export default Grid;

@@ -35,7 +35,7 @@ const Home = () => {
   async function fetchMapData() {
     if (proyectMap.length > 0) return;
     try {
-      const response = await fetch("http://localhost:3001/search/public", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/search/public`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json"

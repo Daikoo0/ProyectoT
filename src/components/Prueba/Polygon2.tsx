@@ -66,6 +66,25 @@ export default function App() {
       <button style={{ marginLeft: "10px" }} onClick={handleBtnClick}>
         Clear
       </button>
+
+      <svg width="100%" height="400" viewBox="0 0 1200 600"
+      >
+
+        <path d="M0,300 Q100,50 200,300 T400,300"
+          fill="none" stroke="red" stroke-width="5" />
+
+      </svg>
+
+      <svg width="100%" height="400" viewBox="0 0 1200 600">
+        <line x1="0" y1="0" x2="50%" y2="0" strokeWidth="2" stroke="black" />
+        <line x1="50%" y1="0" x2="50%" y2="100%" strokeWidth="2" stroke="black"/>
+        <line x1="0%" y1="0" x2="0%" y2="100%" strokeWidth="2" stroke="black" />
+      </svg>
+
+
+
+
+      <br></br>
       <svg width="100%" height="400" onClick={handleSvgClick}>
         {paths.map((path, idx) => (
           <path
@@ -90,6 +109,8 @@ export default function App() {
           />
         ))}
       </svg>
+
+
     </div>
   );
 }

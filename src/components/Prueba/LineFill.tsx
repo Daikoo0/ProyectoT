@@ -10,7 +10,7 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
 
         const points = shape.points();
         ctx.beginPath()
-
+console.log(points)
 
         ctx.moveTo(points[0], points[1]);
         if (upperContact && upperContact.arcs) {
@@ -30,21 +30,16 @@ function LineFill({ points, Width, upperContact, lowerContact, Tension, image, R
                     }
                     else if (i % 2 === 0) {
                         ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                        // if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
-                        //     ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, false);
-                        // }
+                      
 
                     }
                     else {
                         ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                        // if ((i % 2 === 0 && xPos - arcSize > points[2]) || (i % 2 !== 0 && xPos > points[2])) {
-                        //     ctx.arc(midX, midY, arcSize / 2, 0, Math.PI, true);
-                        // }
+                       
 
                     }
                 }
             }
-         //   ctx.moveTo(Width, points[3]);
 
 
             ctx.moveTo(points[2], points[3]);

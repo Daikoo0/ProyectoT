@@ -19,7 +19,7 @@ const AddUserToRoom = () => {
       role: parseInt(role),
       }));
 
-    const response = await fetch(`http://localhost:3001/rooms/${room}/invite`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/${room}/invite`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
