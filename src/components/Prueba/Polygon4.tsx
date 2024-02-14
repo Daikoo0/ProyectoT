@@ -28,8 +28,8 @@ const PathComponent = ({ Height }) => {
 
     // Genera la curva superior
     for (let i = 0; i <= steps; i++) {
-      const x = startX + i * stepX;
-      const y = (startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude;
+      const x = (startX + i * stepX) || 0;
+      const y = ((startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
       pathData += `L ${x},${y} `;
     }
 
@@ -38,8 +38,8 @@ const PathComponent = ({ Height }) => {
 
     // Genera la curva inferior
     for (let i = steps; i >= 0; i--) {
-      const x = startX + i * stepX;
-      const y = endY + Math.sin((i / steps) * totalLength * frequency) * amplitude;
+      const x = (startX + i * stepX) || 0;
+      const y = (endY + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
       pathData += `L ${x},${y} `;
     }
 
@@ -49,7 +49,7 @@ const PathComponent = ({ Height }) => {
     return pathData;
   }
 
-  const [pathData, setPathData] = useState("");
+  //const [pathData, setPathData] = useState("");
 
   useEffect(() => {
     const updateWidth = () => {
@@ -77,24 +77,40 @@ const PathComponent = ({ Height }) => {
     };
   }, []); 
 
-  useEffect(() => {
-    const startX = 0;
-    const startY = 0 + amplitude; // Ajusta para la curva superior
-    const endX = svgWidth / 2;
-    const endY = Height;
-    const totalLength = endX - startX;
+  const startX = 0;
+  const startY = 0 + amplitude;
+  const endX = svgWidth / 2;
+  const endY = Height;
+  const totalLength = endX - startX;
 
-    const newPathData = generateWavePathData(
-      startX,
-      startY,
-      endX,
-      endY,
-      totalLength,
-      amplitude,
-      resolution
-    );
-    setPathData(newPathData);
-  }, [Height,svgWidth]); 
+
+  const pathData = generateWavePathData(
+    startX,
+    startY,
+    endX,
+    endY,
+    totalLength,
+    amplitude,
+    resolution
+  );
+  // useEffect(() => {
+  //   const startX = 0;
+  //   const startY = 0 + amplitude; // Ajusta para la curva superior
+  //   const endX = svgWidth / 2;
+  //   const endY = Height;
+  //   const totalLength = endX - startX;
+
+  //   const newPathData = generateWavePathData(
+  //     startX,
+  //     startY,
+  //     endX,
+  //     endY,
+  //     totalLength,
+  //     amplitude,
+  //     resolution
+  //   );
+  //   setPathData(newPathData);
+  // }, [Height,svgWidth]); 
 
   return (
     <svg ref={svgRef} width="100%" height={Height + 100} overflow='visible'>

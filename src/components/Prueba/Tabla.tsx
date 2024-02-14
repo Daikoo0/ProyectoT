@@ -91,7 +91,7 @@ const Tabla = ({ datos, alturas }) => {
                     {columnasVisiblesFiltradas.map((columna, index) => (
                         <div key={columna} className="border" style={{ minWidth: `${anchos[index]}px` }}>
                             <div
-                                className="cursor-col-resize flex justify-between items-center bg-gray-200 p-2"
+                                className="cursor-col-resize flex justify-between items-center bg-primary p-2 font-semibold"
                                 onMouseDown={(e) => onDragStart(e, index)}
                             >
                                 {columna}
@@ -112,21 +112,29 @@ const Tabla = ({ datos, alturas }) => {
                         {columnasVisiblesFiltradas.map((columna, colIndex) => (
                             <div
                                 key={`${filaIndex}-${colIndex}`}
-                                className="border prose ql-editor"
+                                className="border border-neutral prose ql-editor "
                                 style={{
                                     height: `${alturas[filaIndex] || alturaFila}px`,
                                     width: `${anchos[colIndex]}px`,
                                     overflowY: typeof datos[columna][filaIndex] === 'string' ? 'auto' : 'visible',
                                     padding: typeof datos[columna][filaIndex] === 'string' ? undefined : '0',
                                     margin: typeof datos[columna][filaIndex] === 'string' ? undefined : '0',
-                                    borderTop: columna === 'Litologia' ? 'none' : '',
-                                    borderBottom: columna === 'Litologia' && filaIndex < ordenFilas.length-1 ? 'none' : '',
-                                   
+                                    borderWidth: 1,
+                                    borderTop: (columna === 'Litologia' || columna === 'fosiles') ? 'none' : '',
+                                    borderBottom: (columna === 'Litologia' || columna === 'fosiles') && filaIndex < ordenFilas.length - 1 ? 'none' : '',
+
                                 }}
                             >
-                                {typeof datos[columna][filaIndex] === 'string' ?
-                                    parse(datos[columna][filaIndex]) :
-                                    datos[columna][filaIndex]
+
+                                {
+                                    (() => {
+                                        switch (typeof datos[columna][filaIndex]) {
+                                            case 'string':
+                                                return parse(datos[columna][filaIndex]);
+                                            case 'object':
+                                                return datos[columna][filaIndex];
+                                        }
+                                    })()
                                 }
                             </div>
                         ))}
