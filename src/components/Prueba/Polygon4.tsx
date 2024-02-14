@@ -1,7 +1,6 @@
-import { svg } from "leaflet";
-import React, { useEffect, useState, useRef } from "react";
+import  { useEffect, useState, useRef } from "react";
 
-const PathComponent = ({ Height }) => {
+const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
   const amplitude = 8; // Amplitud de la onda
   const resolution = 1; // Resolución de la onda
   const [svgWidth, setSvgWidth] = useState(0); 
@@ -77,6 +76,7 @@ const PathComponent = ({ Height }) => {
     };
   }, []); 
 
+  
   const startX = 0;
   const startY = 0 + amplitude;
   const endX = svgWidth / 2;
@@ -112,9 +112,69 @@ const PathComponent = ({ Height }) => {
   //   setPathData(newPathData);
   // }, [Height,svgWidth]); 
 
+  const [svgContent, setSvgContent] = useState('');
+
+ 
+  useEffect(() => {
+    if (File === 0) {
+        setSvgContent('');
+        return;
+    }
+
+    // Función para cargar y actualizar el contenido SVG inicial
+    const updateSvgContent = (svgText) => {
+        let updatedSvg = svgText;
+        updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+        setSvgContent(updatedSvg);
+    };
+
+    // Si el SVG no está cargado, lo carga
+    if (!svgContent) {
+        const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
+        fetch(imageURL)
+            .then(response => response.text())
+            .then(updateSvgContent);
+    } else {
+        // Si el SVG ya está cargado, solo actualiza los colores o el zoom
+        let updatedSvg = svgContent;
+        updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+        setSvgContent(updatedSvg);
+    }
+
+
+}, [File, ColorFill, ColorStroke, Zoom]);
+
+function updateSvg(svgText, colorFill, colorStroke, zoom) {
+    // Actualizar colores de relleno y trazo
+    let updatedSvg = svgText.replace(/<rect[^>]+fill='[^']+'/g, (match) => {
+        return match.replace(/fill='[^']+'/g, `fill='${colorFill}'`);
+    }).replace(/<g[^>]+stroke='[^']+'/g, (match) => {
+        return match.replace(/stroke='[^']+'/g, `stroke='${colorStroke}'`);
+    });
+
+    // Actualizar dimensiones para el zoom si es necesario
+    if (zoom) {
+        updatedSvg = updatedSvg.replace(/<svg[^>]+/g, (match) => {
+            return match.replace(/width="[^"]*"/g, `width="${zoom}"`)
+                .replace(/height="[^"]*"/g, `height="${zoom}"`);
+        });
+    }
+
+    return updatedSvg;
+}
+
+
+
+  const patternId = `pattern-${File}`;
+
   return (
-    <svg ref={svgRef} width="100%" height={Height + 100} overflow='visible'>
-      <path d={pathData} fill="blue" stroke="black" strokeWidth="2" />
+    <svg ref={svgRef} width="100%" height={Height} overflow='visible'>
+      <defs>
+        <pattern id={patternId} patternUnits="userSpaceOnUse"  width={Zoom} height={Zoom}>
+          <g dangerouslySetInnerHTML={{ __html: svgContent }} />
+        </pattern>
+      </defs>
+      <path d={pathData} fill={`url(#${patternId})`} stroke="black" strokeWidth="1.5" />
     </svg> 
   );
 };

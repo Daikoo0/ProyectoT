@@ -34,7 +34,7 @@ async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
   }
 }
 
-console.log(import.meta.env.VITE_API_URL)
+//console.log(import.meta.env.VITE_API_URL)
 
 async function handleLogin() {
   try {

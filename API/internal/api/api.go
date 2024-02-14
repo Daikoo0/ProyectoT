@@ -27,6 +27,7 @@ func (a *API) Start(e *echo.Echo, address string) error {
 			"http://192.168.1.20:4173",
 			"http://192.168.56.1:4173",
 			"http://127.168.1.20:4173",
+			"http://localhost:4173",
 		},
 		AllowMethods:     []string{echo.GET, echo.POST},
 		AllowHeaders:     []string{echo.HeaderContentType},

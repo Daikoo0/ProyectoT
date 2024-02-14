@@ -25,7 +25,7 @@ const Tabla = ({ datos, alturas }) => {
     const ajustarAncho = (index, nuevoAncho) => {
         setAnchos((prevAnchos) => {
             const nuevosAnchos = [...prevAnchos];
-            nuevosAnchos[index] = Math.max(nuevoAncho, 50); // Establecer un mínimo de ancho
+            nuevosAnchos[index] = Math.max(nuevoAncho, 100); // Establecer un mínimo de ancho
             return nuevosAnchos;
         });
     };
@@ -89,13 +89,13 @@ const Tabla = ({ datos, alturas }) => {
 
                 <div className="flex">
                     {columnasVisiblesFiltradas.map((columna, index) => (
-                        <div key={columna} className="border" style={{ minWidth: `${anchos[index]}px` }}>
+                        <div key={columna} className="border" style={{ width: `${anchos[index]}px` }}>
                             <div
-                                className="cursor-col-resize flex justify-between items-center bg-primary p-2 font-semibold"
-                                onMouseDown={(e) => onDragStart(e, index)}
+                                className="flex justify-between items-center bg-primary p-2 font-semibold"
+                                
                             >
                                 {columna}
-                                <span className="p-1">||</span>
+                                <span className="p-1 cursor-col-resize" onMouseDown={(e) => onDragStart(e, index)} >||</span>
                             </div>
                         </div>
                     ))}
@@ -103,15 +103,15 @@ const Tabla = ({ datos, alturas }) => {
 
                 {ordenFilas.map((nombre, filaIndex) => (
                     <div
-                        key={filaIndex}
+                        //key={filaIndex}
                         className="flex"
                         draggable
-                        onDragStart={(e) => onDragStart(e, filaIndex)}
-                        onDragOver={onDragOver(filaIndex)}
+                        //onDragStart={(e) => onDragStart(e, filaIndex)}
+                        //onDragOver={onDragOver(filaIndex)}
                     >
                         {columnasVisiblesFiltradas.map((columna, colIndex) => (
                             <div
-                                key={`${filaIndex}-${colIndex}`}
+                                //key={`${filaIndex}-${colIndex}`}
                                 className="border border-neutral prose ql-editor "
                                 style={{
                                     height: `${alturas[filaIndex] || alturaFila}px`,
@@ -142,9 +142,6 @@ const Tabla = ({ datos, alturas }) => {
                 ))}
             </div>
         </>
-
-
-
     );
 
 };

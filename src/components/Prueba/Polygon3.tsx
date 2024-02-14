@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Line, Circle } from 'react-konva';
+import { Circle } from 'react-konva';
 import Contacts from '../../contacts.json';
 import useImage from 'use-image';
-import LineClick from './LineClick';
 import LineFill from './LineFill';
 
 const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, File, Zoom, Rotation,
@@ -82,7 +81,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
     }
 
 
-     var [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
+    var [image] = useImage(File === 0 ? null : "data:image/svg+xml;base64," + window.btoa(svgContent));
 
 
     // Todos los eventos de los circulos

@@ -249,7 +249,7 @@ const App = () => {
   useEffect(() => {
 
     const connectWebSocket = () => {
-      const newSocket = new WebSocket(`ws://${import.meta.env.VITE_API_SHORT_URL}/ws/${project}`);
+      const newSocket = new WebSocket(`ws://${import.meta.env.VITE_SOCKET_URL}/ws/${project}`);
       setSocket(newSocket);
 
       newSocket.onopen = () => {
