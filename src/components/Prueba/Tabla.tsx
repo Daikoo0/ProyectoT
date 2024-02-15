@@ -1,24 +1,9 @@
 import { useState, useMemo } from 'react';
 import parse from 'html-react-parser';
 
-const Tabla = ({ datos, alturas }) => {
+const Tabla = ({ datos, alturas, columnasVisiblesFiltradas }) => {
     const columnas = useMemo(() => Object.keys(datos), [datos]);
-    const filas = useMemo(() => datos.nombres.length, [datos]);
-
-    const [columnasVisibles, setColumnasVisibles] = useState(() =>
-        columnas.reduce((acc, columna) => {
-            acc[columna] = true;
-            return acc;
-        }, {})
-    );
-
-    const toggleColumna = (columna) => {
-        setColumnasVisibles((prevState) => ({
-            ...prevState,
-            [columna]: !prevState[columna],
-        }));
-    };
-
+    const filas = useMemo(() => datos.Litologia.length, [datos]);
     const [anchos, setAnchos] = useState(() => new Array(columnas.length).fill(150));
     const [alturaFila] = useState(30); // Esta línea no cambia, pero si no usas setAlturaFila, considera remover esta parte del estado.
 
@@ -30,7 +15,7 @@ const Tabla = ({ datos, alturas }) => {
         });
     };
 
-    const [ordenFilas, setOrdenFilas] = useState(() => datos.nombres);
+    const [ordenFilas, setOrdenFilas] = useState(() => datos.Litologia);
     const [filaArrastrada, setFilaArrastrada] = useState(null);
 
     const onDragOver = (index) => (event) => {
@@ -65,28 +50,16 @@ const Tabla = ({ datos, alturas }) => {
     };
 
     {/* Pre-calcular las columnas visibles para reutilización */ }
-    const columnasVisiblesFiltradas = useMemo(() =>
-        columnas.filter(columna => columnasVisibles[columna]),
-        [columnas, columnasVisibles]
-    );
+    // const columnasVisiblesFiltradas = useMemo(() =>
+    //     columnas.filter(columna => columnasVisibles[columna]),
+    //     [columnas, columnasVisibles]
+    // );
 
 
     return (
         <>
-            <div className="flex flex-col">
-                <div className="flex mb-2">
-                    {columnas.map((columna) => (
-                        <label key={columna} className="mr-2">
-                            <input
-                                type="checkbox"
-                                checked={columnasVisibles[columna]}
-                                onChange={() => toggleColumna(columna)}
-                            /> {columna}
-                        </label>
-                    ))}
-                </div>
-
-
+          <div className="flex flex-col">
+               
                 <div className="flex">
                     {columnasVisiblesFiltradas.map((columna, index) => (
                         <div key={columna} className="border" style={{ width: `${anchos[index]}px` }}>
