@@ -163,6 +163,9 @@ function updateSvg(svgText, colorFill, colorStroke, zoom) {
     return updatedSvg;
 }
 
+const handlePathClick = () => {
+  console.log('Se ha hecho click en el path');
+};
 
 
   const patternId = `pattern-${File}`;
@@ -174,7 +177,12 @@ function updateSvg(svgText, colorFill, colorStroke, zoom) {
           <g dangerouslySetInnerHTML={{ __html: svgContent }} />
         </pattern>
       </defs>
-      <path d={pathData} fill={`url(#${patternId})`} stroke="black" strokeWidth="1.5" />
+      <path d={pathData} 
+            fill={`url(#${patternId})`} 
+            stroke="black" 
+            strokeWidth="1.5"
+            pointerEvents = 'stroke' // Detecta eventos de click solo en la línea del path
+            onClick={handlePathClick} />
     </svg> 
   );
 };

@@ -1,122 +1,105 @@
-import { useState, useMemo } from 'react';
-import parse from 'html-react-parser';
+import { useState, useEffect } from "react";
+import Polygon from "./Polygon4";
 
-const Tabla = ({ datos, alturas, columnasVisiblesFiltradas }) => {
-    const columnas = useMemo(() => Object.keys(datos), [datos]);
-    const filas = useMemo(() => datos.Litologia.length, [datos]);
-    const [anchos, setAnchos] = useState(() => new Array(columnas.length).fill(150));
-    const [alturaFila] = useState(30); // Esta línea no cambia, pero si no usas setAlturaFila, considera remover esta parte del estado.
+const Tabla = ({ data, header, lithology, scale }) => {
 
-    const ajustarAncho = (index, nuevoAncho) => {
-        setAnchos((prevAnchos) => {
-            const nuevosAnchos = [...prevAnchos];
-            nuevosAnchos[index] = Math.max(nuevoAncho, 100); // Establecer un mínimo de ancho
-            return nuevosAnchos;
-        });
-    };
+    const [columnWidths, setColumnWidths] = useState({});
 
-    const [ordenFilas, setOrdenFilas] = useState(() => datos.Litologia);
-    const [filaArrastrada, setFilaArrastrada] = useState(null);
+    useEffect(() => {
+        const initialWidths = header.reduce((acc, columnName) => {
+            acc[columnName] = 150; // Inicializa todas las columnas con un ancho de 200px
+            return acc;
+        }, {});
+        setColumnWidths(initialWidths);
+    }, [header]); 
+    
 
-    const onDragOver = (index) => (event) => {
+    // Función para manejar el inicio del arrastre para redimensionar
+    const handleMouseDown = (columnName, event) => {
         event.preventDefault();
-        if (filaArrastrada === null || filaArrastrada === index) return;
 
-        setOrdenFilas((prevOrden) => {
-            const nuevoOrden = [...prevOrden];
-            const itemMovido = nuevoOrden.splice(filaArrastrada, 1)[0];
-            nuevoOrden.splice(index, 0, itemMovido);
-            return nuevoOrden;
-        });
-        setFilaArrastrada(index);
-    };
-
-    const onDragStart = (event, index) => {
+        const startWidth = columnWidths[columnName];
         const startX = event.clientX;
-        const startWidth = anchos[index];
 
-        const doDrag = (e) => {
-            const nuevoAncho = startWidth + e.clientX - startX;
-            ajustarAncho(index, nuevoAncho);
+        const handleMouseMove = (moveEvent) => {
+            const newWidth = startWidth + moveEvent.clientX - startX;
+            setColumnWidths((prevWidths) => ({
+                ...prevWidths,
+                [columnName]: newWidth > 100 ? newWidth : 100 // Asegura un ancho mínimo de 100px
+            }));
         };
 
-        const stopDrag = () => {
-            document.documentElement.removeEventListener('mousemove', doDrag);
-            document.documentElement.removeEventListener('mouseup', stopDrag);
+        const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
         };
 
-        document.documentElement.addEventListener('mousemove', doDrag);
-        document.documentElement.addEventListener('mouseup', stopDrag);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
     };
 
-    {/* Pre-calcular las columnas visibles para reutilización */ }
-    // const columnasVisiblesFiltradas = useMemo(() =>
-    //     columnas.filter(columna => columnasVisibles[columna]),
-    //     [columnas, columnasVisibles]
-    // );
+    
 
 
     return (
         <>
-          <div className="flex flex-col">
-               
+            <div className="flex-col">
                 <div className="flex">
-                    {columnasVisiblesFiltradas.map((columna, index) => (
-                        <div key={columna} className="border" style={{ width: `${anchos[index]}px` }}>
+                    {header.map((columnName) => (
+                        <div key={columnName} className="border bg-primary" style={{ width: `${columnWidths[columnName]}px` }}>
                             <div
-                                className="flex justify-between items-center bg-primary p-2 font-semibold"
-                                
+                                className="flex justify-between items-center  p-2 font-semibold"
                             >
-                                {columna}
-                                <span className="p-1 cursor-col-resize" onMouseDown={(e) => onDragStart(e, index)} >||</span>
+                                {columnName}
+                                <span className="p-1 cursor-col-resize" onMouseDown={(e) => handleMouseDown(columnName, e)}>||</span>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {ordenFilas.map((nombre, filaIndex) => (
+                {Object.keys(lithology).map((rowIndex) => (
                     <div
-                        //key={filaIndex}
+                        key={rowIndex}
                         className="flex"
                         draggable
-                        //onDragStart={(e) => onDragStart(e, filaIndex)}
-                        //onDragOver={onDragOver(filaIndex)}
+                        style={{ height: `${lithology[rowIndex].height * scale}px`}}
+                    //onDragStart={(e) => onDragStart(e, filaIndex)}
+                    //onDragOver={onDragOver(filaIndex)}
                     >
-                        {columnasVisiblesFiltradas.map((columna, colIndex) => (
+                        {header.map((columnName, columnIndex) => (
                             <div
-                                //key={`${filaIndex}-${colIndex}`}
+                                key={`${rowIndex}-${columnIndex}`}
                                 className="border border-neutral prose ql-editor "
                                 style={{
-                                    height: `${alturas[filaIndex] || alturaFila}px`,
-                                    width: `${anchos[colIndex]}px`,
-                                    overflowY: typeof datos[columna][filaIndex] === 'string' ? 'auto' : 'visible',
-                                    padding: typeof datos[columna][filaIndex] === 'string' ? undefined : '0',
-                                    margin: typeof datos[columna][filaIndex] === 'string' ? undefined : '0',
+                                    width: `${columnWidths[columnName]}px`,
+                                    overflowY: columnName !== 'Litologia' ? 'auto' : 'visible',
+                                    padding: columnName !== 'Litologia' ? undefined : '0',
+                                    margin: columnName !== 'Litologia' ? undefined : '0',
                                     borderWidth: 1,
-                                    borderTop: (columna === 'Litologia' || columna === 'fosiles') ? 'none' : '',
-                                    borderBottom: (columna === 'Litologia' || columna === 'fosiles') && filaIndex < ordenFilas.length - 1 ? 'none' : '',
-
+                                    borderTop: (columnName === 'Litologia' || columnName === 'Estructura fosil') ? 'none' : '',
+                                    borderBottom: (columnName === 'Litologia' || columnName === 'Estructura fosil') && Number(rowIndex) < Object.keys(lithology).length - 1 ? 'none' : '',
                                 }}
                             >
 
-                                {
-                                    (() => {
-                                        switch (typeof datos[columna][filaIndex]) {
-                                            case 'string':
-                                                return parse(datos[columna][filaIndex]);
-                                            case 'object':
-                                                return datos[columna][filaIndex];
-                                        }
-                                    })()
-                                }
+                                {columnName === 'Litologia' ? (
+                                    <Polygon
+                                        Height={lithology[rowIndex].height * scale}
+                                        File={lithology[rowIndex].file}
+                                        ColorFill={lithology[rowIndex].ColorFill}
+                                        ColorStroke={lithology[rowIndex].colorStroke}
+                                        Zoom={lithology[rowIndex].zoom}
+                                    />
+                                ) : data[columnName] && data[columnName][rowIndex] ? (
+                                    <div dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />
+                                ) : null}
                             </div>
                         ))}
                     </div>
                 ))}
             </div>
         </>
-    );
 
+    );
 };
 
 export default Tabla;

@@ -61,7 +61,7 @@ const router = createBrowserRouter([
     element: <EditableGrid/>,
   },
   {
-    path: "/editor3",
+    path: "/editor3/:project",
     element: <VariableRowHeight/>,
   },
   
