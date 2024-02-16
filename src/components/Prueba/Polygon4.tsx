@@ -1,9 +1,11 @@
-import  { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 
-const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
-  const amplitude = 8; // Amplitud de la onda
-  const resolution = 1; // Resolución de la onda
-  const [svgWidth, setSvgWidth] = useState(0); 
+const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) => {
+
+
+  const amplitude = 4;
+  const resolution = 1;
+  const [svgWidth, setSvgWidth] = useState(0);
   const svgRef = useRef<SVGSVGElement>(null);
 
   function generateWavePathData(
@@ -13,33 +15,61 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
     endY,
     totalLength,
     amplitude,
-    resolution
+    resolution,
+    points
   ) {
-    const desiredCycles = totalLength / 30;
-    const frequency = (2 * Math.PI * desiredCycles) / totalLength;
+    const frequency = 0.3;
 
     const lengthX = endX - startX;
     const steps = lengthX / resolution;
     const stepX = lengthX / steps;
-    
+    const len = points.length;
+
     // Comienza la curva en la parte superior
-    let pathData = `M ${startX},${startY - amplitude} `;
+    let pathData = `M ${points[0].x},${points[0].y} `;
 
     // Genera la curva superior
     for (let i = 0; i <= steps; i++) {
       const x = (startX + i * stepX) || 0;
+      if (x >= points[1].x) break;
       const y = ((startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
       pathData += `L ${x},${y} `;
     }
 
+    //let pathData += `M ${points[0].x},${points[0].y} `; // Comienza el path en el primer punto
+    const Tension = 1; // Asumiendo alguna tensión. Ajusta según sea necesario.
+
+    for (let n = 1; n < points.length - 1; n++) {
+      // Asegurarse de que existan todos los puntos necesarios para calcular los puntos de control
+      if (n > 0 && n < points.length - 2) {
+        const prevPoint = points[n - 1];
+        const currentPoint = points[n];
+        const nextPoint = points[n + 1];
+        const afterNextPoint = points[n + 2];
+
+        const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * Tension;
+        const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * Tension;
+
+        const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * Tension;
+        const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * Tension;
+
+        pathData += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${nextPoint.x},${nextPoint.y} `;
+      }
+    }
+
+
+
     // Continúa hacia el borde inferior derecho
-    pathData += `L ${endX},${endY} `;
+    //pathData += `L ${points[len - 2].x},${points[len - 2].y} `;
 
     // Genera la curva inferior
     for (let i = steps; i >= 0; i--) {
+
       const x = (startX + i * stepX) || 0;
       const y = (endY + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
-      pathData += `L ${x},${y} `;
+      if (x <= points[len - 2].x) {
+        pathData += `L ${x},${y} `;
+      }
     }
 
     // Cierra el path volviendo al inicio
@@ -54,6 +84,7 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
     const updateWidth = () => {
       if (svgRef.current) {
         setSvgWidth(svgRef.current.clientWidth);
+        //console.log(svgRef.current.clientWidth)
       }
     };
 
@@ -74,12 +105,26 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
         resizeObserver.unobserve(svgRef.current);
       }
     };
-  }, []); 
+  }, []);
 
-  
+
+  const points = useMemo(() => {
+    const processCircles = (circles, svgWidth, Height) => {
+      return circles.map(circle => ({
+        ...circle,
+        x: circle.x * svgWidth,
+        y: circle.y * Height
+      }));
+    };
+
+    return processCircles(circles, svgWidth, Height);
+  }, [circles, svgWidth, Height]);
+
+  console.log(points)
+
   const startX = 0;
   const startY = 0 + amplitude;
-  const endX = svgWidth / 2;
+  const endX = svgWidth;
   const endY = Height;
   const totalLength = endX - startX;
 
@@ -91,7 +136,8 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
     endY,
     totalLength,
     amplitude,
-    resolution
+    resolution,
+    points
   );
   // useEffect(() => {
   //   const startX = 0;
@@ -114,58 +160,59 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom }) => {
 
   const [svgContent, setSvgContent] = useState('');
 
- 
+
   useEffect(() => {
     if (File === 0) {
-        setSvgContent('');
-        return;
+      setSvgContent('');
+      return;
     }
 
     // Función para cargar y actualizar el contenido SVG inicial
     const updateSvgContent = (svgText) => {
-        let updatedSvg = svgText;
-        updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
-        setSvgContent(updatedSvg);
+      let updatedSvg = svgText;
+      updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+      setSvgContent(updatedSvg);
     };
 
     // Si el SVG no está cargado, lo carga
     if (!svgContent) {
-        const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
-        fetch(imageURL)
-            .then(response => response.text())
-            .then(updateSvgContent);
+      const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
+      fetch(imageURL)
+        .then(response => response.text())
+        .then(updateSvgContent);
     } else {
-        // Si el SVG ya está cargado, solo actualiza los colores o el zoom
-        let updatedSvg = svgContent;
-        updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
-        setSvgContent(updatedSvg);
+      // Si el SVG ya está cargado, solo actualiza los colores o el zoom
+      let updatedSvg = svgContent;
+      updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+      setSvgContent(updatedSvg);
     }
 
 
-}, [File, ColorFill, ColorStroke, Zoom]);
+  }, [File, ColorFill, ColorStroke, Zoom]);
 
-function updateSvg(svgText, colorFill, colorStroke, zoom) {
+  function updateSvg(svgText, colorFill, colorStroke, zoom) {
     // Actualizar colores de relleno y trazo
     let updatedSvg = svgText.replace(/<rect[^>]+fill='[^']+'/g, (match) => {
-        return match.replace(/fill='[^']+'/g, `fill='${colorFill}'`);
+      return match.replace(/fill='[^']+'/g, `fill='${colorFill}'`);
     }).replace(/<g[^>]+stroke='[^']+'/g, (match) => {
-        return match.replace(/stroke='[^']+'/g, `stroke='${colorStroke}'`);
+      return match.replace(/stroke='[^']+'/g, `stroke='${colorStroke}'`);
     });
 
     // Actualizar dimensiones para el zoom si es necesario
     if (zoom) {
-        updatedSvg = updatedSvg.replace(/<svg[^>]+/g, (match) => {
-            return match.replace(/width="[^"]*"/g, `width="${zoom}"`)
-                .replace(/height="[^"]*"/g, `height="${zoom}"`);
-        });
+      updatedSvg = updatedSvg.replace(/<svg[^>]+/g, (match) => {
+        return match.replace(/width="[^"]*"/g, `width="${zoom}"`)
+          .replace(/height="[^"]*"/g, `height="${zoom}"`);
+      });
     }
 
     return updatedSvg;
-}
+  }
 
-const handlePathClick = () => {
-  console.log('Se ha hecho click en el path');
-};
+  const handlePathClick = (e) => {
+    console.log(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+
+  };
 
 
   const patternId = `pattern-${File}`;
@@ -173,17 +220,27 @@ const handlePathClick = () => {
   return (
     <svg ref={svgRef} width="100%" height={Height} overflow='visible'>
       <defs>
-        <pattern id={patternId} patternUnits="userSpaceOnUse"  width={Zoom} height={Zoom}>
+        <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom}>
           <g dangerouslySetInnerHTML={{ __html: svgContent }} />
         </pattern>
       </defs>
-      <path d={pathData} 
-            fill={`url(#${patternId})`} 
-            stroke="black" 
-            strokeWidth="1.5"
-            pointerEvents = 'stroke' // Detecta eventos de click solo en la línea del path
-            onClick={handlePathClick} />
-    </svg> 
+      <path d={pathData}
+        fill={`url(#${patternId})`}
+        stroke="black"
+        strokeWidth="1.5"
+        pointerEvents='stroke' // Detecta eventos de click solo en la línea del path
+        onClick={(e) => handlePathClick(e)} />
+
+      {points.map((points, index) => (
+        <circle
+          key={index}
+          cx={points.x}
+          cy={points.y}
+          r={points.radius}
+          fill={points.movable ? 'purple' : 'blue'} // Diferenciar círculos móviles de los estáticos
+        />
+      ))}
+    </svg>
   );
 };
 

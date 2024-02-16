@@ -11,8 +11,8 @@ const Tabla = ({ data, header, lithology, scale }) => {
             return acc;
         }, {});
         setColumnWidths(initialWidths);
-    }, [header]); 
-    
+    }, [header]);
+
 
     // Función para manejar el inicio del arrastre para redimensionar
     const handleMouseDown = (columnName, event) => {
@@ -38,7 +38,7 @@ const Tabla = ({ data, header, lithology, scale }) => {
         document.addEventListener('mouseup', handleMouseUp);
     };
 
-    
+
 
 
     return (
@@ -60,16 +60,16 @@ const Tabla = ({ data, header, lithology, scale }) => {
                 {Object.keys(lithology).map((rowIndex) => (
                     <div
                         key={rowIndex}
-                        className="flex"
+                        className="flex" 
                         draggable
-                        style={{ height: `${lithology[rowIndex].height * scale}px`}}
+                        style={{ height: `${lithology[rowIndex].height * scale}px` }}
                     //onDragStart={(e) => onDragStart(e, filaIndex)}
                     //onDragOver={onDragOver(filaIndex)}
                     >
                         {header.map((columnName, columnIndex) => (
                             <div
                                 key={`${rowIndex}-${columnIndex}`}
-                                className="border border-neutral prose ql-editor "
+                                className="border border-neutral prose ql-editor"
                                 style={{
                                     width: `${columnWidths[columnName]}px`,
                                     overflowY: columnName !== 'Litologia' ? 'auto' : 'visible',
@@ -88,6 +88,7 @@ const Tabla = ({ data, header, lithology, scale }) => {
                                         ColorFill={lithology[rowIndex].ColorFill}
                                         ColorStroke={lithology[rowIndex].colorStroke}
                                         Zoom={lithology[rowIndex].zoom}
+                                        circles={lithology[rowIndex].circles}
                                     />
                                 ) : data[columnName] && data[columnName][rowIndex] ? (
                                     <div dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />

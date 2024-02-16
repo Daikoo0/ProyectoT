@@ -3,6 +3,7 @@ import { Circle } from 'react-konva';
 import Contacts from '../../contacts.json';
 import useImage from 'use-image';
 import LineFill from './LineFill';
+import LineClick from './LineClick';
 
 const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, File, Zoom, Rotation,
     openModalPoint, upperContact, ColorFill, ColorStroke, selected, lowerContact, upperLimit
@@ -204,11 +205,11 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
 
             />
 
-            {/* <LineClick
+            <LineClick
                 points={polygonPoints}
                 handlePolygonClick={handlePolygonClick}
                 Tension={Tension}
-            /> */}
+            />
 
 
             {selected && circles.map((circle, index) => (

@@ -134,7 +134,7 @@ const Grid = () => {
           sideBarMode: ""
         })} />
         <div id="este" className="drawer-content">
-          <Tabla data={data} header={header} lithology={polygons} scale= {3}/>
+          <Tabla data={data} header={header} lithology={polygons} scale= {2}/>
         </div>
         <div className="drawer-side">
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>

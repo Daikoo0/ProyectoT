@@ -1,116 +1,27 @@
-import { useState } from "react";
+import React from 'react';
 
-export default function App() {
-  // Puntos iniciales
-  const initialPoints = [
-    { name: 'c1', position: [50, 50] },
-    { name: 'c2', position: [150, 50] },
-    { name: 'c3', position: [150, 150] },
-    { name: 'c4', position: [50, 150] }
-  ];
+const SinWave = () => {
+  const width = 200;
+  const height = 100; 
 
-  // Crear caminos iniciales entre los puntos
-  const createInitialPaths = (points) => {
-    let paths = [];
-    for (let i = 0; i < points.length; i++) {
-      const start = points[i].position;
-      const end = points[(i + 1) % points.length].position; // Loop back to the first point after the last point
-      const cp1 = [(start[0] + end[0]) / 2, start[1]];
-      const cp2 = [(start[0] + end[0]) / 2, end[1]];
+  const amplitude = 50; // A
+  const frequency = 2 * Math.PI / width; // B, ajustado para que el período encaje en el ancho
+  const points = [];
 
-      paths.push({ start, cp1, cp2, end });
-    }
-    return paths;
-  };
+  for (let x = 0; x <= width; x++) {
+    const y = height / 2 + amplitude * Math.sin(frequency * x);
+    points.push(`${x},${y}`);
+  }
 
-  const [points, setPoints] = useState(initialPoints);
-  const [paths, setPaths] = useState(createInitialPaths(initialPoints));
+  const pathData = `M ${points.join(' L ')}`;
 
-  const handleSvgClick = (e) => {
-    const position = [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
-    if (points.length > 0) {
-      const lastPoint = points[points.length - 1].position;
-      const controlPoint1 = [(lastPoint[0] + position[0]) / 2, lastPoint[1]];
-      const controlPoint2 = [(lastPoint[0] + position[0]) / 2, position[1]];
-      setPaths((prevPaths) => [
-        ...prevPaths,
-        { start: lastPoint, cp1: controlPoint1, cp2: controlPoint2, end: position }
-      ]);
-    }
-    setPoints((prevPoints) => [
-      ...prevPoints,
-      {
-        name: `c${prevPoints.length + 1}`,
-        position
-      }
-    ]);
-  };
-
-  const handlePathClick = (e) => {
-    e.stopPropagation();
-    console.log("Path clicked!");
-    // Agrega aquí tu lógica adicional para manejar el clic en el path
-  };
-
-  const handleEntityClick = (e) => e.stopPropagation();
-  const handleBtnClick = () => {
-    setPaths([]);
-    setPoints([]);
-  };
+  
 
   return (
-    <div className="App">
-      <span>
-        {points.length} Point, {paths.length} Path
-      </span>
-      <button style={{ marginLeft: "10px" }} onClick={handleBtnClick}>
-        Clear
-      </button>
-
-      <svg width="100%" height="400" viewBox="0 0 1200 600"
-      >
-
-        <path d="M0,300 Q100,50 200,300 T400,300"
-          fill="none" stroke="red" stroke-width="5" />
-
-      </svg>
-
-      <svg width="100%" height="400" viewBox="0 0 1200 600">
-        <line x1="0" y1="0" x2="50%" y2="0" strokeWidth="2" stroke="black" />
-        <line x1="50%" y1="0" x2="50%" y2="100%" strokeWidth="2" stroke="black"/>
-        <line x1="0%" y1="0" x2="0%" y2="100%" strokeWidth="2" stroke="black" />
-      </svg>
-
-
-
-
-      <br></br>
-      <svg width="100%" height="400" onClick={handleSvgClick}>
-        {paths.map((path, idx) => (
-          <path
-            key={idx}
-            d={`M ${path.start[0]} ${path.start[1]} C ${path.cp1[0]} ${path.cp1[1]}, ${path.cp2[0]} ${path.cp2[1]}, ${path.end[0]} ${path.end[1]}`}
-            stroke="blue"
-            strokeWidth="4px"
-            fill="none"
-            onClick={handlePathClick}
-          />
-        ))}
-        {points.map((point, idx) => (
-          <circle
-            key={idx}
-            cx={point.position[0]}
-            cy={point.position[1]}
-            r="10"
-            stroke="red"
-            strokeWidth="3px"
-            fill="pink"
-            onClick={handleEntityClick}
-          />
-        ))}
-      </svg>
-
-
-    </div>
+    <svg width={width} height={height} xmlns="http://www.w3.org/2000/svg">
+      <path d={pathData} stroke="black" strokeWidth="2" fill="none" />
+    </svg>
   );
-}
+};
+
+export default SinWave;
