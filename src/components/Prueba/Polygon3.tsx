@@ -129,6 +129,7 @@ const Polygon = ({ x, y, Width, Height, rowIndex, circles, Tension, setCircles, 
         }
 
         if (insertIndex !== -1) {
+            console.log("si",My, y, Height)
             const originalY = (My - y) / Height;
             const point = { x: 0.5, y: originalY, radius: 5, movable: true };
 

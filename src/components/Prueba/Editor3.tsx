@@ -93,6 +93,13 @@ const Grid = () => {
             // setFossils(estructuraFosil)
             break;
           }
+          case 'addCircle':
+            setPolygons(prev => {
+              const newData = { ...prev };
+              newData[shapeN.rowIndex]["circles"] = shapeN.newCircle;
+              return newData;
+            });
+            break
 
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -123,6 +130,22 @@ const Grid = () => {
   }
 
 
+  const updateCircles = (rowIndex: number, insertIndex: number, newCircle: any) => {
+    console.log(rowIndex, insertIndex, newCircle)
+    const update = polygons[rowIndex]["circles"]
+
+    update.splice(insertIndex, 0, newCircle);
+
+    socket.send(JSON.stringify({
+      action: 'addCircle',
+      data: {
+        "rowIndex": rowIndex,
+        "newCircle": update
+      }
+    }));
+
+  };
+
 
 
   return (
@@ -134,7 +157,7 @@ const Grid = () => {
           sideBarMode: ""
         })} />
         <div id="este" className="drawer-content">
-          <Tabla data={data} header={header} lithology={polygons} scale= {2}/>
+          <Tabla data={data} header={header} lithology={polygons} scale= {2} setCircles={updateCircles}/>
         </div>
         <div className="drawer-side">
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>

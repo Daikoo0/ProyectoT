@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Polygon from "./Polygon4";
 
-const Tabla = ({ data, header, lithology, scale }) => {
+const Tabla = ({ data, header, lithology, scale, setCircles }) => {
 
     const [columnWidths, setColumnWidths] = useState({});
 
@@ -83,12 +83,14 @@ const Tabla = ({ data, header, lithology, scale }) => {
 
                                 {columnName === 'Litologia' ? (
                                     <Polygon
+                                        rowIndex={Number(rowIndex)}
                                         Height={lithology[rowIndex].height * scale}
                                         File={lithology[rowIndex].file}
                                         ColorFill={lithology[rowIndex].ColorFill}
                                         ColorStroke={lithology[rowIndex].colorStroke}
                                         Zoom={lithology[rowIndex].zoom}
                                         circles={lithology[rowIndex].circles}
+                                        setCircles={setCircles}
                                     />
                                 ) : data[columnName] && data[columnName][rowIndex] ? (
                                     <div dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />

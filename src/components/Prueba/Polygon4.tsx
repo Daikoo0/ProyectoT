@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 
-const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) => {
+const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, setCircles }) => {
 
 
   const amplitude = 4;
@@ -26,7 +26,8 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) 
     const len = points.length;
 
     // Comienza la curva en la parte superior
-    let pathData = `M ${points[0].x},${points[0].y} `;
+    let pathData = `M ${points[0].x},${points[0].y}`;
+    let pathDataClick = `M ${points[1].x},${points[1].y}`;
 
     // Genera la curva superior
     for (let i = 0; i <= steps; i++) {
@@ -54,13 +55,10 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) 
         const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * Tension;
 
         pathData += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${nextPoint.x},${nextPoint.y} `;
+        pathDataClick += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${nextPoint.x},${nextPoint.y} `;
       }
     }
 
-
-
-    // Continúa hacia el borde inferior derecho
-    //pathData += `L ${points[len - 2].x},${points[len - 2].y} `;
 
     // Genera la curva inferior
     for (let i = steps; i >= 0; i--) {
@@ -75,7 +73,7 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) 
     // Cierra el path volviendo al inicio
     pathData += `L ${startX},${startY - amplitude} Z`;
 
-    return pathData;
+    return [pathData, pathDataClick];
   }
 
   //const [pathData, setPathData] = useState("");
@@ -129,7 +127,7 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) 
   const totalLength = endX - startX;
 
 
-  const pathData = generateWavePathData(
+  const [pathData, pathDataClick] = generateWavePathData(
     startX,
     startY,
     endX,
@@ -210,7 +208,31 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) 
   }
 
   const handlePathClick = (e) => {
-    console.log(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    //console.log(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+
+    //const Mx = e.nativeEvent.offsetX;
+    const My = e.nativeEvent.offsetY;
+
+    const updatedCircles = [...points];
+    let insertIndex = -1;
+
+    for (let i = 1; i < updatedCircles.length - 2; i++) {
+      const start_y = updatedCircles[i].y;
+      const end_y = updatedCircles[i + 1].y;
+
+      if ((start_y <= My && My <= end_y) || (end_y <= My && My <= start_y)) {
+        insertIndex = i + 1;
+        break;
+      }
+    }
+
+    if (insertIndex !== -1) {
+      
+      const originalY = (My) / Height;
+      const point = { x: 0.5, y: originalY, radius: 5, movable: true };
+      setCircles(rowIndex, insertIndex, point)
+    
+    }
 
   };
 
@@ -219,25 +241,38 @@ const PathComponent = ({ Height, File, ColorFill, ColorStroke, Zoom, circles }) 
 
   return (
     <svg ref={svgRef} width="100%" height={Height} overflow='visible'>
+
+      {/* Patrón SVG */}
       <defs>
         <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom}>
           <g dangerouslySetInnerHTML={{ __html: svgContent }} />
         </pattern>
       </defs>
+
+      {/* Polygon Path */}
       <path d={pathData}
         fill={`url(#${patternId})`}
         stroke="black"
         strokeWidth="1.5"
-        pointerEvents='stroke' // Detecta eventos de click solo en la línea del path
-        onClick={(e) => handlePathClick(e)} />
+      />
 
+      {/* Line Click */}
+      <path d={pathDataClick}
+        fill="none"
+        stroke="transparent"
+        strokeWidth="4"
+        //pointerEvents='stroke' 
+        onClick={(e) => handlePathClick(e)}
+      />
+
+      {/* Círculos */}
       {points.map((points, index) => (
         <circle
           key={index}
           cx={points.x}
           cy={points.y}
-          r={points.radius}
-          fill={points.movable ? 'purple' : 'blue'} // Diferenciar círculos móviles de los estáticos
+          r={6}
+          fill={points.movable ? 'purple' : 'blue'}
         />
       ))}
     </svg>
