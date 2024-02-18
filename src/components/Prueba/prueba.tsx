@@ -303,17 +303,14 @@ const App = () => {
               const newData = { ...prev };
               const key = shapeN.key;
               newData[key] = { ...newData[key], [shapeN.rowIndex]: shapeN.value };
-
               return newData;
             });
             break
 
           case 'añadir': {
             const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-
             setPolygons(Litologia)
             setData(rest)
-
             break;
           }
           case 'polygon':
@@ -334,13 +331,10 @@ const App = () => {
 
           case 'delete': {
             const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-
             setPolygons(Litologia)
             setData(rest)
-
             break;
           }
-
           case 'addCircle':
             setPolygons(prev => {
               const newData = { ...prev };
@@ -372,7 +366,6 @@ const App = () => {
             setHeader(shapeN.columns)
             setColumnCount(shapeN.columns.length)
             break
-
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;

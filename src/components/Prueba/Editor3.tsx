@@ -17,7 +17,7 @@ const Grid = () => {
 
               <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
                   </svg>
                 </div>
@@ -39,6 +39,26 @@ const Grid = () => {
   const [header, setHeader] = useState([]);
   // const [columnCount, setColumnCount] = useState(0);
   // const [fossils, setFossils] = useState([]);
+
+  const handleColumns = (e, key) => {
+    if (e.target.checked) {
+      socket.send(JSON.stringify({
+        action: 'columns',
+        data: {
+          'column': key,
+          'isVisible': true,
+        },
+      }));
+    } else {
+      socket.send(JSON.stringify({
+        action: 'columns',
+        data: {
+          'column': key,
+          'isVisible': false,
+        },
+      }));
+    }
+  }
 
 
   useEffect(() => {
@@ -93,6 +113,10 @@ const Grid = () => {
             // setFossils(estructuraFosil)
             break;
           }
+          case 'columns':
+            setHeader(shapeN.columns)
+          //  setColumnCount(shapeN.columns.length)
+            break
           case 'addCircle':
             setPolygons(prev => {
               const newData = { ...prev };
@@ -114,8 +138,7 @@ const Grid = () => {
     }
   }, [socket]);
 
-  
- 
+
 
   const [sideBarState, setSideBarState] = useState({
     sideBar: false,
@@ -157,7 +180,7 @@ const Grid = () => {
           sideBarMode: ""
         })} />
         <div id="este" className="drawer-content">
-          <Tabla data={data} header={header} lithology={polygons} scale= {2} setCircles={updateCircles}/>
+          <Tabla data={data} header={header} lithology={polygons} scale={2} setCircles={updateCircles} />
         </div>
         <div className="drawer-side">
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
@@ -166,11 +189,11 @@ const Grid = () => {
               switch (sideBarState.sideBarMode) {
                 case "config":
 
-                  // const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
+                  const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Configuración</li>
-                      {/* {list.map((key) => {
+                      {list.map((key) => {
                         if (key != "Espesor" && key != "Litologia") {
                           return (
                             <li key={key}>
@@ -179,8 +202,8 @@ const Grid = () => {
                                   type="checkbox"
                                   id={key}
                                   name={key}
-                                // checked={Header.includes(key) ? true : false}
-                                //   onChange={(e) => handleColumns(e, key)}
+                                  checked={header.includes(key) ? true : false}
+                                  onChange={(e) => handleColumns(e, key)}
                                 />
                                 <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
                                   {key}
@@ -190,11 +213,11 @@ const Grid = () => {
                           );
                         }
                       }
-                      )} */}
+                      )}
                       {/* <div className="flex flex-col">
                         <div className="flex mb-2"> */}
-                          
-                        {/* </div>
+
+                      {/* </div>
                       </div> */}
                     </ul>)
 
