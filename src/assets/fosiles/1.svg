@@ -9,17 +9,7 @@
    viewBox="0 0 11.67859 21.213789"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs1">
-    <clipPath
-       clipPathUnits="userSpaceOnUse"
-       id="clipPath76">
-      <path
-         d="M 14,14 H 598 V 778 H 14 Z"
-         transform="translate(-200.97501,-632.08402)"
-         id="path76" />
-    </clipPath>
-  </defs>
+  
   <g
      id="g1"
      style="display:inline"

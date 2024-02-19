@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import Tabla from './Tabla'; // Asegúrate de importar el componente correctamente
 import { useParams } from "react-router-dom";
 import SelectTheme from '../Web/SelectTheme';
+import fosilJson from '../../fossil.json';
 
 const Grid = () => {
 
@@ -117,6 +118,9 @@ const Grid = () => {
             setHeader(shapeN.columns)
           //  setColumnCount(shapeN.columns.length)
             break
+            case 'addFosil':
+              setFossils(prevfossils => [...prevfossils, shapeN]);
+              break
           case 'addCircle':
             setPolygons(prev => {
               const newData = { ...prev };
@@ -169,21 +173,48 @@ const Grid = () => {
 
   };
 
+  const [upperLimit, setUpperLimit] = useState('');
+  const [lowerLimit, setLowerLimit] = useState('');
+  const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
+  const [relativeX, setRelativeX] = useState(0);
+  const [idClickFosil, setIdClickFosil] = useState<number>(0);
 
+  const handleConfirm = () => {
+    socket.send(JSON.stringify({
+      action: 'addFosil',
+      data: {
+        "upperLimit": parseInt(upperLimit),
+        "lowerLimit": parseInt(lowerLimit),
+        "selectedFosil": selectedFosil,
+        "relativeX": relativeX
+      }
+    }));
+  };
+  
+  const [fossils, setFossils] = useState([]);
 
   return (
     <>
-      <OptionsBar />
-      <div className="drawer drawer-end">
-        <input id="my-drawer" type="checkbox" className="drawer-toggle" checked={sideBarState.sideBar} onClick={() => setSideBarState({
+      
+      <div className="drawer drawer-end  ">
+         <input id="my-drawer" type="checkbox" className="drawer-toggle" 
+        checked={sideBarState.sideBar} 
+        onChange={() => setSideBarState({
           sideBar: false,
           sideBarMode: ""
-        })} />
-        <div id="este" className="drawer-content">
-          <Tabla data={data} header={header} lithology={polygons} scale={2} setCircles={updateCircles} />
+        })} 
+        /> 
+        
+        {/* Contenido */}
+        <div className="drawer-content">
+          <OptionsBar />
+          <Tabla setIdClickFosil={setIdClickFosil} fossils={fossils} setRelativeX={setRelativeX} data={data} header={header} lithology={polygons} scale={0.5} setCircles={updateCircles} setSideBarState={setSideBarState}/>
         </div>
+
+        {/* SideBar */}
         <div className="drawer-side">
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+          
           {
             (() => {
               switch (sideBarState.sideBarMode) {
@@ -192,7 +223,7 @@ const Grid = () => {
                   const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Configuración</li>
+                      <li className='pb-6 hidden lg:block'>Configuración</li>
                       {list.map((key) => {
                         if (key != "Espesor" && key != "Litologia") {
                           return (
@@ -214,19 +245,54 @@ const Grid = () => {
                         }
                       }
                       )}
-                      {/* <div className="flex flex-col">
-                        <div className="flex mb-2"> */}
-
-                      {/* </div>
-                      </div> */}
                     </ul>)
+                case "fosil":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Fósiles</li>
+
+                      <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
+                        <li>Agregar nuevo fósil:</li>
+                        <li>
+                          <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
+                            <option disabled selected>Elige el tipo de fósil</option>
+                            {Object.keys(fosilJson).map(option => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        </li>
+                        <li>
+                          <img
+                            alt="None"
+                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />
+                        </li>
+                        <li>
+                          límite superior (metros):
+                          <input
+                            type="number"
+                            value={upperLimit}
+                            onChange={(e) => setUpperLimit(e.target.value)}
+                          />
+                        </li>
+                        <li>
+                          Límite inferior (metros):
+                          <input
+                            type="number"
+                            value={lowerLimit}
+                            onChange={(e) => setLowerLimit(e.target.value)}
+                          />
+                        </li>
+                        <button className="btn btn-primary" onClick={handleConfirm}>Confirmar</button>
+                      
+                      </div>
+                    </ul>
+                  );
 
                 default:
                   return (
-                    <div className="drawer drawer-mobile">
+                    <div >
                       a
-                    </div>
-                  );
+                    </div>)
               }
             })()
           }

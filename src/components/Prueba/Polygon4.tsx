@@ -118,7 +118,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
     return processCircles(circles, svgWidth, Height);
   }, [circles, svgWidth, Height]);
 
-  console.log(points)
+  //console.log(points)
 
   const startX = 0;
   const startY = 0 + amplitude;

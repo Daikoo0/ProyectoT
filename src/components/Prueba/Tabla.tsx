@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Polygon from "./Polygon4";
+import Fosil from "../Editor/Fosil";
 
-const Tabla = ({ data, header, lithology, scale, setCircles }) => {
+const Tabla = ({ data, header, lithology, scale, setCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil }) => {
 
     const [columnWidths, setColumnWidths] = useState({});
 
@@ -38,82 +39,29 @@ const Tabla = ({ data, header, lithology, scale, setCircles }) => {
         document.addEventListener('mouseup', handleMouseUp);
     };
 
+    const eltd = useRef(null)
 
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
+    useEffect(() => {
+        if (eltd.current) {
+            const { width, height } = eltd.current.getBoundingClientRect();
+            console.log(eltd)
+            setDimensions({ width, height });
+        }
+    }, [eltd.current, scale]);
 
-    // return (
-    //     <>
-    //         <div className="flex-col">
-    //             <div className="flex">
-    //                 {header.map((columnName) => (
-    //                     <div key={columnName} className="border bg-primary" style={{ width: `${columnWidths[columnName]}px` }}>
-    //                         <div
-    //                             className="flex justify-between items-center  p-2 font-semibold"
-    //                         >
-    //                             {columnName}
-    //                             <span className="p-1 cursor-col-resize" onMouseDown={(e) => handleMouseDown(columnName, e)}>||</span>
-    //                         </div>
-    //                     </div>
-    //                 ))}
-    //             </div>
-
-    //             {Object.keys(lithology).map((rowIndex) => (
-    //                 <div
-    //                     key={rowIndex}
-    //                     className="flex" 
-    //                     draggable
-    //                     style={{ height: `${lithology[rowIndex].height * scale}px` }}
-    //                 //onDragStart={(e) => onDragStart(e, filaIndex)}
-    //                 //onDragOver={onDragOver(filaIndex)}
-    //                 >
-    //                     {header.map((columnName, columnIndex) => (
-    //                         <div
-    //                             key={`${rowIndex}-${columnIndex}`}
-    //                             className="border border-neutral prose ql-editor"
-    //                             style={{
-    //                                 width: `${columnWidths[columnName]}px`,
-    //                                 overflowY: columnName !== 'Litologia' ? 'auto' : 'visible',
-    //                                 padding: columnName !== 'Litologia' ? undefined : '0',
-    //                                 margin: columnName !== 'Litologia' ? undefined : '0',
-    //                                 borderWidth: 1,
-    //                                 borderTop: (columnName === 'Litologia' || columnName === 'Estructura fosil') ? 'none' : '',
-    //                                 borderBottom: (columnName === 'Litologia' || columnName === 'Estructura fosil') && Number(rowIndex) < Object.keys(lithology).length - 1 ? 'none' : '',
-    //                             }}
-    //                         >
-
-    //                             {columnName === 'Litologia' ? (
-    //                                 <Polygon
-    //                                     rowIndex={Number(rowIndex)}
-    //                                     Height={lithology[rowIndex].height * scale}
-    //                                     File={lithology[rowIndex].file}
-    //                                     ColorFill={lithology[rowIndex].ColorFill}
-    //                                     ColorStroke={lithology[rowIndex].colorStroke}
-    //                                     Zoom={lithology[rowIndex].zoom}
-    //                                     circles={lithology[rowIndex].circles}
-    //                                     setCircles={setCircles}
-    //                                 />
-    //                             ) : data[columnName] && data[columnName][rowIndex] ? (
-    //                                 <div dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />
-    //                             ) : null}
-    //                         </div>
-    //                     ))}
-    //                 </div>
-    //             ))}
-    //         </div>
-    //     </>
-
-    // );
-    console.log(scale, 'scale')
 
     return (
-        <table>
+        <table style={{ height:'100px' }}>
             <thead>
                 <tr>
                     {header.map((columnName) => (
                         <th
                             key={columnName}
                             className="border bg-primary" // Ajusta según tus clases de estilo
-                            style={{ width: `${columnWidths[columnName]}px` }}
+                            style={{ width: `${columnWidths[columnName]}px`,
+                                    height: '100px'}}
                         >
                             <div
                                 className="flex justify-between items-center p-2 font-semibold"
@@ -127,21 +75,47 @@ const Tabla = ({ data, header, lithology, scale, setCircles }) => {
             </thead>
             <tbody>
                 {Object.keys(lithology).map((rowIndex, index) => (
+
                     <tr key={rowIndex}
-                        // style={{ height: `${lithology[rowIndex].height * scale}px` }}
+                        style={{ height: `${lithology[rowIndex].height * scale}px` }}
                     >
                         {header.map((columnName, columnIndex) => {
+
                             if (columnName === 'Estructura fosil' && index === 0) {
                                 return (
                                     <td
+                                        onClick={(e) => {
+                                            setSideBarState({
+                                                sideBar: true,
+                                                sideBarMode: "fosil"
+                                            })
+                                            //  console.log(e.nativeEvent.offsetX,e.nativeEvent.offsetY)
+                                            setRelativeX(e.nativeEvent.offsetX)
+                                        }}
                                         key={`${rowIndex}-${columnIndex}`}
                                         rowSpan={Object.keys(lithology).length}
-                                        className="border border-neutral prose ql-editor"
-                                    // style={{
-                                    //     overflowY: 'visible', // Asume visible como default
-                                    // }}
+                                        className="border border-neutral"
+                                        style={{
+                                            verticalAlign: "top"
+                                        }}
+                                        ref={eltd}
                                     >
-                                        {/* Contenido para 'Estructura fosil' */}
+                                        <div className="h-full max-h-full" style={{ top: 0, width: dimensions.width }}>
+                                            <svg width="100%" height={"100%"}>
+                                                {fossils.length > 0 ? (
+                                                    fossils.map((img, index) => (
+                                                        <Fosil
+                                                            img={img}
+                                                            setSideBarState={setSideBarState}
+                                                            setIdClickFosil={setIdClickFosil}
+                                                            scale={scale}
+                                                        />
+                                                    ))
+                                                ) : (
+                                                    <></>
+                                                )}
+                                            </svg>
+                                        </div>
                                     </td>
                                 );
                             } else if (columnName !== 'Estructura fosil') {
@@ -150,19 +124,21 @@ const Tabla = ({ data, header, lithology, scale, setCircles }) => {
                                         key={`${rowIndex}-${columnIndex}`}
                                         className="border border-neutral prose ql-editor"
                                         style={{
+                                            maxHeight: `${lithology[rowIndex].height * scale}px`,
                                             width: `${columnWidths[columnName]}px`,
-                                            overflowY: columnName !== 'Litologia' ? 'auto' : 'visible',
-                                            padding:'0',                                          
+                                            overflowY: (columnName === 'Litologia' ) ? 'visible' : 'auto',
+                                            padding: '0',
+                                            top: '0',
                                             borderWidth: 1,
-                                            borderTop: (columnName === 'Litologia' || columnName === 'Estructura fosil') ? 'none' : '',
-                                            borderBottom: (columnName === 'Litologia' || columnName === 'Estructura fosil') && Number(rowIndex) < Object.keys(lithology).length - 1 ? 'none' : '',
-                                       
+                                            borderTop: (columnName === 'Litologia' ) ? 'none' : '',
+                                            borderBottom: (columnName === 'Litologia') && Number(rowIndex) < Object.keys(lithology).length - 1 ? 'none' : '',
+                                            verticalAlign: "top"
                                         }}
                                     >
                                         <div
                                             style={{
-                                                height: `${lithology[rowIndex].height * scale}px`,
-                                                
+                                                maxHeight: `${lithology[rowIndex].height * scale}px`,
+                                             
                                             }}
                                         >
                                             {columnName === 'Litologia' ?
@@ -179,7 +155,11 @@ const Tabla = ({ data, header, lithology, scale, setCircles }) => {
                                                     />
                                                 </>
                                                 : <>
-                                                    <div dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />
+                                                    <div
+                                                        style={{ 'padding': 10,
+                                                        maxHeight: `${lithology[rowIndex].height * scale}px`,
+                                                    }}
+                                                        dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />
                                                 </>
                                             }
                                         </div>
@@ -191,7 +171,7 @@ const Tabla = ({ data, header, lithology, scale, setCircles }) => {
                     </tr>
                 ))}
             </tbody>
-        </table>
+        </table >
     );
 };
 

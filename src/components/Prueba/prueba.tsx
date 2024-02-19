@@ -984,7 +984,7 @@ const App = () => {
 
                               fossils.map((img, index) => (
 
-                                <Fosil img={img} index={index} x={props.x}
+                                <Fosil img={img} 
                                   setSideBarState={setSideBarState}
                                   setIdClickFosil={setIdClickFosil}
                                 />
