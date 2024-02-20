@@ -5,6 +5,7 @@ import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 
+
 const Grid = () => {
 
   const OptionsBar = () => {
@@ -13,6 +14,7 @@ const Grid = () => {
       <>
         <div className="navbar bg-base-200">
           <div className="flex-none">
+
 
             <SelectTheme />
             <div className="dropdown dropdown-end">
@@ -71,6 +73,7 @@ const Grid = () => {
     }));
 
     // send socket 
+    console.log(lithoJson[value])
   };
 
   const handleClickRow = (index) => {
@@ -78,11 +81,11 @@ const Grid = () => {
     console.log(polygons[index].file)
     setFormData(prevState => ({
       index: index,
-      patternOption: Object.keys(lithoJson).find(e => lithoJson[e] === polygons[index].file), 
+      patternOption: polygons[index].file, 
     }));
   };
 
-  console.log(formData)
+  
 
 
   const handleColumns = (e, key) => {
@@ -150,17 +153,14 @@ const Grid = () => {
         switch (shapeN.action) {
           case 'data': {
             const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-
             setData(rest)
             setPolygons(Litologia)
+            console.log(Litologia)
             setHeader(shapeN.config)
-            // setColumnCount(shapeN.config.length)
-            // setFossils(estructuraFosil)
             break;
           }
           case 'columns':
             setHeader(shapeN.columns)
-            //  setColumnCount(shapeN.columns.length)
             break
           case 'addFosil':
             setFossils(prevfossils => [...prevfossils, shapeN]);
@@ -168,7 +168,6 @@ const Grid = () => {
           case 'addCircle':
             setPolygons(prev => {
               const newData = { ...prev };
-              //newData[shapeN.rowIndex]["circles"] = shapeN.newCircle;
               newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], circles: [...shapeN.newCircle] };
               return newData;
             });

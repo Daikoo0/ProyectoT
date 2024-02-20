@@ -303,7 +303,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"zoom":        100,
 						"rotation":    0,
 						"tension":     0.5,
-						"file":        0,
+						"file":        "Sin Pattern",
 						"height":      height,
 						"circles": []map[string]interface{}{
 							{"x": 0, "y": 0, "radius": 5, "movable": false},
