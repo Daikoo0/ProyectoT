@@ -3,6 +3,7 @@ import Tabla from './Tabla'; // Asegúrate de importar el componente correctamen
 import { useParams } from "react-router-dom";
 import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
+import lithoJson from '../../lithologic.json';
 
 const Grid = () => {
 
@@ -26,10 +27,24 @@ const Grid = () => {
               </div>
 
             </div>
+            <select value={scale} className="select select-primary w-full max-w-xs" onChange={(e) => setScale(Number(e.target.value))}>
+              <option value={10}>1:10</option>
+              <option value={5}>1:20</option>
+              <option value={4}>1:25</option>
+              <option value={2}>1:50</option>
+              <option value={1}>1:100</option>
+              <option value={0.5}>1:200</option>
+              {/* <option value={0.4}>1:250</option>
+              <option value={0.2}>1:500</option> */}
+
+            </select>
+
           </div>
         </div>
       </>)
   }
+
+  
 
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
@@ -40,6 +55,35 @@ const Grid = () => {
   const [header, setHeader] = useState([]);
   // const [columnCount, setColumnCount] = useState(0);
   // const [fossils, setFossils] = useState([]);
+
+  const [formData, setFormData] = useState({
+    index: null,
+    patternOption: Object.keys(lithoJson)[0], // 'Sin Pattern'
+   
+  });
+
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+
+    // send socket 
+  };
+
+  const handleClickRow = (index) => {
+    console.log(index)
+    console.log(polygons[index].file)
+    setFormData(prevState => ({
+      index: index,
+      patternOption: Object.keys(lithoJson).find(e => lithoJson[e] === polygons[index].file), 
+    }));
+  };
+
+  console.log(formData)
+
 
   const handleColumns = (e, key) => {
     if (e.target.checked) {
@@ -116,15 +160,16 @@ const Grid = () => {
           }
           case 'columns':
             setHeader(shapeN.columns)
-          //  setColumnCount(shapeN.columns.length)
+            //  setColumnCount(shapeN.columns.length)
             break
-            case 'addFosil':
-              setFossils(prevfossils => [...prevfossils, shapeN]);
-              break
+          case 'addFosil':
+            setFossils(prevfossils => [...prevfossils, shapeN]);
+            break
           case 'addCircle':
             setPolygons(prev => {
               const newData = { ...prev };
-              newData[shapeN.rowIndex]["circles"] = shapeN.newCircle;
+              //newData[shapeN.rowIndex]["circles"] = shapeN.newCircle;
+              newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], circles: [...shapeN.newCircle] };
               return newData;
             });
             break
@@ -157,7 +202,55 @@ const Grid = () => {
   }
 
 
-  const updateCircles = (rowIndex: number, insertIndex: number, newCircle: any) => {
+
+
+  const [upperLimit, setUpperLimit] = useState('');
+  const [lowerLimit, setLowerLimit] = useState('');
+  const [selectedFosil, setSelectedFosil] = useState("");
+  const [relativeX, setRelativeX] = useState(0);
+  const [idClickFosil, setIdClickFosil] = useState<number>(0);
+  const [fossils, setFossils] = useState([]);
+  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5 });
+  const [scale, setScale] = useState(1);
+
+  //--------- Funciones Socket ------------//
+
+  const handleConfirm = () => {
+    socket.send(JSON.stringify({
+      action: 'addFosil',
+      data: {
+        "upperLimit": parseInt(upperLimit),
+        "lowerLimit": parseInt(lowerLimit),
+        "selectedFosil": selectedFosil,
+        "relativeX": relativeX
+      }
+    }));
+  };
+
+  const openModalPoint = (index, insertIndex, x) => {
+    (document.getElementById('modalPoint') as HTMLDialogElement).showModal();
+    console.log(index, x)
+    setModalData({ index, insertIndex, x });
+  };
+
+  // Actualiza un punto
+  const updateCirclePoint = (index, insertIndex, x) => {
+
+    const update = polygons[index]["circles"]
+    update[insertIndex].x = x;
+
+    socket.send(JSON.stringify({
+      action: 'addCircle',
+      data: {
+        "rowIndex": index,
+        "newCircle": update
+      }
+    }));
+
+  }
+
+  // Añade un nuevo punto 
+  const addCircles = (rowIndex: number, insertIndex: number, newCircle: any) => {
     console.log(rowIndex, insertIndex, newCircle)
     const update = polygons[rowIndex]["circles"]
 
@@ -173,48 +266,94 @@ const Grid = () => {
 
   };
 
-  const [upperLimit, setUpperLimit] = useState('');
-  const [lowerLimit, setLowerLimit] = useState('');
-  const [selectedFosil, setSelectedFosil] = useState<string>(Object.keys(fosilJson)[0]);
-  const [relativeX, setRelativeX] = useState(0);
-  const [idClickFosil, setIdClickFosil] = useState<number>(0);
+  // Elimina un punto
+  const deleteCirclePoint = (index, insertIndex) => {
 
-  const handleConfirm = () => {
+    const update = polygons[index]["circles"]
+    update.splice(insertIndex, 1);
+
     socket.send(JSON.stringify({
-      action: 'addFosil',
+      action: 'addCircle',
       data: {
-        "upperLimit": parseInt(upperLimit),
-        "lowerLimit": parseInt(lowerLimit),
-        "selectedFosil": selectedFosil,
-        "relativeX": relativeX
+        "rowIndex": index,
+        "newCircle": update
       }
     }));
-  };
-  
-  const [fossils, setFossils] = useState([]);
+  }
+
 
   return (
     <>
-      
-      <div className="drawer drawer-end  ">
-         <input id="my-drawer" type="checkbox" className="drawer-toggle" 
-        checked={sideBarState.sideBar} 
-        onChange={() => setSideBarState({
-          sideBar: false,
-          sideBarMode: ""
-        })} 
-        /> 
-        
+
+      <div className="drawer drawer-end auto-cols-max">
+        <input id="my-drawer" type="checkbox" className="drawer-toggle"
+          checked={sideBarState.sideBar}
+          onChange={() => setSideBarState({
+            sideBar: false,
+            sideBarMode: ""
+          })}
+        />
+
         {/* Contenido */}
         <div className="drawer-content">
           <OptionsBar />
-          <Tabla setIdClickFosil={setIdClickFosil} fossils={fossils} setRelativeX={setRelativeX} data={data} header={header} lithology={polygons} scale={0.5} setCircles={updateCircles} setSideBarState={setSideBarState}/>
+          <Tabla
+            setIdClickFosil={setIdClickFosil}
+            fossils={fossils}
+            setRelativeX={setRelativeX} data={data}
+            header={header}
+            lithology={polygons}
+            scale={scale}
+            addCircles={addCircles}
+            setSideBarState={setSideBarState}
+            openModalPoint={openModalPoint}
+            handleClickRow={handleClickRow}
+          />
         </div>
+
+        <>
+          <dialog id="modalPoint" className="modal">
+            <div className="modal-box">
+              <form method="dialog" onSubmit={() => updateCirclePoint(modalData.index, modalData.insertIndex, modalData.x)}>
+                <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x} />
+                <div className="w-full flex justify-between text-xs">
+
+                  <span className="-rotate-90">s/n</span>  {/* sn */}
+                  <span className="-rotate-90">clay</span> {/* 0.55 */}
+                  <span className="-rotate-90">silt</span> {/* 0.59 */}
+                  <span className="-rotate-90">vf</span>   {/* 0.63 */}
+                  <span className="-rotate-90">f</span>    {/* 0.67 */}
+                  <span className="-rotate-90">m</span>    {/* 0.71 */}
+                  <span className="-rotate-90">c</span>    {/* 0.75 */}
+                  <span className="-rotate-90">vc</span>   {/* 0.79 */}
+                  <span className="-rotate-90">grain</span>{/* 0.83 */}
+                  <span className="-rotate-90">pebb</span> {/* 0.87 */}
+                  <span className="-rotate-90">cobb</span> {/* 0.91 */}
+                  <span className="-rotate-90">boul</span> {/* 0.95 */}
+
+                </div>
+                <button className="btn btn-primary">Submit</button>
+              </form>
+
+              <div className="modal-action">
+                <form method="dialog" onSubmit={() => deleteCirclePoint(modalData.index, modalData.insertIndex)}>
+                  <button className="btn btn-error">Delete</button>
+                </form>
+              </div>
+
+              <div className="modal-action">
+                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51 })}>
+                  <button className="btn">Close</button>
+                </form>
+              </div>
+            </div>
+          </dialog>
+        </>
 
         {/* SideBar */}
         <div className="drawer-side">
           <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-          
+
           {
             (() => {
               switch (sideBarState.sideBarMode) {
@@ -255,16 +394,17 @@ const Grid = () => {
                         <li>Agregar nuevo fósil:</li>
                         <li>
                           <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
-                            <option disabled selected>Elige el tipo de fósil</option>
+                            <option value={""} disabled >Elige el tipo de fósil</option>
                             {Object.keys(fosilJson).map(option => (
                               <option key={option} value={option}>{option}</option>
                             ))}
                           </select>
                         </li>
                         <li>
-                          <img
+                          {selectedFosil === "" ? null : <img
                             alt="None"
-                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />
+                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />}
+
                         </li>
                         <li>
                           límite superior (metros):
@@ -282,10 +422,104 @@ const Grid = () => {
                             onChange={(e) => setLowerLimit(e.target.value)}
                           />
                         </li>
-                        <button className="btn btn-primary" onClick={handleConfirm}>Confirmar</button>
-                      
+                        <button className="btn btn-primary" disabled={selectedFosil === ""} onClick={handleConfirm}> Confirmar </button>
+
                       </div>
                     </ul>
+                  );
+                case "polygon":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Editando polígono</li>
+
+                      <li>
+                        <p>Seleccionar opción de Pattern: </p>
+                        <select name={"patternOption"} value={formData.patternOption} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
+                          {Object.keys(lithoJson).map(option => (// lithoJson[option]
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </li>
+
+                      {/* <li>
+                          <p>Seleccionar opción de Pattern: </p>
+                          <select onChange={(e) => handlePolygonChange(e, "file", activeCell.rowIndex)} className='select select-bordered w-full max-w-xs'>
+                            {Object.keys(Json).map(option => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </li>
+  
+                        <li>
+                          <p>Seleccionar color Fill: <input type="color" onChange={(e) => handlePolygonChange(e, "ColorFill", activeCell.rowIndex)} /> </p>
+                        </li>
+  
+                        <li>
+                          <p>Seleccionar color Stroke:<input type="color" onChange={(e) => handlePolygonChange(e, "colorStroke", activeCell.rowIndex)} /></p>
+  
+                        </li>
+  
+                        <li>
+                          <p>Tension de lineas: </p>
+                          <input
+                            type="range"
+                            min={0}
+                            max={2.5}
+                            step={0.1}
+                            defaultValue={polygons[activeCell.rowIndex]["tension"]}
+                            //value={sliderTension}
+                            //    onChange={(e) => handlePolygonChange(e, "tension", activeCell.rowIndex)} 
+                            onMouseUp={(e) => handlePolygonChange(e, "tension", activeCell.rowIndex)}
+                          />
+                        </li>
+  
+                        <li>
+                          <p>Cambiar alto de capa seleccionada: </p>
+                          <input type="number" onChange={(e) => handlePolygonChange(e, "height", activeCell.rowIndex)} />
+                        </li>
+  
+                        <li>
+                          <p>Valor Zoom:</p>
+                          <input
+                            type="range"
+                            min={50}
+                            max={300}
+                            defaultValue={polygons[activeCell.rowIndex]["zoom"]}
+                            //  onChange={handleSliderZoom}
+                            onMouseUp={(e) => handlePolygonChange(e, "zoom", activeCell.rowIndex)}
+                          />
+                        </li>
+  
+                        <li>
+                          <p>Valor Rotacion: </p>
+                          <input
+                            type="range"
+                            min={0}
+                            max={180}
+                            defaultValue={polygons[activeCell.rowIndex]["rotation"]}
+                            // value={sliderRotation}
+                            //onChange={handleSliderRotation}
+                            onMouseUp={(e) => handlePolygonChange(e, "rotation", activeCell.rowIndex)}
+                          />
+                        </li>
+  
+                        <li>
+                          <button className="btn btn-primary" onClick={() => {
+                            socket.send(JSON.stringify({
+                              action: 'delete',
+                              data: {
+                                "rowIndex": activeCell.rowIndex
+                              }
+                            }));
+  
+                          }}>Eliminar capa</button>
+                        </li> */}
+                    </ul>
+
                   );
 
                 default:

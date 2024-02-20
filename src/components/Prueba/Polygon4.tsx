@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 
-const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, setCircles }) => {
+const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow }) => {
 
 
   const amplitude = 4;
@@ -230,7 +230,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
       
       const originalY = (My) / Height;
       const point = { x: 0.5, y: originalY, radius: 5, movable: true };
-      setCircles(rowIndex, insertIndex, point)
+      addCircles(rowIndex, insertIndex, point)
     
     }
 
@@ -254,6 +254,13 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
         fill={`url(#${patternId})`}
         stroke="black"
         strokeWidth="1.5"
+        onClick={() => {
+          handleClickRow(rowIndex)
+          setSideBarState({
+            sideBar: true,
+            sideBarMode: "polygon"
+          })
+        }}
       />
 
       {/* Line Click */}
@@ -273,6 +280,12 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
           cy={points.y}
           r={6}
           fill={points.movable ? 'purple' : 'blue'}
+          onClick={() => {
+            if (points.movable) {
+                //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
+                openModalPoint(rowIndex, index, circles[index].x);
+            }
+        }}
         />
       ))}
     </svg>
