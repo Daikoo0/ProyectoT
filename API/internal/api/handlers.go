@@ -298,8 +298,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Println(rowIndex, height)
 
 					newShape := map[string]interface{}{
-						"ColorFill":   "white",
-						"colorStroke": "black",
+						"ColorFill":   "#ffffff", //white
+						"colorStroke": "#000000", //black
 						"zoom":        100,
 						"rotation":    0,
 						"tension":     0.5,
@@ -652,21 +652,29 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println("Error al enviar mensaje:", err)
 						}
 					}
-				case "polygon":
+				case "editPolygon":
+
 					var polygon dtos.EditPolygon
 					err := json.Unmarshal(dataMap.Data, &polygon)
 					if err != nil {
 						log.Println("Error deserializando el polygon:", err)
 						break
 					}
-					innerMap := rooms[roomID].Data["Litologia"].(map[string]interface{})
-					innerMap[strconv.Itoa(polygon.RowIndex)] = polygon.NewPolygon
-					rooms[roomID].Data["Litologia"] = innerMap
+
+					rowIndex := polygon.RowIndex
+					column := polygon.Column
+					value := polygon.Value
+
+					litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
+
+					innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
+					innerMap[column] = value
 
 					msgData := map[string]interface{}{
-						"action":   "polygon",
-						"rowIndex": polygon.RowIndex,
-						"polygon":  polygon.NewPolygon,
+						"action":   "editPolygon",
+						"rowIndex": rowIndex,
+						"column":   column,
+						"value":    value,
 					}
 
 					jsonMsg, err := json.Marshal(msgData)

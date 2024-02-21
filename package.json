@@ -19,6 +19,7 @@
     "@changey/react-leaflet-markercluster": "^4.0.0-rc1",
     "@rowsncolumns/grid": "^9.0.4",
     "@scena/ruler": "^0.20.0",
+    "canvg": "^4.0.1",
     "dom-to-image": "^2.6.0",
     "electron-squirrel-startup": "^1.0.0",
     "engine.io": "^6.5.2",
@@ -45,6 +46,7 @@
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2",
     "sockette": "^2.0.6",
+    "svg2pdf.js": "^2.2.3",
     "use-image": "^1.1.1"
   },
   "devDependencies": {

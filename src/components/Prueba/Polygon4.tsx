@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 
-const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow }) => {
+const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension }) => {
 
 
   const amplitude = 4;
@@ -38,7 +38,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
     }
 
     //let pathData += `M ${points[0].x},${points[0].y} `; // Comienza el path en el primer punto
-    const Tension = 1; // Asumiendo alguna tensión. Ajusta según sea necesario.
+
 
     for (let n = 1; n < points.length - 1; n++) {
       // Asegurarse de que existan todos los puntos necesarios para calcular los puntos de control
@@ -48,11 +48,11 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
         const nextPoint = points[n + 1];
         const afterNextPoint = points[n + 2];
 
-        const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * Tension;
-        const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * Tension;
+        const cp1x = currentPoint.x + ((nextPoint.x - prevPoint.x) / 6) * tension;
+        const cp1y = currentPoint.y + ((nextPoint.y - prevPoint.y) / 6) * tension;
 
-        const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * Tension;
-        const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * Tension;
+        const cp2x = nextPoint.x - ((afterNextPoint.x - currentPoint.x) / 6) * tension;
+        const cp2y = nextPoint.y - ((afterNextPoint.y - currentPoint.y) / 6) * tension;
 
         pathData += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${nextPoint.x},${nextPoint.y} `;
         pathDataClick += `C ${cp1x},${cp1y} ${cp2x},${cp2y} ${nextPoint.x},${nextPoint.y} `;
@@ -157,36 +157,37 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
   // }, [Height,svgWidth]); 
 
   const [svgContent, setSvgContent] = useState('');
-
+  
 
   useEffect(() => {
-    if (File === 0) {
+    if (File === "Sin Pattern") {
       setSvgContent('');
       return;
     }
-
-    // Función para cargar y actualizar el contenido SVG inicial
-    const updateSvgContent = (svgText) => {
-      let updatedSvg = svgText;
-      updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
-      setSvgContent(updatedSvg);
-    };
-
-    // Si el SVG no está cargado, lo carga
-    if (!svgContent) {
+  
+    const loadImage = async () => {
       const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
-      fetch(imageURL)
-        .then(response => response.text())
-        .then(updateSvgContent);
-    } else {
-      // Si el SVG ya está cargado, solo actualiza los colores o el zoom
-      let updatedSvg = svgContent;
-      updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
-      setSvgContent(updatedSvg);
+      const response = await fetch(imageURL);
+      const svgText = await response.text();
+      console.log("cargo svg");
+      updateSvgContent(svgText);
+    };
+  
+    loadImage();
+  }, [File]); 
+  
+  useEffect(() => {
+   
+    if (svgContent && File !== "Sin Pattern") {
+      updateSvgContent(svgContent);
     }
-
-
-  }, [File, ColorFill, ColorStroke, Zoom]);
+  }, [ColorFill, ColorStroke, Zoom]); 
+  
+  const updateSvgContent = (svgText) => {
+    let updatedSvg = svgText;
+    updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
+    setSvgContent(updatedSvg);
+  };
 
   function updateSvg(svgText, colorFill, colorStroke, zoom) {
     // Actualizar colores de relleno y trazo
@@ -237,7 +238,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
   };
 
 
-  const patternId = `pattern-${File}`;
+  const patternId = `pattern-${rowIndex}`;
 
   return (
     <svg ref={svgRef} width="100%" height={Height} overflow='visible'>

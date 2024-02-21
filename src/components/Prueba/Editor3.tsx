@@ -5,7 +5,6 @@ import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 
-
 const Grid = () => {
 
   const OptionsBar = () => {
@@ -14,7 +13,7 @@ const Grid = () => {
       <>
         <div className="navbar bg-base-200">
           <div className="flex-none">
-
+            
 
             <SelectTheme />
             <div className="dropdown dropdown-end">
@@ -60,8 +59,12 @@ const Grid = () => {
 
   const [formData, setFormData] = useState({
     index: null,
-    patternOption: Object.keys(lithoJson)[0], // 'Sin Pattern'
-   
+    file: 'Sin Pattern', //patternOption
+    ColorFill: '#ffffff',
+    colorStroke: '#000000',
+    zoom: 100,
+    tension: 1,
+    height: 0,
   });
 
 
@@ -73,19 +76,43 @@ const Grid = () => {
     }));
 
     // send socket 
-    console.log(lithoJson[value])
-  };
-
-  const handleClickRow = (index) => {
-    console.log(index)
-    console.log(polygons[index].file)
-    setFormData(prevState => ({
-      index: index,
-      patternOption: polygons[index].file, 
+    socket.send(JSON.stringify({
+      action: 'editPolygon',
+      data: {
+        'rowIndex': formData.index,
+        'column': name,
+        'value': value,
+      },
     }));
   };
 
-  
+  const handleChangeLocal = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+
+    // setPolygons(prev => {
+    //   const newData = { ...prev };
+    //   newData[formData.index][name] = value;
+    //   return newData;
+    // });
+  };
+
+  const handleClickRow = (index) => {
+
+    setFormData(prevState => ({
+      index: index,
+      file: polygons[index].file, 
+      ColorFill: polygons[index].ColorFill,
+      colorStroke: polygons[index].colorStroke,
+      zoom: polygons[index].zoom,
+      tension: polygons[index].tension,
+      height: polygons[index].height,
+    }));
+  };
+
 
 
   const handleColumns = (e, key) => {
@@ -169,6 +196,14 @@ const Grid = () => {
             setPolygons(prev => {
               const newData = { ...prev };
               newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], circles: [...shapeN.newCircle] };
+              return newData;
+            });
+            break
+          
+          case 'editPolygon':
+            setPolygons(prev => {
+              const newData = { ...prev };
+              newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], [shapeN.column]: shapeN.value };
               return newData;
             });
             break
@@ -433,7 +468,7 @@ const Grid = () => {
 
                       <li>
                         <p>Seleccionar opción de Pattern: </p>
-                        <select name={"patternOption"} value={formData.patternOption} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
+                        <select name={"file"} value={formData.file} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
                           {Object.keys(lithoJson).map(option => (// lithoJson[option]
                             <option key={option} value={option}>
                               {option}
@@ -442,56 +477,47 @@ const Grid = () => {
                         </select>
                       </li>
 
-                      {/* <li>
-                          <p>Seleccionar opción de Pattern: </p>
-                          <select onChange={(e) => handlePolygonChange(e, "file", activeCell.rowIndex)} className='select select-bordered w-full max-w-xs'>
-                            {Object.keys(Json).map(option => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        </li>
-  
                         <li>
-                          <p>Seleccionar color Fill: <input type="color" onChange={(e) => handlePolygonChange(e, "ColorFill", activeCell.rowIndex)} /> </p>
+                          <p>Seleccionar color Fill: <input type="color" name={"ColorFill"} value={formData.ColorFill}  onChange={handleChangeLocal} onBlur={handleChange}/> </p>
                         </li>
-  
+
+                       
                         <li>
-                          <p>Seleccionar color Stroke:<input type="color" onChange={(e) => handlePolygonChange(e, "colorStroke", activeCell.rowIndex)} /></p>
+                          <p>Seleccionar color Stroke:<input type="color" name={"colorStroke"} value={formData.colorStroke}  onChange={handleChangeLocal} onBlur={handleChange}/> </p>
   
                         </li>
-  
-                        <li>
-                          <p>Tension de lineas: </p>
-                          <input
-                            type="range"
-                            min={0}
-                            max={2.5}
-                            step={0.1}
-                            defaultValue={polygons[activeCell.rowIndex]["tension"]}
-                            //value={sliderTension}
-                            //    onChange={(e) => handlePolygonChange(e, "tension", activeCell.rowIndex)} 
-                            onMouseUp={(e) => handlePolygonChange(e, "tension", activeCell.rowIndex)}
-                          />
-                        </li>
-  
-                        <li>
-                          <p>Cambiar alto de capa seleccionada: </p>
-                          <input type="number" onChange={(e) => handlePolygonChange(e, "height", activeCell.rowIndex)} />
-                        </li>
-  
+
                         <li>
                           <p>Valor Zoom:</p>
                           <input
                             type="range"
-                            min={50}
-                            max={300}
-                            defaultValue={polygons[activeCell.rowIndex]["zoom"]}
-                            //  onChange={handleSliderZoom}
-                            onMouseUp={(e) => handlePolygonChange(e, "zoom", activeCell.rowIndex)}
+                            name='zoom'
+                            min={100}
+                            max={400}
+                            defaultValue={formData.zoom}
+                            onMouseUp={handleChange}
                           />
                         </li>
+
+                        <li>
+                          <p>Tension de lineas: </p>
+                          <input
+                            type="range"
+                            name='tension'
+                            min={0}
+                            max={2.5}
+                            step={0.1}
+                            defaultValue={formData.tension}
+                            onMouseUp={handleChange}
+                          />
+                        </li>
+
+                        <li>
+                          <p>Cambiar alto de capa seleccionada: </p>
+                          <input type="number" name='height' value={formData.height}  onChange={handleChange} />
+                        </li>
+      {/* 
+                        
   
                         <li>
                           <p>Valor Rotacion: </p>

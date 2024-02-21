@@ -68,6 +68,7 @@ type Column struct {
 }
 
 type EditPolygon struct {
-	RowIndex   int         `json:"rowIndex"`
-	NewPolygon interface{} `json:"newPolygon"`
+	RowIndex int    `json:"rowIndex"`
+	Column   string `json:"column"`
+	Value    string `json:"value"`
 }
