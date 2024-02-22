@@ -165,7 +165,6 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
         }
     }, [eltd.current, scale]);
 
-
     return (
         <>
             <button onClick={exportTableToPDFWithPagination}> aaaaaaaa</button>
@@ -244,6 +243,17 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                                             <td
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 className="border border-secondary prose ql-editor"
+                                                onClick={() => {
+                                                    if (columnName !== "Litologia") {
+                                                        setSideBarState({
+                                                            sideBar: true,
+                                                            sideBarMode: "text"
+                                                        });
+                                                        console.log(rowIndex, columnName)
+                                                        handleClickRow(rowIndex, columnName)
+
+                                                    }
+                                                }}
                                                 style={{
                                                     maxHeight: `${lithology[rowIndex].height * scale}px`,
                                                     width: `${columnWidths[columnName]}px`,
@@ -278,6 +288,7 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                                                                 setSideBarState={setSideBarState}
                                                                 handleClickRow={handleClickRow}
                                                                 tension={lithology[rowIndex].tension}
+                                                                rotation={lithology[rowIndex].rotation}
                                                             />
                                                         </>
                                                         : <>

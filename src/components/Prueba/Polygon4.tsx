@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 
-const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension }) => {
+const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation }) => {
 
 
   const amplitude = 4;
@@ -245,7 +245,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
 
       {/* Patrón SVG */}
       <defs>
-        <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom}>
+        <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom} patternTransform={`rotate(${rotation})`} >
           <g dangerouslySetInnerHTML={{ __html: svgContent }} />
         </pattern>
       </defs>
@@ -256,7 +256,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
         stroke="black"
         strokeWidth="1.5"
         onClick={() => {
-          handleClickRow(rowIndex)
+          handleClickRow(rowIndex, 'Litologia')
           setSideBarState({
             sideBar: true,
             sideBarMode: "polygon"

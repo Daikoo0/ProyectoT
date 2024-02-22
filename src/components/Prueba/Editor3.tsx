@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
-import Tabla from './Tabla'; // Asegúrate de importar el componente correctamente
 import { useParams } from "react-router-dom";
+import Tabla from './Tabla';
+import EditorQuill from './EditorQuill';
 import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
@@ -13,7 +14,7 @@ const Grid = () => {
       <>
         <div className="navbar bg-base-200">
           <div className="flex-none">
-            
+
 
             <SelectTheme />
             <div className="dropdown dropdown-end">
@@ -28,6 +29,18 @@ const Grid = () => {
               </div>
 
             </div>
+
+            <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
+              <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                  <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+
             <select value={scale} className="select select-primary w-full max-w-xs" onChange={(e) => setScale(Number(e.target.value))}>
               <option value={10}>1:10</option>
               <option value={5}>1:20</option>
@@ -45,7 +58,7 @@ const Grid = () => {
       </>)
   }
 
-  
+
 
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
@@ -57,16 +70,22 @@ const Grid = () => {
   // const [columnCount, setColumnCount] = useState(0);
   // const [fossils, setFossils] = useState([]);
 
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     index: null,
+    column: null,
     file: 'Sin Pattern', //patternOption
     ColorFill: '#ffffff',
     colorStroke: '#000000',
     zoom: 100,
-    tension: 1,
+    tension: 0.5,
+    initialHeight: 0,
     height: 0,
-  });
+    rotation: 0,
+    text: ''
+  };
 
+  const [formData, setFormData] = useState(initialFormData);
+  const [text, setText] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -92,25 +111,22 @@ const Grid = () => {
       ...prevState,
       [name]: value,
     }));
+  }
 
-    // setPolygons(prev => {
-    //   const newData = { ...prev };
-    //   newData[formData.index][name] = value;
-    //   return newData;
-    // });
-  };
-
-  const handleClickRow = (index) => {
-
-    setFormData(prevState => ({
+  const handleClickRow = (index, column) => {
+    setFormData({
       index: index,
-      file: polygons[index].file, 
+      column: column,
+      file: polygons[index].file,
       ColorFill: polygons[index].ColorFill,
       colorStroke: polygons[index].colorStroke,
       zoom: polygons[index].zoom,
       tension: polygons[index].tension,
       height: polygons[index].height,
-    }));
+      initialHeight: polygons[index].height,
+      rotation: polygons[index].rotation,
+      text: !data[column] ? '' : data[column][index],
+    });
   };
 
 
@@ -182,10 +198,22 @@ const Grid = () => {
             const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(rest)
             setPolygons(Litologia)
-            console.log(Litologia)
             setHeader(shapeN.config)
             break;
           }
+          case 'añadir': {
+            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
+            setPolygons(Litologia)
+            setData(rest)
+            break;
+          }
+          case 'añadirEnd':
+            setPolygons(prev => {
+              const newData = { ...prev };
+              newData[shapeN.rowIndex] = shapeN.value;
+              return newData;
+            });
+            break
           case 'columns':
             setHeader(shapeN.columns)
             break
@@ -199,7 +227,12 @@ const Grid = () => {
               return newData;
             });
             break
-          
+          case 'delete': {
+            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
+            setPolygons(Litologia)
+            setData(rest)
+            break;
+          }
           case 'editPolygon':
             setPolygons(prev => {
               const newData = { ...prev };
@@ -315,6 +348,17 @@ const Grid = () => {
     }));
   }
 
+  const addShape = (row, height) => {
+
+    socket.send(JSON.stringify({
+      action: 'añadir',
+      data: {
+        "height": Number(height),
+        "rowIndex": Number(row)
+      }
+    }));
+  }
+
 
   return (
     <>
@@ -419,6 +463,27 @@ const Grid = () => {
                       }
                       )}
                     </ul>)
+
+                case "añadirCapa":
+                  return (
+
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Añadir capa</li>
+
+                      <li><input type="number" name='height' min="5" onChange={handleChangeLocal} value={formData.height} /></li>
+
+                      <li>
+                        <button className='btn' disabled={formData.height <= 5} onClick={() => addShape(0, formData.height)} >Insertar fila encima</button>
+                      </li>
+                      <li className="flex flex-row">
+                        <button className='btn w-3/5' disabled={formData.height <= 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Inserta en fila</button>
+                        <input type="number" className='w-2/5' name="initialHeight" min="0" max={Object.keys(polygons).length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
+                      </li>
+                      <li>
+                        <button className='btn' disabled={formData.height <= 5} onClick={() => addShape(-1, formData.height)}>Insertar fila debajo</button>
+                      </li>
+                    </ul>
+                  );
                 case "fosil":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -466,10 +531,16 @@ const Grid = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando polígono</li>
 
+                      <li className='flex flex-row'>
+                        <p>Tamaño de capa: </p>
+                        <input type="number" name='height' value={formData.height} onChange={handleChangeLocal} />
+                        <button className="btn" name='height' value={formData.height} disabled={formData.height === formData.initialHeight} onClick={handleChange}> Cambiar </button>
+                      </li>
+
                       <li>
                         <p>Seleccionar opción de Pattern: </p>
                         <select name={"file"} value={formData.file} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
-                          {Object.keys(lithoJson).map(option => (// lithoJson[option]
+                          {Object.keys(lithoJson).map(option => (
                             <option key={option} value={option}>
                               {option}
                             </option>
@@ -477,74 +548,99 @@ const Grid = () => {
                         </select>
                       </li>
 
-                        <li>
-                          <p>Seleccionar color Fill: <input type="color" name={"ColorFill"} value={formData.ColorFill}  onChange={handleChangeLocal} onBlur={handleChange}/> </p>
-                        </li>
+                      <li>
+                        <p>Seleccionar color Fill: <input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
+                      </li>
 
-                       
-                        <li>
-                          <p>Seleccionar color Stroke:<input type="color" name={"colorStroke"} value={formData.colorStroke}  onChange={handleChangeLocal} onBlur={handleChange}/> </p>
-  
-                        </li>
 
-                        <li>
-                          <p>Valor Zoom:</p>
-                          <input
-                            type="range"
-                            name='zoom'
-                            min={100}
-                            max={400}
-                            defaultValue={formData.zoom}
-                            onMouseUp={handleChange}
-                          />
-                        </li>
+                      <li>
+                        <p>Seleccionar color Stroke:<input type="color" name={"colorStroke"} value={formData.colorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
 
-                        <li>
-                          <p>Tension de lineas: </p>
-                          <input
-                            type="range"
-                            name='tension'
-                            min={0}
-                            max={2.5}
-                            step={0.1}
-                            defaultValue={formData.tension}
-                            onMouseUp={handleChange}
-                          />
-                        </li>
+                      </li>
 
-                        <li>
-                          <p>Cambiar alto de capa seleccionada: </p>
-                          <input type="number" name='height' value={formData.height}  onChange={handleChange} />
-                        </li>
-      {/* 
-                        
-  
-                        <li>
-                          <p>Valor Rotacion: </p>
-                          <input
-                            type="range"
-                            min={0}
-                            max={180}
-                            defaultValue={polygons[activeCell.rowIndex]["rotation"]}
-                            // value={sliderRotation}
-                            //onChange={handleSliderRotation}
-                            onMouseUp={(e) => handlePolygonChange(e, "rotation", activeCell.rowIndex)}
-                          />
-                        </li>
-  
-                        <li>
-                          <button className="btn btn-primary" onClick={() => {
-                            socket.send(JSON.stringify({
-                              action: 'delete',
-                              data: {
-                                "rowIndex": activeCell.rowIndex
-                              }
-                            }));
-  
-                          }}>Eliminar capa</button>
-                        </li> */}
+                      <li>
+                        <p>Valor Zoom:</p>
+                        <input
+                          type="range"
+                          name='zoom'
+                          min={100}
+                          max={400}
+                          defaultValue={formData.zoom}
+                          onMouseUp={handleChange}
+                        />
+                      </li>
+
+                      <li>
+                        <p>Tension de lineas: </p>
+                        <input
+                          type="range"
+                          name='tension'
+                          min={0}
+                          max={2.5}
+                          step={0.1}
+                          defaultValue={formData.tension}
+                          onMouseUp={handleChange}
+                        />
+                      </li>
+
+                      <li>
+                        <p>Valor Rotacion: </p>
+                        <input
+                          type="range"
+                          name='rotation'
+                          min={0}
+                          max={180}
+                          defaultValue={formData.rotation}
+                          onMouseUp={handleChange}
+                        />
+                      </li>
+
+                      <li>
+                        <button className="btn btn-error" onClick={() => {
+                          setFormData(prevState => ({ ...prevState, index: null }));
+                          socket.send(JSON.stringify({
+                            action: 'delete',
+                            data: {
+                              "rowIndex": formData.index
+                            }
+                          }));
+
+                        }}>Eliminar capa</button>
+                      </li>
                     </ul>
 
+                  );
+
+                case "text":
+                  return (
+                    <>
+
+                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
+                        <p className="menu-title">Editando texto</p>
+
+                        <div>
+                          <EditorQuill
+                            Text={formData.text}
+                            SetText={(html: string) => setFormData(prevState => ({
+                              ...prevState,
+                              text: html,
+                            }))}
+                          />
+                        </div>
+
+                        <button onClick={() => {
+                          socket.send(JSON.stringify({
+                            action: 'editText',
+                            data: {
+                              "key": formData.column,
+                              "value": formData.text,
+                              "rowIndex": formData.index
+                            }
+                          }));
+                        }}>Enviar</button>
+                      </div>
+
+                    </>
                   );
 
                 default:
