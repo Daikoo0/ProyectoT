@@ -1,6 +1,8 @@
 package api
 
 import (
+	"sync"
+
 	"github.com/ProyectoT/api/internal/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -10,6 +12,7 @@ import (
 type API struct {
 	serv          service.Service
 	dataValidator *validator.Validate
+	saveMutex     sync.Mutex
 }
 
 func New(serv service.Service) *API {

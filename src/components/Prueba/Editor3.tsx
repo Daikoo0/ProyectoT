@@ -8,58 +8,6 @@ import lithoJson from '../../lithologic.json';
 
 const Grid = () => {
 
-  const OptionsBar = () => {
-
-    return (
-      <>
-        <div className="navbar bg-base-200">
-          <div className="flex-none">
-
-
-            <SelectTheme />
-            <div className="dropdown dropdown-end">
-
-              <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
-                  </svg>
-                </div>
-
-              </div>
-
-            </div>
-
-            <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
-              <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-
-            <select value={scale} className="select select-primary w-full max-w-xs" onChange={(e) => setScale(Number(e.target.value))}>
-              <option value={10}>1:10</option>
-              <option value={5}>1:20</option>
-              <option value={4}>1:25</option>
-              <option value={2}>1:50</option>
-              <option value={1}>1:100</option>
-              <option value={0.5}>1:200</option>
-              {/* <option value={0.4}>1:250</option>
-              <option value={0.2}>1:500</option> */}
-
-            </select>
-
-          </div>
-        </div>
-      </>)
-  }
-
-
-
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
@@ -85,7 +33,6 @@ const Grid = () => {
   };
 
   const [formData, setFormData] = useState(initialFormData);
-  const [text, setText] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -111,6 +58,12 @@ const Grid = () => {
       ...prevState,
       [name]: value,
     }));
+
+    // setPolygons(prev => {
+    //   const newData = { ...prev };
+    //   newData[formData.index][name] = value;
+    //   return newData;
+    // });
   }
 
   const handleClickRow = (index, column) => {
@@ -240,6 +193,14 @@ const Grid = () => {
               return newData;
             });
             break
+          case 'editText':
+            setData(prev => {
+              const newData = { ...prev };
+              const key = shapeN.key;
+              newData[key] = { ...newData[key], [shapeN.rowIndex]: shapeN.value };
+              return newData;
+            });
+            break
 
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -267,9 +228,6 @@ const Grid = () => {
       sideBarMode: "config"
     })
   }
-
-
-
 
   const [upperLimit, setUpperLimit] = useState('');
   const [lowerLimit, setLowerLimit] = useState('');
@@ -374,11 +332,59 @@ const Grid = () => {
 
         {/* Contenido */}
         <div className="drawer-content">
-          <OptionsBar />
+
+          <>
+            <div className="navbar bg-base-200">
+              <div className="flex-none">
+
+
+                <SelectTheme />
+                <div className="dropdown dropdown-end">
+
+                  <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
+                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                      <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
+                      </svg>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
+                  <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
+                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                      <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+
+                <select value={scale} className="select select-primary w-full max-w-xs" onChange={(e) => setScale(Number(e.target.value))}>
+                  <option value={10}>1:10</option>
+                  <option value={5}>1:20</option>
+                  <option value={4}>1:25</option>
+                  <option value={2}>1:50</option>
+                  <option value={1}>1:100</option>
+                  <option value={0.5}>1:200</option>
+                  {/* <option value={0.4}>1:250</option>
+              <option value={0.2}>1:500</option> */}
+
+                </select>
+
+              </div>
+            </div>
+          </>
+
+
           <Tabla
             setIdClickFosil={setIdClickFosil}
             fossils={fossils}
-            setRelativeX={setRelativeX} data={data}
+            setRelativeX={setRelativeX}
+            data={data}
             header={header}
             lithology={polygons}
             scale={scale}
@@ -470,17 +476,17 @@ const Grid = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Añadir capa</li>
 
-                      <li><input type="number" name='height' min="5" onChange={handleChangeLocal} value={formData.height} /></li>
+                      <li><input type="number" name='height' onChange={handleChangeLocal} value={formData.height} /></li>
 
                       <li>
-                        <button className='btn' disabled={formData.height <= 5} onClick={() => addShape(0, formData.height)} >Insertar fila encima</button>
+                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(0, formData.height)} >Insertar fila encima</button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.height <= 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Inserta en fila</button>
+                        <button className='btn w-3/5' disabled={formData.height < 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Inserta en fila</button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={Object.keys(polygons).length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li>
-                        <button className='btn' disabled={formData.height <= 5} onClick={() => addShape(-1, formData.height)}>Insertar fila debajo</button>
+                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(-1, formData.height)}>Insertar fila debajo</button>
                       </li>
                     </ul>
                   );
@@ -534,7 +540,7 @@ const Grid = () => {
                       <li className='flex flex-row'>
                         <p>Tamaño de capa: </p>
                         <input type="number" name='height' value={formData.height} onChange={handleChangeLocal} />
-                        <button className="btn" name='height' value={formData.height} disabled={formData.height === formData.initialHeight} onClick={handleChange}> Cambiar </button>
+                        <button className="btn" name='height' value={formData.height} disabled={formData.height === formData.initialHeight || formData.height < 5} onClick={handleChange}> Cambiar </button>
                       </li>
 
                       <li>
@@ -634,7 +640,7 @@ const Grid = () => {
                             data: {
                               "key": formData.column,
                               "value": formData.text,
-                              "rowIndex": formData.index
+                              "rowIndex": Number(formData.index)
                             }
                           }));
                         }}>Enviar</button>

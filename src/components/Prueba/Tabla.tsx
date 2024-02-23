@@ -1,147 +1,29 @@
-import { useState, useEffect, useRef } from "react";
+import { useState} from "react";
 import Polygon from "./Polygon4";
 import Fosil from "../Editor/Fosil";
-import jsPDF from "jspdf";
-import html2canvas from 'html2canvas';
-import 'jspdf-autotable';
-import autoTable from "jspdf-autotable";
 import lithoJson from '../../lithologic.json';
-import { Html2CanvasOptions } from "jspdf";
-import { exportTableToPdf } from "./ExportUtils";
-import { Canvg } from 'canvg';
-import 'svg2pdf.js'
-import { svg2pdf } from "svg2pdf.js";
-import domtoimage from 'dom-to-image';
+
 
 const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow }) => {
 
-
-    const exportTableToPDFWithPagination = async () => {
-        const doc = new jsPDF();
-        const table = document.getElementById("your-table-id");
-        if (table) {
-            const dataUrl = await domtoimage.toPng(table);
-            const img = new Image();
-            console.log(dataUrl)
-            img.src = dataUrl;
-            img.onload = () => {
-                const imgWidth = img.width;
-                const imgHeight = img.height;
-                // const pdfWidth = doc.internal.pageSize.getWidth();
-                // const pdfHeight = (imgHeight * pdfWidth) / imgWidth;
-                doc.addImage(dataUrl, 'PNG', 0, 0, 1000, 1000);
-
-            };
-
-            doc.save('svgs-from-table.pdf');
-        }
-        // const doc = new jsPDF();
-        // const tds = document.querySelectorAll('table tr td');
-        // const tdsWithSvg = Array.from(tds).filter(td => td.querySelector('svg'));
-
-        // tdsWithSvg.forEach(td => {
-        //     if (td.id === "fossils") {
-        //         td.remove();
-        //     } else {
-        //         //let base64EncodedSvg = window.btoa(unescape(encodeURIComponent(td.innerHTML)));
-        //        // let dataUrl = 'data:image/svg+xml;base64,' + base64EncodedSvg;
-        //      //   console.log(dataUrl)
-        //         //doc.svg(td,{x :100,y:100,width:100,height:100})
-        //         doc.svg(td,{ x: 0, y: 0, width: 100, height: 200 })
-        //         // svg2pdf(td, doc, {
-        //         //     x: 100,
-        //         //     y: 100,
-        //         //     width: 400 ,
-        //         //     height: 400,
-        //         //   })
-        //         // doc.addSvgAsImage(dataUrl,100,100,100,100)
-        //     }
-        // });
-
-        // let pageHeight = doc.internal.pageSize.height;
-        // let currentPageHeight = 20; // Iniciar con un margen superior
-        // let rowIndexesPerPage = [];
-        // let currentPageIndexes = [];
-
-        // Object.keys(lithology).forEach((key, index) => {
-        //     const rowHeight = lithology[key].height * scale;
-        //     if (currentPageHeight + rowHeight > pageHeight) {
-        //         rowIndexesPerPage.push(currentPageIndexes);
-        //         currentPageIndexes = [];
-        //         currentPageHeight = 20; // Reiniciar margen superior para nueva página
-        //     }
-        //     currentPageHeight += rowHeight;
-        //     currentPageIndexes.push(index);
-        // });
-        // if (currentPageIndexes.length) rowIndexesPerPage.push(currentPageIndexes);
-
-        // // Suponer que 'header' y 'data' están definidos correctamente
-        // rowIndexesPerPage.forEach((pageIndexes, pageIndex) => {
-        //     const body = [];
-
-        //     pageIndexes.forEach(rowIndex => {
-        //         const row = [];
-        //         header.forEach(columnName => {
-        //             if (columnName === 'Litologia') {
-        //                 row.push("");
-        //             } else
-        //                 if (columnName === 'Estructura fosil') {
-        //                     const cellData = data[columnName]?.[rowIndex] || "";
-        //                     row.push(cellData);
-        //                 } else {
-        //                     const cellData = data[columnName]?.[rowIndex] || "";
-        //                     row.push(cellData);
-        //                 }
-        //         });
-        //         body.push(row);
-        //     });
-
-        //     // Añade la tabla al documento
-        //     autoTable(doc, {
-        //         head: [header],
-        //         body: body,
-        //         theme: 'grid',
-        //         styles: {
-        //             overflow: 'ellipsize',
-        //         },
-        //         startY: 10, // Ajustar inicio para nuevas páginas
-        //         didDrawPage: (dataArg) => {
-        //             if (pageIndex < rowIndexesPerPage.length - 1) {
-        //                 doc.addPage();
-        //             }
-        //         },
-        //     });
-        // });
-
-        // Guardar el PDF
-        // doc.save('table.pdf');
-    };
-
-
-
     const [columnWidths, setColumnWidths] = useState({});
-
-    useEffect(() => {
-        const initialWidths = header.reduce((acc, columnName) => {
-            acc[columnName] = 150; // Inicializa todas las columnas con un ancho de 200px
-            return acc;
-        }, {});
-        setColumnWidths(initialWidths);
-    }, [header]);
-
+    const cellWidth = 150;
+    const cellMinWidth = 100;
+    const cellMaxWidth = 500;
 
     // Función para manejar el inicio del arrastre para redimensionar
     const handleMouseDown = (columnName, event) => {
         event.preventDefault();
 
-        const startWidth = columnWidths[columnName];
+        const startWidth = columnWidths[columnName] || cellWidth;
         const startX = event.clientX;
 
         const handleMouseMove = (moveEvent) => {
-            const newWidth = startWidth + moveEvent.clientX - startX;
+            let newWidth = startWidth + moveEvent.clientX - startX;
+            newWidth = Math.max(cellMinWidth, Math.min(newWidth, cellMaxWidth));
             setColumnWidths((prevWidths) => ({
                 ...prevWidths,
-                [columnName]: newWidth > 100 ? newWidth : 100 // Asegura un ancho mínimo de 100px
+                [columnName]: newWidth,
             }));
         };
 
@@ -154,20 +36,9 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
         document.addEventListener('mouseup', handleMouseUp);
     };
 
-    const eltd = useRef(null)
-
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-    useEffect(() => {
-        if (eltd.current) {
-            const { width, height } = eltd.current.getBoundingClientRect();
-            setDimensions({ width, height });
-        }
-    }, [eltd.current, scale]);
-
     return (
         <>
-            <button onClick={exportTableToPDFWithPagination}> aaaaaaaa</button>
+            {/* <button onClick={exportTableToPDFWithPagination}> aaaaaaaa</button> */}
             <div id="your-table-id" >
                 <table style={{ height: '100px' }}>
                     <thead>
@@ -177,7 +48,7 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                                     key={columnName}
                                     className="border border-secondary bg-primary"
                                     style={{
-                                        width: `${columnWidths[columnName]}px`,
+                                        width: `${columnWidths[columnName] || cellWidth}px`,
                                         height: '100px'
                                     }}
                                 >
@@ -195,7 +66,7 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                         {Object.keys(lithology).map((rowIndex, index) => (
 
                             <tr key={rowIndex}
-                                style={{ height: `${lithology[rowIndex].height * scale}px` }}
+                                // style={{ height: `${lithology[rowIndex].height * scale}px` }}
                             >
                                 {header.map((columnName, columnIndex) => {
 
@@ -217,18 +88,17 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                                                     verticalAlign: "top",
                                                     borderLeft: 'none',
                                                 }}
-                                                ref={eltd}
                                             >
-                                                <div className="h-full max-h-full" style={{ top: 0, width: dimensions.width }}>
+                                                <div className="h-full max-h-full" style={{ top: 0}}>
                                                     <svg className="h-full max-h-full" width="100%" height="0" overflow='visible'>
                                                         {fossils.length > 0 ? (
-                                                            fossils.map((img, index) => (
+                                                            fossils.map((img) => (
                                                                 <Fosil
                                                                     img={img}
                                                                     setSideBarState={setSideBarState}
                                                                     setIdClickFosil={setIdClickFosil}
                                                                     scale={scale}
-                                                                    litologiaX={columnWidths["Litologia"]}
+                                                                    litologiaX={columnWidths["Litologia"] || cellWidth}
                                                                 />
                                                             ))
                                                         ) : (
@@ -255,8 +125,8 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                                                     }
                                                 }}
                                                 style={{
-                                                    maxHeight: `${lithology[rowIndex].height * scale}px`,
-                                                    width: `${columnWidths[columnName]}px`,
+                                                    //maxHeight: `${lithology[rowIndex].height * scale}px`,
+                                                    //width: `${columnWidths[columnName] || 150}px`,
                                                     overflowY: (columnName === 'Litologia') ? 'visible' : 'auto',
                                                     padding: '0',
                                                     top: '0',
@@ -291,13 +161,15 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                                                                 rotation={lithology[rowIndex].rotation}
                                                             />
                                                         </>
-                                                        : <>
+                                                        : 
+                                                        <>
                                                             <div
                                                                 style={{
                                                                     'padding': 10,
-                                                                    maxHeight: `${lithology[rowIndex].height * scale}px`,
+                                                                    // maxHeight: `${lithology[rowIndex].height * scale}px`,
                                                                 }}
-                                                                dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }} />
+                                                                dangerouslySetInnerHTML={{ __html: data[columnName][rowIndex] }}
+                                                            />
                                                         </>
                                                     }
                                                 </div>

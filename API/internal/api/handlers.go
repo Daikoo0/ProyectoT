@@ -43,6 +43,9 @@ type RoomData struct {
 //var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
 
 var rooms = make(map[string]*RoomData) //map temporal que almacena todas las salas activas
+var roomTimers = make(map[string]*time.Timer)
+var roomActions = make(map[string]int)
+var roomActionsThreshold = 10
 
 // registerUser recibe un email, un nombre y una contraseña, y registra un usuario en la base de datos
 func (a *API) RegisterUser(c echo.Context) error {
@@ -261,7 +264,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	conn.WriteMessage(websocket.TextMessage, databytes)
 
 	if err == nil {
-		//enviar datos actuales (no se que chucha con su front)
 		//conn.WriteMessage(websocket.TextMessage, []byte(dataBytes))
 		log.Printf("user %s: Permission %d", user, permission)
 
@@ -280,7 +282,61 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Fatal(err)
 				}
 
-				log.Println(dataMap, "eeee") // Informacion recibida
+				//log.Println(dataMap, "eeee") // Informacion recibida
+
+				go func() {
+					// Bloquear acceso al mapa de timers para evitar condiciones de carrera
+					a.saveMutex.Lock()
+					defer a.saveMutex.Unlock()
+
+					// Verificar si ya hay un timer activo para esta sala
+					if timer, exists := roomTimers[roomID]; exists {
+
+						if roomActions[roomID] >= roomActionsThreshold {
+
+							// Función de guardado
+							err := a.serv.SaveRoom(c.Request().Context(), room.Data, room.Config, roomID)
+							if err != nil {
+								log.Println("Error guardando la sala automáticamente: ", err)
+							} else {
+								log.Println("Sala guardada: ", roomID)
+							}
+
+							roomActions[roomID] = 0
+
+							//salir de la funcion
+							return
+						}
+
+						log.Println("Reiniciando el timer: ", roomID)
+						log.Println("Acciones: ", roomActions[roomID])
+						timer.Reset(5 * time.Second)
+						roomActions[roomID]++
+
+					} else {
+						// Si no hay un timer, se crea uno
+						log.Println("Creando un nuevo timer: ", roomID)
+						timer := time.NewTimer(5 * time.Second)
+						roomTimers[roomID] = timer
+
+						go func() {
+							<-timer.C
+
+							// Función de guardado
+							err := a.serv.SaveRoom(c.Request().Context(), room.Data, room.Config, roomID)
+							if err != nil {
+								log.Println("Error guardando la sala automáticamente: ", err)
+							} else {
+								log.Println("Sala guardada: ", roomID)
+							}
+
+							// Eliminar el timer del mapa una vez que la sala ha sido guardada
+							a.saveMutex.Lock()
+							delete(roomTimers, roomID)
+							a.saveMutex.Unlock()
+						}()
+					}
+				}()
 
 				// Switch para las acciones
 				switch dataMap.Action {
@@ -439,7 +495,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					var editTextData dtos.EditText
 					err := json.Unmarshal(dataMap.Data, &editTextData)
 					if err != nil {
-						log.Println("Error")
+						log.Println("Error, Datos malos")
 					}
 
 					key := editTextData.Key
@@ -1032,6 +1088,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	}
 
 	conn.Close()
+
 	RemoveElement(roomID, conn)
 	return nil
 }
