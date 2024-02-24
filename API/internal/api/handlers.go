@@ -295,7 +295,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						if roomActions[roomID] >= roomActionsThreshold {
 
 							// Función de guardado
-							err := a.serv.SaveRoom(c.Request().Context(), room.Data, room.Config, roomID)
+							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
 							if err != nil {
 								log.Println("Error guardando la sala automáticamente: ", err)
 							} else {
@@ -323,7 +323,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							<-timer.C
 
 							// Función de guardado
-							err := a.serv.SaveRoom(c.Request().Context(), room.Data, room.Config, roomID)
+							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
 							if err != nil {
 								log.Println("Error guardando la sala automáticamente: ", err)
 							} else {
@@ -469,6 +469,20 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					// Agregar el nuevo círculo
 					innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
 					innerMap["circles"] = newCircle
+
+					// circles := innerMap["circles"].([]dtos.Circle)
+
+					// newCircle2 := dtos.Circle{
+					// 	X:       1,
+					// 	Y:       1,
+					// 	Radius:  5,
+					// 	Movable: true,
+					// }
+
+					// circles = append(circles[:3], append([]dtos.Circle{newCircle2}, circles[3:]...)...)
+					// //circles = append(circles, newCircle2)
+
+					// log.Println(circles, "circulos")
 
 					// Enviar informacion a los clientes
 					msgData := map[string]interface{}{
@@ -1258,9 +1272,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(Id_project primitive.ObjectID,
-	Data map[string]interface{},
-	Config map[string]interface{}) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data map[string]interface{}, Config map[string]interface{}) *RoomData {
 
 	projectIDString := Id_project.Hex()
 
