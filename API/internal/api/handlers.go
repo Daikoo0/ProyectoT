@@ -40,9 +40,7 @@ type RoomData struct {
 	Temp       Stack
 }
 
-//var rooms = make(map[string]*Room) //map temporal que almacena todas las salas activas
-
-var rooms = make(map[string]*RoomData) //map temporal que almacena todas las salas activas
+var rooms = make(map[string]*RoomData)
 var roomTimers = make(map[string]*time.Timer)
 var roomActions = make(map[string]int)
 var roomActionsThreshold = 10
@@ -479,10 +477,16 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					// 	Movable: true,
 					// }
 
-					// circles = append(circles[:3], append([]dtos.Circle{newCircle2}, circles[3:]...)...)
-					// //circles = append(circles, newCircle2)
+					// Agregar el nuevo círculo, en la posición 3
+					//circles = append(circles[:3], append([]dtos.Circle{newCircle2}, circles[3:]...)...)
 
-					// log.Println(circles, "circulos")
+					// eliminar el círculo en el índice
+					//circles = append(circles[:index], circles[index+1:]...)
+
+					// Agregar el nuevo círculo al final
+					//circles = append(circles, newCircle2)
+
+					//log.Println(circles, "circulos")
 
 					// Enviar informacion a los clientes
 					msgData := map[string]interface{}{

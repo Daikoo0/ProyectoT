@@ -333,7 +333,7 @@ const Grid = () => {
         {/* Contenido */}
         <div className="drawer-content">
 
-          <>
+          
             <div className="navbar bg-base-200">
               <div className="flex-none">
 
@@ -377,7 +377,7 @@ const Grid = () => {
 
               </div>
             </div>
-          </>
+          
 
 
           <Tabla

@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Polygon from "./Polygon4";
 import Fosil from "../Editor/Fosil";
 import lithoJson from '../../lithologic.json';
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable'
+import ReactToPrint from 'react-to-print';
+
 
 const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow }) => {
 
@@ -12,9 +14,14 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
     const cellMinWidth = 100;
     const cellMaxWidth = 500;
 
+    const tableref = useRef(null);
+
+    // const handlePrint = useReactToPrint({
+    //     content: () => tableref.current,
+    //   });
+
     const exportTableToPDFWithPagination = async (columnWidths) => {
         const escala = scale || 1;
-
         let rowIndexesPerPage = [];
         let currentPageHeight = 60 * 96 / 72;
         let currentPageIndexes = [];
@@ -23,7 +30,6 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
         }
 
         const maxHeight = Object.values(lithology).reduce((previousValue, currentValue) => {
-            // Aserción de tipos en currentValue como cualquier (esto es para fines de demostración; usar 'any' derrota el propósito de TypeScript)
             const currentHeight = parseInt((currentValue as any).height, 10);
             const previousHeight = typeof previousValue === 'number' ? previousValue : parseInt((previousValue as any).height, 10);
             return Math.max(previousHeight, currentHeight);
@@ -236,7 +242,7 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
 
             // Recorrer el array de encabezados y asignar un cellWidth de columnWidths
             header.forEach(header => {
-                columnStyles[header] = { cellWidth: columnWidths[header]*72/96 || 'auto' }; // Usamos 'auto' si no se especifica un ancho
+                columnStyles[header] = { cellWidth: columnWidths[header] * 72 / 96 || 'auto' }; // Usamos 'auto' si no se especifica un ancho
             });
 
             autoTable(doc, {
@@ -259,7 +265,7 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                             const cell = data.cell;
                         }
                 },
-                columnStyles:columnStyles,
+                columnStyles: columnStyles,
 
                 didParseCell: function (data) {
                     if (data.row.section === "head") {
@@ -310,11 +316,37 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
         document.addEventListener('mouseup', handleMouseUp);
     };
 
+    const maxHeight = Object.values(lithology).reduce((previousValue, currentValue) => {
+        const currentHeight = parseInt((currentValue as any).height, 10);
+        const previousHeight = typeof previousValue === 'number' ? previousValue : parseInt((previousValue as any).height, 10);
+        return Math.max(previousHeight, currentHeight);
+    }, 0);
+
+
     return (
         <>
-            <button onClick={(e)=> exportTableToPDFWithPagination(columnWidths)}> aaaaaaaa</button>
-            <div id="your-table-id" >
-                <table style={{ height: '100px' }}>
+            {/* <button onClick={handlePrint}> aaaaaaaa</button> */}
+            <ReactToPrint
+                trigger={() => <button>Imprimir</button>}
+                content={() => tableref.current}
+                copyStyles={true}
+                pageStyle={ `
+                    @page {
+                      size: 50mm 150mm;
+                    }
+                  }
+                  @media print {
+                    display: block
+                    body {
+                      transform: scale(2);
+                    }
+                  
+                  
+                  `}
+            />
+        
+            <div ref={tableref} >
+                <table style={{ height: '100px' }} >
                     <thead>
                         <tr>
                             {header.map((columnName) => (
@@ -340,6 +372,7 @@ const Tabla = ({ data, header, lithology, scale, addCircles, setSideBarState, se
                         {Object.keys(lithology).map((rowIndex, index) => (
 
                             <tr key={rowIndex}
+                            className="page-break"
                             // style={{ height: `${lithology[rowIndex].height * scale}px` }}
                             >
                                 {header.map((columnName, columnIndex) => {
