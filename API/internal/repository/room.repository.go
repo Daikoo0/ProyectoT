@@ -75,7 +75,8 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 	room := &models.Data{
 		Name:  roomName,
 		Owner: name,
-		Members: map[string]interface{}{"0": correo,
+		Members: map[string]interface{}{
+			"0": correo,
 			"1": []string{},
 			"2": []string{},
 		},
@@ -112,19 +113,8 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 	data_project := &models.Data_project{
 		Id_project: roomID,
-		Data: map[string]interface{}{
-
-			"Sistema":                 map[int]interface{}{}, // Mapa de enteros a interfaces
-			"Edad":                    map[int]interface{}{},
-			"Formacion":               map[int]interface{}{},
-			"Miembro":                 map[int]interface{}{},
-			"Espesor":                 map[int]interface{}{},
-			"Litologia":               map[int]interface{}{},
-			"Estructura fosil":        []interface{}{},
-			"Facie":                   map[int]interface{}{},
-			"Ambiente Depositacional": map[int]interface{}{},
-			"Descripcion":             map[int]interface{}{},
-		},
+		Data:       []map[string]interface{}{},
+		Fosil:      []map[string]interface{}{},
 		Config: map[string]interface{}{
 			"columns": map[string]bool{
 				"Sistema":                 true,
@@ -140,19 +130,6 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 			},
 			"scale": 50,
 		},
-		//map[string]interface{}{
-		// "columns": map[string]interface{}{
-		// 	"Arcilla-Limo-Arena-Grava": map[string]interface{}{"enabled": true},
-		// 	"Sistema":                  map[string]interface{}{"enabled": true},
-		// 	"Edad":                     map[string]interface{}{"enabled": true},
-		// 	"Formación":                map[string]interface{}{"enabled": true},
-		// 	"Miembro":                  map[string]interface{}{"enabled": true},
-		// 	"Estructuras y/o fósiles": map[string]interface{}{"enabled": true,
-		// 		"content": []map[string]interface{}{}, "optional": true, "vertical": false},
-		// 	"Facie":                   map[string]interface{}{"enabled": true},
-		// 	"Ambiente depositacional": map[string]interface{}{"enabled": true},
-		// 	"Descripción":             map[string]interface{}{"enabled": true},
-		// },
 	}
 
 	_, err = data_projects.InsertOne(ctx, data_project)
@@ -168,7 +145,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 	return nil
 }
-func (r *repo) SaveRoom(ctx context.Context, data map[string]interface{}, config map[string]interface{}, roomName string) error {
+func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
 	objectID, err := primitive.ObjectIDFromHex(roomName)
 	filter := bson.M{"id_project": objectID}
 	update := bson.M{"$set": bson.M{

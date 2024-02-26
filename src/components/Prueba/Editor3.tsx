@@ -12,7 +12,7 @@ const Grid = () => {
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
-  const [data, setData] = useState({});
+  const [data, setData] = useState([]);
   const [polygons, setPolygons] = useState([]);
   const [header, setHeader] = useState([]);
   // const [columnCount, setColumnCount] = useState(0);
@@ -70,15 +70,15 @@ const Grid = () => {
     setFormData({
       index: index,
       column: column,
-      file: polygons[index].file,
-      ColorFill: polygons[index].ColorFill,
-      colorStroke: polygons[index].colorStroke,
-      zoom: polygons[index].zoom,
-      tension: polygons[index].tension,
-      height: polygons[index].height,
-      initialHeight: polygons[index].height,
-      rotation: polygons[index].rotation,
-      text: !data[column] ? '' : data[column][index],
+      file: data[index].Litologia.file,
+      ColorFill: data[index].Litologia.ColorFill,
+      colorStroke: data[index].Litologia.colorStroke,
+      zoom: data[index].Litologia.zoom,
+      tension: data[index].Litologia.tension,
+      height: data[index].Litologia.height,
+      initialHeight: data[index].Litologia.height,
+      rotation: data[index].Litologia.rotation,
+      text: data[index][column],
     });
   };
 
@@ -148,24 +148,23 @@ const Grid = () => {
 
         switch (shapeN.action) {
           case 'data': {
-            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-            setData(rest)
-            setPolygons(Litologia)
+            //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
+            setData(shapeN.data)
+            //setPolygons(Litologia)
             setHeader(shapeN.config)
             break;
           }
           case 'añadir': {
-            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-            setPolygons(Litologia)
-            setData(rest)
+            setData(prev => {
+              const newData = [...prev];
+              newData.splice(shapeN.rowIndex, 0, shapeN.value);
+              return newData;
+            });
+
             break;
           }
           case 'añadirEnd':
-            setPolygons(prev => {
-              const newData = { ...prev };
-              newData[shapeN.rowIndex] = shapeN.value;
-              return newData;
-            });
+            setData(prev => [...prev, shapeN.value]);
             break
           case 'columns':
             setHeader(shapeN.columns)
@@ -174,30 +173,43 @@ const Grid = () => {
             setFossils(prevfossils => [...prevfossils, shapeN]);
             break
           case 'addCircle':
-            setPolygons(prev => {
-              const newData = { ...prev };
-              newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], circles: [...shapeN.newCircle] };
+            setData(prev => {
+              const newData = [...prev];
+              newData[shapeN.rowIndex] = {
+                ...newData[shapeN.rowIndex],
+                Litologia: {
+                  ...newData[shapeN.rowIndex].Litologia,
+                  ["circles"]: shapeN.value
+                }
+              };
               return newData;
             });
             break
           case 'delete': {
-            const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-            setPolygons(Litologia)
-            setData(rest)
+            setData(prev => {
+              const newData = [...prev];
+              newData.splice(shapeN.rowIndex, 1);
+              return newData;
+            });
             break;
           }
           case 'editPolygon':
-            setPolygons(prev => {
-              const newData = { ...prev };
-              newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], [shapeN.column]: shapeN.value };
+            setData(prev => {
+              const newData = [...prev];
+              newData[shapeN.rowIndex] = {
+                ...newData[shapeN.rowIndex],
+                Litologia: {
+                  ...newData[shapeN.rowIndex].Litologia,
+                  [shapeN.key]: shapeN.value
+                }
+              };
               return newData;
             });
-            break
+            break;
           case 'editText':
             setData(prev => {
-              const newData = { ...prev };
-              const key = shapeN.key;
-              newData[key] = { ...newData[key], [shapeN.rowIndex]: shapeN.value };
+              const newData = [...prev];
+              newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], [shapeN.key]: shapeN.value };
               return newData;
             });
             break
@@ -259,49 +271,52 @@ const Grid = () => {
   };
 
   // Actualiza un punto
-  const updateCirclePoint = (index, insertIndex, x) => {
+  const updateCirclePoint = (index, editIndex, x) => {
 
-    const update = polygons[index]["circles"]
-    update[insertIndex].x = x;
+    //const update = polygons[index]["circles"]
+    //update[insertIndex].x = x;
 
     socket.send(JSON.stringify({
-      action: 'addCircle',
+      action: 'editCircle',
       data: {
         "rowIndex": index,
-        "newCircle": update
+        "editIndex": editIndex,
+        "x": x,
       }
     }));
 
   }
 
   // Añade un nuevo punto 
-  const addCircles = (rowIndex: number, insertIndex: number, newCircle: any) => {
-    console.log(rowIndex, insertIndex, newCircle)
-    const update = polygons[rowIndex]["circles"]
+  const addCircles = (rowIndex: number, insertIndex: number, point: number) => {
+    console.log(rowIndex, insertIndex, point)
+    // const update = polygons[rowIndex]["circles"]
 
-    update.splice(insertIndex, 0, newCircle);
+    // update.splice(insertIndex, 0, newCircle);
 
     socket.send(JSON.stringify({
       action: 'addCircle',
       data: {
         "rowIndex": rowIndex,
-        "newCircle": update
+        "insertIndex": insertIndex,
+        "point": point
       }
     }));
 
   };
 
   // Elimina un punto
-  const deleteCirclePoint = (index, insertIndex) => {
+  const deleteCirclePoint = (index, deleteIndex) => {
 
-    const update = polygons[index]["circles"]
-    update.splice(insertIndex, 1);
+    //const update = polygons[index]["circles"]
+    //update.splice(insertIndex, 1);
 
     socket.send(JSON.stringify({
-      action: 'addCircle',
+      action: 'deleteCircle',
       data: {
         "rowIndex": index,
-        "newCircle": update
+        "deleteIndex": deleteIndex
+
       }
     }));
   }
@@ -333,51 +348,38 @@ const Grid = () => {
         {/* Contenido */}
         <div className="drawer-content">
 
-          
-            <div className="navbar bg-base-200">
-              <div className="flex-none">
+
+          <div className="navbar bg-base-200">
+            <div className="flex-none">
 
 
-                <SelectTheme />
-                <div className="dropdown dropdown-end">
+              <div className="dropdown dropdown-end">
 
-                  <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
-                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                      <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
-                      </svg>
-                    </div>
-
+                <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
+                    </svg>
                   </div>
 
                 </div>
-
-                <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
-                  <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
-                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                      <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-
-                <select value={scale} className="select select-primary w-full max-w-xs" onChange={(e) => setScale(Number(e.target.value))}>
-                  <option value={10}>1:10</option>
-                  <option value={5}>1:20</option>
-                  <option value={4}>1:25</option>
-                  <option value={2}>1:50</option>
-                  <option value={1}>1:100</option>
-                  <option value={0.5}>1:200</option>
-                  {/* <option value={0.4}>1:250</option>
-              <option value={0.2}>1:500</option> */}
-
-                </select>
 
               </div>
+
+              <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
+                <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+
             </div>
-          
+          </div>
+
 
 
           <Tabla
@@ -386,7 +388,6 @@ const Grid = () => {
             setRelativeX={setRelativeX}
             data={data}
             header={header}
-            lithology={polygons}
             scale={scale}
             addCircles={addCircles}
             setSideBarState={setSideBarState}
@@ -447,27 +448,134 @@ const Grid = () => {
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className='pb-6 hidden lg:block'>Configuración</li>
-                      {list.map((key) => {
-                        if (key != "Espesor" && key != "Litologia") {
+
+                      <li>
+                        <details open>
+                          <summary>De la tabla</summary>
+                          <ul>
+                            <li>
+                              <details open={false}>
+                                <summary>Escala</summary>
+                                <ul>
+                                  <li>
+                                    <label className="inline-flex items-center">
+                                      <input type="checkbox" value="10" checked={scale === 10}
+                                        onChange={(e) => setScale(Number(e.target.value))}
+                                        className="form-checkbox h-5 w-5 text-indigo-600" />
+                                      <span className="ml-2">1:10</span>
+                                    </label>
+                                  </li>
+                                  <li>
+                                    <label className="inline-flex items-center">
+                                      <input type="checkbox" value="5" checked={scale === 5}
+                                        onChange={(e) => setScale(Number(e.target.value))}
+                                        className="form-checkbox h-5 w-5 text-indigo-600"
+                                      />
+                                      <span className="ml-2">1:20</span>
+                                    </label>
+                                  </li>
+                                  <li>
+                                    <label className="inline-flex items-center">
+                                      <input type="checkbox" value="4" checked={scale === 4}
+                                        onChange={(e) => setScale(Number(e.target.value))}
+                                        className="form-checkbox h-5 w-5 text-indigo-600"
+                                      />
+                                      <span className="ml-2">1:25</span>
+                                    </label>
+                                  </li>
+                                  <li>
+                                    <label className="inline-flex items-center">
+                                      <input type="checkbox" value="2" checked={scale === 2}
+                                        onChange={(e) => setScale(Number(e.target.value))}
+                                        className="form-checkbox h-5 w-5 text-indigo-600"
+                                      />
+                                      <span className="ml-2">1:50</span>
+                                    </label>
+                                  </li>
+                                  <li>
+                                    <label className="inline-flex items-center">
+                                      <input type="checkbox" value="1" checked={scale === 1}
+                                        onChange={(e) => setScale(Number(e.target.value))}
+                                        className="form-checkbox h-5 w-5 text-indigo-600"
+                                      />
+                                      <span className="ml-2">1:100</span>
+                                    </label>
+                                  </li>
+                                  <li>
+                                    <label className="inline-flex items-center">
+                                      <input type="checkbox" value="0.5" checked={scale === 0.5}
+                                        onChange={(e) => setScale(Number(e.target.value))}
+                                        className="form-checkbox h-5 w-5 text-indigo-600"
+                                      />
+                                      <span className="ml-2">1:200</span>
+                                    </label>
+                                  </li>
+                                </ul>
+                              </details>
+                            </li>
+
+
+                            <li>
+                              <details open={false}>
+                                <summary>Visibilidad de columnas</summary>
+                                <ul>
+                                  {list.map((key) => {
+                                    if (key !== "Espesor" && key !== "Litologia") {
+                                      return (
+                                        <li key={key} >
+                                          <label className="inline-flex items-center">
+                                            <input
+                                              type="checkbox"
+                                              id={key}
+                                              name={key}
+                                              checked={header.includes(key) ? true : false}
+                                              onChange={(e) => handleColumns(e, key)}
+                                              className="form-checkbox h-5 w-5 text-indigo-600"
+                                            />
+                                            <span className="ml-2">{key}</span>
+                                          </label>
+                                        </li>
+                                      );
+                                    }
+                                  })}
+                                </ul>
+                              </details>
+                            </li>
+                          </ul>
+                        </details>
+                      </li>
+
+                      <li>
+                        <details open>
+                          <summary>De la sala</summary>
+                          <ul>
+                            <li><SelectTheme /></li>
+                          </ul>
+                        </details>
+                      </li>
+
+
+
+                      {/* {list.map((key) => {
+                        if (key !== "Espesor" && key !== "Litologia") {
                           return (
-                            <li key={key}>
-                              <div style={{ display: 'flex' }}>
+                            <li key={key} className="py-2">
+                              <label className="inline-flex items-center">
                                 <input
                                   type="checkbox"
                                   id={key}
                                   name={key}
                                   checked={header.includes(key) ? true : false}
                                   onChange={(e) => handleColumns(e, key)}
+                                  className="form-checkbox h-5 w-5 text-indigo-600"
                                 />
-                                <label htmlFor={key} style={{ whiteSpace: 'nowrap' }}>
-                                  {key}
-                                </label>
-                              </div>
+                                <span className="ml-2">{key}</span>
+                              </label>
                             </li>
                           );
                         }
-                      }
-                      )}
+                      })} */}
+
                     </ul>)
 
                 case "añadirCapa":
@@ -483,7 +591,7 @@ const Grid = () => {
                       </li>
                       <li className="flex flex-row">
                         <button className='btn w-3/5' disabled={formData.height < 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Inserta en fila</button>
-                        <input type="number" className='w-2/5' name="initialHeight" min="0" max={Object.keys(polygons).length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
+                        <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li>
                         <button className='btn' disabled={formData.height < 5} onClick={() => addShape(-1, formData.height)}>Insertar fila debajo</button>
@@ -536,6 +644,17 @@ const Grid = () => {
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando polígono</li>
+
+                      <li>
+                        <details open>
+                          <summary>Patrón</summary>
+                          <ul>
+                            <li><a>Submenu 1</a></li>
+                            <li><a>Submenu 2</a></li>
+                          </ul>
+                        </details>
+                      </li>
+
 
                       <li className='flex flex-row'>
                         <p>Tamaño de capa: </p>

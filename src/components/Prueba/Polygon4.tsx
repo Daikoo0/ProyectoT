@@ -230,8 +230,8 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
     if (insertIndex !== -1) {
       
       const originalY = (My) / Height;
-      const point = { x: 0.5, y: originalY, radius: 5, movable: true };
-      addCircles(rowIndex, insertIndex, point)
+      //const point = { x: 0.5, y: originalY, radius: 5, movable: true };
+      addCircles(rowIndex, insertIndex, originalY)
     
     }
 

@@ -38,8 +38,22 @@ type Circle struct {
 
 // AddCircle
 type AddCircle struct {
-	RowIndex  int      `json:"rowIndex"`
-	NewCircle []Circle `json:"newCircle"`
+	RowIndex    int     `json:"rowIndex"`
+	InsertIndex int     `json:"insertIndex"`
+	Point       float32 `json:"point"`
+}
+
+// DeleteCircle
+type DeleteCircle struct {
+	RowIndex    int `json:"rowIndex"`
+	DeleteIndex int `json:"deleteIndex"`
+}
+
+// EditCircle
+type EditCircle struct {
+	RowIndex  int     `json:"rowIndex"`
+	EditIndex int     `json:"editIndex"`
+	X         float32 `json:"x"`
 }
 
 // case fosil

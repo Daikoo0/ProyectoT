@@ -7,6 +7,16 @@ const Fosil = ({ img, setSideBarState, setIdClickFosil, scale, litologiaX }) => 
     const [height, setHeight] = useState(10);
     const [width, setWidth] = useState(10);
 
+    const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
+
+    const handleMouseEnter = () => {
+        setHovered(true);
+    };
+
+    const handleMouseLeave = () => {
+        setHovered(false);
+    };
+
     const a = () => {
         setSideBarState({
             sideBar: true,
@@ -49,15 +59,18 @@ const Fosil = ({ img, setSideBarState, setIdClickFosil, scale, litologiaX }) => 
     return (
         <>
             <g transform={`translate(${imgX},${(img.posImage - (height * scale / 2)) * scale}) scale(1,${scale})`}
+                onMouseEnter={handleMouseEnter} 
+                onMouseLeave={handleMouseLeave}
+                style={{ cursor: 'pointer' }}
                 dangerouslySetInnerHTML={{ __html: svgContent }} />
 
-            <line x1={0 - litologiaX} y1={img.upper * scale} x2={img.relativeX} y2={img.upper * scale} stroke="black" strokeWidth="1" strokeDasharray="5, 5" />
+            <line x1={0 - litologiaX} y1={img.upper * scale} x2={img.relativeX} y2={img.upper * scale} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
             <line x1={0 - litologiaX} y1={img.upper * scale} x2={img.relativeX} y2={img.upper * scale} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
 
-            <line x1={0 - litologiaX} y1={img.lower * scale} x2={img.relativeX} y2={img.lower * scale} stroke="black" strokeWidth="1" strokeDasharray="5, 5" />
+            <line x1={0 - litologiaX} y1={img.lower * scale} x2={img.relativeX} y2={img.lower * scale} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
             <line x1={0 - litologiaX} y1={img.lower * scale} x2={img.relativeX} y2={img.lower * scale} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
 
-            <line x1={img.relativeX} y1={img.upper * scale} x2={img.relativeX} y2={img.lower * scale} stroke="black" strokeWidth="1" strokeDasharray="5, 5" />
+            <line x1={img.relativeX} y1={img.upper * scale} x2={img.relativeX} y2={img.lower * scale} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
             <line x1={img.relativeX} y1={img.upper * scale} x2={img.relativeX} y2={img.lower * scale} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
         </>
     );

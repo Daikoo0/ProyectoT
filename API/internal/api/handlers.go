@@ -3,10 +3,9 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+
 	"log"
 	"net/http"
-	"strconv"
 
 	"time"
 
@@ -34,7 +33,7 @@ type ProjectResponse struct {
 
 type RoomData struct {
 	Id_project primitive.ObjectID
-	Data       map[string]interface{}
+	Data       []map[string]interface{}
 	Config     map[string]interface{}
 	Active     []*websocket.Conn
 	Temp       Stack
@@ -352,69 +351,62 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Println(rowIndex, height)
 
 					newShape := map[string]interface{}{
-						"ColorFill":   "#ffffff", //white
-						"colorStroke": "#000000", //black
-						"zoom":        100,
-						"rotation":    0,
-						"tension":     0.5,
-						"file":        "Sin Pattern",
-						"height":      height,
-						"circles": []map[string]interface{}{
-							{"x": 0, "y": 0, "radius": 5, "movable": false},
-							{"x": 0.5, "y": 0, "radius": 5, "movable": true},
-							{"x": 0.5, "y": 1, "radius": 5, "movable": true},
-							{"x": 0, "y": 1, "radius": 5, "movable": false},
+						"Sistema":                 "",
+						"Edad":                    "",
+						"Formacion":               "",
+						"Miembro":                 "",
+						"Espesor":                 "",
+						"Facie":                   "",
+						"Ambiente Depositacional": "",
+						"Descripcion":             "",
+						"Litologia": map[string]interface{}{
+							"ColorFill":   "#ffffff", //white
+							"colorStroke": "#000000", //black
+							"zoom":        100,
+							"rotation":    0,
+							"tension":     0.5,
+							"file":        "Sin Pattern",
+							"height":      height,
+							"circles": []map[string]interface{}{
+								{"x": 0, "y": 0, "radius": 5, "movable": false},
+								{"x": 0.5, "y": 0, "radius": 5, "movable": true},
+								{"x": 0.5, "y": 1, "radius": 5, "movable": true},
+								{"x": 0, "y": 1, "radius": 5, "movable": false},
+							},
+							"upperContact": nil,
+							"lowerContact": nil,
+							"upperLimit":   nil,
+							"lowerLimit":   nil,
 						},
-						"upperContact": nil,
-						"lowerContact": nil,
-						"upperLimit":   nil,
-						"lowerLimit":   nil,
 					}
 
 					if rowIndex == -1 { // Agrega al final
 
-						litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
+						roomData := rooms[roomID]
 
-						litologia[strconv.Itoa(len(litologia))] = newShape
+						roomData.Data = append(roomData.Data, newShape)
 
 						// Enviar informacion a los clientes
 						msgData := map[string]interface{}{
-							"action":   "añadirEnd",
-							"rowIndex": len(litologia) - 1,
+							"action": "añadirEnd",
+							"value":  newShape,
+						}
+
+						sendSocketMessage(msgData, proyect, "añadir")
+
+					} else { // Agrega en el índice encontrado
+
+						roomData := rooms[roomID]
+
+						roomData.Data = append(roomData.Data[:rowIndex], append([]map[string]interface{}{newShape}, roomData.Data[rowIndex:]...)...)
+
+						msgData := map[string]interface{}{
+							"action":   "añadir",
+							"rowIndex": rowIndex,
 							"value":    newShape,
 						}
 
-						jsonBytes, err := json.Marshal(msgData)
-						if err != nil {
-							log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-						}
-
-						for _, client := range proyect.Active {
-							err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-							if err != nil {
-								log.Println(err)
-							}
-						}
-
-					} else { // Agrega en el índice encontrado
-						InsertRowInLitologiaAndUpdateIndices(roomID, rowIndex, newShape)
-
-						msgData := map[string]interface{}{
-							"action": "añadir",
-							"data":   rooms[roomID].Data,
-						}
-
-						jsonBytes, err := json.Marshal(msgData)
-						if err != nil {
-							log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-						}
-
-						for _, client := range proyect.Active {
-							err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-							if err != nil {
-								log.Println(err)
-							}
-						}
+						sendSocketMessage(msgData, proyect, "añadir")
 
 					}
 
@@ -428,28 +420,16 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					rowIndex := deleteData.RowIndex
 
-					// Eliminar el elemento en el índice encontrado
-					RemoveRowAndUpdateIndices(roomID, rowIndex)
+					roomData := rooms[roomID]
 
-					// Para revisar:
-					//rooms[roomID].Data["Litologia"] = append(rooms[roomID].Data["Litologia"][:rowIndex], rooms[roomID].Data["Litologia"][rowIndex+1:]...)
+					roomData.Data = append(roomData.Data[:rowIndex], roomData.Data[rowIndex+1:]...)
 
 					msgData := map[string]interface{}{
-						"action": "delete",
-						"data":   rooms[roomID].Data,
+						"action":   "delete",
+						"rowIndex": rowIndex,
 					}
 
-					jsonBytes, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-						if err != nil {
-							log.Println(err)
-						}
-					}
+					sendSocketMessage(msgData, proyect, "delete")
 
 				case "addCircle":
 
@@ -460,52 +440,86 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 
 					rowIndex := addCircleData.RowIndex
-					newCircle := addCircleData.NewCircle
+					insertIndex := addCircleData.InsertIndex
+					point := addCircleData.Point
 
-					litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
+					roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
 
-					// Agregar el nuevo círculo
-					innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
-					innerMap["circles"] = newCircle
+					circles := roomData["circles"].([]map[string]interface{})
 
-					// circles := innerMap["circles"].([]dtos.Circle)
+					newCircle2 := map[string]interface{}{
+						"x":       0.5,
+						"y":       point,
+						"radius":  5,
+						"movable": true,
+					}
 
-					// newCircle2 := dtos.Circle{
-					// 	X:       1,
-					// 	Y:       1,
-					// 	Radius:  5,
-					// 	Movable: true,
-					// }
+					circles = append(circles[:insertIndex], append([]map[string]interface{}{newCircle2}, circles[insertIndex:]...)...)
 
-					// Agregar el nuevo círculo, en la posición 3
-					//circles = append(circles[:3], append([]dtos.Circle{newCircle2}, circles[3:]...)...)
-
-					// eliminar el círculo en el índice
-					//circles = append(circles[:index], circles[index+1:]...)
-
-					// Agregar el nuevo círculo al final
-					//circles = append(circles, newCircle2)
-
-					//log.Println(circles, "circulos")
+					roomData["circles"] = circles
 
 					// Enviar informacion a los clientes
 					msgData := map[string]interface{}{
-						"action":    "addCircle",
-						"rowIndex":  rowIndex,
-						"newCircle": newCircle,
+						"action":   "addCircle",
+						"rowIndex": rowIndex,
+						"value":    circles,
 					}
 
-					jsonMsg, err := json.Marshal(msgData)
+					sendSocketMessage(msgData, proyect, "addCircle")
+
+				case "deleteCircle":
+					var deleteCircleData dtos.DeleteCircle
+					err := json.Unmarshal(dataMap.Data, &deleteCircleData)
 					if err != nil {
-						log.Fatalf("Error al convertir el mapa a JSON: %v", err)
+						log.Println("Error al deserializar: ", err)
 					}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println(err)
-						}
+					rowIndex := deleteCircleData.RowIndex
+					deleteIndex := deleteCircleData.DeleteIndex
+
+					roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
+
+					circles := roomData["circles"].([]map[string]interface{})
+
+					circles = append(circles[:deleteIndex], circles[deleteIndex+1:]...)
+
+					roomData["circles"] = circles
+
+					msgData := map[string]interface{}{
+						"action":   "addCircle",
+						"rowIndex": rowIndex,
+						"value":    circles,
 					}
+
+					sendSocketMessage(msgData, proyect, "deleCircle")
+
+				case "editCircle":
+					var editCircleData dtos.EditCircle
+
+					err := json.Unmarshal(dataMap.Data, &editCircleData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+					}
+
+					rowIndex := editCircleData.RowIndex
+					editIndex := editCircleData.EditIndex
+					x := editCircleData.X
+
+					roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
+
+					circles := roomData["circles"].([]map[string]interface{})
+
+					circles[editIndex]["x"] = x
+
+					roomData["circles"] = circles
+
+					msgData := map[string]interface{}{
+						"action":   "addCircle",
+						"rowIndex": rowIndex,
+						"value":    circles,
+					}
+
+					sendSocketMessage(msgData, proyect, "editCircle")
 
 				// Edicion de texto
 				case "editText":
@@ -521,8 +535,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					rowIndex := editTextData.RowIndex
 
 					//Modificamos el valor del texto, en rooms
-					innerMap := rooms[roomID].Data[key].(map[string]interface{})
-					innerMap[strconv.Itoa(rowIndex)] = value
+					innerMap := rooms[roomID].Data[rowIndex]
+					innerMap[key] = value
 
 					// Enviar informacion a los clientes
 					msgData := map[string]interface{}{
@@ -532,63 +546,53 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"rowIndex": rowIndex,
 					}
 
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal(err)
-					}
+					sendSocketMessage(msgData, proyect, "editText")
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println(err)
-						}
-					}
+				// case "addFosil":
+				// 	var fosil dtos.Fosil
+				// 	err := json.Unmarshal(dataMap.Data, &fosil)
+				// 	if err != nil {
+				// 		log.Println("Error", err)
+				// 	}
 
-				case "addFosil":
-					var fosil dtos.Fosil
-					err := json.Unmarshal(dataMap.Data, &fosil)
-					if err != nil {
-						log.Println("Error", err)
-					}
+				// 	upper := fosil.UpperLimit
+				// 	lower := fosil.LowerLimit
+				// 	posImage := (lower + upper) / 2
+				// 	srcFosil := fosil.SelectedFossil
+				// 	relativeX := fosil.RelativeX
 
-					upper := fosil.UpperLimit
-					lower := fosil.LowerLimit
-					posImage := (lower + upper) / 2
-					srcFosil := fosil.SelectedFossil
-					relativeX := fosil.RelativeX
+				// 	innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
 
-					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+				// 	concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(relativeX))
+				// 	if err != nil {
+				// 		log.Println("Error al convertir la cadena a entero:", err)
+				// 	}
 
-					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(relativeX))
-					if err != nil {
-						log.Println("Error al convertir la cadena a entero:", err)
-					}
+				// 	// Enviar informacion a los clientes
+				// 	msgData := map[string]interface{}{
+				// 		"action":        "addFosil",
+				// 		"idFosil":       concatenatedInt,
+				// 		"posImage":      posImage,
+				// 		"lower":         lower,
+				// 		"upper":         upper,
+				// 		"selectedFosil": srcFosil,
+				// 		"relativeX":     relativeX,
+				// 	}
 
-					// Enviar informacion a los clientes
-					msgData := map[string]interface{}{
-						"action":        "addFosil",
-						"idFosil":       concatenatedInt,
-						"posImage":      posImage,
-						"lower":         lower,
-						"upper":         upper,
-						"selectedFosil": srcFosil,
-						"relativeX":     relativeX,
-					}
+				// 	innerMap = append(innerMap, msgData)
+				// 	rooms[roomID].Data["Estructura fosil"] = innerMap
 
-					innerMap = append(innerMap, msgData)
-					rooms[roomID].Data["Estructura fosil"] = innerMap
+				// 	jsonMsg, err := json.Marshal(msgData)
+				// 	if err != nil {
+				// 		log.Fatal(err)
+				// 	}
 
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println(err)
-						}
-					}
+				// 	for _, client := range proyect.Active {
+				// 		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+				// 		if err != nil {
+				// 			log.Println(err)
+				// 		}
+				// 	}
 
 				case "save":
 					log.Println("guardando...")
@@ -597,96 +601,96 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("No se guardo la data")
 					}
 
-				case "editFosil":
-					var fosilEdit dtos.EditFosil
-					err := json.Unmarshal(dataMap.Data, &fosilEdit)
-					if err != nil {
-						log.Println("Error deserializando fósil:", err)
-						break
-					}
+				// case "editFosil":
+				// 	var fosilEdit dtos.EditFosil
+				// 	err := json.Unmarshal(dataMap.Data, &fosilEdit)
+				// 	if err != nil {
+				// 		log.Println("Error deserializando fósil:", err)
+				// 		break
+				// 	}
 
-					idFosilEdit := fosilEdit.IdFosil
-					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
-					var newInnerMap primitive.A
-					// Eliminar el fósil antiguo
-					for _, item := range innerMap {
-						fosilMap := item.(map[string]interface{})
-						elid := int(fosilMap["idFosil"].(int))
-						if elid != idFosilEdit {
-							newInnerMap = append(newInnerMap, fosilMap)
-						}
-					}
+				// 	idFosilEdit := fosilEdit.IdFosil
+				// 	innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+				// 	var newInnerMap primitive.A
+				// 	// Eliminar el fósil antiguo
+				// 	for _, item := range innerMap {
+				// 		fosilMap := item.(map[string]interface{})
+				// 		elid := int(fosilMap["idFosil"].(int))
+				// 		if elid != idFosilEdit {
+				// 			newInnerMap = append(newInnerMap, fosilMap)
+				// 		}
+				// 	}
 
-					// Agregar el nuevo fósil
-					posImage := (fosilEdit.LowerLimit + fosilEdit.UpperLimit) / 2
-					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(fosilEdit.RelativeX))
-					if err != nil {
-						log.Println("Error al convertir la cadena a entero:", err)
-					}
+				// 	// Agregar el nuevo fósil
+				// 	posImage := (fosilEdit.LowerLimit + fosilEdit.UpperLimit) / 2
+				// 	concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(fosilEdit.RelativeX))
+				// 	if err != nil {
+				// 		log.Println("Error al convertir la cadena a entero:", err)
+				// 	}
 
-					msgData := map[string]interface{}{
-						"action":        "editFosil",
-						"idFosil":       concatenatedInt,
-						"posImage":      posImage,
-						"lower":         fosilEdit.LowerLimit,
-						"upper":         fosilEdit.UpperLimit,
-						"selectedFosil": fosilEdit.SelectedFossil,
-						"relativeX":     fosilEdit.RelativeX,
-					}
+				// 	msgData := map[string]interface{}{
+				// 		"action":        "editFosil",
+				// 		"idFosil":       concatenatedInt,
+				// 		"posImage":      posImage,
+				// 		"lower":         fosilEdit.LowerLimit,
+				// 		"upper":         fosilEdit.UpperLimit,
+				// 		"selectedFosil": fosilEdit.SelectedFossil,
+				// 		"relativeX":     fosilEdit.RelativeX,
+				// 	}
 
-					newInnerMap = append(newInnerMap, msgData)
-					rooms[roomID].Data["Estructura fosil"] = newInnerMap
+				// 	newInnerMap = append(newInnerMap, msgData)
+				// 	rooms[roomID].Data["Estructura fosil"] = newInnerMap
 
-					// Enviar información actualizada a los clientes
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal("Error al serializar mensaje:", err)
-					}
+				// 	// Enviar información actualizada a los clientes
+				// 	jsonMsg, err := json.Marshal(msgData)
+				// 	if err != nil {
+				// 		log.Fatal("Error al serializar mensaje:", err)
+				// 	}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println("Error al enviar mensaje:", err)
-						}
-					}
+				// 	for _, client := range proyect.Active {
+				// 		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+				// 		if err != nil {
+				// 			log.Println("Error al enviar mensaje:", err)
+				// 		}
+				// 	}
 
-				case "deleteFosil":
-					var fosilID dtos.DeleteFosil
-					err := json.Unmarshal(dataMap.Data, &fosilID)
-					if err != nil {
-						log.Println("Error deserializando fósil:", err)
-						break
-					}
+				// case "deleteFosil":
+				// 	var fosilID dtos.DeleteFosil
+				// 	err := json.Unmarshal(dataMap.Data, &fosilID)
+				// 	if err != nil {
+				// 		log.Println("Error deserializando fósil:", err)
+				// 		break
+				// 	}
 
-					innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
-					var newInnerMap primitive.A
+				// 	innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+				// 	var newInnerMap primitive.A
 
-					for _, item := range innerMap {
-						fosilMap := item.(map[string]interface{})
-						elid := int(fosilMap["idFosil"].(int))
-						if elid != fosilID.IdFosil {
-							newInnerMap = append(newInnerMap, fosilMap)
-						}
-					}
-					rooms[roomID].Data["Estructura fosil"] = newInnerMap
+				// 	for _, item := range innerMap {
+				// 		fosilMap := item.(map[string]interface{})
+				// 		elid := int(fosilMap["idFosil"].(int))
+				// 		if elid != fosilID.IdFosil {
+				// 			newInnerMap = append(newInnerMap, fosilMap)
+				// 		}
+				// 	}
+				// 	rooms[roomID].Data["Estructura fosil"] = newInnerMap
 
-					msgData := map[string]interface{}{
-						"action":  "deleteFosil",
-						"idFosil": fosilID,
-					}
+				// 	msgData := map[string]interface{}{
+				// 		"action":  "deleteFosil",
+				// 		"idFosil": fosilID,
+				// 	}
 
-					// Enviar información actualizada a los clientes
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal("Error al serializar mensaje:", err)
-					}
+				// 	// Enviar información actualizada a los clientes
+				// 	jsonMsg, err := json.Marshal(msgData)
+				// 	if err != nil {
+				// 		log.Fatal("Error al serializar mensaje:", err)
+				// 	}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println("Error al enviar mensaje:", err)
-						}
-					}
+				// 	for _, client := range proyect.Active {
+				// 		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+				// 		if err != nil {
+				// 			log.Println("Error al enviar mensaje:", err)
+				// 		}
+				// 	}
 
 				case "columns":
 					var column dtos.Column
@@ -715,17 +719,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"columns": orderedVisibleColumns,
 					}
 
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal("Error al serializar mensaje:", err)
-					}
+					sendSocketMessage(msgData, proyect, "columns")
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println("Error al enviar mensaje:", err)
-						}
-					}
 				case "editPolygon":
 
 					var polygon dtos.EditPolygon
@@ -739,31 +734,27 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					column := polygon.Column
 					value := polygon.Value
 
-					litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
+					// litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
 
-					innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
+					// innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
+
+					roomData := rooms[roomID].Data[rowIndex]
+
+					innerMap := roomData["Litologia"].(map[string]interface{})
 					innerMap[column] = value
 
 					msgData := map[string]interface{}{
 						"action":   "editPolygon",
 						"rowIndex": rowIndex,
-						"column":   column,
+						"key":      column,
 						"value":    value,
 					}
 
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal("Error al serializar mensaje:", err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println("Error al enviar mensaje:", err)
-						}
-					}
+					sendSocketMessage(msgData, proyect, "editPolygon")
 
 				}
+
+				/////////////////////////////---------------------------//////////////////////////////
 
 				// if dataMap["action"] == "undo" {
 				// 	log.Println("deshacer")
@@ -1111,103 +1102,21 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	return nil
 }
 
-func RemoveRowAndUpdateIndices(roomID string, rowIndex int) {
-	roomData, exists := rooms[roomID]
-	if !exists {
-		fmt.Println("Room not found")
-		return
+func sendSocketMessage(msgData map[string]interface{}, proyect *RoomData, action string) {
+
+	jsonMsg, err := json.Marshal(msgData)
+	if err != nil {
+		log.Fatal("Error al serializar mensaje:", err)
 	}
 
-	for key, value := range roomData.Data {
-
-		if key == "Estructura fosil" {
-			continue
+	for _, client := range proyect.Active {
+		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+		if err != nil {
+			log.Println("Error al enviar mensaje:", err)
+			log.Println("action: ", action)
 		}
-
-		innerMap, ok := value.(map[string]interface{})
-		if !ok {
-			fmt.Println("Invalid data type for key:", key)
-			continue
-		}
-
-		newMap := make(map[string]interface{})
-
-		// Elimina el elemento en rowIndex y actualiza los índices de los elementos restantes
-		for k, v := range innerMap {
-			i, err := strconv.Atoi(k)
-			if err != nil {
-				fmt.Println("Invalid key type, expected integer:", k)
-				continue
-			}
-
-			if i == rowIndex {
-				// No incluir este elemento
-				continue
-			}
-
-			if i > rowIndex {
-				newMap[strconv.Itoa(i-1)] = v
-			} else {
-				newMap[k] = v
-			}
-		}
-
-		roomData.Data[key] = newMap
-	}
-}
-
-func InsertRowInLitologiaAndUpdateIndices(roomID string, rowIndex int, newLitologiaData interface{}) {
-	roomData, exists := rooms[roomID]
-	if !exists {
-		fmt.Println("Room not found")
-		return
 	}
 
-	// Procesa la clave "Litologia" de manera especial
-	if litologia, ok := roomData.Data["Litologia"].(map[string]interface{}); ok {
-		// Desplaza los elementos existentes en "Litologia" para hacer espacio para el nuevo
-		for i := len(litologia) - 1; i >= rowIndex; i-- {
-			litologia[strconv.Itoa(i+1)] = litologia[strconv.Itoa(i)]
-		}
-		// Inserta los nuevos datos en "Litologia"
-		litologia[strconv.Itoa(rowIndex)] = newLitologiaData
-	} else {
-		fmt.Println("Litologia data not found or invalid type")
-	}
-
-	// Para todas las otras claves, solo mueve los índices
-	for key, value := range roomData.Data {
-		// Ignora "Litologia" y "Estructura fosil"
-		if key == "Litologia" || key == "Estructura fosil" {
-			continue
-		}
-
-		innerMap, ok := value.(map[string]interface{})
-		if !ok {
-			fmt.Println("Invalid data type for key:", key)
-			continue
-		}
-
-		newMap := make(map[string]interface{})
-
-		// Recorre el mapa original
-		for k, v := range innerMap {
-			i, err := strconv.Atoi(k)
-			if err != nil {
-				fmt.Println("Invalid key type, expected integer:", k)
-				continue
-			}
-
-			if i >= rowIndex {
-				newMap[strconv.Itoa(i+1)] = v
-			} else {
-				newMap[k] = v
-			}
-		}
-
-		roomData.Data[key] = newMap
-
-	}
 }
 
 func (a *API) HandleInviteUser(c echo.Context) error {
@@ -1276,7 +1185,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data map[string]interface{}, Config map[string]interface{}) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}) *RoomData {
 
 	projectIDString := Id_project.Hex()
 
@@ -1284,6 +1193,19 @@ func instanceRoom(Id_project primitive.ObjectID, Data map[string]interface{}, Co
 
 	//room, exists := rooms[Id_project] //instancia el room con los datos de la bd
 	if !exists {
+
+		for _, element := range Data {
+			data := element["Litologia"].(map[string]interface{})
+			circles := make([]map[string]interface{}, 0) // Create an empty slice to store the circles
+
+			for _, c := range data["circles"].(primitive.A) {
+				circle := c.(map[string]interface{})
+				circles = append(circles, circle)
+			}
+
+			data["circles"] = circles
+		}
+
 		room = &RoomData{
 			Id_project: Id_project,
 			Data:       Data,
