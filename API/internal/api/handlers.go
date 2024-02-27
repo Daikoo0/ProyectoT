@@ -6,6 +6,7 @@ import (
 
 	"log"
 	"net/http"
+	"strconv"
 
 	"time"
 
@@ -35,6 +36,7 @@ type RoomData struct {
 	Id_project primitive.ObjectID
 	Data       []map[string]interface{}
 	Config     map[string]interface{}
+	Fosil      []map[string]interface{}
 	Active     []*websocket.Conn
 	Temp       Stack
 }
@@ -225,7 +227,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	//conectar a la sala
 	proyect := instanceRoom(objectID,
 		room.Data,
-		room.Config)
+		room.Config,
+		room.Fosil)
 	proyect.Active = append(proyect.Active, conn)
 
 	log.Println(proyect.Active)
@@ -251,6 +254,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		"action": "data",
 		"data":   proyect.Data,
 		"config": claves,
+		"fosil":  proyect.Fosil,
 	}
 	// Trnasformar el mapa a JSON y envio a clientes
 	databytes, err := json.Marshal(dataRoom)
@@ -292,7 +296,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						if roomActions[roomID] >= roomActionsThreshold {
 
 							// Función de guardado
-							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
+							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
 							if err != nil {
 								log.Println("Error guardando la sala automáticamente: ", err)
 							} else {
@@ -320,7 +324,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							<-timer.C
 
 							// Función de guardado
-							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
+							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
 							if err != nil {
 								log.Println("Error guardando la sala automáticamente: ", err)
 							} else {
@@ -548,149 +552,149 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					sendSocketMessage(msgData, proyect, "editText")
 
-				// case "addFosil":
-				// 	var fosil dtos.Fosil
-				// 	err := json.Unmarshal(dataMap.Data, &fosil)
-				// 	if err != nil {
-				// 		log.Println("Error", err)
-				// 	}
+				case "addFosil":
+					var fosil dtos.Fosil
+					err := json.Unmarshal(dataMap.Data, &fosil)
+					if err != nil {
+						log.Println("Error", err)
+					}
 
-				// 	upper := fosil.UpperLimit
-				// 	lower := fosil.LowerLimit
-				// 	posImage := (lower + upper) / 2
-				// 	srcFosil := fosil.SelectedFossil
-				// 	relativeX := fosil.RelativeX
+					upper := fosil.UpperLimit
+					lower := fosil.LowerLimit
+					posImage := (lower + upper) / 2
+					srcFosil := fosil.SelectedFossil
+					relativeX := fosil.RelativeX
 
-				// 	innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
+					innerMap := rooms[roomID].Fosil
 
-				// 	concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(relativeX))
-				// 	if err != nil {
-				// 		log.Println("Error al convertir la cadena a entero:", err)
-				// 	}
+					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(relativeX))
+					if err != nil {
+						log.Println("Error al convertir la cadena a entero:", err)
+					}
 
-				// 	// Enviar informacion a los clientes
-				// 	msgData := map[string]interface{}{
-				// 		"action":        "addFosil",
-				// 		"idFosil":       concatenatedInt,
-				// 		"posImage":      posImage,
-				// 		"lower":         lower,
-				// 		"upper":         upper,
-				// 		"selectedFosil": srcFosil,
-				// 		"relativeX":     relativeX,
-				// 	}
+					// Enviar informacion a los clientes
+					msgData := map[string]interface{}{
+						"action":        "addFosil",
+						"idFosil":       concatenatedInt,
+						"posImage":      posImage,
+						"lower":         lower,
+						"upper":         upper,
+						"selectedFosil": srcFosil,
+						"relativeX":     relativeX,
+					}
 
-				// 	innerMap = append(innerMap, msgData)
-				// 	rooms[roomID].Data["Estructura fosil"] = innerMap
+					innerMap = append(innerMap, msgData)
+					rooms[roomID].Fosil = innerMap
 
-				// 	jsonMsg, err := json.Marshal(msgData)
-				// 	if err != nil {
-				// 		log.Fatal(err)
-				// 	}
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal(err)
+					}
 
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println(err)
+						}
+					}
 
 				case "save":
 					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
+					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
 
-				// case "editFosil":
-				// 	var fosilEdit dtos.EditFosil
-				// 	err := json.Unmarshal(dataMap.Data, &fosilEdit)
-				// 	if err != nil {
-				// 		log.Println("Error deserializando fósil:", err)
-				// 		break
-				// 	}
+				case "editFosil":
+					var fosilEdit dtos.EditFosil
+					err := json.Unmarshal(dataMap.Data, &fosilEdit)
+					if err != nil {
+						log.Println("Error deserializando fósil:", err)
+						break
+					}
 
-				// 	idFosilEdit := fosilEdit.IdFosil
-				// 	innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
-				// 	var newInnerMap primitive.A
-				// 	// Eliminar el fósil antiguo
-				// 	for _, item := range innerMap {
-				// 		fosilMap := item.(map[string]interface{})
-				// 		elid := int(fosilMap["idFosil"].(int))
-				// 		if elid != idFosilEdit {
-				// 			newInnerMap = append(newInnerMap, fosilMap)
-				// 		}
-				// 	}
+					idFosilEdit := fosilEdit.IdFosil
+					innerMap := rooms[roomID].Fosil
+					var newInnerMap Stack
+					// Eliminar el fósil antiguo
+					for _, item := range innerMap {
+						fosilMap := item
+						elid := int(fosilMap["idFosil"].(int))
+						if elid != idFosilEdit {
+							newInnerMap = append(newInnerMap, fosilMap)
+						}
+					}
 
-				// 	// Agregar el nuevo fósil
-				// 	posImage := (fosilEdit.LowerLimit + fosilEdit.UpperLimit) / 2
-				// 	concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(fosilEdit.RelativeX))
-				// 	if err != nil {
-				// 		log.Println("Error al convertir la cadena a entero:", err)
-				// 	}
+					// Agregar el nuevo fósil
+					posImage := (fosilEdit.LowerLimit + fosilEdit.UpperLimit) / 2
+					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(fosilEdit.RelativeX))
+					if err != nil {
+						log.Println("Error al convertir la cadena a entero:", err)
+					}
 
-				// 	msgData := map[string]interface{}{
-				// 		"action":        "editFosil",
-				// 		"idFosil":       concatenatedInt,
-				// 		"posImage":      posImage,
-				// 		"lower":         fosilEdit.LowerLimit,
-				// 		"upper":         fosilEdit.UpperLimit,
-				// 		"selectedFosil": fosilEdit.SelectedFossil,
-				// 		"relativeX":     fosilEdit.RelativeX,
-				// 	}
+					msgData := map[string]interface{}{
+						"action":        "editFosil",
+						"idFosil":       concatenatedInt,
+						"posImage":      posImage,
+						"lower":         fosilEdit.LowerLimit,
+						"upper":         fosilEdit.UpperLimit,
+						"selectedFosil": fosilEdit.SelectedFossil,
+						"relativeX":     fosilEdit.RelativeX,
+					}
 
-				// 	newInnerMap = append(newInnerMap, msgData)
-				// 	rooms[roomID].Data["Estructura fosil"] = newInnerMap
+					newInnerMap = append(newInnerMap, msgData)
+					rooms[roomID].Fosil = newInnerMap
 
-				// 	// Enviar información actualizada a los clientes
-				// 	jsonMsg, err := json.Marshal(msgData)
-				// 	if err != nil {
-				// 		log.Fatal("Error al serializar mensaje:", err)
-				// 	}
+					// Enviar información actualizada a los clientes
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal("Error al serializar mensaje:", err)
+					}
 
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-				// 		if err != nil {
-				// 			log.Println("Error al enviar mensaje:", err)
-				// 		}
-				// 	}
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println("Error al enviar mensaje:", err)
+						}
+					}
 
-				// case "deleteFosil":
-				// 	var fosilID dtos.DeleteFosil
-				// 	err := json.Unmarshal(dataMap.Data, &fosilID)
-				// 	if err != nil {
-				// 		log.Println("Error deserializando fósil:", err)
-				// 		break
-				// 	}
+				case "deleteFosil":
+					var fosilID dtos.DeleteFosil
+					err := json.Unmarshal(dataMap.Data, &fosilID)
+					if err != nil {
+						log.Println("Error deserializando fósil:", err)
+						break
+					}
 
-				// 	innerMap := rooms[roomID].Data["Estructura fosil"].(primitive.A)
-				// 	var newInnerMap primitive.A
+					innerMap := rooms[roomID].Fosil
+					var newInnerMap []map[string]interface{}
 
-				// 	for _, item := range innerMap {
-				// 		fosilMap := item.(map[string]interface{})
-				// 		elid := int(fosilMap["idFosil"].(int))
-				// 		if elid != fosilID.IdFosil {
-				// 			newInnerMap = append(newInnerMap, fosilMap)
-				// 		}
-				// 	}
-				// 	rooms[roomID].Data["Estructura fosil"] = newInnerMap
+					for _, item := range innerMap {
+						fosilMap := item
+						elid := int(fosilMap["idFosil"].(int))
+						if elid != fosilID.IdFosil {
+							newInnerMap = append(newInnerMap, fosilMap)
+						}
+					}
+					rooms[roomID].Fosil = newInnerMap
 
-				// 	msgData := map[string]interface{}{
-				// 		"action":  "deleteFosil",
-				// 		"idFosil": fosilID,
-				// 	}
+					msgData := map[string]interface{}{
+						"action":  "deleteFosil",
+						"idFosil": fosilID,
+					}
 
-				// 	// Enviar información actualizada a los clientes
-				// 	jsonMsg, err := json.Marshal(msgData)
-				// 	if err != nil {
-				// 		log.Fatal("Error al serializar mensaje:", err)
-				// 	}
+					// Enviar información actualizada a los clientes
+					jsonMsg, err := json.Marshal(msgData)
+					if err != nil {
+						log.Fatal("Error al serializar mensaje:", err)
+					}
 
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-				// 		if err != nil {
-				// 			log.Println("Error al enviar mensaje:", err)
-				// 		}
-				// 	}
+					for _, client := range proyect.Active {
+						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
+						if err != nil {
+							log.Println("Error al enviar mensaje:", err)
+						}
+					}
 
 				case "columns":
 					var column dtos.Column
@@ -1185,10 +1189,9 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}, Fosil []map[string]interface{}) *RoomData {
 
 	projectIDString := Id_project.Hex()
-
 	room, exists := rooms[projectIDString]
 
 	//room, exists := rooms[Id_project] //instancia el room con los datos de la bd
@@ -1210,6 +1213,7 @@ func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, 
 			Id_project: Id_project,
 			Data:       Data,
 			Config:     Config,
+			Fosil:      Fosil,
 			Active:     make([]*websocket.Conn, 0),
 		}
 

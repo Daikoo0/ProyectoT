@@ -145,12 +145,13 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 	return nil
 }
-func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, roomName string) error {
+func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, fosil []map[string]interface{}, roomName string) error {
 	objectID, err := primitive.ObjectIDFromHex(roomName)
 	filter := bson.M{"id_project": objectID}
 	update := bson.M{"$set": bson.M{
 		"data":   data,
 		"config": config,
+		"fosil":  fosil,
 	}}
 
 	rooms := r.db.Collection("data-projects")

@@ -12,9 +12,17 @@ const Grid = () => {
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
+  const [columnWidths, setColumnWidths] = useState({});
   const [data, setData] = useState([]);
-  const [polygons, setPolygons] = useState([]);
   const [header, setHeader] = useState([]);
+  const [upperLimit, setUpperLimit] = useState('');
+  const [lowerLimit, setLowerLimit] = useState('');
+  const [selectedFosil, setSelectedFosil] = useState("");
+  const [relativeX, setRelativeX] = useState(0);
+  const [idClickFosil, setIdClickFosil] = useState<number>(0);
+  const [fossils, setFossils] = useState([]);
+  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5 });
+  const [scale, setScale] = useState(1);
   // const [columnCount, setColumnCount] = useState(0);
   // const [fossils, setFossils] = useState([]);
 
@@ -152,6 +160,7 @@ const Grid = () => {
             setData(shapeN.data)
             //setPolygons(Litologia)
             setHeader(shapeN.config)
+            setFossils(shapeN.fosil)
             break;
           }
           case 'añadir': {
@@ -170,7 +179,10 @@ const Grid = () => {
             setHeader(shapeN.columns)
             break
           case 'addFosil':
-            setFossils(prevfossils => [...prevfossils, shapeN]);
+            fossils.length>0? 
+            setFossils(prevfossils => [...prevfossils, shapeN])
+            :
+            setFossils([shapeN])
             break
           case 'addCircle':
             setData(prev => {
@@ -213,7 +225,23 @@ const Grid = () => {
               return newData;
             });
             break
-
+          case 'editFosil':
+            const updatedFossils = fossils.filter(fossil => fossil.idFosil !== idClickFosil);
+            setFossils([...updatedFossils, shapeN]);
+            setSideBarState({
+              sideBar: false,
+              sideBarMode: ""
+            })
+            break
+          case 'deleteFosil':
+            const updatedFosils = fossils.filter(fossil => fossil.idFosil !== shapeN.idFosil);
+            console.log(updatedFosils)
+            setFossils(updatedFosils);
+            setSideBarState({
+              sideBar: false,
+              sideBarMode: ""
+            })
+            break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
@@ -241,14 +269,7 @@ const Grid = () => {
     })
   }
 
-  const [upperLimit, setUpperLimit] = useState('');
-  const [lowerLimit, setLowerLimit] = useState('');
-  const [selectedFosil, setSelectedFosil] = useState("");
-  const [relativeX, setRelativeX] = useState(0);
-  const [idClickFosil, setIdClickFosil] = useState<number>(0);
-  const [fossils, setFossils] = useState([]);
-  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5 });
-  const [scale, setScale] = useState(1);
+
 
   //--------- Funciones Socket ------------//
 
@@ -259,7 +280,7 @@ const Grid = () => {
         "upperLimit": parseInt(upperLimit),
         "lowerLimit": parseInt(lowerLimit),
         "selectedFosil": selectedFosil,
-        "relativeX": relativeX
+        "relativeX": relativeX*100/(columnWidths["Litologia"] ? columnWidths["Litologia"]: 150)
       }
     }));
   };
@@ -286,6 +307,31 @@ const Grid = () => {
     }));
 
   }
+
+  const handleDeleteFosil = () => {
+    socket.send(JSON.stringify({
+      action: 'deleteFosil',
+      data: {
+        "idFosil": idClickFosil,
+      }
+    }));
+  }
+
+  const handleFosilEdit = () => {
+
+    const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
+    socket.send(JSON.stringify({
+      action: 'editFosil',
+      data: {
+        "idFosil": idClickFosil,
+        "upperLimit": parseInt(upperLimit),
+        "lowerLimit": parseInt(lowerLimit),
+        "selectedFosil": selectedFosil,
+        "relativeX": foundFossil.relativeX
+      }
+    }));
+  }
+
 
   // Añade un nuevo punto 
   const addCircles = (rowIndex: number, insertIndex: number, point: number) => {
@@ -320,6 +366,8 @@ const Grid = () => {
       }
     }));
   }
+  
+  console.log(sideBarState)
 
   const addShape = (row, height) => {
 
@@ -393,6 +441,8 @@ const Grid = () => {
             setSideBarState={setSideBarState}
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
+            columnWidths={columnWidths}
+            setColumnWidths={setColumnWidths}
           />
         </div>
 
@@ -640,6 +690,60 @@ const Grid = () => {
                       </div>
                     </ul>
                   );
+                case "editFosil":
+                  const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Editando fósil</li>
+                      <li>
+                        <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
+                          <option disabled selected>Selecciona un fósil</option>
+                          {Object.keys(fosilJson).map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </li>
+                      <li>
+
+                        <div className="flex w-full">
+                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">  <img
+                            alt="None"
+                            src={`../src/assets/fosiles/${foundFossil ? fosilJson[foundFossil.selectedFosil] : fosilJson[1]}.svg`} />
+                          </div>
+                          <div className="divider divider-horizontal">
+
+                            <svg className="w-10 h-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
+                            </svg>
+                          </div>
+                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">   <img
+                            alt="None"
+                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} /></div>
+                        </div>
+
+
+                      </li>
+                      <li>
+                        límite superior (metros):
+                        <input
+                          type="number"
+                          placeholder={foundFossil ? foundFossil.upper : null}
+                          value={upperLimit}
+                          onChange={(e) => setUpperLimit(e.target.value)}
+                        />
+                      </li>
+                      <li>
+                        Límite inferior (metros):
+                        <input
+                          type="number"
+                          placeholder={foundFossil ? foundFossil.lower : null}
+                          value={lowerLimit}
+                          onChange={(e) => setLowerLimit(e.target.value)}
+                        />
+                      </li>
+                      <li> <button className="btn btn-primary" onClick={handleFosilEdit}>Confirmar edición</button></li>
+                      <li><button className="btn btn-primary" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
+                    </ul>)
                 case "polygon":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
