@@ -336,7 +336,7 @@
             4,
             8
         ],
-        "lineWidth": 4,
+        "lineWidth": 2,
         "arcs": true,
         "question": false
     },
@@ -349,7 +349,7 @@
             4,
             8
         ],
-        "lineWidth": 4,
+        "lineWidth": 2,
         "arcs": true,
         "question": true
     },

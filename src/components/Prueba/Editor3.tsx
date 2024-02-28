@@ -5,6 +5,7 @@ import EditorQuill from './EditorQuill';
 import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
+import contacts from '../../contacts.json';
 
 const Grid = () => {
 
@@ -179,10 +180,10 @@ const Grid = () => {
             setHeader(shapeN.columns)
             break
           case 'addFosil':
-            fossils.length>0? 
-            setFossils(prevfossils => [...prevfossils, shapeN])
-            :
-            setFossils([shapeN])
+            fossils.length > 0 ?
+              setFossils(prevfossils => [...prevfossils, shapeN])
+              :
+              setFossils([shapeN])
             break
           case 'addCircle':
             setData(prev => {
@@ -280,7 +281,7 @@ const Grid = () => {
         "upperLimit": parseInt(upperLimit),
         "lowerLimit": parseInt(lowerLimit),
         "selectedFosil": selectedFosil,
-        "relativeX": relativeX*100/(columnWidths["Litologia"] ? columnWidths["Litologia"]: 150)
+        "relativeX": relativeX * 100 / (columnWidths["Litologia"] ? columnWidths["Litologia"] : 150)
       }
     }));
   };
@@ -366,7 +367,7 @@ const Grid = () => {
       }
     }));
   }
-  
+
   console.log(sideBarState)
 
   const addShape = (row, height) => {
@@ -380,6 +381,7 @@ const Grid = () => {
     }));
   }
 
+  const [selectedContactIndex, setSelectedContactIndex] = useState(null);
 
   return (
     <>
@@ -750,12 +752,54 @@ const Grid = () => {
                       <li className="menu-title">Editando polígono</li>
 
                       <li>
-                        <details open>
-                          <summary>Patrón</summary>
+                        <details open={false}>
+                          <summary>Contacto inferor</summary>
                           <ul>
-                            <li><a>Submenu 1</a></li>
-                            <li><a>Submenu 2</a></li>
+                            {Object.values(contacts).map((contact, index) => (
+                              <li key={index} style={{ backgroundColor: 'white', padding: '10px', marginBottom: '10px' }}>
+                                <label style={{ display: 'flex', alignItems: 'center' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedContactIndex === index}
+                                    onChange={() => setSelectedContactIndex(index)}
+                                    style={{ marginRight: '8px' }}
+                                  />
+                                  <svg width="150" height="20">
+                                    {contact.dash && (
+                                      <line
+                                        x1="0"
+                                        y1="15"
+                                        x2="150"
+                                        y2="15"
+                                        stroke="black"
+                                        strokeWidth={contact.lineWidth>2 ? contact.lineWidth : 1}
+                                        strokeDasharray={`${contact.dash}`}
+                                      />
+                                    )}
+                                    {('dash2' in contact) && contact.dash2 && (
+                                      <line
+                                        x1="0"
+                                        y1="10"
+                                        x2="150"
+                                        y2="10"
+                                        stroke="black"
+                                        strokeWidth={contact.lineWidth2 ?? 1}
+                                        strokeDasharray={`${contact.dash2}`}
+                                      />
+                                    )}
+                                    {contact.question && (
+                                      <text x="75" y="15" textAnchor="middle" dominantBaseline="middle" fontSize="20" fill="red">?</text>
+                                    )}
+                                    {contact.arcs && (
+                                      <path 
+                                       d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,5 30,15 Q 35,25 40,15 Q 45,5 50,15 Q 55,25 60,15 Q 65,5 70,15 Q 75,25 80,15 Q 85,5 90,15 Q 95,25 100,15 Q 105,5 110,15 Q 115,25 120,15 Q 125,5 130,15 Q 135,25 140,15 Q 145,5 150,15" fill="none" stroke="black" strokeWidth="1" />
+                                    )}
+                                  </svg>
+                                </label>
+                              </li>
+                            ))}
                           </ul>
+
                         </details>
                       </li>
 

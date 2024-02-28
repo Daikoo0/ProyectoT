@@ -6,7 +6,6 @@ import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable'
 import { useReactToPrint } from "react-to-print"
 
-
 const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow,setColumnWidths,columnWidths }) => {
 
     const cellWidth = 150;
@@ -113,13 +112,13 @@ const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX,
                                                 id="fossils"
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 rowSpan={data.length}
-                                                className="border border-secondary"
+                                                className="border border-secondary" 
                                                 style={{
                                                     verticalAlign: "top",
                                                     borderLeft: 'none',
                                                 }}
                                             >
-                                                <div className="h-full max-h-full" 
+                                                <div className="h-full max-h-full tooltip"  data-tip="hello"
                                                     onClick={(e) => {
                                                         if (e.target instanceof SVGSVGElement) {
                                                             setSideBarState({

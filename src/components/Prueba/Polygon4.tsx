@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useMemo } from "react";
 
 const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation }) => {
 
-
   const amplitude = 4;
   const resolution = 1;
   const [svgWidth, setSvgWidth] = useState(0);
@@ -160,7 +159,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
   
 
   useEffect(() => {
-    if (File === "Sin Pattern") {
+    if (File === 0) {
       setSvgContent('');
       return;
     }
@@ -178,7 +177,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
   
   useEffect(() => {
    
-    if (svgContent && File !== "Sin Pattern") {
+    if (svgContent && File !== 0) {
       updateSvgContent(svgContent);
     }
   }, [ColorFill, ColorStroke, Zoom]); 
