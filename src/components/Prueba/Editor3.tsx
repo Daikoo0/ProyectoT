@@ -147,6 +147,8 @@ const Grid = () => {
     };
   }, [project]);
 
+  const [editingUsers, setEditingUsers] = useState({});
+
   // Escucha de mensajes del socket
   useEffect(() => {
     if (socket) {
@@ -157,11 +159,21 @@ const Grid = () => {
 
         switch (shapeN.action) {
           case 'data': {
+            console.log(shapeN)
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
             //setPolygons(Litologia)
             setHeader(shapeN.config)
             setFossils(shapeN.fosil)
+            setEditingUsers(shapeN.usersEditing)
+            break;
+          }
+          case 'editingUser': {
+            setEditingUsers(prevState => ({
+              ...prevState,
+              [shapeN.value]: {"name" :shapeN.userName, "color" : shapeN.color}
+              
+            }));
             break;
           }
           case 'añadir': {
@@ -383,6 +395,15 @@ const Grid = () => {
 
   const [selectedContactIndex, setSelectedContactIndex] = useState(null);
 
+  const sendActionCell = (row,column) => {
+    if (socket) {
+      socket.send(JSON.stringify({ action: 'editingUser', 
+      data: {
+        section : `[${row},${column}]`
+      } }));
+    }
+  }
+
   return (
     <>
 
@@ -398,10 +419,8 @@ const Grid = () => {
         {/* Contenido */}
         <div className="drawer-content">
 
-
           <div className="navbar bg-base-200">
             <div className="flex-none">
-
 
               <div className="dropdown dropdown-end">
 
@@ -430,10 +449,10 @@ const Grid = () => {
             </div>
           </div>
 
-
-
           <Tabla
             setIdClickFosil={setIdClickFosil}
+            setEditingUsers={setEditingUsers}
+            editingUsers={editingUsers}
             fossils={fossils}
             setRelativeX={setRelativeX}
             data={data}
@@ -444,6 +463,7 @@ const Grid = () => {
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
             columnWidths={columnWidths}
+            sendActionCell={sendActionCell}
             setColumnWidths={setColumnWidths}
           />
         </div>

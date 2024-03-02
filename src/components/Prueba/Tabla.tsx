@@ -5,16 +5,15 @@ import lithoJson from '../../lithologic.json';
 import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable'
 import { useReactToPrint } from "react-to-print"
+import { string } from "prop-types";
 
-const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow,setColumnWidths,columnWidths }) => {
+const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow,setColumnWidths,columnWidths }) => {
 
     const cellWidth = 150;
     const cellMinWidth = 100;
     const cellMaxWidth = 500;
-
     const tableref = useRef(null);
-    console.log(data)
-
+    console.log(editingUsers)
     const handlePrint = useReactToPrint({
 
         documentTitle: "Print This Document",
@@ -42,6 +41,7 @@ const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX,
     });
 
 
+    
     // Función para manejar el inicio del arrastre para redimensionar
     const handleMouseDown = (columnName, event) => {
         event.preventDefault();
@@ -112,13 +112,14 @@ const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX,
                                                 id="fossils"
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 rowSpan={data.length}
-                                                className="border border-secondary" 
+                                                className="border" 
                                                 style={{
                                                     verticalAlign: "top",
                                                     borderLeft: 'none',
+                                                    borderColor : 'black'
                                                 }}
                                             >
-                                                <div className="h-full max-h-full tooltip"  data-tip="hello"
+                                                <div className="h-full max-h-full"// tooltip" data-tip="hello"
                                                     onClick={(e) => {
                                                         if (e.target instanceof SVGSVGElement) {
                                                             setSideBarState({
@@ -153,7 +154,12 @@ const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX,
                                         return (
                                             <td
                                                 key={`${rowIndex}-${columnIndex}`}
-                                                className="border border-secondary prose ql-editor"
+                                                className={
+                                                  editingUsers?.[`[${rowIndex},${columnIndex}]`]?
+                                                  (`border-4 prose`+ (columnName === "Litologia" ? "ql-editor" : ""))
+                                                   : 
+                                                    (`border prose`+ (columnName === "Litologia" ? "ql-editor" : ""))
+                                                }
                                                 onClick={() => {
                                                     if (columnName !== "Litologia") {
                                                         setSideBarState({
@@ -162,8 +168,8 @@ const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX,
                                                         });
                                                         console.log(rowIndex, columnName)
                                                         handleClickRow(rowIndex, columnName)
-
                                                     }
+                                                    sendActionCell(rowIndex,columnIndex)
                                                 }}
                                                 style={{
                                                     //maxHeight: `${lithology[rowIndex].height * scale}px`,
@@ -172,16 +178,17 @@ const Tabla = ({ data, header, scale, addCircles, setSideBarState, setRelativeX,
                                                     padding: '0',
                                                     top: '0',
                                                     borderWidth: 1,
+                                                    borderColor :  editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color ? editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color : 'black',
                                                     borderTop: (columnName === 'Litologia') ? 'none' : '',
                                                     borderBottom: (columnName === 'Litologia') && Number(rowIndex) < data.length - 1 ? 'none' : '',
                                                     verticalAlign: "top",
                                                     borderRight: ((columnName === 'Litologia') && (header.includes('Estructura fosil'))) ? 'none' : '',
-                                                }}
+                                                    borderLeft : ''
+                                                   }}
                                             >
                                                 <div
                                                     style={{
                                                         maxHeight: `${RowValue.Litologia.height * scale}px`,
-
                                                     }}
                                                 >
                                                     {columnName === 'Litologia' ?

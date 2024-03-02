@@ -28,17 +28,23 @@ type GeneralMessage struct {
 	Data   json.RawMessage `json:"data"`
 }
 
+// type SectionInfo struct {
+// 	Name  string
+// 	Color string
+// }
+
 type ProjectResponse struct {
 	Projects []models.Data `json:"projects"`
 }
 
 type RoomData struct {
-	Id_project primitive.ObjectID
-	Data       []map[string]interface{}
-	Config     map[string]interface{}
-	Fosil      []map[string]interface{}
-	Active     []*websocket.Conn
-	Temp       Stack
+	Id_project   primitive.ObjectID
+	Data         []map[string]interface{}
+	Config       map[string]interface{}
+	Fosil        []map[string]interface{}
+	Active       []*websocket.Conn
+	Temp         Stack
+	UsersEditing map[string]interface{}
 }
 
 var rooms = make(map[string]*RoomData)
@@ -251,10 +257,11 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	// Enviar configuracion y datos de la sala
 	dataRoom := map[string]interface{}{
-		"action": "data",
-		"data":   proyect.Data,
-		"config": claves,
-		"fosil":  proyect.Fosil,
+		"action":       "data",
+		"data":         proyect.Data,
+		"config":       claves,
+		"fosil":        proyect.Fosil,
+		"usersEditing": proyect.UsersEditing,
 	}
 	// Trnasformar el mapa a JSON y envio a clientes
 	databytes, err := json.Marshal(dataRoom)
@@ -341,6 +348,44 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				// Switch para las acciones
 				switch dataMap.Action {
+
+				case "editingUser":
+
+					var editing dtos.UserEditingState
+					err := json.Unmarshal(dataMap.Data, &editing)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+					}
+
+					claims, err := encryption.ParseLoginJWT(cookie.Value)
+					if err != nil {
+						log.Println("Error al encontrar identificacion del usuario: ", err)
+					}
+
+					var name = claims["name"].(string)
+					section := editing.Section
+					log.Println(name, section)
+					log.Println(proyect.UsersEditing)
+					msgData := map[string]interface{}{
+						"action":   "editingUser",
+						"userName": name,
+						"color":    "#03f4fc",
+						"value":    section,
+					}
+
+					roomData := rooms[roomID]
+
+					if roomData.UsersEditing == nil {
+						// Si no está inicializado, inicialízalo
+						roomData.UsersEditing = make(map[string]interface{})
+					}
+
+					roomData.UsersEditing[section] = map[string]interface{}{
+						"name":  name,
+						"color": "#03f4fc",
+					}
+					sendSocketMessage(msgData, proyect, "editingUser")
+
 				case "añadir":
 
 					var addData dtos.Add
@@ -495,7 +540,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"value":    circles,
 					}
 
-					sendSocketMessage(msgData, proyect, "deleCircle")
+					sendSocketMessage(msgData, proyect, "deleteCircle")
 
 				case "editCircle":
 					var editCircleData dtos.EditCircle
@@ -619,7 +664,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					// Eliminar el fósil antiguo
 					for _, item := range innerMap {
 						fosilMap := item
-						elid := int(fosilMap["idFosil"].(int))
+						elid := int(fosilMap["idFosil"].(int32))
 						if elid != idFosilEdit {
 							newInnerMap = append(newInnerMap, fosilMap)
 						}
@@ -671,7 +716,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					for _, item := range innerMap {
 						fosilMap := item
-						elid := int(fosilMap["idFosil"].(int))
+						elid := int(fosilMap["idFosil"].(int32))
 						if elid != fosilID.IdFosil {
 							newInnerMap = append(newInnerMap, fosilMap)
 						}
@@ -1193,7 +1238,6 @@ func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, 
 
 	projectIDString := Id_project.Hex()
 	room, exists := rooms[projectIDString]
-
 	//room, exists := rooms[Id_project] //instancia el room con los datos de la bd
 	if !exists {
 
@@ -1209,12 +1253,15 @@ func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, 
 			data["circles"] = circles
 		}
 
+		var usersEditing map[string]interface{}
+
 		room = &RoomData{
-			Id_project: Id_project,
-			Data:       Data,
-			Config:     Config,
-			Fosil:      Fosil,
-			Active:     make([]*websocket.Conn, 0),
+			Id_project:   Id_project,
+			Data:         Data,
+			Config:       Config,
+			Fosil:        Fosil,
+			Active:       make([]*websocket.Conn, 0),
+			UsersEditing: usersEditing,
 		}
 
 		rooms[projectIDString] = room

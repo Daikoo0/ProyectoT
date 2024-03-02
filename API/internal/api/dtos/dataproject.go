@@ -86,3 +86,7 @@ type EditPolygon struct {
 	Column   string `json:"column"`
 	Value    string `json:"value"`
 }
+
+type UserEditingState struct {
+	Section string
+}
