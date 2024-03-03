@@ -165,7 +165,7 @@ const Grid = () => {
             //setPolygons(Litologia)
             setHeader(shapeN.config)
             setFossils(shapeN.fosil)
-            setEditingUsers(shapeN.usersEditing)
+            setEditingUsers(shapeN.sectionsEditing)
             break;
           }
           case 'editingUser': {
@@ -174,6 +174,20 @@ const Grid = () => {
               [shapeN.value]: {"name" :shapeN.userName, "color" : shapeN.color}
               
             }));
+            break;
+          }
+          case 'deleteEditingUser': {
+            setEditingUsers(prevState => {
+              console.log("elimando user")
+              const newState = { ...prevState };
+              if (newState.hasOwnProperty(shapeN.value)) {
+                delete newState[shapeN.value];
+              } else {
+                console.log("El elemento a eliminar no existe en el estado");
+              }
+          
+              return newState;
+            });
             break;
           }
           case 'añadir': {
@@ -509,8 +523,14 @@ const Grid = () => {
 
         {/* SideBar */}
         <div className="drawer-side">
-          <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-
+          <label htmlFor="my-drawer"
+          onClick={(e)=> {
+            socket.send(JSON.stringify({ action: 'deleteEditingUser', 
+            data: {
+              section : `[${formData.index},${header.indexOf(formData.column)}]`
+            } }));
+          }}
+          aria-label="close sidebar" className="drawer-overlay"></label>
           {
             (() => {
               switch (sideBarState.sideBarMode) {
@@ -625,8 +645,6 @@ const Grid = () => {
                           </ul>
                         </details>
                       </li>
-
-
 
                       {/* {list.map((key) => {
                         if (key !== "Espesor" && key !== "Litologia") {
@@ -773,7 +791,7 @@ const Grid = () => {
 
                       <li>
                         <details open={false}>
-                          <summary>Contacto inferor</summary>
+                          <summary>Contacto inferior</summary>
                           <ul>
                             {Object.values(contacts).map((contact, index) => (
                               <li key={index} style={{ backgroundColor: 'white', padding: '10px', marginBottom: '10px' }}>
@@ -903,15 +921,12 @@ const Grid = () => {
                     </ul>
 
                   );
-
                 case "text":
                   return (
                     <>
-
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
                         <p className="menu-title">Editando texto</p>
-
-                        <div>
+                       <div>
                           <EditorQuill
                             Text={formData.text}
                             SetText={(html: string) => setFormData(prevState => ({
@@ -930,6 +945,8 @@ const Grid = () => {
                               "rowIndex": Number(formData.index)
                             }
                           }));
+
+
                         }}>Enviar</button>
                       </div>
 

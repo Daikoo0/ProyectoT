@@ -7,7 +7,7 @@ import autoTable from 'jspdf-autotable'
 import { useReactToPrint } from "react-to-print"
 import { string } from "prop-types";
 
-const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow,setColumnWidths,columnWidths }) => {
+const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow, setColumnWidths, columnWidths }) => {
 
     const cellWidth = 150;
     const cellMinWidth = 100;
@@ -18,9 +18,7 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
 
         documentTitle: "Print This Document",
         content: () => tableref.current,
-        onBeforePrint: () => {
-
-        },
+        onBeforePrint: () => { },
         onAfterPrint: () => console.log("after printing..."),
         removeAfterPrint: true,
         pageStyle: `
@@ -41,7 +39,7 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
     });
 
 
-    
+
     // Función para manejar el inicio del arrastre para redimensionar
     const handleMouseDown = (columnName, event) => {
         event.preventDefault();
@@ -68,6 +66,15 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
     };
 
 
+    const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
+
+    const handleMouseEnter = () => {
+        setHovered(true);
+    };
+
+    const handleMouseLeave = () => {
+        setHovered(false);
+    };
 
     return (
         <>
@@ -112,11 +119,10 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
                                                 id="fossils"
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 rowSpan={data.length}
-                                                className="border" 
+                                                className="border"
                                                 style={{
                                                     verticalAlign: "top",
                                                     borderLeft: 'none',
-                                                    borderColor : 'black'
                                                 }}
                                             >
                                                 <div className="h-full max-h-full"// tooltip" data-tip="hello"
@@ -131,7 +137,7 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
                                                     }}
                                                     style={{ top: 0 }}>
                                                     <svg className="h-full max-h-full" width={columnWidths["Estructura fosil"] || cellWidth} height="0" overflow='visible'>
-                                                        {fossils  ? (
+                                                        {fossils ? (
                                                             fossils.map((img, index) => (
                                                                 <Fosil
                                                                     key={index}
@@ -155,10 +161,10 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
                                             <td
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 className={
-                                                  editingUsers?.[`[${rowIndex},${columnIndex}]`]?
-                                                  (`border-4 prose`+ (columnName === "Litologia" ? "ql-editor" : ""))
-                                                   : 
-                                                    (`border prose`+ (columnName === "Litologia" ? "ql-editor" : ""))
+                                                    (editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia') ?
+                                                        (`border-2 prose` + (columnName === "Litologia" ? "ql-editor" : ""))
+                                                        :
+                                                        (`border prose` + (columnName === "Litologia" ? "ql-editor" : ""))
                                                 }
                                                 onClick={() => {
                                                     if (columnName !== "Litologia") {
@@ -169,26 +175,26 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
                                                         console.log(rowIndex, columnName)
                                                         handleClickRow(rowIndex, columnName)
                                                     }
-                                                    sendActionCell(rowIndex,columnIndex)
+                                                    sendActionCell(rowIndex, columnIndex)
                                                 }}
                                                 style={{
-                                                    //maxHeight: `${lithology[rowIndex].height * scale}px`,
-                                                    //width: `${columnWidths[columnName] || 150}px`,
                                                     overflowY: (columnName === 'Litologia') ? 'visible' : 'auto',
                                                     padding: '0',
                                                     top: '0',
-                                                    borderWidth: 1,
-                                                    borderColor :  editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color ? editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color : 'black',
-                                                    borderTop: (columnName === 'Litologia') ? 'none' : '',
-                                                    borderBottom: (columnName === 'Litologia') && Number(rowIndex) < data.length - 1 ? 'none' : '',
+                                                    borderColor: (columnName !== 'Litologia') ? (editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color || '') : '',
                                                     verticalAlign: "top",
-                                                    borderRight: ((columnName === 'Litologia') && (header.includes('Estructura fosil'))) ? 'none' : '',
-                                                    borderLeft : ''
-                                                   }}
+                                                }}
+                                                onMouseEnter={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseEnter : null} 
+                                                onMouseLeave={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseLeave : null} 
                                             >
+                                                {(editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia' && hovered) ? <>
+                                                    <p style={{ fontSize: 12, backgroundColor: editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color }} className="tooltip-text">{editingUsers?.[`[${rowIndex},${columnIndex}]`]?.name}</p>
+                                                </> : <></>
+                                                }
                                                 <div
                                                     style={{
                                                         maxHeight: `${RowValue.Litologia.height * scale}px`,
+                                                        height: '100%',
                                                     }}
                                                 >
                                                     {columnName === 'Litologia' ?
@@ -218,6 +224,7 @@ const Tabla = ({sendActionCell, setEditingUsers, editingUsers, data, header, sca
                                                                 }}
                                                                 dangerouslySetInnerHTML={{ __html: RowValue[columnName] }}
                                                             />
+
                                                         </>
                                                     }
                                                 </div>

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"crypto/rand"
+	"encoding/hex"
 	"log"
 	"net/http"
 	"strconv"
@@ -38,13 +40,24 @@ type ProjectResponse struct {
 }
 
 type RoomData struct {
-	Id_project   primitive.ObjectID
-	Data         []map[string]interface{}
-	Config       map[string]interface{}
-	Fosil        []map[string]interface{}
-	Active       []*websocket.Conn
-	Temp         Stack
-	UsersEditing map[string]interface{}
+	Id_project      primitive.ObjectID
+	Data            []map[string]interface{}
+	Config          map[string]interface{}
+	Fosil           []map[string]interface{}
+	Active          []*websocket.Conn
+	Temp            Stack
+	SectionsEditing map[string]interface{}
+	UserColors      map[string]string
+}
+
+func generateRandomColor() string {
+	// Generar un color aleatorio en formato hexadecimal
+	color := make([]byte, 3)
+	_, err := rand.Read(color)
+	if err != nil {
+		panic(err)
+	}
+	return "#" + hex.EncodeToString(color)
 }
 
 var rooms = make(map[string]*RoomData)
@@ -257,11 +270,11 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	// Enviar configuracion y datos de la sala
 	dataRoom := map[string]interface{}{
-		"action":       "data",
-		"data":         proyect.Data,
-		"config":       claves,
-		"fosil":        proyect.Fosil,
-		"usersEditing": proyect.UsersEditing,
+		"action":          "data",
+		"data":            proyect.Data,
+		"config":          claves,
+		"fosil":           proyect.Fosil,
+		"sectionsEditing": proyect.SectionsEditing,
 	}
 	// Trnasformar el mapa a JSON y envio a clientes
 	databytes, err := json.Marshal(dataRoom)
@@ -365,26 +378,60 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					var name = claims["name"].(string)
 					section := editing.Section
 					log.Println(name, section)
-					log.Println(proyect.UsersEditing)
-					msgData := map[string]interface{}{
-						"action":   "editingUser",
-						"userName": name,
-						"color":    "#03f4fc",
-						"value":    section,
-					}
+					log.Println(proyect.SectionsEditing)
 
 					roomData := rooms[roomID]
 
-					if roomData.UsersEditing == nil {
-						// Si no está inicializado, inicialízalo
-						roomData.UsersEditing = make(map[string]interface{})
+					color, exists := roomData.UserColors[name]
+					if !exists {
+						// Generar un color único para el usuario y guardarlo en el mapa
+						color = generateRandomColor()
+						roomData.UserColors[name] = color
 					}
 
-					roomData.UsersEditing[section] = map[string]interface{}{
+					if roomData.SectionsEditing == nil {
+						// Si no está inicializado, inicialízalo
+						roomData.SectionsEditing = make(map[string]interface{})
+					}
+
+					msgData := map[string]interface{}{
+						"action":   "editingUser",
+						"userName": name,
+						"color":    color,
+						"value":    section,
+					}
+
+					roomData.SectionsEditing[section] = map[string]interface{}{
 						"name":  name,
-						"color": "#03f4fc",
+						"color": color,
 					}
 					sendSocketMessage(msgData, proyect, "editingUser")
+
+				case "deleteEditingUser":
+					var editing dtos.UserEditingState
+					err := json.Unmarshal(dataMap.Data, &editing)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+					}
+					section := editing.Section
+					roomData := rooms[roomID]
+
+					if roomData.SectionsEditing != nil {
+						if _, ok := roomData.SectionsEditing[section]; ok {
+							delete(roomData.SectionsEditing, section)
+
+							msgData := map[string]interface{}{
+								"action": "deleteEditingUser",
+								"value":  section,
+							}
+
+							log.Println(roomData.SectionsEditing)
+
+							sendSocketMessage(msgData, proyect, "deleteEditingUser")
+						} else {
+							log.Println("El elemento a eliminar no existe")
+						}
+					}
 
 				case "añadir":
 
@@ -1253,15 +1300,17 @@ func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, 
 			data["circles"] = circles
 		}
 
-		var usersEditing map[string]interface{}
+		var sectionsEditing map[string]interface{}
+		userColors := make(map[string]string)
 
 		room = &RoomData{
-			Id_project:   Id_project,
-			Data:         Data,
-			Config:       Config,
-			Fosil:        Fosil,
-			Active:       make([]*websocket.Conn, 0),
-			UsersEditing: usersEditing,
+			Id_project:      Id_project,
+			Data:            Data,
+			Config:          Config,
+			Fosil:           Fosil,
+			Active:          make([]*websocket.Conn, 0),
+			SectionsEditing: sectionsEditing,
+			UserColors:      userColors,
 		}
 
 		rooms[projectIDString] = room
