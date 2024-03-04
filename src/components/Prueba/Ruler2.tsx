@@ -1,48 +1,28 @@
-import { Rect, Line, Text } from 'react-konva';
-
-const Ruler = ({ x, y, width, height, isInverted, scale }) => {
-
+const Ruler = ({ width, height, isInverted, scale }) => {
   const marks = [];
-  for (let i = 0; i <= height; i += 50 * scale) { // Ajustar el paso de las marcas según la escala
-    // Calcula la posición y el texto teniendo en cuenta la escala
+
+  for (let i = 0; i <= height; i += 50 * scale) {
     const position = i;
     const text = isInverted ? `${(height - i) / (100 * scale)} m` : `${i / (100 * scale)} m`;
 
     if (i % (100 * scale) === 0) {
       marks.push(
-        <Line
-          key={`line-${i}`}
-          points={[x + width - 20, y + position, x + width, y + position]}
-          stroke="black"
-          strokeWidth={2}
-        />,
-        <Text
-          key={`text-${i}`}
-          x={x + width - 45}
-          y={y + position - 5}
-          text={text}
-          fontSize={12}
-          fill="black"
-        />
+        <g key={`mark-${i}`}>
+          <line x1={width - 20} y1={position} x2={width} y2={position} stroke="black" strokeWidth={2} />
+          <text x={width - 45} y={position - 5} fontSize={12} fill="black">{text}</text>
+        </g>
       );
     } else {
-      // Línea más pequeña cada 50 píxeles
       marks.push(
-        <Line
-          key={`line-${i}`}
-          points={[x + width - 10, y + position, x + width, y + position]}
-          stroke="black"
-          strokeWidth={1}
-        />
+        <line key={`mark-${i}`} x1={width - 10} y1={position} x2={width} y2={position} stroke="black" strokeWidth={1} />
       );
     }
   }
 
   return (
-    <> 
-      <Rect x={x} y={y} width={width} height={height} fill="white" stroke="black" />
-     {marks}
-    </>
+     <svg className="h-full max-h-full" width={width} overflow={'visible'}>
+      {marks}
+     </svg>
   );
 };
 

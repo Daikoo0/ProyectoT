@@ -105,6 +105,7 @@ func RemoveElement(roomID string, conn *websocket.Conn) {
 
 	if index != -1 {
 		// Eliminar el elemento en el índice encontrado
+
 		rooms[roomID].Active = append(rooms[roomID].Active[:index], rooms[roomID].Active[index+1:]...)
 	}
 
@@ -287,12 +288,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	if err == nil {
 		//conn.WriteMessage(websocket.TextMessage, []byte(dataBytes))
 		log.Printf("user %s: Permission %d", user, permission)
+		// var v interface{}
+		// conn.ReadJSON(v)
+		// log.Println(v, "aaaa")
 
 		for {
-			_, msg, err := conn.ReadMessage()
+			cualquierwea, msg, err := conn.ReadMessage()
 			if err != nil {
 				break
 			}
+
+			log.Println(cualquierwea, "eeeeeeeeeee")
 
 			if permission != 2 {
 				var dataMap GeneralMessage
@@ -370,23 +376,15 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("Error al deserializar: ", err)
 					}
 
-					claims, err := encryption.ParseLoginJWT(cookie.Value)
-					if err != nil {
-						log.Println("Error al encontrar identificacion del usuario: ", err)
-					}
-
 					var name = claims["name"].(string)
 					section := editing.Section
-					log.Println(name, section)
-					log.Println(proyect.SectionsEditing)
-
 					roomData := rooms[roomID]
 
-					color, exists := roomData.UserColors[name]
+					color, exists := roomData.UserColors[user]
 					if !exists {
 						// Generar un color único para el usuario y guardarlo en el mapa
 						color = generateRandomColor()
-						roomData.UserColors[name] = color
+						roomData.UserColors[user] = color
 					}
 
 					if roomData.SectionsEditing == nil {
@@ -404,6 +402,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					roomData.SectionsEditing[section] = map[string]interface{}{
 						"name":  name,
 						"color": color,
+						//"section" : section,
 					}
 					sendSocketMessage(msgData, proyect, "editingUser")
 

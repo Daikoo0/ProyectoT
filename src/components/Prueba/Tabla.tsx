@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Polygon from "./Polygon4";
 import Fosil from "../Editor/Fosil";
 import lithoJson from '../../lithologic.json';
@@ -6,6 +6,7 @@ import jsPDF from "jspdf";
 import autoTable from 'jspdf-autotable'
 import { useReactToPrint } from "react-to-print"
 import { string } from "prop-types";
+import Ruler from "./Ruler2";
 
 const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow, setColumnWidths, columnWidths }) => {
 
@@ -76,10 +77,21 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
         setHovered(false);
     };
 
+    var adfas = useRef(null)
+    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+    useEffect(() => {
+        if (adfas.current) {
+            const { width, height } = adfas.current.getBoundingClientRect();
+            console.log(adfas)
+            setDimensions({ width, height });
+        }
+    }, [adfas.current, data.length, scale]);
+
+
     return (
         <>
             <button onClick={handlePrint}> aaaaaaaa</button>
-
 
             <div ref={tableref} >
                 <table style={{ height: '100px' }} >
@@ -108,12 +120,28 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
                         {data.map((RowValue, rowIndex) => (
 
                             <tr key={rowIndex}
-                                className="page-break"
+                                className={"page-break"}
                             // style={{ height: `${lithology[rowIndex].height * scale}px` }}
                             >
                                 {header.map((columnName, columnIndex) => {
 
-                                    if (columnName === 'Estructura fosil' && rowIndex === 0) {
+                                    if (columnName === 'Espesor' && rowIndex === 0) {
+                                        return (
+                                            <td
+                                                ref={adfas}
+                                                key={`${rowIndex}-${columnIndex}`}
+                                                rowSpan={data.length}
+                                                className="border"
+                                                style={{
+                                                    verticalAlign: "top",
+                                                }}
+                                            >
+                                                <div className="h-full max-h-full">
+                                                    <Ruler height={dimensions.height} width={(columnWidths["Espesor"] || 150)} isInverted={false} scale={scale} />
+                                                </div>
+                                            </td>
+                                        );
+                                    } else if (columnName === 'Estructura fosil' && rowIndex === 0) {
                                         return (
                                             <td
                                                 id="fossils"
@@ -122,7 +150,6 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
                                                 className="border"
                                                 style={{
                                                     verticalAlign: "top",
-                                                    borderLeft: 'none',
                                                 }}
                                             >
                                                 <div className="h-full max-h-full"// tooltip" data-tip="hello"
@@ -156,7 +183,7 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
                                                 </div>
                                             </td>
                                         );
-                                    } else if (columnName !== 'Estructura fosil') {
+                                    } else if (columnName !== 'Estructura fosil' && columnName !== 'Espesor') {
                                         return (
                                             <td
                                                 key={`${rowIndex}-${columnIndex}`}
@@ -184,8 +211,8 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
                                                     borderColor: (columnName !== 'Litologia') ? (editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color || '') : '',
                                                     verticalAlign: "top",
                                                 }}
-                                                onMouseEnter={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseEnter : null} 
-                                                onMouseLeave={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseLeave : null} 
+                                                onMouseEnter={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseEnter : null}
+                                                onMouseLeave={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseLeave : null}
                                             >
                                                 {(editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia' && hovered) ? <>
                                                     <p style={{ fontSize: 12, backgroundColor: editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color }} className="tooltip-text">{editingUsers?.[`[${rowIndex},${columnIndex}]`]?.name}</p>
