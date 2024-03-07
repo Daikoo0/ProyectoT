@@ -358,7 +358,10 @@ const Grid = () => {
       action: 'editFosil',
       data: {
         "idFosil": formFosil.id,
-       
+        "upper": Number(formFosil.upper),
+        "lower": Number(formFosil.lower),
+        "fosilImg": formFosil.fosilImgCopy,
+        "x": formFosil.x
       }
     }));
   }
@@ -423,6 +426,13 @@ const Grid = () => {
     }
   }
 
+  const openModal = () => {
+
+    (document.getElementById('modal') as HTMLDialogElement).showModal();
+
+  };
+
+  
   return (
     <>
 
@@ -452,6 +462,24 @@ const Grid = () => {
 
                 </div>
 
+                <div className="dropdown dropdown-end">
+
+<div className="tooltip tooltip-bottom" onClick={openModal} data-tip="Exportar PDF">
+
+  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+
+    <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
+
+      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
+
+    </svg>
+
+  </div>
+
+</div>
+
+</div>
+
               </div>
 
               <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
@@ -470,6 +498,7 @@ const Grid = () => {
 
           <Tabla
             // Data 
+            openModal={openModal}
             data={data}
             header={header}
             scale={scale}
