@@ -57,23 +57,23 @@ type EditCircle struct {
 }
 
 // case fosil
-type Fosil struct {
-	UpperLimit     int    `json:"upperLimit"`
-	LowerLimit     int    `json:"lowerLimit"`
-	SelectedFossil string `json:"selectedFosil"`
-	RelativeX      int    `json:"relativeX"`
+type AddFosil struct {
+	Upper    int     `json:"upper"`
+	Lower    int     `json:"lower"`
+	FosilImg string  `json:"fosilImg"`
+	X        float32 `json:"x"`
 }
 
 type EditFosil struct {
-	IdFosil        int    `json:"idFosil"`
-	UpperLimit     int    `json:"upperLimit"`
-	LowerLimit     int    `json:"lowerLimit"`
-	SelectedFossil string `json:"selectedFosil"`
-	RelativeX      int    `json:"relativeX"`
+	IdFosil  string  `json:"idFosil"`
+	Upper    int     `json:"upper"`
+	Lower    int     `json:"lower"`
+	FosilImg string  `json:"fosilImg"`
+	X        float32 `json:"x"`
 }
 
 type DeleteFosil struct {
-	IdFosil int `json:"idFosil"`
+	IdFosil string `json:"idFosil"`
 }
 
 type Column struct {

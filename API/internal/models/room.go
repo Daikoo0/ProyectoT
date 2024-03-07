@@ -26,5 +26,5 @@ type Data_project struct {
 	Id_project primitive.ObjectID
 	Data       []map[string]interface{} `bson:"data"`
 	Config     map[string]interface{}   `bson:"config"`
-	Fosil      []map[string]interface{} `bson:"fosil"`
+	Fosil      map[string]interface{}   `bson:"fosil"`
 }

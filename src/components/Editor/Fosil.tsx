@@ -1,12 +1,21 @@
 import { useEffect, useState } from "react";
 import fosilJson from '../../fossil.json';
 
-const Fosil = ({ img, setSideBarState, setIdClickFosil, scale, litologiaX, columnW }) => {
+const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW }) => {
 
     const [svgContent, setSvgContent] = useState('');
     const [height, setHeight] = useState(10);
     const [width, setWidth] = useState(10);
-    var scaledRelativeX = img.relativeX * columnW / 100
+
+    const centerX = data.x * columnW;
+    const centerY = (data.upper + data.lower) / 2;
+
+    const upper = data.upper * scale;
+    const lower = data.lower * scale;
+
+    const gTranslateX = centerX - (width / 2); 
+    const gTranslateY = centerY - (height / 2);
+
     const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
 
     const handleMouseEnter = () => {
@@ -22,23 +31,18 @@ const Fosil = ({ img, setSideBarState, setIdClickFosil, scale, litologiaX, colum
             sideBar: true,
             sideBarMode: "editFosil"
         })
-        setIdClickFosil(img.idFosil);
+
+        setFormFosil({ ...data, id: keyID, fosilImgCopy: data.fosilImg});
     }
 
-    useEffect(()=>{
-        scaledRelativeX = img.relativeX * litologiaX / 100
-    },[litologiaX])
 
     useEffect(() => {
-        //if(File === 0){
-        if (!img.selectedFosil) {
+        if (!data.fosilImg) {
             setSvgContent('');
             return;
         }
 
-        //const imageURL = new URL('../../assets/patrones/'+File+'.svg', import.meta.url).href
-        //const imageURL = new URL(img.posImage, import.meta.url).href
-        const imageURL = new URL('../../assets/fosiles/' + fosilJson[img.selectedFosil] + '.svg', import.meta.url).href
+        const imageURL = new URL('../../assets/fosiles/' + fosilJson[data.fosilImg] + '.svg', import.meta.url).href
         const regexW = /<svg[^>]*width\s*=\s*["']?([^"']+)["']?[^>]*>/;
         const regexH = /<svg[^>]*height\s*=\s*["']?([^"']+)["']?[^>]*>/;
 
@@ -56,33 +60,33 @@ const Fosil = ({ img, setSideBarState, setIdClickFosil, scale, litologiaX, colum
                 setSvgContent(svgText);
             });
 
-    }, [img.selectedFosil]);
+    }, [data.fosilImg]);
 
-    const imgX = scaledRelativeX - (width / 2);
     return (
-        <g 
-        onClick={a}
-        onMouseEnter={handleMouseEnter} 
-        onMouseLeave={handleMouseLeave}
-        style={{ cursor: 'pointer' ,margin: '10px'}}
+        <g
+            onClick={a}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{ cursor: 'pointer', margin: '10px' }}
         >
-            
-            <g transform={`translate(${imgX},${(img.posImage - (height * scale / 2)) * scale}) scale(1,${scale})`}
-                // onMouseEnter={handleMouseEnter} 
-                // onMouseLeave={handleMouseLeave}
-                // style={{ cursor: 'pointer' ,padding: '5px', pointerEvents: 'all' }}
-                dangerouslySetInnerHTML={{ __html: svgContent }} 
-                
-                />
 
-            <line x1={0 - litologiaX} y1={img.upper * scale} x2={scaledRelativeX} y2={img.upper * scale} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
-            <line x1={0 - litologiaX} y1={img.upper * scale} x2={scaledRelativeX} y2={img.upper * scale} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
+            {/* Imagen del fosil  */}
+            <g transform={`translate(${gTranslateX},${gTranslateY * scale}) scale(1,${1})`}
+                dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
 
-            <line x1={0 - litologiaX} y1={img.lower * scale} x2={scaledRelativeX} y2={img.lower * scale} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
-            <line x1={0 - litologiaX} y1={img.lower * scale} x2={scaledRelativeX} y2={img.lower * scale} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
+            {/* Lineas horizontal de arriba  */}
+            <line x1={-litologiaX} y1={upper} x2={centerX} y2={upper} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
+            <line x1={-litologiaX} y1={upper} x2={centerX} y2={upper} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
 
-            <line x1={scaledRelativeX} y1={img.upper * scale} x2={scaledRelativeX} y2={img.lower * scale} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
-            <line x1={scaledRelativeX} y1={img.upper * scale} x2={scaledRelativeX} y2={img.lower * scale} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
+            {/* Linea vertical central  */}
+            <line x1={-litologiaX} y1={lower} x2={centerX} y2={lower} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
+            <line x1={-litologiaX} y1={lower} x2={centerX} y2={lower} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
+
+            {/* Linea horizontal de abajo  */}
+            <line x1={centerX} y1={upper} x2={centerX} y2={lower} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
+            <line x1={centerX} y1={upper} x2={centerX} y2={lower} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
+
         </g>
     );
 

@@ -2,19 +2,22 @@ import { useState, useRef, useEffect } from "react";
 import Polygon from "./Polygon4";
 import Fosil from "../Editor/Fosil";
 import lithoJson from '../../lithologic.json';
-import jsPDF from "jspdf";
-import autoTable from 'jspdf-autotable'
 import { useReactToPrint } from "react-to-print"
-import { string } from "prop-types";
 import Ruler from "./Ruler2";
 
-const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, scale, addCircles, setSideBarState, setRelativeX, fossils, setIdClickFosil, openModalPoint, handleClickRow, setColumnWidths, columnWidths }) => {
+const Tabla = ({ data, header, scale, 
+                addCircles, setSideBarState, 
+                fossils, setFormFosil, 
+                openModalPoint, handleClickRow, sendActionCell,  
+                editingUsers }) => {
 
     const cellWidth = 150;
     const cellMinWidth = 100;
     const cellMaxWidth = 500;
     const tableref = useRef(null);
-    console.log(editingUsers)
+
+    const [columnWidths, setColumnWidths] = useState({});
+
     const handlePrint = useReactToPrint({
 
         documentTitle: "Print This Document",
@@ -83,7 +86,6 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
     useEffect(() => {
         if (adfas.current) {
             const { width, height } = adfas.current.getBoundingClientRect();
-            console.log(adfas)
             setDimensions({ width, height });
         }
     }, [adfas.current, data.length, scale]);
@@ -154,31 +156,33 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
                                             >
                                                 <div className="h-full max-h-full"// tooltip" data-tip="hello"
                                                     onClick={(e) => {
+                                                        console.log('a')
                                                         if (e.target instanceof SVGSVGElement) {
                                                             setSideBarState({
                                                                 sideBar: true,
                                                                 sideBarMode: "fosil"
                                                             })
-                                                            setRelativeX(e.nativeEvent.offsetX)
+                                                            setFormFosil({ id:'', upper: 0, lower: 0, fosilImg: '', x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cellWidth), fosilImgCopy: ''})
                                                         }
                                                     }}
                                                     style={{ top: 0 }}>
                                                     <svg className="h-full max-h-full" width={columnWidths["Estructura fosil"] || cellWidth} height="0" overflow='visible'>
                                                         {fossils ? (
-                                                            fossils.map((img, index) => (
+                                                            Object.keys(fossils).map((data, index) => (
+                                                                
                                                                 <Fosil
                                                                     key={index}
-                                                                    img={img}
+                                                                    keyID={data}
+                                                                    data={fossils[data]}
                                                                     setSideBarState={setSideBarState}
-                                                                    setIdClickFosil={setIdClickFosil}
+                                                                    setFormFosil={setFormFosil}
                                                                     scale={scale}
                                                                     litologiaX={columnWidths["Litologia"] || cellWidth}
                                                                     columnW={columnWidths["Estructura fosil"] || cellWidth}
                                                                 />
+                                                               
                                                             ))
-                                                        ) : (
-                                                            <></>
-                                                        )}
+                                                        ) : ( null)}
                                                     </svg>
                                                 </div>
                                             </td>
@@ -229,6 +233,7 @@ const Tabla = ({ sendActionCell, setEditingUsers, editingUsers, data, header, sc
                                                             <Polygon
                                                                 rowIndex={rowIndex}
                                                                 Height={RowValue.Litologia.height * scale}
+                                                                Width={columnWidths["Litologia"] || cellWidth}
                                                                 File={lithoJson[RowValue.Litologia.file]}
                                                                 ColorFill={RowValue.Litologia.ColorFill}
                                                                 ColorStroke={RowValue.Litologia.colorStroke}

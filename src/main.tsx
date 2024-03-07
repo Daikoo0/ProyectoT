@@ -15,7 +15,7 @@ import ParticipantForm from "./pages/create.proyect.tsx"
 import About from "./pages/About.tsx"
 import EditableGrid from './components/Prueba/EditableGrid.tsx'
 import Testsvg from './components/Prueba/Polygon2.tsx'
-import VariableRowHeight from './components/Prueba/Editor3.tsx'
+import VariableRowHeight from './components/Prueba/Editor.tsx'
 
 const router = createBrowserRouter([
 
@@ -62,7 +62,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/editor3/:project",
-    element: <VariableRowHeight/>,
+    element: <AuthMiddleware> <VariableRowHeight/>  </AuthMiddleware>,
   },
   
 ]);

@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"log"
 	"net/http"
-	"strconv"
 
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/ProyectoT/api/internal/service"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"github.com/lithammer/shortuuid/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -43,7 +43,7 @@ type RoomData struct {
 	Id_project      primitive.ObjectID
 	Data            []map[string]interface{}
 	Config          map[string]interface{}
-	Fosil           []map[string]interface{}
+	Fosil           map[string]interface{}
 	Active          []*websocket.Conn
 	Temp            Stack
 	SectionsEditing map[string]interface{}
@@ -209,7 +209,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	cookie, err := c.Cookie("Authorization")
 	if err != nil {
 		errMessage := "Error: Unauthorized"
-		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
@@ -217,7 +217,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	claims, err := encryption.ParseLoginJWT(cookie.Value)
 	if err != nil {
 		errMessage := "Error: Unauthorized"
-		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
@@ -228,7 +228,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	room, err := a.serv.GetRoom(ctx, roomID)
 	if err != nil {
 		errMessage := "Error: Room not found"
-		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
@@ -237,12 +237,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	if permission == -1 {
 		log.Println(e)
 		errMessage := "Error: Unauthorized"
-		err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
 
-	objectID, err := primitive.ObjectIDFromHex(roomID)
+	objectID, _ := primitive.ObjectIDFromHex(roomID)
 
 	//conectar a la sala
 	proyect := instanceRoom(objectID,
@@ -309,62 +309,61 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					log.Fatal(err)
 				}
 
-				//log.Println(dataMap, "eeee") // Informacion recibida
+				if dataMap.Action != "editingUser" && dataMap.Action != "deleteEditingUser" && dataMap.Action != "columns" {
+					go func() {
+						// Bloquear acceso al mapa de timers para evitar condiciones de carrera
+						a.saveMutex.Lock()
+						defer a.saveMutex.Unlock()
 
-				go func() {
-					// Bloquear acceso al mapa de timers para evitar condiciones de carrera
-					a.saveMutex.Lock()
-					defer a.saveMutex.Unlock()
+						// Verificar si ya hay un timer activo para esta sala
+						if timer, exists := roomTimers[roomID]; exists {
 
-					// Verificar si ya hay un timer activo para esta sala
-					if timer, exists := roomTimers[roomID]; exists {
+							if roomActions[roomID] >= roomActionsThreshold {
 
-						if roomActions[roomID] >= roomActionsThreshold {
+								// Función de guardado
+								err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
+								if err != nil {
+									log.Println("Error guardando la sala automáticamente: ", err)
+								} else {
+									log.Println("Sala guardada: ", roomID)
+								}
 
-							// Función de guardado
-							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
-							if err != nil {
-								log.Println("Error guardando la sala automáticamente: ", err)
-							} else {
-								log.Println("Sala guardada: ", roomID)
+								roomActions[roomID] = 0
+
+								//salir de la funcion
+								return
 							}
 
-							roomActions[roomID] = 0
+							log.Println("Reiniciando el timer: ", roomID)
+							log.Println("Acciones: ", roomActions[roomID])
+							timer.Reset(5 * time.Second)
+							roomActions[roomID]++
 
-							//salir de la funcion
-							return
+						} else {
+							// Si no hay un timer, se crea uno
+							log.Println("Creando un nuevo timer: ", roomID)
+							timer := time.NewTimer(5 * time.Second)
+							roomTimers[roomID] = timer
+
+							go func() {
+								<-timer.C
+
+								// Función de guardado
+								err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
+								if err != nil {
+									log.Println("Error guardando la sala automáticamente: ", err)
+								} else {
+									log.Println("Sala guardada: ", roomID)
+								}
+
+								// Eliminar el timer del mapa una vez que la sala ha sido guardada
+								a.saveMutex.Lock()
+								delete(roomTimers, roomID)
+								a.saveMutex.Unlock()
+							}()
 						}
-
-						log.Println("Reiniciando el timer: ", roomID)
-						log.Println("Acciones: ", roomActions[roomID])
-						timer.Reset(5 * time.Second)
-						roomActions[roomID]++
-
-					} else {
-						// Si no hay un timer, se crea uno
-						log.Println("Creando un nuevo timer: ", roomID)
-						timer := time.NewTimer(5 * time.Second)
-						roomTimers[roomID] = timer
-
-						go func() {
-							<-timer.C
-
-							// Función de guardado
-							err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
-							if err != nil {
-								log.Println("Error guardando la sala automáticamente: ", err)
-							} else {
-								log.Println("Sala guardada: ", roomID)
-							}
-
-							// Eliminar el timer del mapa una vez que la sala ha sido guardada
-							a.saveMutex.Lock()
-							delete(roomTimers, roomID)
-							a.saveMutex.Unlock()
-						}()
-					}
-				}()
-
+					}()
+				}
 				// Switch para las acciones
 				switch dataMap.Action {
 
@@ -423,8 +422,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 								"action": "deleteEditingUser",
 								"value":  section,
 							}
-
-							log.Println(roomData.SectionsEditing)
 
 							sendSocketMessage(msgData, proyect, "deleteEditingUser")
 						} else {
@@ -644,110 +641,35 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					sendSocketMessage(msgData, proyect, "editText")
 
 				case "addFosil":
-					var fosil dtos.Fosil
+					var fosil dtos.AddFosil
 					err := json.Unmarshal(dataMap.Data, &fosil)
 					if err != nil {
 						log.Println("Error", err)
 					}
 
-					upper := fosil.UpperLimit
-					lower := fosil.LowerLimit
-					posImage := (lower + upper) / 2
-					srcFosil := fosil.SelectedFossil
-					relativeX := fosil.RelativeX
+					id := shortuuid.New()
+					upper := fosil.Upper
+					lower := fosil.Lower
+					fosilImg := fosil.FosilImg
+					x := fosil.X
+
+					newFosil := map[string]interface{}{
+						"upper":    upper,
+						"lower":    lower,
+						"fosilImg": fosilImg,
+						"x":        x,
+					}
 
 					innerMap := rooms[roomID].Fosil
-
-					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(relativeX))
-					if err != nil {
-						log.Println("Error al convertir la cadena a entero:", err)
-					}
-
-					// Enviar informacion a los clientes
-					msgData := map[string]interface{}{
-						"action":        "addFosil",
-						"idFosil":       concatenatedInt,
-						"posImage":      posImage,
-						"lower":         lower,
-						"upper":         upper,
-						"selectedFosil": srcFosil,
-						"relativeX":     relativeX,
-					}
-
-					innerMap = append(innerMap, msgData)
-					rooms[roomID].Fosil = innerMap
-
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println(err)
-						}
-					}
-
-				case "save":
-					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
-					if err != nil {
-						log.Println("No se guardo la data")
-					}
-
-				case "editFosil":
-					var fosilEdit dtos.EditFosil
-					err := json.Unmarshal(dataMap.Data, &fosilEdit)
-					if err != nil {
-						log.Println("Error deserializando fósil:", err)
-						break
-					}
-
-					idFosilEdit := fosilEdit.IdFosil
-					innerMap := rooms[roomID].Fosil
-					var newInnerMap Stack
-					// Eliminar el fósil antiguo
-					for _, item := range innerMap {
-						fosilMap := item
-						elid := int(fosilMap["idFosil"].(int32))
-						if elid != idFosilEdit {
-							newInnerMap = append(newInnerMap, fosilMap)
-						}
-					}
-
-					// Agregar el nuevo fósil
-					posImage := (fosilEdit.LowerLimit + fosilEdit.UpperLimit) / 2
-					concatenatedInt, err := strconv.Atoi(strconv.Itoa(posImage) + strconv.Itoa(fosilEdit.RelativeX))
-					if err != nil {
-						log.Println("Error al convertir la cadena a entero:", err)
-					}
+					innerMap[id] = newFosil
 
 					msgData := map[string]interface{}{
-						"action":        "editFosil",
-						"idFosil":       concatenatedInt,
-						"posImage":      posImage,
-						"lower":         fosilEdit.LowerLimit,
-						"upper":         fosilEdit.UpperLimit,
-						"selectedFosil": fosilEdit.SelectedFossil,
-						"relativeX":     fosilEdit.RelativeX,
+						"action":  "addFosil",
+						"idFosil": id,
+						"value":   newFosil,
 					}
 
-					newInnerMap = append(newInnerMap, msgData)
-					rooms[roomID].Fosil = newInnerMap
-
-					// Enviar información actualizada a los clientes
-					jsonMsg, err := json.Marshal(msgData)
-					if err != nil {
-						log.Fatal("Error al serializar mensaje:", err)
-					}
-
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println("Error al enviar mensaje:", err)
-						}
-					}
+					sendSocketMessage(msgData, proyect, "addFosil")
 
 				case "deleteFosil":
 					var fosilID dtos.DeleteFosil
@@ -757,34 +679,55 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						break
 					}
 
-					innerMap := rooms[roomID].Fosil
-					var newInnerMap []map[string]interface{}
+					id := fosilID.IdFosil
 
-					for _, item := range innerMap {
-						fosilMap := item
-						elid := int(fosilMap["idFosil"].(int32))
-						if elid != fosilID.IdFosil {
-							newInnerMap = append(newInnerMap, fosilMap)
-						}
-					}
-					rooms[roomID].Fosil = newInnerMap
+					innerMap := rooms[roomID].Fosil
+					delete(innerMap, id)
 
 					msgData := map[string]interface{}{
 						"action":  "deleteFosil",
-						"idFosil": fosilID,
+						"idFosil": id,
 					}
 
-					// Enviar información actualizada a los clientes
-					jsonMsg, err := json.Marshal(msgData)
+					sendSocketMessage(msgData, proyect, "deleteFosil")
+
+				case "editFosil":
+					var fosilEdit dtos.EditFosil
+					err := json.Unmarshal(dataMap.Data, &fosilEdit)
 					if err != nil {
-						log.Fatal("Error al serializar mensaje:", err)
+						log.Println("Error deserializando fósil:", err)
+						break
 					}
 
-					for _, client := range proyect.Active {
-						err = client.WriteMessage(websocket.TextMessage, jsonMsg)
-						if err != nil {
-							log.Println("Error al enviar mensaje:", err)
-						}
+					id := fosilEdit.IdFosil
+					upper := fosilEdit.Upper
+					lower := fosilEdit.Lower
+					fosilImg := fosilEdit.FosilImg
+					x := fosilEdit.X
+
+					newFosil := map[string]interface{}{
+						"upper":    upper,
+						"lower":    lower,
+						"fosilImg": fosilImg,
+						"x":        x,
+					}
+
+					innerMap := rooms[roomID].Fosil
+					innerMap[id] = newFosil
+
+					msgData := map[string]interface{}{
+						"action":  "editFosil",
+						"idFosil": id,
+						"value":   newFosil,
+					}
+
+					sendSocketMessage(msgData, proyect, "editFosil")
+
+				case "save":
+					log.Println("guardando...")
+					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
+					if err != nil {
+						log.Println("No se guardo la data")
 					}
 
 				case "columns":
@@ -1186,7 +1129,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				// }
 			} else {
 				errMessage := "Error: Don't have permission to edit this document"
-				err = conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+				conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 			}
 		}
 	}
@@ -1266,6 +1209,9 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	//agregar el usuario al room
 	//	proyect.Clients[inviteRequest.Email] = models.Role(inviteRequest.Role)
 	info, err := a.serv.GetRoomInfo(ctx, room)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to get room info"})
+	}
 	info.Members[inviteRequest.Email] = inviteRequest.Role
 
 	err = a.serv.AddUser(ctx, inviteRequest.Email, room) //actualizar el registro de usuario
@@ -1280,7 +1226,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}, Fosil []map[string]interface{}) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}, Fosil map[string]interface{}) *RoomData {
 
 	projectIDString := Id_project.Hex()
 	room, exists := rooms[projectIDString]
@@ -1399,9 +1345,6 @@ func (a *API) proyects(c echo.Context) error {
 	}
 
 	user := claims["email"].(string)
-	type responseProyects struct {
-		Proyects []string
-	}
 
 	proyects, err := a.serv.GetProyects(ctx, user)
 	if err != nil {
@@ -1426,10 +1369,6 @@ func (a *API) HandleGetPublicProject(c echo.Context) error {
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	type responseProyects struct {
-		Proyects []string
 	}
 
 	proyects, err := a.serv.HandleGetPublicProject(ctx)
@@ -1461,7 +1400,7 @@ func (s *Stack) Push(v map[string]interface{}) {
 
 func (s *Stack) Pop() (map[string]interface{}, error) {
 	if len(*s) == 0 {
-		return nil, errors.New("La pila esta vacia")
+		return nil, errors.New("la pila esta vacia")
 	}
 	index := len(*s) - 1
 	element := (*s)[index]

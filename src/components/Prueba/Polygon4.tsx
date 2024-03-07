@@ -1,11 +1,9 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 
-const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation }) => {
+const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation }) => {
 
   const amplitude = 4;
   const resolution = 1;
-  const [svgWidth, setSvgWidth] = useState(0);
-  const svgRef = useRef<SVGSVGElement>(null);
 
   function generateWavePathData(
     startX,
@@ -75,53 +73,23 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
     return [pathData, pathDataClick];
   }
 
-  //const [pathData, setPathData] = useState("");
-
-  useEffect(() => {
-    const updateWidth = () => {
-      if (svgRef.current) {
-        setSvgWidth(svgRef.current.clientWidth);
-        //console.log(svgRef.current.clientWidth)
-      }
-    };
-
-    updateWidth(); // Actualiza el ancho inicialmente
-
-    // Crea un observer para escuchar cambios en el tamaño del SVG
-    const resizeObserver = new ResizeObserver(() => {
-      updateWidth();
-    });
-
-    if (svgRef.current) {
-      resizeObserver.observe(svgRef.current);
-    }
-
-    // Limpieza al desmontar el componente
-    return () => {
-      if (svgRef.current) {
-        resizeObserver.unobserve(svgRef.current);
-      }
-    };
-  }, []);
-
-
   const points = useMemo(() => {
-    const processCircles = (circles, svgWidth, Height) => {
+    const processCircles = (circles, Width, Height) => {
       return circles.map(circle => ({
         ...circle,
-        x: circle.x * svgWidth,
+        x: circle.x * Width,
         y: circle.y * Height
       }));
     };
 
-    return processCircles(circles, svgWidth, Height);
-  }, [circles, svgWidth, Height]);
+    return processCircles(circles, Width, Height);
+  }, [circles, Width, Height]);
 
   //console.log(points)
 
   const startX = 0;
   const startY = 0 + amplitude;
-  const endX = svgWidth;
+  const endX = Width;
   const endY = Height;
   const totalLength = endX - startX;
 
@@ -136,24 +104,6 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
     resolution,
     points
   );
-  // useEffect(() => {
-  //   const startX = 0;
-  //   const startY = 0 + amplitude; // Ajusta para la curva superior
-  //   const endX = svgWidth / 2;
-  //   const endY = Height;
-  //   const totalLength = endX - startX;
-
-  //   const newPathData = generateWavePathData(
-  //     startX,
-  //     startY,
-  //     endX,
-  //     endY,
-  //     totalLength,
-  //     amplitude,
-  //     resolution
-  //   );
-  //   setPathData(newPathData);
-  // }, [Height,svgWidth]); 
 
   const [svgContent, setSvgContent] = useState('');
   
@@ -240,7 +190,7 @@ const PathComponent = ({rowIndex, Height, File, ColorFill, ColorStroke, Zoom, ci
   const patternId = `pattern-${rowIndex}`;
 
   return (
-    <svg ref={svgRef} width="100%" height={Height} overflow='visible'>
+    <svg width="100%" height={Height} overflow='visible'>
 
       {/* Patrón SVG */}
       <defs>

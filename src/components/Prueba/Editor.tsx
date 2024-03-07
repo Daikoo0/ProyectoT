@@ -13,19 +13,13 @@ const Grid = () => {
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
-  const [columnWidths, setColumnWidths] = useState({});
+
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
-  const [upperLimit, setUpperLimit] = useState('');
-  const [lowerLimit, setLowerLimit] = useState('');
-  const [selectedFosil, setSelectedFosil] = useState("");
-  const [relativeX, setRelativeX] = useState(0);
-  const [idClickFosil, setIdClickFosil] = useState<number>(0);
+
   const [fossils, setFossils] = useState([]);
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5 });
   const [scale, setScale] = useState(1);
-  // const [columnCount, setColumnCount] = useState(0);
-  // const [fossils, setFossils] = useState([]);
 
   const initialFormData = {
     index: null,
@@ -42,6 +36,17 @@ const Grid = () => {
   };
 
   const [formData, setFormData] = useState(initialFormData);
+  const [formFosil, setFormFosil] = useState({ id:'', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: ''});
+
+  const changeformFosil = (e) => {
+    const { name, value } = e.target;
+    setFormFosil(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+
+  }
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -171,8 +176,8 @@ const Grid = () => {
           case 'editingUser': {
             setEditingUsers(prevState => ({
               ...prevState,
-              [shapeN.value]: {"name" :shapeN.userName, "color" : shapeN.color}
-              
+              [shapeN.value]: { "name": shapeN.userName, "color": shapeN.color }
+
             }));
             break;
           }
@@ -185,7 +190,7 @@ const Grid = () => {
               } else {
                 console.log("El elemento a eliminar no existe en el estado");
               }
-          
+
               return newState;
             });
             break;
@@ -206,10 +211,7 @@ const Grid = () => {
             setHeader(shapeN.columns)
             break
           case 'addFosil':
-            fossils.length > 0 ?
-              setFossils(prevfossils => [...prevfossils, shapeN])
-              :
-              setFossils([shapeN])
+            setFossils(prev => ({ ...prev, [shapeN.idFosil]: shapeN.value }));
             break
           case 'addCircle':
             setData(prev => {
@@ -253,21 +255,25 @@ const Grid = () => {
             });
             break
           case 'editFosil':
-            const updatedFossils = fossils.filter(fossil => fossil.idFosil !== idClickFosil);
-            setFossils([...updatedFossils, shapeN]);
+            setFossils(prev => {
+              const newFossils = { ...prev };
+              newFossils[shapeN.idFosil] = shapeN.value;
+              return newFossils;
+            }  
+
+            );
             setSideBarState({
               sideBar: false,
               sideBarMode: ""
             })
             break
           case 'deleteFosil':
-            const updatedFosils = fossils.filter(fossil => fossil.idFosil !== shapeN.idFosil);
-            console.log(updatedFosils)
-            setFossils(updatedFosils);
-            setSideBarState({
-              sideBar: false,
-              sideBarMode: ""
-            })
+            setFossils((prevFossils) => {
+              const newFossils = { ...prevFossils };
+              delete newFossils[shapeN.idFosil];
+              console.log(newFossils)
+              return newFossils;
+            });
             break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -281,8 +287,6 @@ const Grid = () => {
       };
     }
   }, [socket]);
-
-
 
   const [sideBarState, setSideBarState] = useState({
     sideBar: false,
@@ -300,14 +304,14 @@ const Grid = () => {
 
   //--------- Funciones Socket ------------//
 
-  const handleConfirm = () => {
+  const handleAddFosil = () => {
     socket.send(JSON.stringify({
       action: 'addFosil',
       data: {
-        "upperLimit": parseInt(upperLimit),
-        "lowerLimit": parseInt(lowerLimit),
-        "selectedFosil": selectedFosil,
-        "relativeX": relativeX * 100 / (columnWidths["Litologia"] ? columnWidths["Litologia"] : 150)
+        "upper": Number(formFosil.upper),
+        "lower": Number(formFosil.lower),
+        "fosilImg": formFosil.fosilImg,
+        "x": formFosil.x
       }
     }));
   };
@@ -339,22 +343,22 @@ const Grid = () => {
     socket.send(JSON.stringify({
       action: 'deleteFosil',
       data: {
-        "idFosil": idClickFosil,
+        "idFosil": formFosil.id,
+        "upper": Number(formFosil.upper),
+        "lower": Number(formFosil.lower),
+        "fosilImg": formFosil.fosilImg,
+        "x": formFosil.x
       }
     }));
   }
 
   const handleFosilEdit = () => {
 
-    const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
     socket.send(JSON.stringify({
       action: 'editFosil',
       data: {
-        "idFosil": idClickFosil,
-        "upperLimit": parseInt(upperLimit),
-        "lowerLimit": parseInt(lowerLimit),
-        "selectedFosil": selectedFosil,
-        "relativeX": foundFossil.relativeX
+        "idFosil": formFosil.id,
+       
       }
     }));
   }
@@ -394,7 +398,6 @@ const Grid = () => {
     }));
   }
 
-  console.log(sideBarState)
 
   const addShape = (row, height) => {
 
@@ -409,12 +412,14 @@ const Grid = () => {
 
   const [selectedContactIndex, setSelectedContactIndex] = useState(null);
 
-  const sendActionCell = (row,column) => {
+  const sendActionCell = (row, column) => {
     if (socket) {
-      socket.send(JSON.stringify({ action: 'editingUser', 
-      data: {
-        section : `[${row},${column}]`
-      } }));
+      socket.send(JSON.stringify({
+        action: 'editingUser',
+        data: {
+          section: `[${row},${column}]`
+        }
+      }));
     }
   }
 
@@ -464,21 +469,23 @@ const Grid = () => {
           </div>
 
           <Tabla
-            setIdClickFosil={setIdClickFosil}
-            setEditingUsers={setEditingUsers}
-            editingUsers={editingUsers}
-            fossils={fossils}
-            setRelativeX={setRelativeX}
+            // Data 
             data={data}
             header={header}
             scale={scale}
+
             addCircles={addCircles}
             setSideBarState={setSideBarState}
+
+            fossils={fossils}
+            setFormFosil={setFormFosil}
+
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
-            columnWidths={columnWidths}
             sendActionCell={sendActionCell}
-            setColumnWidths={setColumnWidths}
+            editingUsers={editingUsers}
+           
+          
           />
         </div>
 
@@ -524,13 +531,15 @@ const Grid = () => {
         {/* SideBar */}
         <div className="drawer-side">
           <label htmlFor="my-drawer"
-          onClick={(e)=> {
-            socket.send(JSON.stringify({ action: 'deleteEditingUser', 
-            data: {
-              section : `[${formData.index},${header.indexOf(formData.column)}]`
-            } }));
-          }}
-          aria-label="close sidebar" className="drawer-overlay"></label>
+            onClick={() => {
+              socket.send(JSON.stringify({
+                action: 'deleteEditingUser',
+                data: {
+                  section: `[${formData.index},${header.indexOf(formData.column)}]`
+                }
+              }));
+            }}
+            aria-label="close sidebar" className="drawer-overlay"></label>
           {
             (() => {
               switch (sideBarState.sideBarMode) {
@@ -696,7 +705,7 @@ const Grid = () => {
                       <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
                         <li>Agregar nuevo fósil:</li>
                         <li>
-                          <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
+                          <select className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
                             <option value={""} disabled >Elige el tipo de fósil</option>
                             {Object.keys(fosilJson).map(option => (
                               <option key={option} value={option}>{option}</option>
@@ -704,40 +713,42 @@ const Grid = () => {
                           </select>
                         </li>
                         <li>
-                          {selectedFosil === "" ? null : <img
+                          {formFosil.fosilImg === "" ? null : <img
                             alt="None"
-                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} />}
+                            src={`../src/assets/fosiles/${fosilJson[formFosil.fosilImg]}.svg`} />}
 
                         </li>
                         <li>
                           límite superior (metros):
                           <input
                             type="number"
-                            value={upperLimit}
-                            onChange={(e) => setUpperLimit(e.target.value)}
+                            name='upper'
+                            value={formFosil.upper}
+                            onChange={changeformFosil}
                           />
                         </li>
                         <li>
                           Límite inferior (metros):
                           <input
                             type="number"
-                            value={lowerLimit}
-                            onChange={(e) => setLowerLimit(e.target.value)}
+                            name='lower'
+                            value={formFosil.lower}
+                            onChange={changeformFosil}
                           />
                         </li>
-                        <button className="btn btn-primary" disabled={selectedFosil === ""} onClick={handleConfirm}> Confirmar </button>
+
+                        <button className="btn btn-primary" disabled={formFosil.fosilImg === ""} onClick={handleAddFosil}> Confirmar </button>
 
                       </div>
                     </ul>
                   );
                 case "editFosil":
-                  const foundFossil = fossils.find(fossil => fossil.idFosil === idClickFosil);
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando fósil</li>
                       <li>
-                        <select className="select select-bordered w-full max-w-xs" value={selectedFosil} onChange={(e) => { setSelectedFosil(String(e.target.value)) }}>
-                          <option disabled selected>Selecciona un fósil</option>
+                        <select className="select select-bordered w-full max-w-xs" name='fosilImgCopy' value={formFosil.fosilImgCopy} onChange={changeformFosil}>
+                          <option  value={""} disabled>Selecciona un fósil</option>
                           {Object.keys(fosilJson).map(option => (
                             <option key={option} value={option}>{option}</option>
                           ))}
@@ -748,7 +759,7 @@ const Grid = () => {
                         <div className="flex w-full">
                           <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">  <img
                             alt="None"
-                            src={`../src/assets/fosiles/${foundFossil ? fosilJson[foundFossil.selectedFosil] : fosilJson[1]}.svg`} />
+                            src={`../src/assets/fosiles/${formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}.svg`} />
                           </div>
                           <div className="divider divider-horizontal">
 
@@ -758,7 +769,7 @@ const Grid = () => {
                           </div>
                           <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">   <img
                             alt="None"
-                            src={`../src/assets/fosiles/${fosilJson[selectedFosil]}.svg`} /></div>
+                            src={`../src/assets/fosiles/${fosilJson[formFosil.fosilImgCopy]}.svg`} /></div>
                         </div>
 
 
@@ -767,22 +778,22 @@ const Grid = () => {
                         límite superior (metros):
                         <input
                           type="number"
-                          placeholder={foundFossil ? foundFossil.upper : null}
-                          value={upperLimit}
-                          onChange={(e) => setUpperLimit(e.target.value)}
+                          name='upper'
+                          value={formFosil.upper}
+                          onChange={changeformFosil}
                         />
                       </li>
                       <li>
                         Límite inferior (metros):
                         <input
                           type="number"
-                          placeholder={foundFossil ? foundFossil.lower : null}
-                          value={lowerLimit}
-                          onChange={(e) => setLowerLimit(e.target.value)}
+                          name='lower'
+                          value={formFosil.lower}
+                          onChange={changeformFosil}
                         />
                       </li>
                       <li> <button className="btn btn-primary" onClick={handleFosilEdit}>Confirmar edición</button></li>
-                      <li><button className="btn btn-primary" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
+                      <li><button className="btn btn-error" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
                     </ul>)
                 case "polygon":
                   return (
@@ -810,7 +821,7 @@ const Grid = () => {
                                         x2="150"
                                         y2="15"
                                         stroke="black"
-                                        strokeWidth={contact.lineWidth>2 ? contact.lineWidth : 1}
+                                        strokeWidth={contact.lineWidth > 2 ? contact.lineWidth : 1}
                                         strokeDasharray={`${contact.dash}`}
                                       />
                                     )}
@@ -829,8 +840,8 @@ const Grid = () => {
                                       <text x="75" y="15" textAnchor="middle" dominantBaseline="middle" fontSize="20" fill="red">?</text>
                                     )}
                                     {contact.arcs && (
-                                      <path 
-                                       d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,5 30,15 Q 35,25 40,15 Q 45,5 50,15 Q 55,25 60,15 Q 65,5 70,15 Q 75,25 80,15 Q 85,5 90,15 Q 95,25 100,15 Q 105,5 110,15 Q 115,25 120,15 Q 125,5 130,15 Q 135,25 140,15 Q 145,5 150,15" fill="none" stroke="black" strokeWidth="1" />
+                                      <path
+                                        d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,5 30,15 Q 35,25 40,15 Q 45,5 50,15 Q 55,25 60,15 Q 65,5 70,15 Q 75,25 80,15 Q 85,5 90,15 Q 95,25 100,15 Q 105,5 110,15 Q 115,25 120,15 Q 125,5 130,15 Q 135,25 140,15 Q 145,5 150,15" fill="none" stroke="black" strokeWidth="1" />
                                     )}
                                   </svg>
                                 </label>
@@ -855,6 +866,7 @@ const Grid = () => {
                             <option key={option} value={option}>
                               {option}
                             </option>
+
                           ))}
                         </select>
                       </li>
@@ -926,7 +938,7 @@ const Grid = () => {
                     <>
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
                         <p className="menu-title">Editando texto</p>
-                       <div>
+                        <div>
                           <EditorQuill
                             Text={formData.text}
                             SetText={(html: string) => setFormData(prevState => ({

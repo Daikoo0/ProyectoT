@@ -198,7 +198,7 @@ const TableData = ({ Data }) => {
                                 <td>{data.CreationDate}</td>
                                 <td>{data.Description}</td>
                                 <th>
-                                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/editor/${data.ID}`)}>Editar</button>
+                                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/editor3/${data.ID}`)}>Editar</button>
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('my_modal_2') as HTMLDialogElement).showModal(); }}>Invite</button>
                                     {/* <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/invite/${data.ID}`)}>Co-Autores</button> */}
                                     <button className="btn btn-ghost btn-xs">Eliminar</button>
