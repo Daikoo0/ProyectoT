@@ -6,6 +6,7 @@ import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import contacts from '../../contacts.json';
+import exportTableToPDFWithPagination from './pdfFunction';
 
 const Grid = () => {
 
@@ -36,7 +37,7 @@ const Grid = () => {
   };
 
   const [formData, setFormData] = useState(initialFormData);
-  const [formFosil, setFormFosil] = useState({ id:'', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: ''});
+  const [formFosil, setFormFosil] = useState({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
 
   const changeformFosil = (e) => {
     const { name, value } = e.target;
@@ -79,6 +80,8 @@ const Grid = () => {
     //   return newData;
     // });
   }
+
+  console.log(data)
 
   const handleClickRow = (index, column) => {
     setFormData({
@@ -259,7 +262,7 @@ const Grid = () => {
               const newFossils = { ...prev };
               newFossils[shapeN.idFosil] = shapeN.value;
               return newFossils;
-            }  
+            }
 
             );
             setSideBarState({
@@ -429,10 +432,17 @@ const Grid = () => {
   const openModal = () => {
 
     (document.getElementById('modal') as HTMLDialogElement).showModal();
+    exportTableToPDFWithPagination({}, data, header, 'A4')
 
   };
 
-  
+  var initialPdfData = {
+    columnWidths: {},
+    data: data,
+    header: header,
+    format: 'A4',
+  };
+
   return (
     <>
 
@@ -464,21 +474,21 @@ const Grid = () => {
 
                 <div className="dropdown dropdown-end">
 
-<div className="tooltip tooltip-bottom" onClick={openModal} data-tip="Exportar PDF">
+                  <div className="tooltip tooltip-bottom" onClick={openModal} data-tip="Exportar PDF">
 
-  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
 
-    <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
+                      <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
 
-      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
 
-    </svg>
+                      </svg>
 
-  </div>
+                    </div>
 
-</div>
+                  </div>
 
-</div>
+                </div>
 
               </div>
 
@@ -498,23 +508,18 @@ const Grid = () => {
 
           <Tabla
             // Data 
-            openModal={openModal}
+            initialPdfData={initialPdfData}
             data={data}
             header={header}
             scale={scale}
-
             addCircles={addCircles}
             setSideBarState={setSideBarState}
-
             fossils={fossils}
             setFormFosil={setFormFosil}
-
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
             sendActionCell={sendActionCell}
             editingUsers={editingUsers}
-           
-          
           />
         </div>
 
@@ -777,7 +782,7 @@ const Grid = () => {
                       <li className="menu-title">Editando fósil</li>
                       <li>
                         <select className="select select-bordered w-full max-w-xs" name='fosilImgCopy' value={formFosil.fosilImgCopy} onChange={changeformFosil}>
-                          <option  value={""} disabled>Selecciona un fósil</option>
+                          <option value={""} disabled>Selecciona un fósil</option>
                           {Object.keys(fosilJson).map(option => (
                             <option key={option} value={option}>{option}</option>
                           ))}
