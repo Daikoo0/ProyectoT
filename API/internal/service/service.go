@@ -23,10 +23,10 @@ type Service interface {
 	SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, fosil map[string]interface{}, roomName string) error
 	SaveUsers(ctx context.Context, room *models.Data) error
 	SaveProject(ctx context.Context, data string, name string) error
+	GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
 
 	// Profile - profile.service.go
 	GetProyects(ctx context.Context, user string) ([]models.Data, error)
-	GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
 	HandleGetPublicProject(ctx context.Context) ([]models.Data, error)
 	AddUser(ctx context.Context, user string, roomName string) error
 

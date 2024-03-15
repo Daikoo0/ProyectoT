@@ -71,22 +71,19 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
         >
 
             {/* Imagen del fosil  */}
-            <g transform={`translate(${gTranslateX},${gTranslateY * scale}) scale(1,${1})`}
+            <g className="stroke-base-content"  transform={`translate(${gTranslateX},${gTranslateY * scale}) scale(1,${1})`}
                 dangerouslySetInnerHTML={{ __html: svgContent }}
             />
 
             {/* Lineas horizontal de arriba  */}
-            <line x1={-litologiaX} y1={upper} x2={centerX} y2={upper} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
-            <line x1={-litologiaX} y1={upper} x2={centerX} y2={upper} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
-
+            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={upper} x2={centerX} y2={upper}  strokeWidth="1" strokeDasharray="5, 5" />
+         
             {/* Linea vertical central  */}
-            <line x1={-litologiaX} y1={lower} x2={centerX} y2={lower} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
-            <line x1={-litologiaX} y1={lower} x2={centerX} y2={lower} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
-
+            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={lower} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
+         
             {/* Linea horizontal de abajo  */}
-            <line x1={centerX} y1={upper} x2={centerX} y2={lower} stroke={hovered ? "blue" : "black"} strokeWidth="1" strokeDasharray="5, 5" />
-            <line x1={centerX} y1={upper} x2={centerX} y2={lower} stroke="white" strokeWidth="0.5" strokeDasharray="5, 5" />
-
+            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={centerX} y1={upper} x2={centerX} y2={lower}strokeWidth="1" strokeDasharray="5, 5" />
+     
         </g>
     );
 

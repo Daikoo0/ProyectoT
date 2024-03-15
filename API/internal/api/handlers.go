@@ -242,6 +242,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		return nil
 	}
 
+	log.Println("Permiso del usuario: ", permission)
+
 	objectID, _ := primitive.ObjectIDFromHex(roomID)
 
 	//conectar a la sala

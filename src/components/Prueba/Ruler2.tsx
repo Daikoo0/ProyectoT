@@ -8,13 +8,15 @@ const Ruler = ({ width, height, isInverted, scale }) => {
     if (i % (100 * scale) === 0) {
       marks.push(
         <g key={`mark-${i}`}>
-          <line x1={width - 20} y1={position} x2={width} y2={position} stroke="black" strokeWidth={2} />
-          <text x={width - 45} y={position - 5} fontSize={12} fill="black">{text}</text>
+          <line className="stroke-base-content" x1={width - 20} y1={position} x2={width} y2={position} strokeWidth={2} />
+          <text className="fill-base-content" x={width - 45} y={position - 5} fontSize={12} >
+          {i === 0 ? <tspan dy="15">{text}</tspan> : text}
+            </text>
         </g>
       );
     } else {
       marks.push(
-        <line key={`mark-${i}`} x1={width - 10} y1={position} x2={width} y2={position} stroke="black" strokeWidth={1} />
+        <line className="stroke-base-content" key={`mark-${i}`} x1={width - 10} y1={position} x2={width} y2={position} strokeWidth={1} />
       );
     }
   }

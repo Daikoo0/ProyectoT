@@ -5,7 +5,7 @@ import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
 import exportTableToPDFWithPagination from "./pdfFunction";
 
-const Tabla = ({ initialPdfData, data, header, scale,
+const Tabla = ({ setPdfData, pdfData, data, header, scale,
     addCircles, setSideBarState,
     fossils, setFormFosil,
     openModalPoint, handleClickRow, sendActionCell,
@@ -15,9 +15,7 @@ const Tabla = ({ initialPdfData, data, header, scale,
     const cellMinWidth = 100;
     const cellMaxWidth = 500;
     const tableref = useRef(null);
-
     const [columnWidths, setColumnWidths] = useState({});
-
 
     // Función para manejar el inicio del arrastre para redimensionar
     const handleMouseDown = (columnName, event) => {
@@ -57,7 +55,6 @@ const Tabla = ({ initialPdfData, data, header, scale,
 
     var adfas = useRef(null)
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-    const [pdfData, setPdfData] = useState(initialPdfData);
 
     useEffect(() => {
         if (adfas.current) {
@@ -69,96 +66,193 @@ const Tabla = ({ initialPdfData, data, header, scale,
     const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
 
     const handleColumns = (e, key) => {
+        var newHeaders = pdfData.header
         if (e.target.checked) {
-            pdfData.header.push(key)
+            newHeaders.push(key)
         } else {
-            const index = pdfData.header.indexOf(key);
+            const index = newHeaders.indexOf(key);
             if (index !== -1) {
-                pdfData.header.splice(index, 1);
+                newHeaders.splice(index, 1);
             }
         }
+        setPdfData(prevState => ({
+            ...prevState,
+            header: newHeaders,
+        }));
+        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, newHeaders, pdfData.format)
     }
+
+    const handleRows = (e, key) => {
+        var newRows = pdfData.data
+        if (e.target.checked) {
+            newRows.push(key)
+        } else {
+            const index = newRows.indexOf(key);
+            if (index !== -1) {
+                newRows.splice(index, 1);
+            }
+        }
+        setPdfData(prevState => ({
+            ...prevState,
+            data: newRows,
+        }));
+        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, newRows, pdfData.format)
+    }
+
+    console.log(pdfData.data)
+
 
     return (
         <>
             <>
                 <dialog id="modal" className="modal">
                     <div className="modal-box w-11/12 max-w-7xl h-full">
-                        <div className="flex flex-col w-full lg:flex-row h-full">
-                            <div className="grid flex-grow card">
-                                <select value={pdfData.format} onChange={(e) => {
-                                    setPdfData(prevState => ({
-                                        ...prevState,
-                                        format: e.target.value,
-                                    }));
+                        <div className="flex flex-col lg:flex-row h-full">
 
-                                    exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, pdfData.header, pdfData.format)
-                                }
-                                } className="select select-bordered w-full max-w-xs">
-                                    <option value={""} disabled >Elige el tipo de fósil</option>
-                                    <option value={'A4'}>A4</option>
-                                    <option value={'A3'}>A3</option>
-                                    <option value={'letter'}>Carta</option>
-                                    <option value={'tabloid'}>Tabloide</option>
-                                    <option value={'legal'}>Legal</option>
-                                </select>
+                            {/* Sección izquierda */}
+                            <div className="flex flex-col flex-grow card overflow-auto">
+                                <div className="menu p-4 w-full min-h-full text-base-content">
+                                    {/* Select */}
+                                    <select value={pdfData.format} onChange={(e) => {
+                                        setPdfData(prevState => ({
+                                            ...prevState,
+                                            format: e.target.value,
+                                        }));
+                                        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, pdfData.header, pdfData.format)
+                                    }} className="select select-bordered w-full max-w-xs mb-4">
+                                        <option value={''} disabled>Elige el tamaño de hoja</option>
+                                        <option value={'A4'}>A4</option>
+                                        <option value={'A3'}>A3</option>
+                                        <option value={'letter'}>Carta</option>
+                                        <option value={'tabloid'}>Tabloide</option>
+                                        <option value={'legal'}>Legal</option>
+                                    </select>
 
-                                <details open={false}>
-                                    <summary>Visibilidad de columnas</summary>
-                                    <ul>
-                                        {list.map((key) => {
-                                            if (key !== "Espesor" && key !== "Litologia") {
-                                                return (
-                                                    <li key={key} >
+                                    {/* Lista de visibilidad de columnas */}
+                                    <div className="mb-4">
+                                        <details open={false}>
+                                            <summary>Visibilidad de columnas</summary>
+                                            <ul className="menu p-2 w-full min-h-full text-base-content">
+                                                {list.map((key) => {
+                                                    if (key !== "Espesor" && key !== "Litologia") {
+                                                        return (
+                                                            <li key={key} className="py-0 h-6">
+                                                                <label className="inline-flex items-center">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={key}
+                                                                        name={key}
+                                                                        checked={pdfData.header?.includes(key) ? true : false}
+                                                                        onChange={(e) => handleColumns(e, key)}
+                                                                        className="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    />
+                                                                    <span>{key}</span>
+                                                                </label>
+                                                            </li>
+                                                        );
+                                                    }
+                                                })}
+                                            </ul>
+
+                                        </details>
+                                    </div>
+
+                                    {/* Lista de visibilidad de capas */}
+                                    <div>
+                                        <details open={false}>
+                                            <summary>Visibilidad de capas</summary>
+                                            <p>Elimina las capas que no deben estar en el pdf (en orden de arriba hacia abajo)</p>
+                                            <ul className="menu p-2 w-full min-h-full text-base-content">
+                                                {Object.values(data).map((item, index) =>
+                                                    <li key={index} className="py-0 h-6">
                                                         <label className="inline-flex items-center">
                                                             <input
                                                                 type="checkbox"
-                                                                id={key}
-                                                                name={key}
-                                                                checked={pdfData.header.includes(key) ? true : false}
-                                                                onChange={(e) => handleColumns(e, key)}
-                                                                className="form-checkbox h-5 w-5 text-indigo-600"
+                                                                checked={pdfData.data?.includes(item) ? true : false}
+                                                                onChange={(e) => handleRows(e, item)}
+                                                                className="form-checkbox h-4 w-4 text-indigo-600"
                                                             />
-                                                            <span className="ml-2">{key}</span>
+                                                            <span>{index}</span>
                                                         </label>
                                                     </li>
-                                                );
-                                            }
-                                        })}
-                                    </ul>
-                                </details>
+                                                )}
+                                            </ul>
+                                        </details>
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Sección derecha */}
                             <div className="flex flex-col flex-grow card">
                                 <p className="flex-shrink-0 text-xl">Vista previa</p>
-                                <br></br>
-                                <iframe id="main-iframe" className="w-full flex-grow" style={{ 'width': '100%', height: '100%' }}></iframe>
+                                <br />
+                                <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
                                 <div className="modal-action mt-4">
                                     <form method="dialog">
                                         <button className="btn">Close</button>
                                     </form>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </dialog>
             </>
 
             <div ref={tableref} >
-                <table style={{ height: '100px' }} >
+                <table style={{ height: '100px' }}>
                     <thead>
                         <tr>
                             {header.map((columnName) => (
                                 <th
                                     key={columnName}
-                                    className="border border-secondary bg-primary"
+                                    className="border border-secondary bg-primary sticky top-0"
                                     style={{
                                         width: `${columnWidths[columnName] || cellWidth}px`,
-                                        height: '100px'
+                                        height: '100px', 
                                     }}>
+                                
+
+                                   
+                                    <div className="flex justify-between items-center ml-2 font-semibold">
+
+                                           
+                                        <p className="text text-accent-content w-1/2"> {columnName}</p>
+                                      
+                                        {/* <span className="p-1 cursor-col-resize" onMouseDown={(e) => handleMouseDown(columnName, e)}>||</span> */}
+
+                                        {columnName === "Litologia" ?
+                                        <>
+                                            <svg
+                                                className="w-1/2"
+                                                width={(columnWidths[columnName] || cellWidth) / 2}
+                                                height="100"
+                                                overflow={'visible'}
+                                                style={{
+                                                   // left: (columnWidths[columnName] || cellWidth) / 2,
+                                                    position: "relative",
+                                                    background: "green",
+                                                }}>
+                                                    <line className="stroke-base-content" y1="55%" y2="55%" x1="0%" x2="100%" strokeWidth="1"></line>
+                                            </svg>
+                                        </> : <></>
+                                    }
                                     <div
-                                        className="flex justify-between items-center p-2 font-semibold">
-                                        <p className="text text-accent-content"> {columnName}</p>
-                                        <span className="p-1 cursor-col-resize" onMouseDown={(e) => handleMouseDown(columnName, e)}>||</span>
+                                        className="absolute inset-y-0 right-0 h-full"
+                                        onMouseOver={(e)=>
+                                            e.currentTarget.style.backgroundColor = "red"
+                                        }
+                                        onMouseOut={(e) => {
+                                            e.currentTarget.style.backgroundColor = "transparent"; 
+                                        }}
+                                        onMouseDown={(e) => handleMouseDown(columnName, e)}
+                                        style={{
+                                            width: '5px',
+                                            cursor: 'col-resize',
+                                            height: '100px',
+                                            backgroundColor : 'transparent',
+                                        }}
+                                    />    
                                     </div>
                                 </th>
                             ))}
