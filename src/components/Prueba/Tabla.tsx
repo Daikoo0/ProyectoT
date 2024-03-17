@@ -99,8 +99,24 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, newRows, pdfData.format)
     }
 
-    console.log(pdfData.data)
-
+    const HeaderVal = ({ percentage, name, top }) => {
+        var x = percentage * (columnWidths["Litologia"] || 150)
+        var pos = top ? 60 : 105
+        return (
+            <>
+                <path id={name} d={`M${x},${pos} L${x},0`} />
+                <text className="stroke stroke-accent-content" fontWeight="1" fontSize="10"><textPath href={`#${name}`}>
+                    {name}
+                </textPath>
+                </text>
+                {top ? <>
+                    <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
+                </> : <>
+                    <line className="stroke stroke-accent-content" y1="90%" y2="100%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
+                </>
+                }
+            </>)
+    }
 
     return (
         <>
@@ -206,53 +222,65 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             {header.map((columnName) => (
                                 <th
                                     key={columnName}
-                                    className="border border-secondary bg-primary sticky top-0"
+                                    className="border border-accent-content bg-primary sticky top-0"
                                     style={{
                                         width: `${columnWidths[columnName] || cellWidth}px`,
-                                        height: '100px', 
+                                        height: '120px',
                                     }}>
-                                
 
-                                   
-                                    <div className="flex justify-between items-center ml-2 font-semibold">
-
-                                           
-                                        <p className="text text-accent-content w-1/2"> {columnName}</p>
-                                      
-                                        {/* <span className="p-1 cursor-col-resize" onMouseDown={(e) => handleMouseDown(columnName, e)}>||</span> */}
+                                    <div className="flex justify-between items-center font-semibold">
+                                        <p className="text text-accent-content w-1/2">{columnName}</p>
 
                                         {columnName === "Litologia" ?
-                                        <>
-                                            <svg
-                                                className="w-1/2"
-                                                width={(columnWidths[columnName] || cellWidth) / 2}
-                                                height="100"
-                                                overflow={'visible'}
-                                                style={{
-                                                   // left: (columnWidths[columnName] || cellWidth) / 2,
-                                                    position: "relative",
-                                                    background: "green",
-                                                }}>
-                                                    <line className="stroke-base-content" y1="55%" y2="55%" x1="0%" x2="100%" strokeWidth="1"></line>
-                                            </svg>
-                                        </> : <></>
-                                    }
-                                    <div
-                                        className="absolute inset-y-0 right-0 h-full"
-                                        onMouseOver={(e)=>
-                                            e.currentTarget.style.backgroundColor = "red"
+                                            <>
+                                                <svg
+                                                    className="absolute w-full"
+                                                    width={(columnWidths[columnName] || cellWidth) / 2}
+                                                    height="120"
+                                                    overflow={'visible'}
+                                                    style={{
+                                                        background: "transparent",
+                                                    }}>
+                                                    <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1="50%" x2="50%" strokeWidth="1"></line>
+                                                    <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1="50%" x2="100%" strokeWidth="1"></line>
+
+                                                    <HeaderVal percentage={0.55} name={"clay"} top={false} />
+                                                    <HeaderVal percentage={0.55} name={"mud"} top={true} />
+                                                    <HeaderVal percentage={0.59} name={"silt"} top={false} />
+                                                    <HeaderVal percentage={0.63} name={"vf"} top={false} />
+                                                    <HeaderVal percentage={0.63} name={"wacke"} top={true} />
+                                                    <HeaderVal percentage={0.67} name={"f"} top={false} />
+                                                    <HeaderVal percentage={0.71} name={"m"} top={false} />
+                                                    <HeaderVal percentage={0.71} name={"pack"} top={true} />
+                                                    <HeaderVal percentage={0.75} name={"c"} top={false} />
+                                                    <HeaderVal percentage={0.79} name={"vc"} top={false} />
+                                                    <HeaderVal percentage={0.79} name={"grain"} top={true} />
+                                                    <HeaderVal percentage={0.83} name={"gran"} top={false} />
+                                                    <HeaderVal percentage={0.83} name={"redstone"} top={true} />
+                                                    <HeaderVal percentage={0.87} name={"pebb"} top={false} />
+                                                    <HeaderVal percentage={0.87} name={"rud & bound"} top={true} />
+                                                    <HeaderVal percentage={0.91} name={"cobb"} top={false} />
+                                                    <HeaderVal percentage={0.91} name={"rudstone"} top={true} />
+                                                    <HeaderVal percentage={0.95} name={"boul"} top={false} />
+                                                </svg>
+                                            </> : <></>
                                         }
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.style.backgroundColor = "transparent"; 
-                                        }}
-                                        onMouseDown={(e) => handleMouseDown(columnName, e)}
-                                        style={{
-                                            width: '5px',
-                                            cursor: 'col-resize',
-                                            height: '100px',
-                                            backgroundColor : 'transparent',
-                                        }}
-                                    />    
+                                        <div
+                                            className="absolute inset-y-0 right-0 h-full"
+                                            onMouseOver={(e) =>
+                                                e.currentTarget.style.backgroundColor = "red"
+                                            }
+                                            onMouseOut={(e) => {
+                                                e.currentTarget.style.backgroundColor = "transparent";
+                                            }}
+                                            onMouseDown={(e) => handleMouseDown(columnName, e)}
+                                            style={{
+                                                width: '5px',
+                                                cursor: 'col-resize',
+                                                height: '100px',
+                                                backgroundColor: 'transparent',
+                                            }}
+                                        />
                                     </div>
                                 </th>
                             ))}

@@ -233,6 +233,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		return nil
 	}
 
+	//revisa los permisos del usuario
 	permission, e := a.serv.GetPermission(ctx, user, roomID)
 	if permission == -1 {
 		log.Println(e)
@@ -241,8 +242,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		conn.Close()
 		return nil
 	}
-
-	log.Println("Permiso del usuario: ", permission)
 
 	objectID, _ := primitive.ObjectIDFromHex(roomID)
 
@@ -463,8 +462,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							"height":      height,
 							"circles": []map[string]interface{}{
 								{"x": 0, "y": 0, "radius": 5, "movable": false},
-								{"x": 0.5, "y": 0, "radius": 5, "movable": true},
-								{"x": 0.5, "y": 1, "radius": 5, "movable": true},
+								{"x": 0.5, "y": 0, "radius": 5, "movable": true, "name": "none"},
+								{"x": 0.5, "y": 1, "radius": 5, "movable": true, "name": "none"},
 								{"x": 0, "y": 1, "radius": 5, "movable": false},
 							},
 							"upperContact": nil,
@@ -546,6 +545,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"y":       point,
 						"radius":  5,
 						"movable": true,
+						"name":    nil,
 					}
 
 					circles = append(circles[:insertIndex], append([]map[string]interface{}{newCircle2}, circles[insertIndex:]...)...)
@@ -598,12 +598,14 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					rowIndex := editCircleData.RowIndex
 					editIndex := editCircleData.EditIndex
 					x := editCircleData.X
+					name := editCircleData.Name
 
 					roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
 
 					circles := roomData["circles"].([]map[string]interface{})
 
 					circles[editIndex]["x"] = x
+					circles[editIndex]["name"] = name
 
 					roomData["circles"] = circles
 

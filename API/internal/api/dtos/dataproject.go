@@ -54,6 +54,7 @@ type EditCircle struct {
 	RowIndex  int     `json:"rowIndex"`
 	EditIndex int     `json:"editIndex"`
 	X         float32 `json:"x"`
+	Name      string  `json:"name"`
 }
 
 // case fosil

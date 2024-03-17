@@ -7,6 +7,8 @@ import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import contacts from '../../contacts.json';
 import exportTableToPDFWithPagination from './pdfFunction';
+import limestones from '../../limestones.json';
+import mudgraingravel from '../../mudgraingravel.json';
 
 const Grid = () => {
 
@@ -19,7 +21,7 @@ const Grid = () => {
   const [header, setHeader] = useState([]);
 
   const [fossils, setFossils] = useState([]);
-  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5 });
+  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
 
   const initialFormData = {
@@ -319,17 +321,19 @@ const Grid = () => {
     }));
   };
 
-  const openModalPoint = (index, insertIndex, x) => {
+  const openModalPoint = (index, insertIndex, x, name) => {
     (document.getElementById('modalPoint') as HTMLDialogElement).showModal();
     console.log(index, x)
-    setModalData({ index, insertIndex, x });
+    setModalData({ index, insertIndex, x, name });
   };
 
   // Actualiza un punto
-  const updateCirclePoint = (index, editIndex, x) => {
+  const updateCirclePoint = (index, editIndex, x, name) => {
 
     //const update = polygons[index]["circles"]
     //update[insertIndex].x = x;
+
+    console.log(index, editIndex, x, name)
 
     socket.send(JSON.stringify({
       action: 'editCircle',
@@ -337,6 +341,7 @@ const Grid = () => {
         "rowIndex": index,
         "editIndex": editIndex,
         "x": x,
+        "name": name,
       }
     }));
 
@@ -520,25 +525,34 @@ const Grid = () => {
 
         <>
           <dialog id="modalPoint" className="modal">
-            <div className="modal-box">
-              <form method="dialog" onSubmit={() => updateCirclePoint(modalData.index, modalData.insertIndex, modalData.x)}>
-                <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x} />
-                <div className="w-full flex justify-between text-xs">
-
-                  <span className="-rotate-90">s/n</span>  {/* sn */}
-                  <span className="-rotate-90">clay</span> {/* 0.55 */}
-                  <span className="-rotate-90">silt</span> {/* 0.59 */}
-                  <span className="-rotate-90">vf</span>   {/* 0.63 */}
-                  <span className="-rotate-90">f</span>    {/* 0.67 */}
-                  <span className="-rotate-90">m</span>    {/* 0.71 */}
-                  <span className="-rotate-90">c</span>    {/* 0.75 */}
-                  <span className="-rotate-90">vc</span>   {/* 0.79 */}
-                  <span className="-rotate-90">grain</span>{/* 0.83 */}
-                  <span className="-rotate-90">pebb</span> {/* 0.87 */}
-                  <span className="-rotate-90">cobb</span> {/* 0.91 */}
-                  <span className="-rotate-90">boul</span> {/* 0.95 */}
-
+            <div className="modal-box border border-accent">
+              <form method="dialog" onSubmit={() => updateCirclePoint(modalData.index, modalData.insertIndex, modalData.x, modalData.name)}>
+                <h2>Tamaño de grano</h2>
+                <br></br>
+                <div className="flex flex-col w-full lg:flex-row">
+                  <div className="grid flex-grow h-32 card rounded-box place-items-center">
+                    <p>Mud/Sand/Gravel</p>
+                    <select className='select select-accent' disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
+                      <option value={"none"} >none</option>
+                      {Object.keys(mudgraingravel).map((item) =>
+                        <option value={item}>{item}</option>
+                      )}
+                    </select>
+                  </div>
+                  <div className="divider lg:divider-horizontal"></div>
+                  <div className="grid flex-grow h-32 card rounded-box place-items-center">
+                    <p>Limestones</p>
+                    <select className='select select-accent' disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
+                      <option value={"none"} >none</option>
+                      {Object.keys(limestones).map((item) =>
+                        <option value={item}>{item}</option>
+                      )}
+                    </select>
+                  </div>
                 </div>
+
+                {/* <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x} /> */}
+
                 <button className="btn btn-primary">Submit</button>
               </form>
 
@@ -549,7 +563,7 @@ const Grid = () => {
               </div>
 
               <div className="modal-action">
-                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51 })}>
+                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51, name: null })}>
                   <button className="btn">Close</button>
                 </form>
               </div>
@@ -1003,7 +1017,7 @@ const Grid = () => {
 
         </div>
 
-      </div>
+      </div >
     </>
   );
 }

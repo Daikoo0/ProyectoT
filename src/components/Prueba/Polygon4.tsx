@@ -233,7 +233,7 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
           onClick={() => {
             if (points.movable) {
                 //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
-                openModalPoint(rowIndex, index, circles[index].x);
+                openModalPoint(rowIndex, index, circles[index].x, circles[index].name);
             }
         }}
         />
