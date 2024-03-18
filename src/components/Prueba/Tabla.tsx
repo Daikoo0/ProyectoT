@@ -411,6 +411,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                 handleClickRow={handleClickRow}
                                                                 tension={RowValue.Litologia.tension}
                                                                 rotation={RowValue.Litologia.rotation}
+                                                                contact={RowValue.Litologia.contact}
                                                             />
                                                         </>
                                                         :

@@ -16,7 +16,6 @@ const Grid = () => {
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
 
-
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
 
@@ -35,7 +34,8 @@ const Grid = () => {
     initialHeight: 0,
     height: 0,
     rotation: 0,
-    text: ''
+    text: '',
+    contact: "111",
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -53,6 +53,7 @@ const Grid = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(name, value)
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
@@ -98,6 +99,7 @@ const Grid = () => {
       initialHeight: data[index].Litologia.height,
       rotation: data[index].Litologia.rotation,
       text: data[index][column],
+      contact: data[index].Litologia.contact,
     });
   };
 
@@ -535,7 +537,7 @@ const Grid = () => {
                     <select className='select select-accent' disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
                       <option value={"none"} >none</option>
                       {Object.keys(mudgraingravel).map((item) =>
-                        <option value={item}>{item}</option>
+                        <option key={item} value={item}>{item}</option>
                       )}
                     </select>
                   </div>
@@ -545,7 +547,7 @@ const Grid = () => {
                     <select className='select select-accent' disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
                       <option value={"none"} >none</option>
                       {Object.keys(limestones).map((item) =>
-                        <option value={item}>{item}</option>
+                        <option key={item} value={item}>{item}</option>
                       )}
                     </select>
                   </div>
@@ -845,42 +847,45 @@ const Grid = () => {
                         <details open={false}>
                           <summary>Contacto inferior</summary>
                           <ul>
-                            {Object.values(contacts).map((contact, index) => (
-                              <li key={index} style={{ backgroundColor: 'white', padding: '10px', marginBottom: '10px' }}>
+                            {Object.entries(contacts).map(([contact, key]) => (
+                              <li key={contact} style={{ backgroundColor: 'white', padding: '10px', marginBottom: '10px' }}>
+
                                 <label style={{ display: 'flex', alignItems: 'center' }}>
                                   <input
                                     type="checkbox"
-                                    checked={selectedContactIndex === index}
-                                    onChange={() => setSelectedContactIndex(index)}
+                                    value={contact}
+                                    name='contact'
+                                    checked={formData.contact == contact ? true : false}
+                                    onChange={handleChange}
                                     style={{ marginRight: '8px' }}
                                   />
                                   <svg width="150" height="20">
-                                    {contact.dash && (
+                                    {key.dash && (
                                       <line
                                         x1="0"
                                         y1="15"
                                         x2="150"
                                         y2="15"
                                         stroke="black"
-                                        strokeWidth={contact.lineWidth > 2 ? contact.lineWidth : 1}
-                                        strokeDasharray={`${contact.dash}`}
+                                        strokeWidth={key.lineWidth > 2 ? key.lineWidth : 1}
+                                        strokeDasharray={`${key.dash}`}
                                       />
                                     )}
-                                    {('dash2' in contact) && contact.dash2 && (
+                                    {('dash2' in key) && key.dash2 && (
                                       <line
                                         x1="0"
                                         y1="10"
                                         x2="150"
                                         y2="10"
                                         stroke="black"
-                                        strokeWidth={contact.lineWidth2 ?? 1}
-                                        strokeDasharray={`${contact.dash2}`}
+                                        strokeWidth={key.lineWidth2 ?? 1}
+                                        strokeDasharray={`${key.dash2}`}
                                       />
                                     )}
-                                    {contact.question && (
+                                    {key.question && (
                                       <text x="75" y="15" textAnchor="middle" dominantBaseline="middle" fontSize="20" fill="red">?</text>
                                     )}
-                                    {contact.arcs && (
+                                    {key.arcs && (
                                       <path
                                         d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,5 30,15 Q 35,25 40,15 Q 45,5 50,15 Q 55,25 60,15 Q 65,5 70,15 Q 75,25 80,15 Q 85,5 90,15 Q 95,25 100,15 Q 105,5 110,15 Q 115,25 120,15 Q 125,5 130,15 Q 135,25 140,15 Q 145,5 150,15" fill="none" stroke="black" strokeWidth="1" />
                                     )}

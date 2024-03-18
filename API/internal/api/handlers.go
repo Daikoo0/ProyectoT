@@ -440,8 +440,27 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					rowIndex := addData.RowIndex
 					height := addData.Height
+					roomData := rooms[roomID]
 
-					log.Println(rowIndex, height)
+					var index int
+
+					if rowIndex == -1 {
+						index = len(roomData.Data)
+					} else {
+						index = rowIndex
+					}
+
+					log.Println("a", rowIndex, index)
+					var prevShape string
+
+					if index-1 >= 0 && index-1 < len(roomData.Data) {
+						innermap := roomData.Data[index-1]["Litologia"].(map[string]interface{})
+						prevShape := innermap["contact"]
+						log.Println("prevshape", prevShape)
+					} else {
+						prevShape = ""
+						log.Println("prevshap", prevShape)
+					}
 
 					newShape := map[string]interface{}{
 						"Sistema":                 "",
@@ -466,16 +485,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 								{"x": 0.5, "y": 1, "radius": 5, "movable": true, "name": "none"},
 								{"x": 0, "y": 1, "radius": 5, "movable": false},
 							},
-							"upperContact": nil,
-							"lowerContact": nil,
-							"upperLimit":   nil,
-							"lowerLimit":   nil,
+							"contact":     "111",
+							"prevContact": prevShape,
 						},
 					}
 
 					if rowIndex == -1 { // Agrega al final
-
-						roomData := rooms[roomID]
 
 						roomData.Data = append(roomData.Data, newShape)
 
@@ -488,8 +503,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						sendSocketMessage(msgData, proyect, "añadir")
 
 					} else { // Agrega en el índice encontrado
-
-						roomData := rooms[roomID]
 
 						roomData.Data = append(roomData.Data[:rowIndex], append([]map[string]interface{}{newShape}, roomData.Data[rowIndex:]...)...)
 
@@ -777,7 +790,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					value := polygon.Value
 
 					// litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
-
 					// innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
 
 					roomData := rooms[roomID].Data[rowIndex]
@@ -791,6 +803,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"key":      column,
 						"value":    value,
 					}
+
+					log.Println("aquiii", msgData)
 
 					sendSocketMessage(msgData, proyect, "editPolygon")
 

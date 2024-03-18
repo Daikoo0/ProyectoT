@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
+import contacts from '../../contacts.json';
 
-const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation }) => {
+const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact }) => {
 
   const amplitude = 4;
   const resolution = 1;
@@ -27,13 +28,14 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
     let pathDataClick = `M ${points[1].x},${points[1].y}`;
 
     // Genera la curva superior
-    for (let i = 0; i <= steps; i++) {
-      const x = (startX + i * stepX) || 0;
-      if (x >= points[1].x) break;
-      const y = ((startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
-      pathData += `L ${x},${y} `;
-    }
-
+    
+      for (let i = 0; i <= steps; i++) {
+        const x = (startX + i * stepX) || 0;
+        if (x >= points[1].x) break;
+        const y = ((startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
+        pathData += `L ${x},${y} `;
+      }
+  
     //let pathData += `M ${points[0].x},${points[0].y} `; // Comienza el path en el primer punto
 
 
@@ -58,6 +60,7 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
 
 
     // Genera la curva inferior
+    if(contacts[contact].arcs){
     for (let i = steps; i >= 0; i--) {
 
       const x = (startX + i * stepX) || 0;
@@ -65,7 +68,10 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
       if (x <= points[len - 2].x) {
         pathData += `L ${x},${y} `;
       }
+    }}else{
+      pathData += `L ${points[len - 1].x},${points[len - 1].y} `;
     }
+
 
     // Cierra el path volviendo al inicio
     pathData += `L ${startX},${startY - amplitude} Z`;
@@ -93,6 +99,7 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
   const endY = Height;
   const totalLength = endX - startX;
 
+  console.log(points)
 
   const [pathData, pathDataClick] = generateWavePathData(
     startX,
@@ -106,14 +113,14 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
   );
 
   const [svgContent, setSvgContent] = useState('');
-  
+
 
   useEffect(() => {
     if (File === 0) {
       setSvgContent('');
       return;
     }
-  
+
     const loadImage = async () => {
       const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
       const response = await fetch(imageURL);
@@ -121,17 +128,17 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
       console.log("cargo svg");
       updateSvgContent(svgText);
     };
-  
+
     loadImage();
-  }, [File]); 
-  
+  }, [File]);
+
   useEffect(() => {
-   
+
     if (svgContent && File !== 0) {
       updateSvgContent(svgContent);
     }
-  }, [ColorFill, ColorStroke, Zoom]); 
-  
+  }, [ColorFill, ColorStroke, Zoom]);
+
   const updateSvgContent = (svgText) => {
     let updatedSvg = svgText;
     updatedSvg = updateSvg(updatedSvg, ColorFill, ColorStroke, Zoom);
@@ -177,11 +184,11 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
     }
 
     if (insertIndex !== -1) {
-      
+
       const originalY = (My) / Height;
       //const point = { x: 0.5, y: originalY, radius: 5, movable: true };
       addCircles(rowIndex, insertIndex, originalY)
-    
+
     }
 
   };
@@ -232,10 +239,10 @@ const PathComponent = ({rowIndex, Height, Width, File, ColorFill, ColorStroke, Z
           fill={points.movable ? 'purple' : 'blue'}
           onClick={() => {
             if (points.movable) {
-                //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
-                openModalPoint(rowIndex, index, circles[index].x, circles[index].name);
+              //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
+              openModalPoint(rowIndex, index, circles[index].x, circles[index].name);
             }
-        }}
+          }}
         />
       ))}
     </svg>
