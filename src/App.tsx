@@ -1,12 +1,14 @@
-import React from 'react';
+import Routes from './routes';
+import AuthProvider from './provider/authProvider';
+import { ThemeProvider } from './Context/theme-context';
 
-const App: React.FC = () => {
+function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        
-      </header>
-    </div>
+    <AuthProvider>
+      <ThemeProvider>
+        <Routes />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

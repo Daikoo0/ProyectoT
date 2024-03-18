@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/ApiClient';
 
 // Componente de middleware para verificar la autenticación
 const AuthMiddleware = ({ children }) => {
@@ -8,14 +9,13 @@ const AuthMiddleware = ({ children }) => {
 
     async function Auth() {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/users/auth`, {
-                method: "GET",
-                credentials: "include",
+            const response = await api.get('users/auth', {
+              withCredentials: true,
             });
 
-            console.log(response)
+            console.log(response.status)
 
-            if (!response.ok) {
+            if (response.status !== 200) {
                 throw new Error(`Authentication failed with status ${response.status}`);
             }
         
