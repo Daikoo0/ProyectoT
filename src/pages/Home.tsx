@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/ApiClient';
 import Navbar from '../components/Web/Narbar';
 import MapProject from '../components/Web/MapProject';
 import TableData from '../components/Web/TableData';
@@ -13,18 +14,11 @@ const Home = () => {
 
   async function fetchData() {
     try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include",
-        });
+        const response = await api.get("/users/projects");
 
-        const result = await response.json();
-        console.log(result);
+        console.log(response);
 
-        setProyectos(result.projects);
+        setProyectos(response.data.projects);
 
     } catch (error) {
         console.error('Error al obtener datos:', error);
@@ -35,17 +29,9 @@ const Home = () => {
   async function fetchMapData() {
     if (proyectMap.length > 0) return;
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/search/public`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-      });
+      const response = await api.get("/search/public");
 
-      const result = await response.json();
-
-      setProyectMap(result.projects);
+      setProyectMap(response.data.projects);
       console.log(response);
 
     } catch (error) {

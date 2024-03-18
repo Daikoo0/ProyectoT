@@ -9,8 +9,11 @@ import contacts from '../../contacts.json';
 import exportTableToPDFWithPagination from './pdfFunction';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
+import { useAuth } from '../../provider/authProvider';
 
 const Grid = () => {
+
+  const { token } = useAuth();
 
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
@@ -84,8 +87,6 @@ const Grid = () => {
     // });
   }
 
-  console.log(data)
-
   const handleClickRow = (index, column) => {
     setFormData({
       index: index,
@@ -129,7 +130,7 @@ const Grid = () => {
   useEffect(() => {
 
     const connectWebSocket = () => {
-      const newSocket = new WebSocket(`ws://${import.meta.env.VITE_SOCKET_URL}/ws/${project}`);
+      const newSocket = new WebSocket(`ws://${import.meta.env.VITE_SOCKET_URL}/ws/${project}?token=${token}`);
       setSocket(newSocket);
 
       newSocket.onopen = () => {
@@ -164,7 +165,6 @@ const Grid = () => {
   // Escucha de mensajes del socket
   useEffect(() => {
     if (socket) {
-
       socket.onmessage = (event) => {
         const shapeN = JSON.parse(event.data);
         console.log(shapeN)

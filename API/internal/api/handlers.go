@@ -142,21 +142,7 @@ func (a *API) LoginUser(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"}) // HTTP 500 Internal Server Error
 	}
 
-	// Setear la cookie
-	cookie := &http.Cookie{
-		Name:     "Authorization",
-		Value:    token,
-		Secure:   false,                // Cambiar en produccion a true
-		SameSite: http.SameSiteLaxMode, // cambiar en produccion a SameSiteNoneMode
-		HttpOnly: true,
-		Path:     "/",
-		//Expires:  time.Now().Add(10 * time.Second), // tiempo de vida de la cookie
-	}
-
-	log.Print(cookie)
-
-	c.SetCookie(cookie)                                                // Setea la cookie en el navegador
-	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
+	return c.JSON(http.StatusOK, map[string]string{"token": token}) // HTTP 200 OK
 }
 
 // LogoutUser elimina la cookie de autenticación
@@ -205,16 +191,17 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		return err
 	}
 
+	auth := c.QueryParam("token")
+
 	//validar datos
-	cookie, err := c.Cookie("Authorization")
-	if err != nil {
+	if auth == "" {
 		errMessage := "Error: Unauthorized"
 		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
 
-	claims, err := encryption.ParseLoginJWT(cookie.Value)
+	claims, err := encryption.ParseLoginJWT(auth)
 	if err != nil {
 		errMessage := "Error: Unauthorized"
 		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
@@ -1346,17 +1333,19 @@ func (a *API) HandleCreateProyect(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "Room created successfully"})
 }
 
-func (a *API) proyects(c echo.Context) error {
+func (a *API) projects(c echo.Context) error {
 
 	ctx := c.Request().Context()
-	cookie, err := c.Cookie("Authorization")
+	auth := c.Request().Header.Get("Authorization")
+
+	log.Print(auth)
 
 	//validar datos
-	if err != nil {
-		log.Println(err)
+	if auth == "" {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
-	claims, err := encryption.ParseLoginJWT(cookie.Value)
+
+	claims, err := encryption.ParseLoginJWT(auth)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})

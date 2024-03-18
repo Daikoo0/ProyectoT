@@ -1,24 +1,20 @@
 import SelectTheme from "./SelectTheme";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../provider/authProvider';
 
 const Navbar = ({ logohidden }) => {
-
+  const { setToken } = useAuth();
   const navigate = useNavigate();
 
-  const logout = async () => {
+  const logout = () => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/users/logout`, {
-        method: 'POST', 
-        credentials: 'include', // Incluye las cookies en la solicitud
-      });
-
-      navigate('/login');
-
+      setToken();
+      navigate("/", { replace: true });
+      
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
   };
-
 
   return (
     <>

@@ -10,7 +10,7 @@ const api = axios.create({
 });
 
 // Configurar un interceptor para las solicitudes antes de ser enviadas
-//api.interceptors.request.use(); 
+// api.interceptors.request.use(); 
 
 // Configurar un interceptor de la respuesta de la api
 api.interceptors.response.use(

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import { useAuth } from '../provider/authProvider';
 import SelectTheme from '../components/Web/SelectTheme';
-//import './Form.css';
+import api from '../api/ApiClient';
 
 function Login() {
+  const { setToken } = useAuth();
   const [Correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -17,48 +19,19 @@ function Login() {
     setPassword(e.target.value);
   };
 
-// Puedes crear una función genérica para realizar solicitudes HTTP
-async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-  try {
-    const response = await fetch(resource, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(id);
-    return response;
-  } catch (error) {
-    clearTimeout(id);
-    throw error;
-  }
-}
-
-//console.log(import.meta.env.VITE_API_URL)
 
 async function handleLogin() {
   try {
-    const url = `${import.meta.env.VITE_API_URL}/users/login`;
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        email: Correo,
-        password: password,
-      }),
-    };
-
-    const response = await fetchWithTimeout(url, options);
-    const data = await response.json();
-
-    console.log(response.status, data);
-
+    const response = await api.post("/users/login", {
+      email: Correo,
+      password: password,
+    });
+ 
+    setToken(response.data.token);
+   
     if (response.status === 200) {
       setMessage("Sesión iniciada");
-      navigate('/home');
+      navigate('/home', { replace: true });
     }
     else {
       setMessage("Usuario o contraseña incorrecta");

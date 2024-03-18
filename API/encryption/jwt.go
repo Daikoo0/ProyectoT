@@ -12,8 +12,9 @@ func SignedLoginToken(u *models.User) (string, error) { //JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{ //HS256 validacion unidireccional
 		"email": u.Email,
 		"name":  u.Name,
+		"exp":   jwt.TimeFunc().AddDate(0, 0, 7).Unix(), // Expira en 7 dias
 	})
-	//fmt.Print(u.Email)
+
 	return token.SignedString([]byte(key)) // Se firma el token con la llave
 }
 
