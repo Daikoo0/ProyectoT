@@ -21,6 +21,7 @@ type Repository interface { //comunicaciones con la base de datos
 	SaveProject(ctx context.Context, data string, name string) error                                                                                          // Guarda un proyecto en la base de datos
 	SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, fosil map[string]interface{}, name string) error              // Guarda una sala en la base de datos
 	SaveUsers(ctx context.Context, room *models.Data) error                                                                                                   // Guarda los usuarios de una sala en la base de datos
+	DeleteProject(ctx context.Context, roomID string) error                                                                                                   // Elimina un proyecto                                                                                                // Elimina un proyecto                                                                                                    // Elimina una sala de la base de datos
 
 	// Profile - profile.repository.go
 	GetProyects(ctx context.Context, email string) ([]models.Data, error) // Devuelve los proyectos de un usuario
@@ -31,6 +32,8 @@ type Repository interface { //comunicaciones con la base de datos
 	SaveUser(ctx context.Context, email, name, lastname, password string) error // Guarda un usuario en la base de datos
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)     // Devuelve la entidad usuario (OBJID, email, name, password, proyects)
 	AddUser(ctx context.Context, email string, roomName string) error           // Agrega un usuario a una sala
+	DeleteUserRoom(ctx context.Context, email string, roomName string) error    // Elimina un usuario de una sala
+
 }
 type repo struct {
 	db *mongo.Database

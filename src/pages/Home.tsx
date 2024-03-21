@@ -15,9 +15,7 @@ const Home = () => {
   async function fetchData() {
     try {
         const response = await api.get("/users/projects");
-
-        console.log(response);
-
+        console.log(response.data.projects)
         setProyectos(response.data.projects);
 
     } catch (error) {

@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../provider/authProvider';
+import api from '../../api/ApiClient';
 
 
 const TableData = ({ Data }) => {
 
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [selectproject, setSelectProject] = useState(null);
     const [filteredItem, setFilteredItem] = useState(null);
     const [message, setMessage] = useState('');
     const [usuarios, setUsuarios] = useState([{ email: '', rol: '' }]);
+
 
     // Manejar cambios en los campos de correo y rol
     const handleCorreoChange = (index, value) => {
@@ -50,7 +54,7 @@ const TableData = ({ Data }) => {
                 "Content-Type": "application/json"
             },
             credentials: "include",
-            body: JSON.stringify({usuarios}),
+            body: JSON.stringify({ usuarios }),
         });
 
         const data = await response.json();
@@ -72,7 +76,6 @@ const TableData = ({ Data }) => {
             {/* Modal para agregar usuarios */}
             <dialog id="my_modal_2" className="modal">
                 <div className="modal-box w-9/12 max-w-2xl ">
-
 
                     <h1>Invita a mas usuarios</h1>
 
@@ -142,6 +145,37 @@ const TableData = ({ Data }) => {
                 </form>
             </dialog>
 
+            <dialog id="modalDelete" className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">¿Estas seguro de eliminar este proyecto?</h3>
+                    <p className="py-4">Estas por eliminar el proyecto: <strong>{filteredItem?.Name}</strong></p>
+                    {filteredItem?.Members[0] === user.email ? <p>Como eres el dueño del proyecto, al eliminarlo, este se eliminara para todos los usuarios</p> : <p>Si eliminas este proyecto, ya no podras acceder a el</p>}
+
+                    <div className="modal-action">
+                        <form method="dialog" onSubmit={async () => {
+                            
+                            const response = await api.delete(`/users/projects/${filteredItem.ID}`);
+            
+                            if (response.status === 200) {
+                                setMessage("Proyecto eliminado con éxito");
+                                (document.getElementById('modalDelete') as HTMLDialogElement).showModal()
+                            } else
+                                if (response.status === 400) {
+                                    setMessage("Sala no existe")
+                                } else
+                                    if (response.status === 403) {
+                                        setMessage("No estás autorizado para eliminar esta sala")
+                                    }
+                        }}>
+                            <button className="btn btn-error" type="submit">Eliminar</button>
+                        </form>
+                        <form method="dialog">
+                            <button className="btn">Cancelar</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
+
             {/* Tabla de  */}
 
             <h1>Proyectos del usuario</h1>
@@ -201,7 +235,7 @@ const TableData = ({ Data }) => {
                                     <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/editor/${data.ID}`)}>Editar</button>
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('my_modal_2') as HTMLDialogElement).showModal(); }}>Invite</button>
                                     {/* <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/invite/${data.ID}`)}>Co-Autores</button> */}
-                                    <button className="btn btn-ghost btn-xs">Eliminar</button>
+                                    <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalDelete') as HTMLDialogElement).showModal() }} >Eliminar</button>
                                 </th>
                             </tr>
                         ))}

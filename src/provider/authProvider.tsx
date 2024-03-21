@@ -1,12 +1,12 @@
-import api from "../api/ApiClient";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {jwtDecode} from "jwt-decode";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext<any>(null);
 
 const AuthProvider = ({ children }) => {
     // State to hold the authentication token
     const [token, setToken_] = useState(localStorage.getItem("token"));
-    //const [token, setToken_] = useState("ashdga");
+    const [user , setUser] = useState({email: "", name : ""});
 
     // Function to set the authentication token
     const setToken = (newToken: string) => {
@@ -15,26 +15,19 @@ const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (token) {
-            api.defaults.headers.common["Authorization"] = token;
             localStorage.setItem("token", token);
+            const decoded: any = jwtDecode(token);
+            setUser({email: decoded.email, name: decoded.name});
+            
         } else {
-            delete api.defaults.headers.common["Authorization"];
             localStorage.removeItem("token");
         }
     }, [token]);
 
-    // Memoized value of the authentication context
-    const contextValue = useMemo(
-        () => ({
-            token,
-            setToken,
-        }),
-        [token]
-    );
-
+ 
     // Provide the authentication context to the children components
     return (
-        <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+        <AuthContext.Provider value={{ token, setToken, user }}>{children}</AuthContext.Provider>
     );
 };
 

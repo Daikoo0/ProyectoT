@@ -3,6 +3,7 @@ package api
 import (
 	"sync"
 
+	"github.com/ProyectoT/api/internal/repository"
 	"github.com/ProyectoT/api/internal/service"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -11,13 +12,15 @@ import (
 
 type API struct {
 	serv          service.Service
+	repo          repository.Repository
 	dataValidator *validator.Validate
 	saveMutex     sync.Mutex
 }
 
-func New(serv service.Service) *API {
+func New(serv service.Service, repo repository.Repository) *API {
 	return &API{
 		serv:          serv,
+		repo:          repo,
 		dataValidator: validator.New(),
 	}
 }
@@ -27,7 +30,7 @@ func (a *API) Start(e *echo.Echo, address string) error {
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"http://localhost:*", "http://127.0.0.1:*"},
-		AllowMethods:     []string{echo.GET, echo.POST},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.DELETE},
 		AllowHeaders:     []string{echo.HeaderContentType, echo.HeaderAuthorization},
 		AllowCredentials: true,
 	}))

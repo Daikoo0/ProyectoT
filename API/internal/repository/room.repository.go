@@ -145,6 +145,34 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 	return nil
 }
+
+func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
+	dbProject := r.db.Collection("projects")
+	dbDataProject := r.db.Collection("data-projects")
+
+	projectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		return fmt.Errorf("invalid project ID: %w", err)
+	}
+
+	res, err := dbProject.DeleteOne(ctx, bson.M{"_id": projectID})
+	if err != nil {
+		log.Println("Error deleting room:", err)
+		return err
+	}
+	if res.DeletedCount == 0 {
+		return fmt.Errorf("project not found in projects collection")
+	}
+
+	_, err = dbDataProject.DeleteOne(ctx, bson.M{"id_project": projectID})
+	if err != nil {
+		log.Println("Error deleting room:", err)
+		return err
+	}
+
+	return nil
+}
+
 func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, fosil map[string]interface{}, roomName string) error {
 	objectID, err := primitive.ObjectIDFromHex(roomName)
 	filter := bson.M{"id_project": objectID}

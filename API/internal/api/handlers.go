@@ -1420,10 +1420,10 @@ func (a *API) projects(c echo.Context) error {
 func (a *API) HandleGetPublicProject(c echo.Context) error {
 
 	ctx := c.Request().Context()
-	_, err := c.Cookie("Authorization")
 
-	if err != nil {
-		log.Println(err)
+	auth := c.Request().Header.Get("Authorization")
+
+	if auth == "" {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
 
@@ -1440,6 +1440,51 @@ func (a *API) HandleGetPublicProject(c echo.Context) error {
 
 	// Devolver la respuesta JSON con los proyectos
 	return c.JSON(http.StatusOK, response)
+}
+
+func (a *API) DeleteProject(c echo.Context) error {
+
+	ctx := c.Request().Context()
+
+	auth := c.Request().Header.Get("Authorization")
+
+	if auth == "" {
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+	claims, err := encryption.ParseLoginJWT(auth)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+	user := claims["email"].(string)
+
+	id := c.Param("id")
+	log.Print(id)
+	proyect, err := a.serv.GetRoomInfo(ctx, id)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
+	}
+
+	if proyect.Members["0"] != user {
+		log.Print("No es el dueño")
+		err = a.repo.DeleteUserRoom(ctx, user, id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete user"})
+		}
+
+	} else {
+		log.Print("Es el dueño")
+		err = a.repo.DeleteProject(ctx, id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete room"})
+		}
+
+	}
+
+	log.Print("Llego al final")
+	return c.JSON(http.StatusOK, responseMessage{Message: "Room deleted successfully"})
 }
 
 // codigo de una pila, (pila de cambios, del control Z)

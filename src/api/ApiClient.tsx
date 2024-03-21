@@ -10,7 +10,13 @@ const api = axios.create({
 });
 
 // Configurar un interceptor para las solicitudes antes de ser enviadas
-// api.interceptors.request.use(); 
+api.interceptors.request.use(config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = token;
+    }
+    return config;
+});
 
 // Configurar un interceptor de la respuesta de la api
 api.interceptors.response.use(

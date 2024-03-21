@@ -67,5 +67,29 @@ func (r *repo) AddUser(ctx context.Context, email string, roomName string) error
 	return nil
 }
 
+func (r *repo) DeleteUserRoom(ctx context.Context, email string, roomID string) error {
+	// "members": {
+	// 	"0": "a@a.com",
+	// 	"1": [
+	// 	  "tamara@mail.com",
+	// 	  "dani@mail.com"
+	// 	],
+	// 	"2": []
+	//   },
+	users := r.db.Collection("projects")
+	filter := bson.M{"id_project": roomID}
+	update := bson.M{"$pull": bson.M{"members": bson.M{"$in": []string{email}}}}
+	opts := options.Update().SetUpsert(true)
+	result, err := users.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		log.Println("Error updating room:", err)
+		return err
+	}
+	if result.MatchedCount == 0 {
+		log.Printf("User with email %s not found in room %s", email, roomID)
+	} else {
+		log.Printf("Successfully deleted user %s from room %s", email, roomID)
+	}
 
-
+	return nil
+}
