@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import autoTable, { Cell } from "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 const exportTableToPDFWithPagination = async (columnWidths, data, header, format) => {
     // const escala = scale || 1;
@@ -12,7 +12,7 @@ const exportTableToPDFWithPagination = async (columnWidths, data, header, format
     // }
     //const maxHeight = Math.max(...Object.values(data).map((item) => item['Litologia'].height))
     //  const pageWidth2 = 595 // pixelsToPoints(1500);
-    const pageHeight2 = 842//pixelsToPoints(Math.max(Number(maxHeight), 1000)) + 100;
+    //const pageHeight2 = 842//pixelsToPoints(Math.max(Number(maxHeight), 1000)) + 100;
 
     const sheetSizes = {
         'A4' : [595,842],

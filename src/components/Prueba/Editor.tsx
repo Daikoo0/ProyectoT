@@ -208,7 +208,6 @@ const Grid = () => {
               newData.splice(shapeN.rowIndex, 0, shapeN.value);
               return newData;
             });
-
             break;
           }
           case 'añadirEnd':
@@ -423,7 +422,7 @@ const Grid = () => {
     }));
   }
 
-  const [selectedContactIndex, setSelectedContactIndex] = useState(null);
+  //const [selectedContactIndex, setSelectedContactIndex] = useState(null);
 
   const sendActionCell = (row, column) => {
     if (socket) {
@@ -867,16 +866,16 @@ const Grid = () => {
                                         x2="150"
                                         y2="15"
                                         stroke="black"
-                                        strokeWidth={key.lineWidth > 2 ? key.lineWidth : 1}
+                                        strokeWidth={key.lineWidth}
                                         strokeDasharray={`${key.dash}`}
                                       />
                                     )}
                                     {('dash2' in key) && key.dash2 && (
                                       <line
                                         x1="0"
-                                        y1="10"
+                                        y1="20"
                                         x2="150"
-                                        y2="10"
+                                        y2="20"
                                         stroke="black"
                                         strokeWidth={key.lineWidth2 ?? 1}
                                         strokeDasharray={`${key.dash2}`}
@@ -973,7 +972,10 @@ const Grid = () => {
                               "rowIndex": formData.index
                             }
                           }));
-
+                          setSideBarState({
+                            sideBar: false,
+                            sideBarMode: ""
+                          })
                         }}>Eliminar capa</button>
                       </li>
                     </ul>

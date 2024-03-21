@@ -10,8 +10,8 @@ const Ruler = ({ width, height, isInverted, scale }) => {
         <g key={`mark-${i}`}>
           <line className="stroke-base-content" x1={width - 20} y1={position} x2={width} y2={position} strokeWidth={2} />
           <text className="fill-base-content" x={width - 45} y={position - 5} fontSize={12} >
-          {i === 0 ? <tspan dy="15">{text}</tspan> : text}
-            </text>
+            {i === 0 ? <tspan dy="15">{text}</tspan> : text}
+          </text>
         </g>
       );
     } else {
@@ -22,9 +22,11 @@ const Ruler = ({ width, height, isInverted, scale }) => {
   }
 
   return (
-     <svg className="h-full max-h-full" width={width} overflow={'visible'}>
-      {marks}
-     </svg>
+    <div className="h-full max-h-full">
+      <svg className="h-full max-h-full" width={width} overflow={'visible'}>
+        {marks}
+      </svg>
+    </div>
   );
 };
 

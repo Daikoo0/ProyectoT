@@ -4,6 +4,7 @@ import Fosil from "./Fosil";
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
 import exportTableToPDFWithPagination from "./pdfFunction";
+import ResizeObserver from "resize-observer-polyfill";
 
 const Tabla = ({ setPdfData, pdfData, data, header, scale,
     addCircles, setSideBarState,
@@ -53,16 +54,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         setHovered(false);
     };
 
-    var adfas = useRef(null)
-    const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-    useEffect(() => {
-        if (adfas.current) {
-            const { width, height } = adfas.current.getBoundingClientRect();
-            setDimensions({ width, height });
-        }
-
-    }, [adfas.current, data.length, scale]);
     const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
 
     const handleColumns = (e, key) => {
@@ -117,6 +109,26 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 }
             </>)
     }
+    const [alturaTd, setAlturaTd] = useState(null);
+    var adfas = useRef<HTMLTableCellElement>(null);
+
+    useEffect(() => {
+        const obtenerAlturaTd = () => {
+            if (adfas.current) {
+                const altura = adfas.current.getBoundingClientRect().height;
+                setAlturaTd(altura);
+            }
+        };
+        if (adfas.current) {
+            obtenerAlturaTd();
+            const resizeObserver = new ResizeObserver(obtenerAlturaTd);
+            resizeObserver.observe(adfas.current);
+            return () => {
+                resizeObserver.disconnect();
+            };
+        }
+    }, [adfas.current,data.length]);
+
 
     return (
         <>
@@ -305,7 +317,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                             >
                                                 <div className="h-full max-h-full">
-                                                    <Ruler height={dimensions.height} width={(columnWidths["Espesor"] || 150)} isInverted={false} scale={scale} />
+                                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 150)} isInverted={false} scale={scale} />
                                                 </div>
                                             </td>
                                         );
@@ -412,6 +424,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                 tension={RowValue.Litologia.tension}
                                                                 rotation={RowValue.Litologia.rotation}
                                                                 contact={RowValue.Litologia.contact}
+                                                                prevContact={RowValue.Litologia.prevContact}
                                                             />
                                                         </>
                                                         :

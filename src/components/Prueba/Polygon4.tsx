@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import contacts from '../../contacts.json';
 
-const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact }) => {
+const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact, prevContact }) => {
 
   const amplitude = 4;
   const resolution = 1;
@@ -26,16 +26,23 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     // Comienza la curva en la parte superior
     let pathData = `M ${points[0].x},${points[0].y}`;
     let pathDataClick = `M ${points[1].x},${points[1].y}`;
+    let pathUpperCurve = `M ${points[0].x},${points[0].y}`;
+    let pathLowerCurve = `M ${points[points.length - 2].x},${points[points.length - 2].y}`;
 
     // Genera la curva superior
-    
+
+    if (contacts[prevContact]?.arcs) {
       for (let i = 0; i <= steps; i++) {
         const x = (startX + i * stepX) || 0;
         if (x >= points[1].x) break;
         const y = ((startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
         pathData += `L ${x},${y} `;
+        pathUpperCurve += `L ${x},${y} `;
       }
-  
+    } else {
+      pathData += `L ${points[1].x},${points[1].y} `;
+    }
+
     //let pathData += `M ${points[0].x},${points[0].y} `; // Comienza el path en el primer punto
 
 
@@ -60,15 +67,17 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
 
     // Genera la curva inferior
-    if(contacts[contact].arcs){
-    for (let i = steps; i >= 0; i--) {
+    if (contacts[contact].arcs) {
+      for (let i = steps; i >= 0; i--) {
 
-      const x = (startX + i * stepX) || 0;
-      const y = (endY + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
-      if (x <= points[len - 2].x) {
-        pathData += `L ${x},${y} `;
+        const x = (startX + i * stepX) || 0;
+        const y = (endY + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
+        if (x <= points[len - 2].x) {
+          pathData += `L ${x},${y} `;
+          pathLowerCurve += `L ${x},${y} `;
+        }
       }
-    }}else{
+    } else {
       pathData += `L ${points[len - 1].x},${points[len - 1].y} `;
     }
 
@@ -76,7 +85,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     // Cierra el path volviendo al inicio
     pathData += `L ${startX},${startY - amplitude} Z`;
 
-    return [pathData, pathDataClick];
+    return [pathData, pathDataClick, pathLowerCurve, pathUpperCurve];
   }
 
   const points = useMemo(() => {
@@ -99,9 +108,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
   const endY = Height;
   const totalLength = endX - startX;
 
-  console.log(points)
-
-  const [pathData, pathDataClick] = generateWavePathData(
+  const [pathData, pathDataClick, pathUpperCurve, pathLowerCurve] = generateWavePathData(
     startX,
     startY,
     endX,
@@ -113,7 +120,6 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
   );
 
   const [svgContent, setSvgContent] = useState('');
-
 
   useEffect(() => {
     if (File === 0) {
@@ -193,9 +199,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
   };
 
-
   const patternId = `pattern-${rowIndex}`;
-
   return (
     <svg width="100%" height={Height} overflow='visible'>
 
@@ -206,11 +210,12 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         </pattern>
       </defs>
 
+
       {/* Polygon Path */}
       <path d={pathData}
         fill={`url(#${patternId})`}
         stroke="black"
-        strokeWidth="1.5"
+        strokeWidth="0.8"
         onClick={() => {
           handleClickRow(rowIndex, 'Litologia')
           setSideBarState({
@@ -220,6 +225,44 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         }}
       />
 
+      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="white" strokeWidth={2} />
+      <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="white" strokeWidth={2} />
+
+      {contacts[contact].arcs ?
+        <>
+          <path d={pathUpperCurve}
+            stroke="black"
+            fill="transparent"
+            strokeWidth="1"
+          />
+        </> : <></>}
+
+      {contacts[prevContact].arcs ?
+        <>
+          <path d={pathLowerCurve}
+            fill="transparent"
+            stroke="black"
+            strokeWidth="1"
+          />
+        </> : <></>}
+
+
+      {contacts[contact].dash && !contacts[contact].dash2 ?
+        <>
+          <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={contacts[contact].dash} />
+        </> : <></>}
+      {contacts[prevContact].dash && !contacts[prevContact].dash2 ?
+        <>
+          <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="black" strokeWidth={contacts[prevContact].lineWidth} strokeDasharray={contacts[prevContact].dash} />
+        </> : <></>}
+
+
+      {contacts[contact].dash2 ?
+        <>
+          <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="black" strokeWidth={contacts[contact].lineWidth2} strokeDasharray={contacts[contact].dash2} />
+          <line x1="0" y1={Height - 5} x2={points[points.length - 2].x} y2={Height - 5} stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={contacts[contact].dash} />
+        </> : <></>}
+
       {/* Line Click */}
       <path d={pathDataClick}
         fill="none"
@@ -228,7 +271,10 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         //pointerEvents='stroke' 
         onClick={(e) => handlePathClick(e)}
       />
-
+      {contacts[contact].question ? <>
+        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height + 8} fontSize="25" fontWeight={700} fill="black">?</text>
+      </> : <></>
+      }
       {/* Círculos */}
       {points.map((points, index) => (
         <circle
@@ -236,7 +282,8 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
           cx={points.x}
           cy={points.y}
           r={6}
-          fill={points.movable ? 'purple' : 'blue'}
+          opacity={0.4}
+          fill={points.movable ? 'purple' : 'transparent'}
           onClick={() => {
             if (points.movable) {
               //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();

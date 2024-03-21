@@ -439,14 +439,20 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					log.Println("a", rowIndex, index)
 					var prevShape string
+					var lit = roomData.Data
+
+					if index+1 < len(roomData.Data) {
+						lit[index+1]["Litologia"].(map[string]interface{})["prevContact"] = "111"
+						rooms[roomID].Data = lit
+					}
 
 					if index-1 >= 0 && index-1 < len(roomData.Data) {
 						innermap := roomData.Data[index-1]["Litologia"].(map[string]interface{})
-						prevShape := innermap["contact"]
-						log.Println("prevshape", prevShape)
+						prevShape = innermap["contact"].(string)
+					} else if index == 0 {
+						prevShape = "111"
 					} else {
-						prevShape = ""
-						log.Println("prevshap", prevShape)
+						prevShape = "111"
 					}
 
 					newShape := map[string]interface{}{
@@ -499,6 +505,16 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							"value":    newShape,
 						}
 
+						if index < len(roomData.Data) {
+							msgData2 := map[string]interface{}{
+								"action":   "editPolygon",
+								"rowIndex": index,
+								"key":      "prevContact",
+								"value":    "111",
+							}
+							sendSocketMessage(msgData2, proyect, "editPolygon")
+						}
+
 						sendSocketMessage(msgData, proyect, "añadir")
 
 					}
@@ -512,8 +528,36 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 
 					rowIndex := deleteData.RowIndex
-
 					roomData := rooms[roomID]
+
+					if rowIndex+1 > 0 && rowIndex+1 < len(roomData.Data) {
+
+						if rowIndex-1 >= 0 {
+							var lit = roomData.Data
+							lit[rowIndex+1]["Litologia"].(map[string]interface{})["prevContact"] = roomData.Data[rowIndex-1]["Litologia"].(map[string]interface{})["contact"]
+							rooms[roomID].Data = lit
+						}
+
+						var newPrev string
+
+						if rowIndex-1 >= 0 {
+							log.Println("condicion 1")
+							newPrev = roomData.Data[rowIndex-1]["Litologia"].(map[string]interface{})["contact"].(string)
+						} else {
+							newPrev = "111"
+						}
+						log.Println("condicion 2")
+
+						msgData2 := map[string]interface{}{
+							"action":   "editPolygon",
+							"rowIndex": rowIndex + 1,
+							"key":      "prevContact",
+							"value":    newPrev,
+						}
+						log.Println("edit1")
+						sendSocketMessage(msgData2, proyect, "editPolygon")
+						log.Println("edit2")
+					}
 
 					roomData.Data = append(roomData.Data[:rowIndex], roomData.Data[rowIndex+1:]...)
 
@@ -521,7 +565,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"action":   "delete",
 						"rowIndex": rowIndex,
 					}
-
+					log.Println("delete")
 					sendSocketMessage(msgData, proyect, "delete")
 
 				case "addCircle":
@@ -771,19 +815,12 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("Error deserializando el polygon:", err)
 						break
 					}
-
 					rowIndex := polygon.RowIndex
 					column := polygon.Column
 					value := polygon.Value
-
-					// litologia := rooms[roomID].Data["Litologia"].(map[string]interface{})
-					// innerMap := litologia[strconv.Itoa(rowIndex)].(map[string]interface{})
-
 					roomData := rooms[roomID].Data[rowIndex]
-
 					innerMap := roomData["Litologia"].(map[string]interface{})
 					innerMap[column] = value
-
 					msgData := map[string]interface{}{
 						"action":   "editPolygon",
 						"rowIndex": rowIndex,
@@ -791,7 +828,19 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"value":    value,
 					}
 
-					log.Println("aquiii", msgData)
+					if column == "contact" && rowIndex+1 < len(rooms[roomID].Data) {
+						roomData2 := rooms[roomID].Data
+						innerMap2 := roomData2[rowIndex+1]["Litologia"].(map[string]interface{})
+						innerMap2["prevContact"] = roomData["Litologia"].(map[string]interface{})["contact"].(string)
+						rooms[roomID].Data = roomData2
+						msgData2 := map[string]interface{}{
+							"action":   "editPolygon",
+							"rowIndex": rowIndex + 1,
+							"key":      "prevContact",
+							"value":    roomData["Litologia"].(map[string]interface{})["contact"],
+						}
+						sendSocketMessage(msgData2, proyect, "editPolygon")
+					}
 
 					sendSocketMessage(msgData, proyect, "editPolygon")
 
