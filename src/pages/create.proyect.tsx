@@ -53,7 +53,12 @@ const ParticipantForm = () => {
   }
 
   async function handleSubmit() {
-
+    // Comprobar que todos los campos estén llenos
+    if (!roomName || !location || !lat || !long || !desc) {
+      setMessage("Por favor, completa todos los campos.");
+      return;
+    }
+  
     var Data = {
       roomName: roomName,
       location: location,
@@ -61,22 +66,28 @@ const ParticipantForm = () => {
       long: parseFloat(long),
       desc: desc,
       visible: visible
-
     };
-
-    const response = await api.post(`/rooms/create`, Data );
-
-    console.log(response.status);
-
-    if (response.status === 200) {
-      setMessage("Sala " + roomName + " creada con éxito")
-    }
-    else
-      if (response.status === 500) {
-
-        setMessage("Error al crear la sala")
+  
+    try {
+      const response = await api.post(`/rooms/create`, Data);
+  
+      console.log(response.status);
+  
+      if (response.status === 200) {
+        setMessage("Sala " + roomName + " creada con éxito");
+        // Redireccionar al home
+        window.location.href = "/home";
+      } else if (response.status === 500) {
+        setMessage("Error al crear la sala");
+      } else {
+        setMessage("Error desconocido");
       }
+    } catch (error) {
+      console.error("Error:", error);
+      setMessage("Ha ocurrido un error al procesar tu solicitud.");
+    }
   }
+  
 
   return (
     <div className='flex-1'>

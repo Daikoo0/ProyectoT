@@ -223,8 +223,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         }}
       />
 
-      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="transparent" strokeWidth={1} />
-      <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="transparent" strokeWidth={1} />
+      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke={ColorFill} strokeWidth={1} />
 
       {contacts[contact].arcs ?
         <>
@@ -271,7 +270,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         onClick={(e) => handlePathClick(e)}
       />
       {contacts[contact].question ? <>
-        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height } fontSize="25" fontWeight={700} overflow={'visible'} fill="black">?</text>
+        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height} fontSize="25" fontWeight={700} overflow={'visible'} fill="black">?</text>
       </> : <></>
       }
     
