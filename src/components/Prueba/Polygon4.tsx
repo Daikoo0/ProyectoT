@@ -10,7 +10,6 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     startX,
     startY,
     endX,
-    endY,
     totalLength,
     amplitude,
     resolution,
@@ -32,10 +31,12 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     // Genera la curva superior
 
     if (contacts[prevContact]?.arcs) {
+      const startY = 0 + amplitude; // Establecer la altura inicial para comenzar desde la mitad hacia arriba
       for (let i = 0; i <= steps; i++) {
         const x = (startX + i * stepX) || 0;
         if (x >= points[1].x) break;
-        const y = ((startY - amplitude) + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
+        // Ajustar la fase de la función seno para comenzar desde la mitad hacia arriba
+        const y = ((startY - amplitude) + Math.sin(((i + steps / 2) / steps) * totalLength * frequency) * amplitude) || 0;
         pathData += `L ${x},${y} `;
         pathUpperCurve += `L ${x},${y} `;
       }
@@ -69,9 +70,9 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     // Genera la curva inferior
     if (contacts[contact].arcs) {
       for (let i = steps; i >= 0; i--) {
-
         const x = (startX + i * stepX) || 0;
-        const y = (endY + Math.sin((i / steps) * totalLength * frequency) * amplitude) || 0;
+        // Ajustar la fase de la función seno para comenzar desde la mitad hacia arriba
+        const y = (Height + Math.sin(((i + steps / 2) / steps) * totalLength * frequency) * amplitude) || 0;
         if (x <= points[len - 2].x) {
           pathData += `L ${x},${y} `;
           pathLowerCurve += `L ${x},${y} `;
@@ -105,14 +106,12 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
   const startX = 0;
   const startY = 0 + amplitude;
   const endX = Width;
-  const endY = Height;
   const totalLength = endX - startX;
 
   const [pathData, pathDataClick, pathUpperCurve, pathLowerCurve] = generateWavePathData(
     startX,
     startY,
     endX,
-    endY,
     totalLength,
     amplitude,
     resolution,
@@ -210,7 +209,6 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         </pattern>
       </defs>
 
-
       {/* Polygon Path */}
       <path d={pathData}
         fill={`url(#${patternId})`}
@@ -225,8 +223,8 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         }}
       />
 
-      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="white" strokeWidth={2} />
-      <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="white" strokeWidth={2} />
+      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="transparent" strokeWidth={1} />
+      <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="transparent" strokeWidth={1} />
 
       {contacts[contact].arcs ?
         <>
@@ -249,9 +247,10 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
       {contacts[contact].dash && !contacts[contact].dash2 ?
         <>
-          <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={contacts[contact].dash} />
+          <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={eval(contacts[contact].dash)} />
         </> : <></>}
-      {contacts[prevContact].dash && !contacts[prevContact].dash2 ?
+
+        {contacts[prevContact].dash && !contacts[prevContact].dash2 && prevContact!== "119" && prevContact !== "1110" ?
         <>
           <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="black" strokeWidth={contacts[prevContact].lineWidth} strokeDasharray={contacts[prevContact].dash} />
         </> : <></>}
@@ -272,9 +271,10 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         onClick={(e) => handlePathClick(e)}
       />
       {contacts[contact].question ? <>
-        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height + 8} fontSize="25" fontWeight={700} fill="black">?</text>
+        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height } fontSize="25" fontWeight={700} overflow={'visible'} fill="black">?</text>
       </> : <></>
       }
+    
       {/* Círculos */}
       {points.map((points, index) => (
         <circle

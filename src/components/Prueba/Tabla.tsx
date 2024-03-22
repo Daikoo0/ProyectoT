@@ -127,7 +127,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 resizeObserver.disconnect();
             };
         }
-    }, [adfas.current,data.length]);
+    }, [adfas.current, data.length]);
 
 
     return (
@@ -371,9 +371,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 className={
                                                     (editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia') ?
-                                                        (`border-2 prose` + (columnName === "Litologia" ? "ql-editor" : ""))
+                                                        (`border-2 ` + (columnName === "Litologia" ? "" : ""))
                                                         :
-                                                        (`border prose` + (columnName === "Litologia" ? "ql-editor" : ""))
+                                                        (`border ` + (columnName === "Litologia" ? "" : ""))
                                                 }
                                                 onClick={() => {
                                                     if (columnName !== "Litologia") {
@@ -434,8 +434,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     'padding': 10,
                                                                 }}
                                                                 dangerouslySetInnerHTML={{ __html: RowValue[columnName] }}
-                                                            />
-
+                                                            >
+                                                            </div>
                                                         </>
                                                     }
                                                 </div>

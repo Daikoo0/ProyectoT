@@ -1,13 +1,13 @@
 {
     "111": {
         "dash": [],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
     "112": {
         "dash": [],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -16,7 +16,7 @@
             20,
             4
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
@@ -25,7 +25,7 @@
             20,
             4
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -34,7 +34,7 @@
             10,
             4
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
@@ -43,7 +43,7 @@
             10,
             4
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -52,7 +52,7 @@
             5,
             4
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
@@ -61,19 +61,19 @@
             5,
             4
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
     "119": {
-        "dash": "[((points[1].x - points[0].x)/2)-8, 3, 3,4,3,3]",
-        "lineWidth": 1,
+        "dash": "[((points[points.length-2].x + points[points.length-1].x)/2)-8, 3, 3,4,3,3]",
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
     "1110": {
-        "dash": "[((points[1].x -points[0].x)/2)-8, 3, 3,4,3,3]",
-        "lineWidth": 1,
+        "dash": "[((points[points.length-2].x + points[points.length-1].x)/2)-8, 3, 3,4,3,3]",
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -86,7 +86,7 @@
             2,
             2
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
@@ -99,7 +99,7 @@
             2,
             2
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -112,7 +112,7 @@
             2,
             2
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
@@ -125,7 +125,7 @@
             2,
             2
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -138,7 +138,7 @@
             2,
             2
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": false
     },
@@ -151,7 +151,7 @@
             2,
             2
         ],
-        "lineWidth": 1,
+        "lineWidth": 3,
         "arcs": false,
         "question": true
     },
@@ -342,12 +342,11 @@
     },
     "1132": {
         "dash": [
-            0,
+            4,
             8,
             4,
-            6,
-            4,
-            8
+            6
+            
         ],
         "lineWidth": 1,
         "arcs": true,

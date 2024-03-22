@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
 import Tabla from './Tabla';
-import EditorQuill from './EditorQuill';
 import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
@@ -10,11 +9,60 @@ import exportTableToPDFWithPagination from './pdfFunction';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
+import React from 'react'
+import Trumbowyg from "react-trumbowyg";
+import "trumbowyg/dist/plugins/fontfamily/trumbowyg.fontfamily";
+import "react-trumbowyg/dist/trumbowyg.min.css";
+import "trumbowyg/dist/plugins/fontsize/trumbowyg.fontsize";
+//import "../../globals.d.ts";
+//import jQuery from "jquery";
+
+const Editor = ({
+  value,
+  setValue
+}: {
+  value: string;
+  setValue: (value: string) => void;
+}) => {
+  const buttons = [
+    //['undo', 'redo'], // Only supported in Blink browsers
+    ["fontfamily", "fontsize"],
+    ["fontsize"],
+    ["foreColor", "backColor"],
+    ["formatting"],
+    ["strong", "em", "del"],
+    ["superscript", "subscript"],
+    ["link"],
+    ["insertImage"],
+    ["justifyLeft", "justifyCenter", "justifyRight", "justifyFull"],
+    ["unorderedList", "orderedList"],
+    ["horizontalRule"],
+    ["removeformat"],
+    ["fullscreen"]
+  ];
+
+  return (
+    <>
+      <Trumbowyg
+        id="react-trumbowyg"
+        buttons={buttons}
+        data={value}
+        onChange={(e: { target: { innerHTML: string } }) => {
+          console.log("onChange", e.target.innerHTML);
+          setValue(e.target.innerHTML);
+          console.log(e.target.innerHTML)
+        }}
+        onPaste={(e: { target: { innerHTML: string } }) =>
+          setValue(e.target.innerHTML)
+        }
+      />
+    </>
+  );
+};
 
 const Grid = () => {
 
   const { token } = useAuth();
-
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
@@ -104,8 +152,6 @@ const Grid = () => {
     });
   };
 
-
-
   const handleColumns = (e, key) => {
     if (e.target.checked) {
       socket.send(JSON.stringify({
@@ -184,20 +230,17 @@ const Grid = () => {
             setEditingUsers(prevState => ({
               ...prevState,
               [shapeN.value]: { "name": shapeN.userName, "color": shapeN.color }
-
             }));
             break;
           }
           case 'deleteEditingUser': {
             setEditingUsers(prevState => {
-              console.log("elimando user")
               const newState = { ...prevState };
               if (newState.hasOwnProperty(shapeN.value)) {
                 delete newState[shapeN.value];
               } else {
                 console.log("El elemento a eliminar no existe en el estado");
               }
-
               return newState;
             });
             break;
@@ -451,6 +494,11 @@ const Grid = () => {
 
   };
 
+  const [editorState, setEditorState] = useState("");
+  const onChange = (text: string) => {
+    setEditorState(text);
+    console.log("onChange", text);
+  };
 
   return (
     <>
@@ -859,7 +907,18 @@ const Grid = () => {
                                     style={{ marginRight: '8px' }}
                                   />
                                   <svg width="150" height="20">
-                                    {key.dash && (
+                                    {key.dash && contact === "119" && (
+                                      <line
+                                        x1="0"
+                                        y1="15"
+                                        x2="150"
+                                        y2="15"
+                                        stroke="black"
+                                        strokeWidth={key.lineWidth}
+                                        strokeDasharray={"[67,2,2,2,2,2]"}
+                                      />
+                                    )}
+                                    {key.dash && contact !== "119" && (
                                       <line
                                         x1="0"
                                         y1="15"
@@ -870,6 +929,7 @@ const Grid = () => {
                                         strokeDasharray={`${key.dash}`}
                                       />
                                     )}
+
                                     {('dash2' in key) && key.dash2 && (
                                       <line
                                         x1="0"
@@ -882,7 +942,7 @@ const Grid = () => {
                                       />
                                     )}
                                     {key.question && (
-                                      <text x="75" y="15" textAnchor="middle" dominantBaseline="middle" fontSize="20" fill="red">?</text>
+                                      <text x="75" y="15" overflow={'visible'} textAnchor="middle" dominantBaseline="middle" fontSize="20" fill="red">?</text>
                                     )}
                                     {key.arcs && (
                                       <path
@@ -984,16 +1044,14 @@ const Grid = () => {
                 case "text":
                   return (
                     <>
-                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content"> 
                         <p className="menu-title">Editando texto</p>
                         <div>
-                          <EditorQuill
-                            Text={formData.text}
-                            SetText={(html: string) => setFormData(prevState => ({
-                              ...prevState,
-                              text: html,
-                            }))}
-                          />
+                          <Editor value={formData.text} setValue={(html: string) => setFormData(prevState => ({
+                            ...prevState,
+                            text: html,
+                          }))}
+                          ></Editor>
                         </div>
 
                         <button onClick={() => {
@@ -1009,7 +1067,6 @@ const Grid = () => {
 
                         }}>Enviar</button>
                       </div>
-
                     </>
                   );
 
@@ -1028,5 +1085,6 @@ const Grid = () => {
     </>
   );
 }
+
 
 export default Grid;

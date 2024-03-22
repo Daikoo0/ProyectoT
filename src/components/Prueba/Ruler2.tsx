@@ -22,11 +22,10 @@ const Ruler = ({ width, height, isInverted, scale }) => {
   }
 
   return (
-    <div className="h-full max-h-full">
+   
       <svg className="h-full max-h-full" width={width} overflow={'visible'}>
         {marks}
       </svg>
-    </div>
   );
 };
 
