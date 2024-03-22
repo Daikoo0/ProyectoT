@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/ProyectoT/api/internal/entity"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -68,17 +70,20 @@ func (r *repo) AddUser(ctx context.Context, email string, roomName string) error
 }
 
 func (r *repo) DeleteUserRoom(ctx context.Context, email string, roomID string) error {
-	// "members": {
-	// 	"0": "a@a.com",
-	// 	"1": [
-	// 	  "tamara@mail.com",
-	// 	  "dani@mail.com"
-	// 	],
-	// 	"2": []
-	//   },
+
+	projectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		return fmt.Errorf("invalid project ID: %w", err)
+	}
+
 	users := r.db.Collection("projects")
-	filter := bson.M{"id_project": roomID}
-	update := bson.M{"$pull": bson.M{"members": bson.M{"$in": []string{email}}}}
+	filter := bson.M{"_id": projectID}
+	update := bson.M{
+		"$pull": bson.M{
+			"members.1": email,
+			"members.2": email,
+		},
+	}
 	opts := options.Update().SetUpsert(true)
 	result, err := users.UpdateOne(ctx, filter, update, opts)
 	if err != nil {

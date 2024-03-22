@@ -21,6 +21,9 @@ func (r *repo) ConnectRoom(ctx context.Context, roomID string, user string) (*mo
 	var room models.Data_project
 
 	objectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = rooms.FindOne(ctx, bson.M{"id_project": objectID}).Decode(&room)
 	if err == mongo.ErrNoDocuments {
 		return nil, err
@@ -175,6 +178,9 @@ func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
 
 func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, fosil map[string]interface{}, roomName string) error {
 	objectID, err := primitive.ObjectIDFromHex(roomName)
+	if err != nil {
+		return fmt.Errorf("invalid project ID: %w", err)
+	}
 	filter := bson.M{"id_project": objectID}
 	update := bson.M{"$set": bson.M{
 		"data":   data,
@@ -193,24 +199,38 @@ func (r *repo) SaveRoom(ctx context.Context, data []map[string]interface{}, conf
 	return nil
 }
 
-func (r *repo) SaveUsers(ctx context.Context, room *models.Data) error {
-	filter := bson.M{
-		"$and": []bson.M{
-			{"name": room.Name},
-			{"owner": room.Owner},
+func (r *repo) AddUserToProject(ctx context.Context, email string, role string, roomID string) error {
+	// Obtener la colección "projects" de la base de datos
+	users := r.db.Collection("projects")
+	projectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		return fmt.Errorf("invalid project ID: %w", err)
+	}
+
+	// Filtrar por id_project
+	filter := bson.M{"_id": projectID}
+
+	// Definir una actualización para agregar el correo electrónico a la lista correspondiente
+	update := bson.M{
+		"$push": bson.M{
+			"members." + role: email,
 		},
 	}
-	update := bson.M{"$set": bson.M{
-		"members": room.Members,
-	}}
-	log.Println(update)
 
-	rooms := r.db.Collection("project")
-	opts := options.Update().SetUpsert(true)
-	_, err := rooms.UpdateOne(ctx, filter, update, opts)
+	// Opciones de actualización
+	opts := options.Update().SetUpsert(false)
+
+	// Realizar la actualización en la base de datos
+	result, err := users.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		log.Println("Error updating room:", err)
 		return err
+	}
+
+	if result.MatchedCount == 0 {
+		log.Printf("Room with id %s not found", roomID)
+	} else {
+		log.Printf("Successfully added user %s to role %s in room %s", email, role, roomID)
 	}
 
 	return nil

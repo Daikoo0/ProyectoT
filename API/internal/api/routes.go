@@ -15,9 +15,9 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 	users.GET("/projects", a.projects)             // users
 	users.DELETE("/projects/:id", a.DeleteProject) // users/projects/:id
 
-	e.GET("/search/public", a.HandleGetPublicProject) // search/public
-	e.GET("/ws/:room", a.HandleWebSocket)             //ws/sala
-	e.POST("/rooms/:room/invite", a.HandleInviteUser) //rooms/sala/usuario
-	e.POST("/rooms/create", a.HandleCreateProyect)    //rooms/sala/usuario
+	e.GET("/search/public", a.HandleGetPublicProject)     // search/public
+	e.GET("/ws/:room", a.HandleWebSocket)                 //ws/sala
+	e.POST("/project/:id/inviteUser", a.HandleInviteUser) //rooms/sala/usuario
+	e.POST("/rooms/create", a.HandleCreateProyect)        //rooms/sala/usuario
 
 }

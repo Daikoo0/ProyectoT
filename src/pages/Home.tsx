@@ -57,7 +57,7 @@ useEffect(() => {
             {/* PROYECTOS */}
             <div className="overflow-x-auto bg-base-200 rounded-box p-4 h-full">
 
-              {item === 'tabla' && <TableData Data={proyectos} /> }
+              {item === 'tabla' && <TableData Data={proyectos} refresh={fetchData}/> }
               {item === 'mapa' && 
                 <div className='h-full'>
                   <MapProject Data={proyectMap}/>

@@ -21,7 +21,6 @@ type Service interface {
 	GetRoomInfo(ctx context.Context, roomID string) (*models.Data, error)
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error
 	SaveRoom(ctx context.Context, data []map[string]interface{}, config map[string]interface{}, fosil map[string]interface{}, roomName string) error
-	SaveUsers(ctx context.Context, room *models.Data) error
 	SaveProject(ctx context.Context, data string, name string) error
 	GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
 

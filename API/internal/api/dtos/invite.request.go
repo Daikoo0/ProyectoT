@@ -1,6 +1,6 @@
 package dtos
 
-type InviteRequest struct {
-    Email string    `json:"email"`
-    Role  int       `json:"role"`
+type InviteUserRequest struct {
+	Email string `json:"email"`
+	Role  string `json:"role"`
 }

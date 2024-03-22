@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Marker, useMapEvents } from 'react-leaflet'
 import Map from '../components/Web/Map';
+import api from '../api/ApiClient';
 
 import Navbar from '../components/Web/Narbar';
 
@@ -63,19 +64,9 @@ const ParticipantForm = () => {
 
     };
 
-    console.log(Data);
+    const response = await api.post(`/rooms/create`, Data );
 
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/rooms/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(Data),
-    });
-
-    const data = await response.json();
-    console.log(response.status, data);
+    console.log(response.status);
 
     if (response.status === 200) {
       setMessage("Sala " + roomName + " creada con éxito")

@@ -51,12 +51,6 @@ func (s *serv) SaveRoom(ctx context.Context, data []map[string]interface{}, conf
 	return s.repo.SaveRoom(ctx, data, config, fosil, roomName)
 }
 
-func (s *serv) SaveUsers(ctx context.Context, room *models.Data) error {
-	//implementar logica de procesamiento del temporal
-	//por ahora es raw
-	return s.repo.SaveUsers(ctx, room)
-}
-
 func (s *serv) SaveProject(ctx context.Context, data string, name string) error {
 	//implementar logica de procesamiento del temporal
 	//por ahora es raw
