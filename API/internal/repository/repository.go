@@ -34,6 +34,8 @@ type Repository interface { //comunicaciones con la base de datos
 	AddUser(ctx context.Context, email string, roomName string) error           // Agrega un usuario a una sala
 	DeleteUserRoom(ctx context.Context, email string, roomName string) error    // Elimina un usuario de una sala
 
+	// Comments - comments.repository.go
+	HandleAddComment(ctx context.Context, comment models.Comment) error
 }
 type repo struct {
 	db *mongo.Database

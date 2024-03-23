@@ -164,6 +164,26 @@ func (a *API) LogoutUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
 }
 
+func (a *API) AddComment(c echo.Context) error {
+	ctx := c.Request().Context() // Context.Context es una interfaz que permite el paso de valores entre funciones
+	params := models.Comment{}
+
+	err := c.Bind(&params) // llena a params con los datos de la solicitud
+
+	// Sin error  == nil - Con error != nil
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+	}
+
+	a.repo.HandleAddComment(ctx, params)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Invalid Credentials"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
+}
+
 // Verifica si existe una cookie de autenticación
 func (a *API) AuthUser(c echo.Context) error {
 
@@ -846,341 +866,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				}
 
-				/////////////////////////////---------------------------//////////////////////////////
-
-				// if dataMap["action"] == "undo" {
-				// 	log.Println("deshacer")
-				// 	temp, err := rooms[roomID].Temp.Pop() // esto estaba con el nombre no con la id
-				// 	log.Println(temp)
-				// 	if err != nil {
-				// 		errMessage := "Error: la pila esta vacia"
-				// 		log.Println(errMessage)
-				// 	} else {
-				// 		dataMap = temp
-				// 		undo = false
-				// 	}
-				// }
-
-				// if dataMap["action"] == "delete" {
-				// 	id := int(dataMap["id"].(float64))
-				// 	log.Printf("Borrando capa %s", string(rune(id)))
-
-				// 	if undo {
-				// 		temporal := make(map[string]interface{})
-				// 		temporal["action"] = "Add"
-				// 		temporal["id"] = float64(id)
-				// 		temporal["polygon"] = rooms[roomID].Data["polygon"]
-				// 		temporal["text"] = rooms[roomID].Data["text"]
-
-				// 		rooms[roomID].Temp.Push(temporal)
-				// 		//variacion := int(rooms[roomName].Data[:id]["polygon"]["y2"])-int(rooms[roomName].Data[:id]["polygon"]["y1"])
-				// 		//log.Println(variacion)
-				// 		/*
-
-				// 			for estrato := range rooms[roomName].Data[:id]["polygon"]
-				// 			estrato["y1"] = estrato["y1"] - variacion
-				// 			estrato["y2"] = estrato["y2"] - variacion
-				// 			for circle := range estrato["circles"]
-				// 				circle["y"] = circle["y"] - variacion
-				// 			}
-				// 		*/
-				// 	}
-
-				// 	rooms[roomID].Data = append(rooms[roomID].Data[:id], rooms[roomID].Data[id+1:]...)
-				// 	log.Println(id)
-				// 	log.Println(rooms[roomID].Data)
-				// 	responseJSON, err := json.Marshal(dataMap)
-				// 	if err != nil {
-				// 		log.Println("Error al convertir a JSON:", err)
-				// 	}
-
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
-
-				// }
-				// if dataMap["action"] == "text" {
-				// 	id := int(dataMap["id"].(float64))
-				// 	log.Printf("Editando texto capa %s", string(rune(id)))
-
-				// 	if undo {
-				// 		temporal := make(map[string]interface{})
-				// 		temporal["action"] = "text"
-				// 		temporal["id"] = float64(id)
-				// 		temporal["text"] = rooms[roomID].Data["text"]
-
-				// 		rooms[roomID].Temp.Push(temporal)
-				// 	}
-				// 	rooms[roomID].Data["text"] = dataMap["text"]
-
-				// 	responseJSON, err := json.Marshal(dataMap)
-				// 	if err != nil {
-				// 		log.Println("Error al convertir a JSON:", err)
-				// 	}
-
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
-				// }
-
-				// if dataMap["action"] == "polygon" {
-				// 	id := int(dataMap["id"].(float64))
-				// 	log.Println(id)
-				// 	log.Printf("Editando polygon capa %s", fmt.Sprint(id))
-
-				// 	if undo {
-				// 		temporal := make(map[string]interface{})
-				// 		temporal["action"] = "polygon"
-				// 		temporal["id"] = float64(id)
-				// 		temporal["polygon"] = rooms[roomID].Data["polygon"]
-
-				// 		rooms[roomID].Temp.Push(temporal)
-				// 	}
-
-				// 	rooms[roomID].Data["polygon"] = dataMap["polygon"]
-
-				// 	responseJSON, err := json.Marshal(dataMap)
-				// 	if err != nil {
-				// 		log.Println("Error al convertir a JSON:", err)
-				// 	}
-
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-				// 		log.Println(string(responseJSON))
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
-				// }
-
-				// if dataMap["action"] == "settingsRoom" {
-				// 	log.Printf("Editando config room")
-
-				// 	if undo {
-				// 		temporal := make(map[string]interface{})
-				// 		temporal["action"] = "settingsRoom"
-				// 		temporal["config"] = rooms[roomID].Config
-				// 		rooms[roomID].Temp.Push(temporal)
-				// 	}
-
-				// 	for key, newValue := range dataMap["config"].(map[string]interface{}) {
-				// 		rooms[roomID].Config[key] = newValue
-				// 	}
-
-				// 	responseJSON, err := json.Marshal(dataMap["config"])
-				// 	if err != nil {
-				// 		log.Println("Error al convertir a JSON:", err)
-				// 	}
-
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, []byte(responseJSON))
-				// 		log.Println(string(responseJSON))
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
-				// }
-
-				//if dataMap["action"] == "añadir" {
-				// 	id := int(dataMap["id"].(float64))
-				// 	log.Printf("Añadiendo capa %s", string(rune(id)))
-				// 	if undo {
-				// 		temp := make(map[string]interface{})
-				// 		temp["action"] = "delete"
-				// 		temp["id"] = float64(id)
-
-				// 		rooms[roomID].Temp.Push(temp)
-				// 	}
-
-				// 	rooms[roomID].Data = append(rooms[roomID].Data, dataMap)
-
-				// 	jsonBytes, err := json.Marshal(dataMap)
-				// 	if err != nil {
-				// 		log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-				// 	}
-
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
-
-				// idPolygon := int(dataMap["id"].(float64))
-
-				// if val, ok := dataMap["id"]; ok && val != nil {
-				// 	idPolygon := int(val.(float64))
-				// 	XPolygon := dataMap["x"].(float64)
-				// 	YPolygon := dataMap["y"].(float64)
-				// 	height := dataMap["height"].(float64)
-				// 	width := dataMap["width"].(float64)
-
-				// 	log.Println("agregar")
-
-				// 	type Property struct {
-				// 		Content  string
-				// 		Optional bool
-				// 		Vertical bool
-				// 	}
-
-				// 	initialTexts := map[string]Property{
-				// 		"Arcilla-Limo-Arena-Grava": {Content: "vacío", Optional: false, Vertical: false},
-				// 		"Sistema":                  {Content: "vacío", Optional: true, Vertical: true},
-				// 		"Edad":                     {Content: "vacío", Optional: true, Vertical: true},
-				// 		"Formación":                {Content: "vacío", Optional: true, Vertical: true},
-				// 		"Miembro":                  {Content: "vacío", Optional: true, Vertical: true},
-				// 		"Facie":                    {Content: "vacío", Optional: true, Vertical: false},
-				// 		"Ambiente depositacional":  {Content: "vacío", Optional: true, Vertical: false},
-				// 		"Descripción":              {Content: "vacío", Optional: true, Vertical: false},
-				// 	}
-
-				// 	type Circle struct {
-				// 		X       float64
-				// 		Y       float64
-				// 		Radius  float64
-				// 		Movable bool
-				// 	}
-
-				// 	Define la estructura para un Polígono.
-				// 	type Polygon struct {
-				// 		X           float64
-				// 		Y           float64
-				// 		ColorFill   string
-				// 		ColorStroke string
-				// 		Zoom        float64
-				// 		Rotation    float64
-				// 		Tension     float64
-				// 		File        int
-				// 		FileOption  int
-				// 		Height      float64
-				// 		Circles     []Circle
-				// 	}
-
-				// 	Define la estructura principal.
-				// 	type Shape struct {
-				// 		Id      int
-				// 		Polygon Polygon
-				// 		Text    map[string]Property
-				// 	}
-
-				// 	newShape := Shape{
-				// 		Id: idPolygon, // numero de fila
-				// 		Polygon: Polygon{
-				// 			X:           0,
-				// 			Y:           0,
-				// 			ColorFill:   "white",
-				// 			ColorStroke: "black",
-				// 			Zoom:        100,
-				// 			Rotation:    0,
-				// 			Tension:     0.5,
-				// 			File:        0,
-				// 			FileOption:  0,
-				// 			Height:      100,
-				// 			Circles: []Circle{
-				// 				{X: XPolygon, Y: YPolygon, Radius: 5, Movable: false},
-				// 				{X: XPolygon + width, Y: YPolygon, Radius: 5, Movable: true},
-				// 				{X: XPolygon + width, Y: YPolygon + height, Radius: 5, Movable: true},
-				// 				{X: XPolygon, Y: YPolygon + height, Radius: 5, Movable: false},
-				// 			},
-				// 		},
-				// 		Text: initialTexts,
-				// 	}
-				// 	jsonBytes, err := json.Marshal(newShape)
-				// 	if err != nil {
-				// 		log.Fatalf("Error al convertir el mapa a JSON: %v", err)
-				// 	}
-
-				// 	for _, client := range proyect.Active {
-				// 		err = client.WriteMessage(websocket.TextMessage, jsonBytes)
-				// 		if err != nil {
-				// 			log.Println(err)
-				// 		}
-				// 	}
-				// 	} else {
-				// 		// Manejar el error o el caso de valor nulo
-				// 		log.Println(val, ok)
-				// 	}
-
-				// }
-
-				// if dataMap["action"] == "save" {
-				// 	log.Println("guardando...")
-				// 	err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, roomID)
-				// 	if err != nil {
-				// 		log.Println("No se guardo la data")
-				// 	}
-				// }
-
-				// if dataMap["action"] == "height" {
-				// 	id := int(dataMap["id"].(float64)) // id de la capa seleccionada
-
-				// 	log.Println("id", id)
-
-				// 	circlesp, err := json.Marshal(dataMap["circles"]) // trasforma el datamap a json
-
-				// 	log.Println("circles", string(circlesp))
-				// 	fmt.Print(circlesp)
-
-				// 	newHeight := int(dataMap["newHeight"].(float64))
-
-				// 	log.Println(newHeight, err)
-				// 	//log.Println(id, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-
-				// 	//rooms[roomName].Data = append(rooms[roomName].Data[:id], rooms[roomName].Data[id+1:]...)// todos los shapes
-
-				// 	updatedShapes := rooms[roomID].Data // Copia de la data de la sala
-				// 	//updatedShapes := append(rooms[roomName].Data)
-
-				// 	for _, shape := range rooms[roomID].Data {
-
-				// 		shap := make(map[string]interface{})
-				// 		cu, err := json.Marshal(shape["polygon"])
-				// 		json.Unmarshal(cu, &shap)
-				// 		log.Println(shap["y1"], err)
-				// 		deltaY := newHeight - (int(shap["y2"].(float64)) - int(shap["y1"].(float64)))
-
-				// 		var cir []circle
-				// 		json.Unmarshal([]byte(circlesp), &cir)
-
-				// 		// Modifica el tamaño de la capa seleccionada
-				// 		if shap["id"] == id {
-				// 			newY2 := int(shap["y1"].(float64)) + newHeight
-				// 			if newY2 < int(shap["y2"].(float64)) {
-				// 				var filteredCircles []any
-
-				// 				for i, circle := range cir {
-				// 					if i < 2 || i >= len(cir)-2 || circle.y <= newY2 {
-				// 						filteredCircles = append(filteredCircles, circle)
-				// 					}
-				// 				}
-
-				// 				shap["y2"] = newY2
-				// 				cir, err := json.Marshal(filteredCircles)
-				// 				log.Println(cir, err)
-				// 			} else {
-				// 				shap["y2"] = newY2
-				// 			}
-
-				// 			//Modifica las coordenadas de las capas que estan debajo de la seleccionada
-				// 		} else if int(shap["y1"].(float64)) >= int(shap["y2"].(float64)) {
-				// 			shap["y1"] = int(shap["y1"].(float64)) + deltaY
-				// 			shap["y2"] = int(shap["y2"].(float64)) + deltaY
-				// 		}
-				// 		updatedShapes = append(updatedShapes, shap)
-				// 		rooms[roomID].Data = updatedShapes
-				// 		//log.Println(rooms[roomName].Data, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-				// 	}
-				// 	//err = a.serv.SaveRoom(ctx, rooms[roomName].Data, rooms[roomName].Config, roomName)
-				// 	if err != nil {
-				// 		log.Println("No se guardo la data")
-				// 	}
-				// }
 			} else {
 				errMessage := "Error: Don't have permission to edit this document"
 				conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
@@ -1424,9 +1109,7 @@ func (a *API) projects(c echo.Context) error {
 func (a *API) HandleGetPublicProject(c echo.Context) error {
 
 	ctx := c.Request().Context()
-
 	auth := c.Request().Header.Get("Authorization")
-
 	if auth == "" {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}

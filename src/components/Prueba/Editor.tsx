@@ -12,6 +12,7 @@ import { useAuth } from '../../provider/authProvider';
 import React from 'react'
 import Trumbowyg from "react-trumbowyg";
 import "trumbowyg/dist/plugins/fontfamily/trumbowyg.fontfamily";
+import "trumbowyg/dist/plugins/table/trumbowyg.table";
 import "react-trumbowyg/dist/trumbowyg.min.css";
 import "trumbowyg/dist/plugins/fontsize/trumbowyg.fontsize";
 //import "../../globals.d.ts";
@@ -31,11 +32,11 @@ const Editor = ({
     ["foreColor", "backColor"],
     ["formatting"],
     ["strong", "em", "del"],
-    ["superscript", "subscript"],
     ["link"],
     ["insertImage"],
     ["justifyLeft", "justifyCenter", "justifyRight", "justifyFull"],
-    ["unorderedList", "orderedList"],
+    ["unorderedlist", "orderedList"],
+    ['table'],
     ["horizontalRule"],
     ["removeformat"],
     ["fullscreen"]
@@ -1047,11 +1048,13 @@ const Grid = () => {
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content"> 
                         <p className="menu-title">Editando texto</p>
                         <div>
+                          <>
                           <Editor value={formData.text} setValue={(html: string) => setFormData(prevState => ({
                             ...prevState,
                             text: html,
                           }))}
                           ></Editor>
+                          </>
                         </div>
 
                         <button onClick={() => {

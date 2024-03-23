@@ -19,7 +19,6 @@ function Login() {
     setPassword(e.target.value);
   };
 
-
 async function handleLogin() {
   try {
     const response = await api.post("/users/login", {

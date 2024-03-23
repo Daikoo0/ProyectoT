@@ -15,8 +15,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     resolution,
     points
   ) {
-    const frequency = 0.3;
-
+    const frequency = 0.3
     const lengthX = endX - startX;
     const steps = lengthX / resolution;
     const stepX = lengthX / steps;
