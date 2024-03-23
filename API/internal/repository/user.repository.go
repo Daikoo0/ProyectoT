@@ -39,7 +39,7 @@ func (r *repo) GetUserByEmail(ctx context.Context, email string) (*entity.User, 
 	result := users.FindOne(ctx, filter)
 	if err := result.Err(); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil // User not found
+			return nil, err // User not found
 		}
 		log.Println("Error finding user:", err)
 		return nil, err

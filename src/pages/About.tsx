@@ -4,74 +4,58 @@ import { useState } from "react";
 import api from "../api/ApiClient";
 
 
-async function sendComment(setMessage,selectedBadges,comment) {
-        // Comprobar que todos los campos estén llenos
-        if (!comment) {
-          setMessage("Por favor, no comentarios vacíos.");
-          return;
-        }
-      
-        var Data = {
-            content : comment,
-            CreatedAt : new Date().toLocaleString(),
-            Labels: selectedBadges,
-        };
+async function sendComment(setMessage, selectedBadges, comment) {
+    // Comprobar que todos los campos estén llenos
+    if (!comment) {
+        setMessage("Por favor, no comentarios vacíos.");
+        return;
+    }
 
-        console.log(Data)
-      
-        try {
-          const response = await api.post(`/comment`, Data);
-          console.log(response.status);
-      
-          if (response.status === 200) {
+    var Data = {
+        content: comment,
+        CreatedAt: new Date().toLocaleString(),
+        Labels: selectedBadges,
+    };
+
+    console.log(Data)
+
+    try {
+        const response = await api.post(`/comment`, Data);
+        console.log(response.status);
+
+        if (response.status === 200) {
             window.location.href = "/";
-          } else if (response.status === 500) {
+        } else if (response.status === 500) {
             setMessage("Error al crear comentario");
-          } else {
+        } else {
             setMessage("Error desconocido");
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          setMessage("Ha ocurrido un error al procesar tu solicitud.");
         }
-      
+    } catch (error) {
+        console.error("Error:", error);
+        setMessage("Ha ocurrido un error al procesar tu solicitud.");
+    }
+
 }
 
 const About = () => {
 
-    
-    const [message,setMessage] = useState("");
+
+    const [message, setMessage] = useState("");
     const [selectedBadges, setSelectedBadges] = useState([]);
-    const [comment,setComment] = useState("");
+    const [comment, setComment] = useState("");
 
-    function Badges() {
+    const toggleBadge = (badge) => {
+        if (selectedBadges.includes(badge)) {
+            setSelectedBadges(selectedBadges.filter((selectedBadge) => selectedBadge !== badge));
+        } else {
+            setSelectedBadges([...selectedBadges, badge]);
+        }
+    };
 
-        const toggleBadge = (badge) => {
-            if (selectedBadges.includes(badge)) {
-                setSelectedBadges(selectedBadges.filter((selectedBadge) => selectedBadge !== badge));
-            } else {
-                setSelectedBadges([...selectedBadges, badge]);
-            }
-        };
-    
-        const badgeClass = (badge) => {
-            return selectedBadges.includes(badge) ? 'badge badge-accent mr-1' : 'badge badge-neutral mr-1';
-        };
-    
-        return (
-            <div>
-                <div className={badgeClass('Diseño')} onClick={() => toggleBadge('Diseño')}>Diseño</div>
-                <div className={badgeClass('Rendimiento')} onClick={() => toggleBadge('Rendimiento')}>Rendimiento</div>
-                <div className={badgeClass('Funcionalidad')} onClick={() => toggleBadge('Funcionalidad')}>Funcionalidad</div>
-                <div className={badgeClass('Compatibilidad')} onClick={() => toggleBadge('Compatibilidad')}>Compatibilidad</div>
-                <div className={badgeClass('Seguridad')} onClick={() => toggleBadge('Seguridad')}>Seguridad</div>
-                <div className={badgeClass('Accesibilidad')} onClick={() => toggleBadge('Accesibilidad')}>Accesibilidad</div>
-                <div className={badgeClass('Documentación')} onClick={() => toggleBadge('Documentación')}>Documentación</div>
-                <div className={badgeClass('Registro')} onClick={() => toggleBadge('Registro')}>Registro</div>
-                <div className={badgeClass('Otros')} onClick={() => toggleBadge('Otros')}>Otros</div>
-            </div>
-        );
-    }
+    const badgeClass = (badge) => {
+        return selectedBadges.includes(badge) ? 'badge badge-accent mr-1' : 'badge badge-neutral mr-1';
+    };
+
 
     const navigate = useNavigate();
     return (
@@ -124,11 +108,23 @@ const About = () => {
                             Este proyecto está en desarrollo, déjanos saber si encontraste algún problema o tienes alguna sugerencia
                         </p>
 
-                        <Badges selectedBadges={selectedBadges} setSelectedBadges={setSelectedBadges}/>
-                        <textarea value={comment} onChange={(e)=> setComment(e.target.value)} placeholder=" " className="textarea textarea-primary w-full" ></textarea>
-                        <button 
-                        onClick={(e)=>sendComment(setMessage,selectedBadges,comment)}
-                        className="btn btn-primary">Enviar</button>
+
+                        <div>
+                            <div className={badgeClass('Diseño')} onClick={() => toggleBadge('Diseño')}>Diseño</div>
+                            <div className={badgeClass('Rendimiento')} onClick={() => toggleBadge('Rendimiento')}>Rendimiento</div>
+                            <div className={badgeClass('Funcionalidad')} onClick={() => toggleBadge('Funcionalidad')}>Funcionalidad</div>
+                            <div className={badgeClass('Compatibilidad')} onClick={() => toggleBadge('Compatibilidad')}>Compatibilidad</div>
+                            <div className={badgeClass('Seguridad')} onClick={() => toggleBadge('Seguridad')}>Seguridad</div>
+                            <div className={badgeClass('Accesibilidad')} onClick={() => toggleBadge('Accesibilidad')}>Accesibilidad</div>
+                            <div className={badgeClass('Documentación')} onClick={() => toggleBadge('Documentación')}>Documentación</div>
+                            <div className={badgeClass('Registro')} onClick={() => toggleBadge('Registro')}>Registro</div>
+                            <div className={badgeClass('Otros')} onClick={() => toggleBadge('Otros')}>Otros</div>
+                        </div>
+                        <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder=" " className="textarea textarea-primary w-full" ></textarea>
+                        <button
+                            onClick={() => sendComment(setMessage, selectedBadges, comment)}
+                            className="btn btn-primary">Enviar</button>
+                        {message}
                     </div>
                 </div>
             </div>

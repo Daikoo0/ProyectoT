@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom"; 
+import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom"; 
 import { ProtectedRoute } from "./ProtectedRouter";
 import { useAuth } from "../provider/authProvider";
 
@@ -43,6 +43,14 @@ const Routes = () => {
           path: "/editor/:project",
           element: <Editor/>,
         },
+        {
+          path: "*",
+          element: <Navigate to="/home" replace />,
+        },
+        {
+          path: "/",
+          element: <Navigate to="/home" replace />,
+        }
       ],
     },
   ];

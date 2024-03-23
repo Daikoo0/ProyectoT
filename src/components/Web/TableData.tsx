@@ -179,6 +179,7 @@ const TableData = ({ Data, refresh }) => {
                         <form method="dialog">
                             <button className="btn" onClick={() => setstateRequest("")}>Cancelar</button>
                         </form>
+                        <p>{message}</p>
                     </div>
                 </div>
             </dialog>

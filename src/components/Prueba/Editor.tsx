@@ -9,7 +9,6 @@ import exportTableToPDFWithPagination from './pdfFunction';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
-import React from 'react'
 import Trumbowyg from "react-trumbowyg";
 import "trumbowyg/dist/plugins/fontfamily/trumbowyg.fontfamily";
 import "trumbowyg/dist/plugins/table/trumbowyg.table";
@@ -493,12 +492,6 @@ const Grid = () => {
     };
     setPdfData(initialPdfData)
 
-  };
-
-  const [editorState, setEditorState] = useState("");
-  const onChange = (text: string) => {
-    setEditorState(text);
-    console.log("onChange", text);
   };
 
   return (
