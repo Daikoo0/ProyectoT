@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import fosilJson from '../../fossil.json';
+import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 
 const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW }) => {
 
-    const [svgContent, setSvgContent] = useState('');
-    const [height, setHeight] = useState(10);
-    const [width, setWidth] = useState(10);
+    const { loading, SvgIcon } = useDynamicSvgImport(fosilJson[data.fosilImg], 'fosiles');
+
+    const height = 30;
+    const width = 30;
 
     const centerX = data.x * columnW;
     const centerY = (data.upper + data.lower) / 2;
@@ -13,8 +15,8 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
     const upper = data.upper * scale;
     const lower = data.lower * scale;
 
-    const gTranslateX = centerX - (width / 2); 
-    const gTranslateY = centerY - (height / 2);
+    const gTranslateX = centerX - (width / 2);
+    const gTranslateY = centerY * scale - (height / 2);
 
     const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
 
@@ -32,35 +34,8 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             sideBarMode: "editFosil"
         })
 
-        setFormFosil({ ...data, id: keyID, fosilImgCopy: data.fosilImg});
+        setFormFosil({ ...data, id: keyID, fosilImgCopy: data.fosilImg });
     }
-
-
-    useEffect(() => {
-        if (!data.fosilImg) {
-            setSvgContent('');
-            return;
-        }
-
-        const imageURL = new URL('../../assets/fosiles/' + fosilJson[data.fosilImg] + '.svg', import.meta.url).href
-        const regexW = /<svg[^>]*width\s*=\s*["']?([^"']+)["']?[^>]*>/;
-        const regexH = /<svg[^>]*height\s*=\s*["']?([^"']+)["']?[^>]*>/;
-
-        fetch(imageURL)
-            .then(response => response.text())
-            .then(svgText => {
-                const matchW = svgText.match(regexW);
-                const matchH = svgText.match(regexH);
-                if (matchW && matchW[1]) {
-                    setWidth(Number(matchW[1]))
-                }
-                if (matchH && matchH[1]) {
-                    setHeight(Number(matchH[1]))
-                }
-                setSvgContent(svgText);
-            });
-
-    }, [data.fosilImg]);
 
     return (
         <g
@@ -71,19 +46,29 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
         >
 
             {/* Imagen del fosil  */}
-            <g className="stroke-base-content"  transform={`translate(${gTranslateX},${gTranslateY * scale}) scale(1,${1})`}
-                dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
+            <g className="stroke-base-content" transform={`translate(${gTranslateX},${gTranslateY}) `}>
+
+                {loading ?
+            
+                    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 200 200"><circle className="stroke-base-content" fill="none" strokeOpacity="1" strokeWidth=".5" cx="100" cy="100" r="0"><animate attributeName="r" calcMode="spline" dur="1.3" values="1;80" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-width" calcMode="spline" dur="1.3" values="0;25" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-opacity" calcMode="spline" dur="1.3" values="1;0" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate></circle></svg>
+                : 
+                SvgIcon && (
+                   
+                    <SvgIcon {...{ width: width, height: height}} />
+                    
+                )}
+
+            </g>
 
             {/* Lineas horizontal de arriba  */}
-            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={upper} x2={centerX} y2={upper}  strokeWidth="1" strokeDasharray="5, 5" />
-         
+            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={upper} x2={centerX} y2={upper} strokeWidth="1" strokeDasharray="5, 5" />
+
             {/* Linea vertical central  */}
             <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={lower} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
-         
+
             {/* Linea horizontal de abajo  */}
-            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={centerX} y1={upper} x2={centerX} y2={lower}strokeWidth="1" strokeDasharray="5, 5" />
-     
+            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={centerX} y1={upper} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
+
         </g>
     );
 

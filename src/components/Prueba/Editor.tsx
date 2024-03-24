@@ -9,56 +9,9 @@ import exportTableToPDFWithPagination from './pdfFunction';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
-import Trumbowyg from "react-trumbowyg";
-import "trumbowyg/dist/plugins/fontfamily/trumbowyg.fontfamily";
-import "trumbowyg/dist/plugins/table/trumbowyg.table";
-import "react-trumbowyg/dist/trumbowyg.min.css";
-import "trumbowyg/dist/plugins/fontsize/trumbowyg.fontsize";
-//import "../../globals.d.ts";
-//import jQuery from "jquery";
+import IconSvg from '../Web/IconSVG';
+import EditorQuill from './EditorQuill';
 
-const Editor = ({
-  value,
-  setValue
-}: {
-  value: string;
-  setValue: (value: string) => void;
-}) => {
-  const buttons = [
-    //['undo', 'redo'], // Only supported in Blink browsers
-    ["fontfamily", "fontsize"],
-    ["fontsize"],
-    ["foreColor", "backColor"],
-    ["formatting"],
-    ["strong", "em", "del"],
-    ["link"],
-    ["insertImage"],
-    ["justifyLeft", "justifyCenter", "justifyRight", "justifyFull"],
-    ["unorderedlist", "orderedList"],
-    ['table'],
-    ["horizontalRule"],
-    ["removeformat"],
-    ["fullscreen"]
-  ];
-
-  return (
-    <>
-      <Trumbowyg
-        id="react-trumbowyg"
-        buttons={buttons}
-        data={value}
-        onChange={(e: { target: { innerHTML: string } }) => {
-          console.log("onChange", e.target.innerHTML);
-          setValue(e.target.innerHTML);
-          console.log(e.target.innerHTML)
-        }}
-        onPaste={(e: { target: { innerHTML: string } }) =>
-          setValue(e.target.innerHTML)
-        }
-      />
-    </>
-  );
-};
 
 const Grid = () => {
 
@@ -246,11 +199,15 @@ const Grid = () => {
             break;
           }
           case 'añadir': {
+            // if (data.length > 0) {
             setData(prev => {
               const newData = [...prev];
               newData.splice(shapeN.rowIndex, 0, shapeN.value);
               return newData;
             });
+            // } else {
+            //   setData(shapeN.value)
+            // }
             break;
           }
           case 'añadirEnd':
@@ -348,8 +305,6 @@ const Grid = () => {
       sideBarMode: "config"
     })
   }
-
-
 
   //--------- Funciones Socket ------------//
 
@@ -465,7 +420,6 @@ const Grid = () => {
     }));
   }
 
-  //const [selectedContactIndex, setSelectedContactIndex] = useState(null);
 
   const sendActionCell = (row, column) => {
     if (socket) {
@@ -475,6 +429,7 @@ const Grid = () => {
           section: `[${row},${column}]`
         }
       }));
+
     }
   }
 
@@ -576,7 +531,7 @@ const Grid = () => {
                   <div className="grid flex-grow h-32 card rounded-box place-items-center">
                     <p>Mud/Sand/Gravel</p>
                     <select className='select select-accent' disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
-                      <option value={"none"} >none</option>
+
                       {Object.keys(mudgraingravel).map((item) =>
                         <option key={item} value={item}>{item}</option>
                       )}
@@ -586,7 +541,7 @@ const Grid = () => {
                   <div className="grid flex-grow h-32 card rounded-box place-items-center">
                     <p>Limestones</p>
                     <select className='select select-accent' disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
-                      <option value={"none"} >none</option>
+
                       {Object.keys(limestones).map((item) =>
                         <option key={item} value={item}>{item}</option>
                       )}
@@ -618,12 +573,15 @@ const Grid = () => {
         <div className="drawer-side">
           <label htmlFor="my-drawer"
             onClick={() => {
-              socket.send(JSON.stringify({
-                action: 'deleteEditingUser',
-                data: {
-                  section: `[${formData.index},${header.indexOf(formData.column)}]`
-                }
-              }));
+              if (socket) {
+                socket.send(JSON.stringify({
+                  action: 'deleteEditingUser',
+                  data: {
+                    section: `[${formData.index},${header.indexOf(formData.column)}]`,
+                    name: editingUsers[`[${formData.index},${header.indexOf(formData.column)}]`],
+                  }
+                }));
+              }
             }}
             aria-label="close sidebar" className="drawer-overlay"></label>
           {
@@ -797,9 +755,14 @@ const Grid = () => {
                           </select>
                         </li>
                         <li>
-                          {formFosil.fosilImg === "" ? null : <img
-                            alt="None"
-                            src={`../src/assets/fosiles/${fosilJson[formFosil.fosilImg]}.svg`} />}
+
+                          {formFosil.fosilImg === "" ? null :
+                            <IconSvg
+                              iconName={fosilJson[formFosil.fosilImg]}
+                              folder='fosiles'
+                              svgProp={{ width: 50, height: 50 }}
+                            />
+                          }
 
                         </li>
                         <li>
@@ -841,9 +804,13 @@ const Grid = () => {
                       <li>
 
                         <div className="flex w-full">
-                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">  <img
-                            alt="None"
-                            src={`../src/assets/fosiles/${formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}.svg`} />
+                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
+                            <IconSvg
+                              iconName={formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}
+                              folder='fosiles'
+                              svgProp={{ width: 50, height: 50 }}
+                            />
+
                           </div>
                           <div className="divider divider-horizontal">
 
@@ -851,9 +818,15 @@ const Grid = () => {
                               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                             </svg>
                           </div>
-                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">   <img
-                            alt="None"
-                            src={`../src/assets/fosiles/${fosilJson[formFosil.fosilImgCopy]}.svg`} /></div>
+                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
+
+                            <IconSvg
+                              iconName={fosilJson[formFosil.fosilImgCopy]}
+                              folder='fosiles'
+                              svgProp={{ width: 50, height: 50 }}
+                            />
+
+                          </div>
                         </div>
 
 
@@ -901,28 +874,29 @@ const Grid = () => {
                                     style={{ marginRight: '8px' }}
                                   />
                                   <svg width="150" height="20">
-                                    {key.dash && contact === "119" && (
-                                      <line
-                                        x1="0"
-                                        y1="15"
-                                        x2="150"
-                                        y2="15"
-                                        stroke="black"
-                                        strokeWidth={key.lineWidth}
-                                        strokeDasharray={"[67,2,2,2,2,2]"}
-                                      />
-                                    )}
-                                    {key.dash && contact !== "119" && (
-                                      <line
-                                        x1="0"
-                                        y1="15"
-                                        x2="150"
-                                        y2="15"
-                                        stroke="black"
-                                        strokeWidth={key.lineWidth}
-                                        strokeDasharray={`${key.dash}`}
-                                      />
-                                    )}
+                                    {typeof (key.dash) === 'string' ?
+                                      <>
+                                        <line
+                                          x1="0"
+                                          y1="15"
+                                          x2="150"
+                                          y2="15"
+                                          stroke="black"
+                                          strokeWidth={key.lineWidth}
+                                          strokeDasharray={`[67,2,2,2,2,2]`}
+                                        />
+                                      </> : <>
+                                        <line
+                                          x1="0"
+                                          y1="15"
+                                          x2="150"
+                                          y2="15"
+                                          stroke="black"
+                                          strokeWidth={key.lineWidth}
+                                          strokeDasharray={`${key.dash}`}
+                                        /></>
+                                    }
+
 
                                     {('dash2' in key) && key.dash2 && (
                                       <line
@@ -1038,17 +1012,17 @@ const Grid = () => {
                 case "text":
                   return (
                     <>
-                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content"> 
+                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
                         <p className="menu-title">Editando texto</p>
-                        <div>
-                          <>
-                          <Editor value={formData.text} setValue={(html: string) => setFormData(prevState => ({
+
+
+                        <EditorQuill
+                          Text={formData.text}
+                          SetText={(html: string) => setFormData(prevState => ({
                             ...prevState,
                             text: html,
                           }))}
-                          ></Editor>
-                          </>
-                        </div>
+                        />
 
                         <button onClick={() => {
                           socket.send(JSON.stringify({

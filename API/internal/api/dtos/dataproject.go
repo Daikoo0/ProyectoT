@@ -89,5 +89,6 @@ type EditPolygon struct {
 }
 
 type UserEditingState struct {
-	Section string
+	Section string `json:"section"`
+	Name    string `json:"name"`
 }

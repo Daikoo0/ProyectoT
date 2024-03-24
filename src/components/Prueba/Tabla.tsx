@@ -334,7 +334,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             >
                                                 <div className="h-full max-h-full"// tooltip" data-tip="hello"
                                                     onClick={(e) => {
-                                                        console.log('a')
                                                         if (e.target instanceof SVGSVGElement) {
                                                             setSideBarState({
                                                                 sideBar: true,
@@ -371,9 +370,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 className={
                                                     (editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia') ?
-                                                        (`border-2 ` + (columnName === "Litologia" ? "" : ""))
-                                                        :
-                                                        (`border ` + (columnName === "Litologia" ? "" : ""))
+                                                        (`border-2`):(`border`)
                                                 }
                                                 onClick={() => {
                                                     if (columnName !== "Litologia") {
@@ -429,13 +426,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         </>
                                                         :
                                                         <>
+                                                            
                                                             <div
-                                                                style={{
-                                                                    'padding': 10,
-                                                                }}
+                                                                className="ql-editor prose "
                                                                 dangerouslySetInnerHTML={{ __html: RowValue[columnName] }}
-                                                            >
-                                                            </div>
+                                                            />
                                                         </>
                                                     }
                                                 </div>

@@ -1,40 +1,67 @@
-import ReactQuill from 'react-quill';
+//import ReactQuill from 'react-quill';
+import Quill from 'quill';
+import { useEffect, useRef } from 'react';
+import 'react-quill/dist/quill.snow.css'; 
 
 const EditorQuill = ({ Text, SetText }) => {
 
-    const modules = {
-        toolbar: [
-            [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
-            [{ size: [] }],
-            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-            [{ 'color': [] }, { 'background': [] }],
-            [{ 'list': 'ordered' }, { 'list': 'bullet' },
-            { 'indent': '-1' }, { 'indent': '+1' }],
-            ['link', 'image', 'video'],
-            ['clean'], [{ 'align': ["right", "center", "justify"] }]
-        ],
-        clipboard: {
-            matchVisual: false,
+
+    const toolbarOptions = [
+        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video', 'formula'],
+      
+        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+        [{ 'list': 'ordered'},{ 'list': 'bullet'}, { 'list': 'check' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+        [{ 'direction': 'rtl' }],                         // text direction
+      
+        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      
+        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+        [{ 'font': [] }],
+        [{ 'align': [] }],
+      
+        ['clean']                                         // remove formatting button
+      ];
+
+    const editorRef = useRef(null);
+    const limit = 2000;
+
+	useEffect(() => {
+		const quill = new Quill(editorRef.current, {
+			theme: 'snow',
+            placeholder: 'Escribe algo...',
+           modules : {
+            toolbar : toolbarOptions
+           }
+		});
+        if (Text) {
+            quill.root.innerHTML = Text;
         }
-    };
+		// Detect changes
+		quill.on('text-change', () => {
+            
+            if (quill.getLength() > limit) {
+                
+                quill.deleteText(limit-1, quill.getLength());
+                alert('¡Límite de caracteres excedido!');    
+                
+            }
+            let content = quill.root.innerHTML;
+			SetText(content);
+			
+		});
+		return () => {
+			quill.off('text-change',SetText);
+		};
+	}, []);
 
-    const formats = [
-        'header', 'font', 'size',
-        'bold', 'italic', 'underline', 'strike', 'blockquote',
-        'list', 'bullet', 'indent',
-        'link', 'image', 'video',
-        'background', 'color', 'align'
-    ];
+    return <div ref={editorRef} />;
 
-    return (
-        <ReactQuill
-            value={Text}
-            onChange={SetText}
-            modules={modules}
-            formats={formats}
-            placeholder={"Escribe aquí..."}
-        />
-    );
+
 }
 
 export default EditorQuill;

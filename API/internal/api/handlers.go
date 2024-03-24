@@ -105,8 +105,8 @@ func RemoveElement(roomID string, conn *websocket.Conn) {
 
 	if index != -1 {
 		// Eliminar el elemento en el índice encontrado
-
 		rooms[roomID].Active = append(rooms[roomID].Active[:index], rooms[roomID].Active[index+1:]...)
+
 	}
 
 }
@@ -301,12 +301,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		// log.Println(v, "aaaa")
 
 		for {
-			cualquierwea, msg, err := conn.ReadMessage()
+			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				break
 			}
-
-			log.Println(cualquierwea, "eeeeeeeeeee")
 
 			if permission != 2 {
 				var dataMap GeneralMessage
@@ -421,7 +419,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 					section := editing.Section
 					roomData := rooms[roomID]
+					name := editing.Name
 
+					log.Println(name, "cualquier wea")
 					if roomData.SectionsEditing != nil {
 						if _, ok := roomData.SectionsEditing[section]; ok {
 							delete(roomData.SectionsEditing, section)
@@ -429,6 +429,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							msgData := map[string]interface{}{
 								"action": "deleteEditingUser",
 								"value":  section,
+								"name":   name,
 							}
 
 							sendSocketMessage(msgData, proyect, "deleteEditingUser")
@@ -457,11 +458,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						index = rowIndex
 					}
 
-					log.Println("a", rowIndex, index)
 					var prevShape string
 					var lit = roomData.Data
 
-					if index+1 < len(roomData.Data) {
+					if index+1 > 0 && index+1 < len(roomData.Data) {
 						lit[index+1]["Litologia"].(map[string]interface{})["prevContact"] = "111"
 						rooms[roomID].Data = lit
 					}
@@ -523,16 +523,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							"action":   "añadir",
 							"rowIndex": rowIndex,
 							"value":    newShape,
-						}
-
-						if index < len(roomData.Data) {
-							msgData2 := map[string]interface{}{
-								"action":   "editPolygon",
-								"rowIndex": index,
-								"key":      "prevContact",
-								"value":    "111",
-							}
-							sendSocketMessage(msgData2, proyect, "editPolygon")
 						}
 
 						sendSocketMessage(msgData, proyect, "añadir")
@@ -609,7 +599,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						"y":       point,
 						"radius":  5,
 						"movable": true,
-						"name":    nil,
+						"name":    "none",
 					}
 
 					circles = append(circles[:insertIndex], append([]map[string]interface{}{newCircle2}, circles[insertIndex:]...)...)
@@ -1045,23 +1035,6 @@ func (a *API) HandleCreateProyect(c echo.Context) error {
 		log.Println(err)
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()}) // HTTP 400 Bad Request
 	}
-
-	// DELETEABLE
-	// participantsRequest := new(dtos.CreateProjectRequest)
-	// log.Println(participantsRequest)
-
-	// //validar mas datos
-	// if err := c.Bind(participantsRequest); err != nil {
-	// 	log.Println(err)
-	// 	return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-	// }
-	// participantMap := make(map[string]models.Role)
-
-	// for _, participant := range participantsRequest.Participants {
-	// 	participantMap[participant.Email] = models.Role(participant.Role)
-	// }
-	// log.Println(participantMap)
-	// DELETEABLE
 
 	err = a.serv.CreateRoom(ctx, params.RoomName, name, correo, params.Desc, params.Location, params.Lat, params.Long, params.Visible)
 	if err != nil {

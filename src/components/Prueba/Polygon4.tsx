@@ -222,7 +222,18 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         }}
       />
 
-      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke={ColorFill} strokeWidth={1} />
+      <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke={ColorFill ? ColorFill : "white"} strokeWidth={2} />
+
+      {(!contacts[contact].arcs && contacts[contact].lineWidth2) ? (
+    <>
+        <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke={"white"} strokeWidth={0.5} />
+    </>
+) : (
+    <>
+    </>
+)}
+
+
 
       {contacts[contact].arcs ?
         <>
@@ -248,7 +259,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
           <line x1="0" y1="100%" x2={points[points.length - 2].x} y2="100%" stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={eval(contacts[contact].dash)} />
         </> : <></>}
 
-        {contacts[prevContact].dash && !contacts[prevContact].dash2 && prevContact!== "119" && prevContact !== "1110" ?
+      {contacts[prevContact].dash && !contacts[prevContact].dash2 && prevContact !== "119" && prevContact !== "1110" ?
         <>
           <line x1="0" y1="0%" x2={points[1].x} y2="0%" stroke="black" strokeWidth={contacts[prevContact].lineWidth} strokeDasharray={contacts[prevContact].dash} />
         </> : <></>}
@@ -272,7 +283,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height} fontSize="25" fontWeight={700} overflow={'visible'} fill="black">?</text>
       </> : <></>
       }
-    
+
       {/* Círculos */}
       {points.map((points, index) => (
         <circle
