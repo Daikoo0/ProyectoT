@@ -131,7 +131,8 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 				"Ambiente Depositacional": true,
 				"Descripcion":             true,
 			},
-			"scale": 50,
+			"scale":      50,
+			"isInverted": false,
 		},
 	}
 

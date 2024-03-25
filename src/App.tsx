@@ -4,11 +4,13 @@ import { ThemeProvider } from './Context/theme-context';
 
 function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
+    <ThemeProvider>
+      <AuthProvider>
+
         <Routes />
-      </ThemeProvider>
-    </AuthProvider>
+
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

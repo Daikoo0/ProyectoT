@@ -82,6 +82,10 @@ type Column struct {
 	IsVisible bool   `json:"isVisible"`
 }
 
+type IsInverted struct {
+	IsInverted bool `json:"isInverted"`
+}
+
 type EditPolygon struct {
 	RowIndex int    `json:"rowIndex"`
 	Column   string `json:"column"`

@@ -46,7 +46,7 @@ export default {
       "nord",
       "sunset",
       {
-        contraste: {
+        tamaratema: {
 
           "primary": "#1e40af",
           "secondary": "#fde68a",
@@ -55,9 +55,9 @@ export default {
           "base-100": "#000000",
           "info": "#00ffee",
           "success": "#1BFF00",
-          "warning": "#facc15",
+          "warning": "#fce803",
           "error": "#FF0000",
-        }
+        },
       }
     ],
   },

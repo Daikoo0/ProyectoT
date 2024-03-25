@@ -3,7 +3,7 @@ const Ruler = ({ width, height, isInverted, scale }) => {
 
   for (let i = 0; i <= height; i += 50 * scale) {
     const position = i;
-    const text = isInverted ? `${(height - i) / (100 * scale)} m` : `${i / (100 * scale)} m`;
+    const text = isInverted ? `${Math.round((height - i) / (100 * scale))} m` : `${Math.round(i / (100 * scale))} m`;
 
     if (i % (100 * scale) === 0) {
       marks.push(

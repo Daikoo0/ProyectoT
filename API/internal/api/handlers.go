@@ -80,7 +80,9 @@ func (a *API) RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()})
 	}
 
-	log.Println(params.Email, params.Name, params.Password, params.LastName)
+	if params.Password != params.PasswordConfirm {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Passwords do not match"}) // HTTP 400 Bad Request
+	}
 
 	err = a.serv.RegisterUser(ctx, params.Email, params.Name, params.LastName, params.Password)
 	if err != nil {
@@ -94,7 +96,7 @@ func (a *API) RegisterUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, nil) // HTTP 201 Created
 }
 
-func RemoveElement(roomID string, conn *websocket.Conn) {
+func RemoveElement(roomID string, conn *websocket.Conn, name string, project *RoomData) {
 	var index int = -1
 	for i, c := range rooms[roomID].Active {
 		if c == conn { // asumiendo que conn es comparable directamente
@@ -105,6 +107,18 @@ func RemoveElement(roomID string, conn *websocket.Conn) {
 
 	if index != -1 {
 		// Eliminar el elemento en el índice encontrado
+		for key, value := range rooms[roomID].SectionsEditing {
+			if value.(map[string]interface{})["name"] == name {
+				delete(rooms[roomID].SectionsEditing, key)
+				msgData := map[string]interface{}{
+					"action": "deleteEditingUser",
+					"value":  key,
+					"name":   name,
+				}
+
+				sendSocketMessage(msgData, project, "deleteEditingUser")
+			}
+		}
 		rooms[roomID].Active = append(rooms[roomID].Active[:index], rooms[roomID].Active[index+1:]...)
 
 	}
@@ -277,11 +291,16 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		}
 	}
 
+	msgData := map[string]interface{}{
+		"header":     claves,
+		"isInverted": proyect.Config["isInverted"],
+	}
+
 	// Enviar configuracion y datos de la sala
 	dataRoom := map[string]interface{}{
 		"action":          "data",
 		"data":            proyect.Data,
-		"config":          claves,
+		"config":          msgData,
 		"fosil":           proyect.Fosil,
 		"sectionsEditing": proyect.SectionsEditing,
 	}
@@ -381,7 +400,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("Error al deserializar: ", err)
 					}
 
-					var name = claims["name"].(string)
+					//var name = claims["name"].(string)
 					section := editing.Section
 					roomData := rooms[roomID]
 
@@ -399,13 +418,13 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					msgData := map[string]interface{}{
 						"action":   "editingUser",
-						"userName": name,
+						"userName": user,
 						"color":    color,
 						"value":    section,
 					}
 
 					roomData.SectionsEditing[section] = map[string]interface{}{
-						"name":  name,
+						"name":  user,
 						"color": color,
 						//"section" : section,
 					}
@@ -421,7 +440,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					roomData := rooms[roomID]
 					name := editing.Name
 
-					log.Println(name, "cualquier wea")
 					if roomData.SectionsEditing != nil {
 						if _, ok := roomData.SectionsEditing[section]; ok {
 							delete(roomData.SectionsEditing, section)
@@ -817,6 +835,23 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					sendSocketMessage(msgData, proyect, "columns")
 
+				case "isInverted":
+					var isInverted dtos.IsInverted
+					err := json.Unmarshal(dataMap.Data, &isInverted)
+					if err != nil {
+						log.Println("Error deserializando columna:", err)
+						break
+					}
+
+					rooms[roomID].Config["isInverted"] = isInverted.IsInverted
+
+					msgData := map[string]interface{}{
+						"action":     "isInverted",
+						"isInverted": isInverted.IsInverted,
+					}
+
+					sendSocketMessage(msgData, proyect, "isInverted")
+
 				case "editPolygon":
 
 					var polygon dtos.EditPolygon
@@ -865,7 +900,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	conn.Close()
 
-	RemoveElement(roomID, conn)
+	RemoveElement(roomID, conn, claims["email"].(string), proyect)
 	return nil
 }
 

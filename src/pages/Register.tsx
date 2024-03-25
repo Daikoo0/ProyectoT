@@ -1,74 +1,52 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import SelectTheme from '../components/Web/SelectTheme';
-
+import api from '../api/ApiClient';
 
 function Register() {
-  const [Correo, setCorreo] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [name, setName] = useState('');
-  const [lastname, setLastName] = useState('');
+
   const [message, setMessage] = useState('');
+
+  const [registerForm, setRegisterForm] = useState({ name: '', lastname: '', email: '', password: '', passwordConfirm: '' });
+
   const navigate = useNavigate();
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCorreo(e.target.value);
-  };
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
+  const handleRegister = (e) => {
+    const { name, value } = e.target;
+    setRegisterForm(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
 
-  const handlePasswordConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordConfirm(e.target.value);
-  };
+  }
 
-  const handleUserNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value);
-  };
+  async function handleLogin(e) {
+    e.preventDefault();
 
-  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLastName(e.target.value);
-  };
+    try {
+      const response = await api.post('/users/register', registerForm);
 
-
-  async function handleLogin() {
-
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        email: Correo,
-        name: name,
-        lastname: lastname,
-        password: password,
-        passwordConfirm: passwordConfirm,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.status === 201) {
-      setMessage("Usuario creado")
-      navigate('/');
-    } else
-      if (response.status === 409) {
-        setMessage("Este usuario ya existe")
+      if (response.status === 201) {
+        setMessage("Usuario creado")
+        navigate('/');
       } else
-        if (response.status === 400 && data.message === "Key: 'RegisterUser.Email' Error:Field validation for 'Email' failed on the 'email' tag") {
-          setMessage("Email inválido")
+        if (response.status === 409) {
+          setMessage("Este usuario ya existe")
         } else
-          if (response.status === 400 && data.message === "Key: 'RegisterUser.Password' Error:Field validation for 'Password' failed on the 'min' tag") {
-            setMessage("Contraseña muy corta")
+          if (response.status === 400 && response.data.message === "Key: 'RegisterUser.Email' Error:Field validation for 'Email' failed on the 'email' tag") {
+            setMessage("Email inválido")
           } else
-            if (response.status === 400) {
-              setMessage("Email y contraseña incorrectos")
-            }
-    console.log(response.status, data)
+            if (response.status === 400 && response.data.message === "Key: 'RegisterUser.Password' Error:Field validation for 'Password' failed on the 'min' tag") {
+              setMessage("Contraseña muy corta")
+            } else
+              if (response.status === 400) {
+                setMessage("Email y contraseña incorrectos")
+              }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      setMessage("Error al registrar usuario. Por favor, inténtelo de nuevo.");
+    }
   };
 
   return (
@@ -78,47 +56,47 @@ function Register() {
           <h1 className="text-5xl font-bold">Registrate</h1>
           <div className="form-control mt-6">
             <label className="label-text">Elige un tema:</label>
-            <SelectTheme/>
+            <SelectTheme />
           </div>
         </div>
 
         <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-          <form className="card-body">
+          <form className="card-body" onSubmit={handleLogin} >
 
             <div className="form-control w-4/5 max-w-xs">
-              <label className="label-text">First Name:</label>
+              <label className="label-text">Nombres:</label>
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="Enter your name"
-                id="name"
                 name="name"
-                value={name}
-                onChange={handleUserNameChange}
+                value={registerForm.name}
+                required
+                onChange={handleRegister}
               />
             </div>
 
             <div className="form-control w-4/5 max-w-xs">
-              <label className="label-text">Last Name:</label>
+              <label className="label-text">Apellidos:</label>
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="Enter your lastname"
-                id="lastname"
                 name="lastname"
-                value={lastname}
-                onChange={handleLastNameChange}
+                value={registerForm.lastname}
+                required
+                onChange={handleRegister}
               />
             </div>
 
             <div className="form-control w-4/5 max-w-xs">
-              <label className="label-text">Correo:</label>
+              <label className="label-text">Correo Electronico:</label>
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="name@uct.cl"
                 type="email"
-                id="Correo"
-                name="Correo"
-                value={Correo}
-                onChange={handleUsernameChange}
+                name="email"
+                value={registerForm.email}
+                required
+                onChange={handleRegister}
               />
             </div>
 
@@ -129,30 +107,30 @@ function Register() {
                 className="input input-bordered w-full max-w-xs"
                 placeholder="••••••••"
                 type="password"
-                id="password"
                 name="password"
-                value={password}
-                onChange={handlePasswordChange}
+                value={registerForm.password}
+                required
+                onChange={handleRegister}
               />
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="Confirmar contraseña"
                 type="password"
-                id="passwordConfirm"
                 name="passwordConfirm"
-                value={passwordConfirm}
-                onChange={handlePasswordConfirmChange}
+                value={registerForm.passwordConfirm}
+                required
+                onChange={handleRegister}
               />
 
             </div>
             <div className="form-control mt-6">
-              <button type="button" className="btn btn-primary" onClick={handleLogin}>
+              <button type="submit" className="btn btn-primary">
                 Crear mi usuario
               </button>
             </div>
             <p className="mt-5 text-center text-sm">
               Ya estas registrado?{' '}
-              <a href="/" className="link link-primary font-semibold">
+              <a href="/login" className="link link-primary font-semibold">
                 Inicia sesión
               </a>
             </p>

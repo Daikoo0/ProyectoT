@@ -18,7 +18,10 @@ export function useDynamicSvgImport(iconName: string, folder: string) {
         setError(err);
         console.error(err);
       } finally {
+        // timeout 
+        //setTimeout(() => setLoading(false), 3000);
         setLoading(false);
+
       }
     };
 

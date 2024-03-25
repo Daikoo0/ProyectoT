@@ -45,11 +45,11 @@ const Routes = () => {
         },
         {
           path: "*",
-          element: <Navigate to="/home" replace />,
+          element: <Navigate to="/home" />,
         },
         {
           path: "/",
-          element: <Navigate to="/home" replace />,
+          element: <Navigate to="/home"  />,
         }
       ],
     },

@@ -5,7 +5,7 @@ const themes = [
   "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua",
   "lofi", "pastel", "fantasy", "wireframe", "black", "luxury", "dracula",
   "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee", "winter",
-  "dim", "nord", "sunset","contraste"
+  "dim", "nord", "sunset","tamaratema"
 ];
 
 type ThemeContextType = {
@@ -14,7 +14,7 @@ type ThemeContextType = {
   availableThemes: string[];
 };
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextType>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const localThemePreference = localStorage.getItem('theme');

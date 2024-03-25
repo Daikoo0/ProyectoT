@@ -1,13 +1,8 @@
 package settings
 
 import (
-	_ "embed"
-
-	"gopkg.in/yaml.v3"
+	"os"
 )
-
-//go:embed settings.yaml
-var settingsFile []byte
 
 type Settings struct {
 	Port string `yaml:"port"`
@@ -19,9 +14,17 @@ type Settings struct {
 func New() (*Settings, error) {
 	var s Settings
 
-	err := yaml.Unmarshal(settingsFile, &s)
-	if err != nil {
-		return nil, err
+	port := os.Getenv("PORT")
+	db := os.Getenv("DATABASE")
+	dbname := os.Getenv("DBNAME")
+	key := os.Getenv("KEYPWD")
+
+	s = Settings{
+		Port: port,
+		DB:   db,
+		Name: dbname,
+		Key:  key,
 	}
+
 	return &s, nil
 }

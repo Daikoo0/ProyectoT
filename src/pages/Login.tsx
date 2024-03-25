@@ -19,7 +19,8 @@ function Login() {
     setPassword(e.target.value);
   };
 
-async function handleLogin() {
+async function handleLogin(e) {
+  e.preventDefault();
   try {
     const response = await api.post("/users/login", {
       email: Correo,
@@ -55,7 +56,7 @@ async function handleLogin() {
         </div>
 
         <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
-          <form className="card-body">
+          <form className="card-body" onSubmit={handleLogin}  >
             <div className="form-control w-4/5 max-w-xs">
               <label className="label-text">Correo:</label>
               <input
@@ -65,6 +66,7 @@ async function handleLogin() {
                 id="Correo"
                 name="Correo"
                 value={Correo}
+                required
                 onChange={handleUsernameChange}
               />
             </div>
@@ -77,19 +79,20 @@ async function handleLogin() {
                 id="password"
                 name="password"
                 value={password}
+                required
                 onChange={handlePasswordChange}
               />
               <a href="#"  className="link link-primary text-left">Olvidaste la contraseña?</a>
               
             </div>
             <div className="form-control mt-6">
-              <button type="button" className="btn btn-primary" onClick={handleLogin}>
+              <button className="btn btn-primary" type="submit">
                 Iniciar Sesión
               </button>
               <p className="mt-5 text-center text-sm">
-                Not a member?{' '}
+                ¿No eres miembro? {' '}
                 <a href="/register" className="link link-primary font-semibold">
-                  Crea una nueva
+                  Crea una cuenta
                 </a>
               </p>  
 

@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Tabla from './Tabla';
 import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
@@ -15,6 +16,7 @@ import EditorQuill from './EditorQuill';
 
 const Grid = () => {
 
+  const navigate = useNavigate();
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
@@ -174,8 +176,9 @@ const Grid = () => {
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
             //setPolygons(Litologia)
-            setHeader(shapeN.config)
+            setHeader(shapeN.config.header)
             setFossils(shapeN.fosil)
+            setIsInverted(shapeN.config.isInverted)
             setEditingUsers(shapeN.sectionsEditing)
             break;
           }
@@ -215,6 +218,9 @@ const Grid = () => {
             break
           case 'columns':
             setHeader(shapeN.columns)
+            break
+          case 'isInverted':
+            setIsInverted(shapeN.isInverted)
             break
           case 'addFosil':
             setFossils(prev => ({ ...prev, [shapeN.idFosil]: shapeN.value }));
@@ -438,16 +444,20 @@ const Grid = () => {
   const openModal = () => {
 
     (document.getElementById('modal') as HTMLDialogElement).showModal();
-    exportTableToPDFWithPagination({}, data, header, 'A3')
+    var copyData = data
+    var copyHeader = [...header]
+    exportTableToPDFWithPagination({}, copyData, copyHeader, 'A3')
     const initialPdfData = {
       columnWidths: {},
-      data: data,
-      header: header,
+      data: copyData,
+      header: copyHeader,
       format: 'A3',
     };
     setPdfData(initialPdfData)
 
   };
+
+  const [isInverted, setIsInverted] = useState(false)
 
   return (
     <>
@@ -468,6 +478,14 @@ const Grid = () => {
             <div className="flex-none">
 
               <div className="dropdown dropdown-end">
+
+                <div className="tooltip tooltip-bottom pl-5" onClick={() => navigate('/home')} data-tip="Volver al Home">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
+                      <path  fill="currentColor"  strokeLinejoin="round" strokeLinecap="round"  d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
+                    </svg>
+                  </div>
+                </div>
 
                 <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
@@ -518,6 +536,7 @@ const Grid = () => {
             handleClickRow={handleClickRow}
             sendActionCell={sendActionCell}
             editingUsers={editingUsers}
+            isInverted={isInverted}
           />
         </div>
 
@@ -551,20 +570,20 @@ const Grid = () => {
 
                 {/* <input type="range" min={0.51} max={0.95} className="range" step={0.04} onChange={(e) => { setModalData(prevData => ({ ...prevData, x: parseFloat(e.target.value) })); }} value={modalData.x} /> */}
 
-                <button className="btn btn-primary">Submit</button>
+                <button className="btn btn-primary">Aceptar</button>
               </form>
 
-              <div className="modal-action">
+              <div className="flex justify-center space-x-4">
+
                 <form method="dialog" onSubmit={() => deleteCirclePoint(modalData.index, modalData.insertIndex)}>
-                  <button className="btn btn-error">Delete</button>
+                  <button className="btn btn-error">Eliminar punto</button>
+                </form>
+
+                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51, name: null })}>
+                  <button className="btn">Cerrar</button>
                 </form>
               </div>
 
-              <div className="modal-action">
-                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51, name: null })}>
-                  <button className="btn">Close</button>
-                </form>
-              </div>
             </div>
           </dialog>
         </>
@@ -578,7 +597,7 @@ const Grid = () => {
                   action: 'deleteEditingUser',
                   data: {
                     section: `[${formData.index},${header.indexOf(formData.column)}]`,
-                    name: editingUsers[`[${formData.index},${header.indexOf(formData.column)}]`],
+                    name: editingUsers[`[${formData.index},${header.indexOf(formData.column)}]`]?.name,
                   }
                 }));
               }
@@ -660,6 +679,30 @@ const Grid = () => {
                             </li>
                             <li>
                               <details open={false}>
+                                <summary>Posición regla</summary>
+                                <ul>
+                                  <li>
+
+                                    <input type="checkbox" className="toggle toggle-success"
+                                      checked={isInverted}
+                                      onChange={(e) => {
+                                        if (socket) {
+                                          //  setIsInverted(!isInverted)
+                                          socket.send(JSON.stringify({
+                                            action: 'isInverted',
+                                            data: {
+                                              "isInverted": e.target.checked
+                                            }
+                                          }));
+                                        }
+                                      }} />{isInverted ? "Invertida" : "No invertida"}
+
+                                  </li>
+                                </ul>
+                              </details>
+                            </li>
+                            <li>
+                              <details open={false}>
                                 <summary>Visibilidad de columnas</summary>
                                 <ul>
                                   {list.map((key) => {
@@ -725,17 +768,17 @@ const Grid = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Añadir capa</li>
 
-                      <li><input type="number" name='height' onChange={handleChangeLocal} value={formData.height} /></li>
+                      <li className='mb-2' ><p><input type="number" name='height' onChange={handleChangeLocal} value={formData.height} /> cm</p></li>
 
-                      <li>
-                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(0, formData.height)} >Insertar fila encima</button>
+                      <li className='mb-2'>
+                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(0, formData.height)} >Insertar capa arriba</button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.height < 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Inserta en fila</button>
+                        <button className='btn w-3/5' disabled={formData.height < 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Insertar en fila:</button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
-                      <li>
-                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(-1, formData.height)}>Insertar fila debajo</button>
+                      <li className='mt-2'>
+                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(-1, formData.height)}>Insertar capa abajo</button>
                       </li>
                     </ul>
                   );
@@ -766,7 +809,7 @@ const Grid = () => {
 
                         </li>
                         <li>
-                          límite superior (metros):
+                          límite superior (cm):
                           <input
                             type="number"
                             name='upper'
@@ -775,7 +818,7 @@ const Grid = () => {
                           />
                         </li>
                         <li>
-                          Límite inferior (metros):
+                          Límite inferior (cm):
                           <input
                             type="number"
                             name='lower'
@@ -862,7 +905,7 @@ const Grid = () => {
                           <summary>Contacto inferior</summary>
                           <ul>
                             {Object.entries(contacts).map(([contact, key]) => (
-                              <li key={contact} style={{ backgroundColor: 'white', padding: '10px', marginBottom: '10px' }}>
+                              <li key={contact} className='bg-neutral-content'  style={{padding: '10px', marginBottom: '10px' }}>
 
                                 <label style={{ display: 'flex', alignItems: 'center' }}>
                                   <input
@@ -873,7 +916,7 @@ const Grid = () => {
                                     onChange={handleChange}
                                     style={{ marginRight: '8px' }}
                                   />
-                                  <svg width="150" height="20">
+                                  <svg width="150" height="20" className='stroke-base-content'>
                                     {typeof (key.dash) === 'string' ?
                                       <>
                                         <line
@@ -881,7 +924,7 @@ const Grid = () => {
                                           y1="15"
                                           x2="150"
                                           y2="15"
-                                          stroke="black"
+                                          // stroke="black"
                                           strokeWidth={key.lineWidth}
                                           strokeDasharray={`[67,2,2,2,2,2]`}
                                         />
@@ -891,7 +934,7 @@ const Grid = () => {
                                           y1="15"
                                           x2="150"
                                           y2="15"
-                                          stroke="black"
+                                          // stroke="black"
                                           strokeWidth={key.lineWidth}
                                           strokeDasharray={`${key.dash}`}
                                         /></>
@@ -945,12 +988,12 @@ const Grid = () => {
                       </li>
 
                       <li>
-                        <p>Seleccionar color Fill: <input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
+                        <p>Seleccionar color de relleno: <input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
                       </li>
 
 
                       <li>
-                        <p>Seleccionar color Stroke:<input type="color" name={"colorStroke"} value={formData.colorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
+                        <p>Seleccionar color patrón:<input type="color" name={"colorStroke"} value={formData.colorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
 
                       </li>
 

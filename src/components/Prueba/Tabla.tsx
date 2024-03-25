@@ -10,7 +10,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     addCircles, setSideBarState,
     fossils, setFormFosil,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers }) => {
+    editingUsers, isInverted }) => {
 
     const cellWidth = 150;
     const cellMinWidth = 100;
@@ -139,6 +139,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                             {/* Sección izquierda */}
                             <div className="flex flex-col flex-grow card overflow-auto">
+                                (en desarrollo)
                                 <div className="menu p-4 w-full min-h-full text-base-content">
                                     {/* Select */}
                                     <select value={pdfData.format} onChange={(e) => {
@@ -317,7 +318,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                             >
                                                 <div className="h-full max-h-full">
-                                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 150)} isInverted={false} scale={scale} />
+                                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 150)} isInverted={isInverted} scale={scale} />
                                                 </div>
                                             </td>
                                         );

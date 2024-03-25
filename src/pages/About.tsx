@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../api/ApiClient";
 
-
 async function sendComment(setMessage, selectedBadges, comment) {
     // Comprobar que todos los campos estén llenos
     if (!comment) {
@@ -68,8 +67,8 @@ const About = () => {
                 <div className="hero-content text-center text-neutral-content w-4/5">
                     <div className="max-w-2xl ">
                         <h1 className="mb-5 text-5xl font-bold">Crea tu propia columna estratigráfica</h1>
-                        <p className="mb-5">Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem quasi. In deleniti eaque aut repudiandae et a id nisi.</p>
-                        <button className="btn btn-primary" onClick={() => navigate('/home')}>Get Started</button>
+                        {/* <p className="mb-5">Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem quasi. In deleniti eaque aut repudiandae et a id nisi.</p> */}
+                        <button className="btn btn-primary" onClick={() => navigate('/home')}>Comenzar</button>
                     </div>
                 </div>
             </div>
@@ -78,15 +77,75 @@ const About = () => {
 
             <div className="hero bg-base-100 mt-1">
                 <div className="my-5 w-full max-w-6xl card bg-base-300 rounded-box place-items-center">
-                    <h3 className="p-4 text-5xl font-bold">Uso</h3>
+                    <h3 className="p-1 text-5xl font-bold">Uso</h3>
                     <div className="divider w-4/5 mx-auto text-center"></div>
-                    <p className="w-4/5 mb-4 mx-auto text-justify">
-                        Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem quasi. In deleniti eaque aut repudiandae et a id nisi.
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        Al registrarse e iniciar sesión, será visible a la página principal donde se encuentran los proyectos propios y los proyectos a los que se fue invitado a colaborar. Además en el menú de la izquierda existe un botón de proyectos públicos donde al clickearlo se redirigirá a un mapa donde se logran visualizar todos los proyectos a los que sus creadores designaron como públicos.
+                        Cada proyecto propio en la lista tiene tres opciones a la derecha para editar el proyecto en la sala eliminar la sala, invitar un usuario (como lector o editor).
+                        <br></br>
+                        En la esquina superior de la página hay un botón "crear un nuevo proyecto", al presionar el botón se redirigirá a un formulario donde se debe
+                        completar datos sobre el proyecto a crear, como la ubicación de la columna, el nombre de la sala de edición y una breve descripción, también está la opción de decidir
+                        si la sala del proyecto será de acceso a lectura público o privado (en desarrollo).
+
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Añadir capas</h3>
+                        <br></br>
+                        Lo anterior creará una sala vacía sin capas creadas y sin usuarios invitados. En la esquina superior izquierda hay un botón
+                        para agregar una capa, este abre un menú en el lado derecho de la derecha de la pantalla, dentro
+                        de este menú, se puede elegir agregar la capa arriba, abajo, o en una posición específica
+                    </p>
+                    <div className="p-1 mt-5 bg-primary rounded-lg shadow-md">
+                        <img src={"/src/assets/about/add.gif"} alt="Descripción del GIF" />
+                    </div>
+
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Editar capa</h3>
+                        <br></br>
+                        Al hacer click a la capa creada, se abre el menú de la derecha que permite editar su contacto inferior, el patrón de la capa, 
+                        el tamaño de la capa en cm, sus colores, el zoom del patrón, la rotación del patrón, la tensión de las líneas 
+                        que forman los tamaños de grano, o simplemente eliminar la capa.
                     </p>
 
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Editar puntos</h3>
+                        <br></br>
+                        Al seleccionar un punto o crear uno nuevo seleccionando un borde derecho de la capa, se hace visible un menú donde se puede elegir qué tamaño de grano va a tener ese punto de la capa, también se puede eliminar ese punto.
+                    </p>
+
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Añadir y editar fósiles</h3>
+                        <br></br>
+                        Al seleccionar la columna de fósiles, se abre un menú que permite añadir un nuevo fósil, seleccionando qué tipo de fósil, y cuáles son los límites superior e inferior en los que va a estar ese fósil (en cm). El fósil se añade en la posición donde se hizo click con el puntero. Para editar un fósil sólo se debe seleccionarlo.
+                    </p>
+
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Escribir en una columna</h3>
+                        <br></br>
+                        Al seleccionar una celda en una columna que no sea la de litología o la de fósiles, se abre un menú a la derecha que permite escribir texto en esa celda, además puedes escribir listas, imágenes, editar el texto, etc.
+                        Si hay otro colaborador editanto la celda, se mostrará un borde de color, y al pasar el mouse por encima se podrá leer su identidad.
+                    </p>
+
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Descargar un pdf (sin terminar)</h3>
+                        <br></br>
+                        En la esquina superior izquierda del editor hay un botón de descarga del pdf donde se podrá editar configuraciones del pdf, como el tipo de hoja o las capas que no deberían verse, antes de descargarlo
+                    </p>
+
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Configuración de la sala</h3>
+                        <br></br>
+                        En la esquina superior derecha de la sala también hay un botón de configuración, al presionarlo verás el menú a la derecha
+                        donde se puede ajustar la escala de las capas de tu columna, la posición de la regla y la visibilidad de as columnas de información.
+                        Además puedes seleccionar un tema visual que sea de tu agrado.
+                    </p>
                 </div>
             </div>
-
 
             <div className="divider"></div>
 
@@ -118,8 +177,10 @@ const About = () => {
                             <div className={badgeClass('Accesibilidad')} onClick={() => toggleBadge('Accesibilidad')}>Accesibilidad</div>
                             <div className={badgeClass('Documentación')} onClick={() => toggleBadge('Documentación')}>Documentación</div>
                             <div className={badgeClass('Registro')} onClick={() => toggleBadge('Registro')}>Registro</div>
+                            <div className={badgeClass('Tecnicismos')} onClick={() => toggleBadge('Tecnicismos')}>Otros</div>
                             <div className={badgeClass('Otros')} onClick={() => toggleBadge('Otros')}>Otros</div>
                         </div>
+                     <br></br>
                         <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder=" " className="textarea textarea-primary w-full" ></textarea>
                         <button
                             onClick={() => sendComment(setMessage, selectedBadges, comment)}

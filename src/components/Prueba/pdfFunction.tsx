@@ -1,9 +1,11 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const exportTableToPDFWithPagination = async (columnWidths, data, header, format) => {
+const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerParam, format) => {
     // const escala = scale || 1;
     const escala = 1
+    var data = dataParam
+    var header = [...headerParam]
     let rowIndexesPerPage = [];
     let currentPageHeight = 60 * 96 / 72;
     let currentPageIndexes = [];
@@ -15,11 +17,11 @@ const exportTableToPDFWithPagination = async (columnWidths, data, header, format
     //const pageHeight2 = 842//pixelsToPoints(Math.max(Number(maxHeight), 1000)) + 100;
 
     const sheetSizes = {
-        'A4' : [595,842],
-        'A3' : [842,1190],
-        'letter' : [612,792],
-        'tabloid': [792,1224],
-        'legal' : [725,1009]
+        'A4': [595, 842],
+        'A3': [842, 1190],
+        'letter': [612, 792],
+        'tabloid': [792, 1224],
+        'legal': [725, 1009]
     }
     console.log(sheetSizes[String(format)][1])
 
@@ -89,7 +91,7 @@ const exportTableToPDFWithPagination = async (columnWidths, data, header, format
                         pageCanvas.height = endY - startY;
                         pageCtx.drawImage(img1, 0, startY, maxwidth, pageCanvas.height, 0, 0, maxwidth, endY - startY);
                         const pageImgURL = pageCanvas.toDataURL('image/png', 1.0);
-                //        console.log(pageImgURL)
+                        //        console.log(pageImgURL)
                         fossilsPage.push(pageImgURL);
                     });
                     resolve(fossilsPage); // Asegúrate de resolver la promesa original después de procesar todas las páginas
@@ -213,7 +215,7 @@ const exportTableToPDFWithPagination = async (columnWidths, data, header, format
             body: body,
             theme: 'grid',
             styles: {
-               // overflow: 'ellipsize',
+                // overflow: 'ellipsize',
                 //fontSize: 10,
             },
             startY: 20,
@@ -232,17 +234,17 @@ const exportTableToPDFWithPagination = async (columnWidths, data, header, format
                 }
             },
             columnStyles: columnStyles,
-            includeHiddenHtml : true,
+            includeHiddenHtml: true,
             didParseCell: function (datac) {
                 if (datac.row.section === "head") {
                     datac.cell.height = 40
                     console.log(datac)
                 } else {
-                 //  datac.row.height = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
-                   datac.cell.height = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
-                   datac.cell.styles.minCellHeight = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
-                   }
-                
+                    //  datac.row.height = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
+                    datac.cell.height = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
+                    datac.cell.styles.minCellHeight = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
+                }
+
             },
             didDrawPage: (datac) => {
                 datac.doc.addImage(imgPage[pageIndex], xcell, ycell);
@@ -252,8 +254,8 @@ const exportTableToPDFWithPagination = async (columnWidths, data, header, format
                 if (imageFossils[pageIndex] !== "data:,") {
                     datac.doc.addImage(imageFossils[pageIndex], xcellFossils, ycell)
                 }
-                
-                
+
+
             }
         });
     });
