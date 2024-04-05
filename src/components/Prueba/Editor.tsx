@@ -28,6 +28,7 @@ const Grid = () => {
   const [fossils, setFossils] = useState([]);
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
+  const [alturaTd, setAlturaTd] = useState(null);
 
   const initialFormData = {
     index: null,
@@ -314,7 +315,8 @@ const Grid = () => {
 
   //--------- Funciones Socket ------------//
 
-  const handleAddFosil = () => {
+  const handleAddFosil = (event) => {
+    event.preventDefault();
     socket.send(JSON.stringify({
       action: 'addFosil',
       data: {
@@ -482,7 +484,7 @@ const Grid = () => {
                 <div className="tooltip tooltip-bottom pl-5" onClick={() => navigate('/home')} data-tip="Volver al Home">
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
-                      <path  fill="currentColor"  strokeLinejoin="round" strokeLinecap="round"  d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
+                      <path fill="currentColor" strokeLinejoin="round" strokeLinecap="round" d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
                     </svg>
                   </div>
                 </div>
@@ -537,6 +539,8 @@ const Grid = () => {
             sendActionCell={sendActionCell}
             editingUsers={editingUsers}
             isInverted={isInverted}
+            alturaTd={alturaTd}
+            setAlturaTd={setAlturaTd}
           />
         </div>
 
@@ -768,17 +772,22 @@ const Grid = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Añadir capa</li>
 
-                      <li className='mb-2' ><p><input type="number" name='height' onChange={handleChangeLocal} value={formData.height} /> cm</p></li>
+                      <li className='mb-2' >
+                        <p>
+                          <input type="number" name='height' onChange={handleChangeLocal} value={formData.height} />
+                          cm
+                        </p>
+                      </li>
 
                       <li className='mb-2'>
-                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(0, formData.height)} >Insertar capa arriba</button>
+                        <button className='btn' disabled={formData.height < 5 || formData.height > 2000} onClick={() => addShape(0, formData.height)} >Insertar capa arriba</button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.height < 5} onClick={() => addShape(formData.initialHeight, formData.height)}>Insertar en fila:</button>
+                        <button className='btn w-3/5' disabled={formData.height < 5 || formData.height > 2000} onClick={() => addShape(formData.initialHeight, formData.height)}>Insertar en fila:</button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li className='mt-2'>
-                        <button className='btn' disabled={formData.height < 5} onClick={() => addShape(-1, formData.height)}>Insertar capa abajo</button>
+                        <button className='btn' disabled={formData.height < 5 || formData.height > 2000} onClick={() => addShape(-1, formData.height)}>Insertar capa abajo</button>
                       </li>
                     </ul>
                   );
@@ -789,46 +798,57 @@ const Grid = () => {
 
                       <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
                         <li>Agregar nuevo fósil:</li>
-                        <li>
-                          <select className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
-                            <option value={""} disabled >Elige el tipo de fósil</option>
-                            {Object.keys(fosilJson).map(option => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                        </li>
-                        <li>
+                        <form onSubmit={handleAddFosil}>
+                          <li>
+                            <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
+                              <option value={""} disabled >Elige el tipo de fósil</option>
+                              {Object.keys(fosilJson).map(option => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          </li>
+                          <li>
 
-                          {formFosil.fosilImg === "" ? null :
-                            <IconSvg
-                              iconName={fosilJson[formFosil.fosilImg]}
-                              folder='fosiles'
-                              svgProp={{ width: 50, height: 50 }}
+                            {formFosil.fosilImg === "" ? null :
+                              <IconSvg
+                                iconName={fosilJson[formFosil.fosilImg]}
+                                folder='fosiles'
+                                svgProp={{ width: 50, height: 50 }}
+                              />
+                            }
+
+                          </li>
+                          <li>
+                            límite superior (cm):
+                            <input
+                              type="number"
+                              name='upper'
+                              value={formFosil.upper}
+                              min={0}
+                              max={formFosil.lower}
+                              required
+                              onChange={changeformFosil}
                             />
-                          }
+                          </li>
+                          <li>
+                            Límite inferior (cm):
+                            <input
+                              type="number"
+                              name='lower'
+                              value={formFosil.lower}
+                              min={0}
+                              max={alturaTd}
+                              required
+                              onChange={changeformFosil}
+                            />
+                          </li>
 
-                        </li>
-                        <li>
-                          límite superior (cm):
-                          <input
-                            type="number"
-                            name='upper'
-                            value={formFosil.upper}
-                            onChange={changeformFosil}
-                          />
-                        </li>
-                        <li>
-                          Límite inferior (cm):
-                          <input
-                            type="number"
-                            name='lower'
-                            value={formFosil.lower}
-                            onChange={changeformFosil}
-                          />
-                        </li>
-
-                        <button className="btn btn-primary" disabled={formFosil.fosilImg === ""} onClick={handleAddFosil}> Confirmar </button>
-
+                          <button type='submit' className="btn btn-primary"
+                            disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}
+                          >
+                            Confirmar
+                          </button>
+                        </form>
                       </div>
                     </ul>
                   );
@@ -853,10 +873,8 @@ const Grid = () => {
                               folder='fosiles'
                               svgProp={{ width: 50, height: 50 }}
                             />
-
                           </div>
                           <div className="divider divider-horizontal">
-
                             <svg className="w-10 h-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                               <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
                             </svg>
@@ -875,7 +893,7 @@ const Grid = () => {
 
                       </li>
                       <li>
-                        límite superior (metros):
+                        límite superior (cm):
                         <input
                           type="number"
                           name='upper'
@@ -884,7 +902,7 @@ const Grid = () => {
                         />
                       </li>
                       <li>
-                        Límite inferior (metros):
+                        Límite inferior (cm):
                         <input
                           type="number"
                           name='lower'
@@ -892,7 +910,12 @@ const Grid = () => {
                           onChange={changeformFosil}
                         />
                       </li>
-                      <li> <button className="btn btn-primary" onClick={handleFosilEdit}>Confirmar edición</button></li>
+                      <li>
+                        <button className="btn btn-primary" onClick={handleFosilEdit}
+                        disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
+                          Confirmar edición
+                        </button>
+                      </li>
                       <li><button className="btn btn-error" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
                     </ul>)
                 case "polygon":
@@ -905,7 +928,7 @@ const Grid = () => {
                           <summary>Contacto inferior</summary>
                           <ul>
                             {Object.entries(contacts).map(([contact, key]) => (
-                              <li key={contact} className='bg-neutral-content'  style={{padding: '10px', marginBottom: '10px' }}>
+                              <li key={contact} className='bg-neutral-content' style={{ padding: '10px', marginBottom: '10px' }}>
 
                                 <label style={{ display: 'flex', alignItems: 'center' }}>
                                   <input
@@ -970,9 +993,9 @@ const Grid = () => {
 
 
                       <li className='flex flex-row'>
-                        <p>Tamaño de capa: </p>
+                        <p>Tamaño de capa: cm</p>
                         <input type="number" name='height' value={formData.height} onChange={handleChangeLocal} />
-                        <button className="btn" name='height' value={formData.height} disabled={formData.height === formData.initialHeight || formData.height < 5} onClick={handleChange}> Cambiar </button>
+                        <button className="btn" name='height' value={formData.height} disabled={formData.height === formData.initialHeight || formData.height < 5 || formData.height > 2000} onClick={handleChange}> Cambiar </button>
                       </li>
 
                       <li>

@@ -121,6 +121,18 @@ func RemoveElement(roomID string, conn *websocket.Conn, name string, project *Ro
 		}
 		rooms[roomID].Active = append(rooms[roomID].Active[:index], rooms[roomID].Active[index+1:]...)
 
+		if len(rooms[roomID].Active) == 0 {
+			delete(rooms, roomID)
+		}
+
+		if _, exists := rooms[roomID]; exists {
+			log.Println("La habitación", roomID, "no fue eliminada correctamente.")
+		} else {
+			log.Println("La habitación", roomID, "fue eliminada correctamente.")
+		}
+		log.Print("////////////////////////////////////////")
+		log.Print(rooms)
+
 	}
 
 }
@@ -273,6 +285,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		room.Fosil)
 	proyect.Active = append(proyect.Active, conn)
 
+	log.Print(rooms)
 	log.Println(proyect.Active)
 
 	// Sacamos la conf y la transformamos a []

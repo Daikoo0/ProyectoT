@@ -356,7 +356,7 @@
         "dash": [1,10],
         "dash2": [],
         "lineWidth": 10,
-        "lineWidth2": 2,
+        "lineWidth2": 3,
         "arcs": false,
         "question": false
     },
@@ -364,7 +364,7 @@
         "dash": [1,10],
         "dash2": [] ,
         "lineWidth": 10,
-        "lineWidth2": 2,
+        "lineWidth2": 3,
         "arcs": false,
         "question": true
     },
@@ -372,7 +372,7 @@
         "dash": [0,1,1,10],
         "dash2": [14,10],
         "lineWidth": 10,
-        "lineWidth2": 2,
+        "lineWidth2": 3,
         "arcs": false,
         "question": false
     },
@@ -380,7 +380,7 @@
         "dash": [0,1,1,10],
         "dash2": [14,10],
         "lineWidth": 10,
-        "lineWidth2": 2,
+        "lineWidth2": 3,
         "arcs": false,
         "question": true
     }

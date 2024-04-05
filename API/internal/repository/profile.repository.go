@@ -44,8 +44,6 @@ func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.Data, e
 		return nil, err
 	}
 
-	log.Println(projects)
-
 	return projects, nil
 }
 

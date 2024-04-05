@@ -10,7 +10,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     addCircles, setSideBarState,
     fossils, setFormFosil,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted }) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd }) => {
 
     const cellWidth = 150;
     const cellMinWidth = 100;
@@ -109,7 +109,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 }
             </>)
     }
-    const [alturaTd, setAlturaTd] = useState(null);
+    
     var adfas = useRef<HTMLTableCellElement>(null);
 
     useEffect(() => {
@@ -147,14 +147,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             ...prevState,
                                             format: e.target.value,
                                         }));
-                                        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, pdfData.header, pdfData.format)
+                                        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, pdfData.header, e.target.value)
                                     }} className="select select-bordered w-full max-w-xs mb-4">
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
                                         <option value={'A4'}>A4</option>
                                         <option value={'A3'}>A3</option>
                                         <option value={'letter'}>Carta</option>
                                         <option value={'tabloid'}>Tabloide</option>
-                                        <option value={'legal'}>Legal</option>
+                                        <option value={'legal'}>Oficio</option>
                                     </select>
 
                                     {/* Lista de visibilidad de columnas */}

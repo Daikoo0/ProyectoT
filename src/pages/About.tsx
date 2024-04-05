@@ -94,9 +94,6 @@ const About = () => {
                         para agregar una capa, este abre un menú en el lado derecho de la derecha de la pantalla, dentro
                         de este menú, se puede elegir agregar la capa arriba, abajo, o en una posición específica
                     </p>
-                    <div className="p-1 mt-5 bg-primary rounded-lg shadow-md">
-                        <img src={"/src/assets/about/add.gif"} alt="Descripción del GIF" />
-                    </div>
 
                     <p className="ml-8 mr-8 mx-auto text-justify">
                         <div className="divider w-4/5 mx-auto text-center"></div>

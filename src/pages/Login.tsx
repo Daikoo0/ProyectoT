@@ -91,7 +91,7 @@ async function handleLogin(e) {
               </button>
               <p className="mt-5 text-center text-sm">
                 ¿No eres miembro? {' '}
-                <a href="/register" className="link link-primary font-semibold">
+                <a className="link link-primary font-semibold" onClick={() => navigate("/register")}>
                   Crea una cuenta
                 </a>
               </p>  

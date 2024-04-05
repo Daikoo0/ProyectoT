@@ -6,31 +6,34 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
     const escala = 1
     var data = dataParam
     var header = [...headerParam]
+    var format = format
     let rowIndexesPerPage = [];
-    let currentPageHeight = 60 * 96 / 72;
+    let currentPageHeight = 60;
     let currentPageIndexes = [];
-    // function pixelsToPoints(pixels) {
-    //     return (pixels / 96) * 72;
-    // }
-    //const maxHeight = Math.max(...Object.values(data).map((item) => item['Litologia'].height))
-    //  const pageWidth2 = 595 // pixelsToPoints(1500);
-    //const pageHeight2 = 842//pixelsToPoints(Math.max(Number(maxHeight), 1000)) + 100;
 
-    const sheetSizes = {
-        'A4': [595, 842],
-        'A3': [842, 1190],
-        'letter': [612, 792],
-        'tabloid': [792, 1224],
-        'legal': [725, 1009]
+    const doc = new jsPDF({
+        orientation: 'p', // l
+        unit: 'px',
+        format: format
+    });
+
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+    const colW = (pageWidth - 50 - 40) / (header.length - 1)
+    columnWidths["Espesor"] = 50
+
+    for (var i in header) {
+        if (header[i] !== "Espesor") {
+            columnWidths[header[i]] = colW
+        }
     }
-    console.log(sheetSizes[String(format)][1])
 
     Object.values(data).forEach((key, index) => {
         const rowHeight = key['Litologia'].height * escala;
-        if (currentPageHeight + rowHeight > sheetSizes[String(format)][1]) {
+        if ((currentPageHeight + rowHeight) > (pageHeight - 80)) {
             rowIndexesPerPage.push(currentPageIndexes);
             currentPageIndexes = [];
-            currentPageHeight = 60 * 96 / 72;
+            currentPageHeight = 60;
         }
         currentPageHeight += rowHeight;
         currentPageIndexes.push(index);
@@ -44,15 +47,15 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
             const promises = [];
             const fossilsPage = []
             let totalHeight = 0;
-            let maxwidth = 0;
+            let maxwidth = colW;
             var svgData;
             if (fosil) {
                 const svgCopy = svgList[0].cloneNode(true);
                 var alt = parseFloat(svgList[0].getAttribute('height'));
                 svgCopy.setAttribute('height', alt > 1000 ? `${alt}px` : "8000px")
-                let width = parseFloat(svgCopy.getAttribute('width'));
+                // let width = parseFloat(svgCopy.getAttribute('width'));
                 let height = parseFloat(svgCopy.getAttribute('height'));
-                maxwidth = width;
+                maxwidth = colW;
                 totalHeight = height;
                 svgData = new XMLSerializer().serializeToString(svgCopy);
                 const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
@@ -106,13 +109,18 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                     let alturaActual = parseFloat(svgCopy.getAttribute('height'));
                     let nuevaAltura = alturaActual + 10;
                     totalHeight += nuevaAltura;
-                    let pElement = svgCopy.querySelector('path');
                     svgCopy.setAttribute('height', `${nuevaAltura}px`);
-                    pElement.setAttribute('transform', `translate(0, ${0})`);
                     let width = parseFloat(svgCopy.getAttribute('width'));
-                    if (width > maxwidth) {
-                        maxwidth = width;
-                    }
+                    let newHeight = nuevaAltura * (colW / width);
+                    const originalY = svgCopy.getBoundingClientRect().top;
+                    const deltaY = originalY * (1 - (newHeight / nuevaAltura));
+                    const originY = (deltaY / nuevaAltura) * 100 + "%";;
+                 
+                    svgCopy.setAttribute("transform", `scale(${colW / width},1)`)
+                    //   svgCopy.style.transform +=,`scale(1,${newHeight / nuevaAltura})`
+
+                    svgCopy.style.transformOrigin = `0 0`;
+
                     svgData = new XMLSerializer().serializeToString(svgCopy);
                     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
                     const url = URL.createObjectURL(svgBlob);
@@ -148,11 +156,6 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
         });
     }
 
-    const doc = new jsPDF({
-        orientation: 'l', // l
-        unit: 'pt',
-        format: format//[pageWidth2, pageHeight2]
-    });
 
     const filteredSvgs = document.querySelectorAll('table tbody tr td svg');
     const indices = Object.keys(data);
@@ -180,8 +183,8 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
     }
 
     var imgPage = []
-    for (var i = 0; i < rowIndexesPerPage.length; i++) {
-        var img = await generateSVGDataURLForPage(i)
+    for (var j = 0; j < rowIndexesPerPage.length; j++) {
+        var img = await generateSVGDataURLForPage(j)
         imgPage.push(img)
     }
 
@@ -207,7 +210,7 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
         var xcellEspesor = 0
         const columnStyles = {};
         header.forEach(head => {
-            columnStyles[header.indexOf(head)] = { cellWidth: columnWidths[head] * 72 / 96 || 150 * 72 / 96 };
+            columnStyles[header.indexOf(head)] = { cellWidth: columnWidths[head] || 10 };
         });
 
         autoTable(doc, {
@@ -218,7 +221,8 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                 // overflow: 'ellipsize',
                 //fontSize: 10,
             },
-            startY: 20,
+            //  startY: 20,
+            margin: { top: 20, right: 20, bottom: 20, left: 20 },
             didDrawCell: (datac) => {
 
                 if (datac.row.index === 0 && datac.column.dataKey === header.indexOf('Litologia')) {
@@ -240,9 +244,8 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                     datac.cell.height = 40
                     console.log(datac)
                 } else {
-                    //  datac.row.height = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
-                    datac.cell.height = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
-                    datac.cell.styles.minCellHeight = (data[datac.row.index]['Litologia'].height * escala / 96) * 72;
+                    datac.cell.height = (data[datac.row.index]['Litologia'].height * escala);
+                    datac.cell.styles.minCellHeight = (data[datac.row.index]['Litologia'].height * escala);
                 }
 
             },

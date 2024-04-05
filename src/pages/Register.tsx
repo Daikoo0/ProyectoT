@@ -29,7 +29,7 @@ function Register() {
 
       if (response.status === 201) {
         setMessage("Usuario creado")
-        navigate('/');
+        navigate('/login');
       } else
         if (response.status === 409) {
           setMessage("Este usuario ya existe")
@@ -130,7 +130,7 @@ function Register() {
             </div>
             <p className="mt-5 text-center text-sm">
               Ya estas registrado?{' '}
-              <a href="/login" className="link link-primary font-semibold">
+              <a className="link link-primary font-semibold" onClick={() => navigate("/login")}>
                 Inicia sesión
               </a>
             </p>

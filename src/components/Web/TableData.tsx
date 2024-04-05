@@ -211,7 +211,7 @@ const TableData = ({ Data, refresh }) => {
 
             {/* Tabla de  */}
 
-            <h1>Proyectos del usuario</h1>
+            <h1>Proyectos del usuario {user.name}</h1>
 
             <button className="btn btn-neutral lg:hidden" onClick={() => navigate('/create')}>Crear Sala</button>
             <table className="table">
