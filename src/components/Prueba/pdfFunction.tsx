@@ -1,8 +1,10 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerParam, format) => {
+// data de las filas, Nombre de las columnas, formato de la hoja
+const exportTableToPDFWithPagination = async (dataParam, headerParam, format) => {
     // const escala = scale || 1;
+    
     const escala = 1
     var data = dataParam
     var header = [...headerParam]
@@ -10,6 +12,7 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
     let rowIndexesPerPage = [];
     let currentPageHeight = 60;
     let currentPageIndexes = [];
+    let svgHeights = {};
 
     const doc = new jsPDF({
         orientation: 'p', // l
@@ -17,9 +20,13 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
         format: format
     });
 
+    var columnWidths = {}
+
     var pageWidth = doc.internal.pageSize.getWidth();
     var pageHeight = doc.internal.pageSize.getHeight();
-    const colW = (pageWidth - 50 - 40) / (header.length - 1)
+
+    const colW = (pageWidth - 50 - 40) / (header.length - 1) // ancho de cada columna - 50 espesor - 40 margenes 
+    let originalW = 1;
     columnWidths["Espesor"] = 50
 
     for (var i in header) {
@@ -28,19 +35,8 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
         }
     }
 
-    Object.values(data).forEach((key, index) => {
-        const rowHeight = key['Litologia'].height * escala;
-        if ((currentPageHeight + rowHeight) > (pageHeight - 80)) {
-            rowIndexesPerPage.push(currentPageIndexes);
-            currentPageIndexes = [];
-            currentPageHeight = 60;
-        }
-        currentPageHeight += rowHeight;
-        currentPageIndexes.push(index);
-    });
-    if (currentPageIndexes.length) rowIndexesPerPage.push(currentPageIndexes);
-
-    function svgListToDataURL(svgList, fosil, rowIndexesPerPage) {
+    // Funcion para convertir los svg a imagenes por pagina     
+    function svgListToDataURL(svgList, fosil, rowIndexesPerPage, pageIndex) {
         return new Promise((resolve, reject) => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -100,27 +96,34 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                     resolve(fossilsPage); // Asegúrate de resolver la promesa original después de procesar todas las páginas
                 }).catch(error => reject(error));
             } else {
-                svgList.forEach((svg) => {
-                    const svgCopy = svg.cloneNode(true);
+                svgList.forEach((svg, index) => {
+                    const svgCopy = svg.cloneNode(true); // Clonar el svg para no modificar el original
                     const circles = svgCopy.querySelectorAll('circle');
                     circles.forEach(circle => {
                         circle.remove();
                     });
+
                     let alturaActual = parseFloat(svgCopy.getAttribute('height'));
+                    originalW = parseFloat(svgCopy.getAttribute('width'));
+                    //let width = parseFloat(svgCopy.getAttribute('width'));
                     let nuevaAltura = alturaActual + 10;
-                    totalHeight += nuevaAltura;
+                    
                     svgCopy.setAttribute('height', `${nuevaAltura}px`);
-                    let width = parseFloat(svgCopy.getAttribute('width'));
-                    let newHeight = nuevaAltura * (colW / width);
-                    const originalY = svgCopy.getBoundingClientRect().top;
-                    const deltaY = originalY * (1 - (newHeight / nuevaAltura));
-                    const originY = (deltaY / nuevaAltura) * 100 + "%";;
+                    
+                    let scaleHeight = (colW / originalW);
+                  
+                    const originalY = svgCopy.getBoundingClientRect().top; 
+                    const deltaY = originalY * (1 - (scaleHeight / nuevaAltura));
+                    const originY = (deltaY / nuevaAltura) * 100 + "%";
+                  
+                    svgCopy.setAttribute("transform", `scale(${colW / originalW},1)`)
+                  
+                    svgCopy.style.transformOrigin = `0 ${originY}`;
+                  
+                    totalHeight += alturaActual
                  
-                    svgCopy.setAttribute("transform", `scale(${colW / width},1)`)
-                    //   svgCopy.style.transform +=,`scale(1,${newHeight / nuevaAltura})`
-
-                    svgCopy.style.transformOrigin = `0 0`;
-
+                    svgHeights[`${pageIndex},${index}`] = nuevaAltura
+              
                     svgData = new XMLSerializer().serializeToString(svgCopy);
                     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
                     const url = URL.createObjectURL(svgBlob);
@@ -142,13 +145,17 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                 Promise.all(promises)
                     .then(images => {
                         canvas.width = maxwidth + 200;
-                        canvas.height = totalHeight - (images.length * 10) + 10//> 10 ? totalHeight : 500;
+                        canvas.height = totalHeight
                         let offsetY = 0;
-                        images.forEach(img => {
+                        images.forEach((img,index) => {
+                      //      if (index === 0) {svgHeights.push(img.height* (colW / originalW) - 8)}
                             ctx.drawImage(img, 0, offsetY);
-                            offsetY += img.height - 10;
+                            offsetY += img.height-10 //* (colW / originalW) - 8;
+                        //    svgHeights.push(img.height * (colW / originalW) - 8)
+                            console.log(offsetY)
                         });
                         const imgURL = canvas.toDataURL('image/png', 1.0);
+                        console.log(imgURL)
                         resolve(imgURL);
 
                     }).catch(error => reject(error));
@@ -156,29 +163,51 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
         });
     }
 
+    // Funcion para calcular la cantidad de filas por pagina
+    Object.values(data).forEach((key, index) => {
+        const rowHeight = key['Litologia'].height
+        console.log(key['Litologia'].height)
+        if ((currentPageHeight + rowHeight) > (pageHeight - 20)) {
+            rowIndexesPerPage.push(currentPageIndexes);
+            currentPageIndexes = [];
+            currentPageHeight = 60;
+        }
+        currentPageHeight += rowHeight;
+        currentPageIndexes.push(index);
+    });
+
+    // ??
+    if (currentPageIndexes.length) rowIndexesPerPage.push(currentPageIndexes);
+
 
     const filteredSvgs = document.querySelectorAll('table tbody tr td svg');
-    const indices = Object.keys(data);
+    const indices = Object.keys(data); // data [0,1,2,3,4,5...n] 
+    
+    // Filtrar los svg que contienen los patrones 
     const tdsWithSvg = Array.from(filteredSvgs).filter(svg => {
         const patterns = svg.querySelectorAll('pattern');
         return Array.from(patterns).some(pattern => {
             return indices.some(index => pattern.id === `pattern-${index}`);
         });
     });
-
+ 
     const className = "h-full.max-h-full";
     var svgFossils = []
     if (document.querySelectorAll(`table tbody tr td svg.${className}`).length > 1) {
         svgFossils = [document.querySelectorAll(`table tbody tr td svg.${className}`)[1]];
     }
     var svgEspesor = [document.querySelectorAll(`table tbody tr td svg.${className}`)[0]];
-    var imageFossils = await svgListToDataURL(svgFossils, true, rowIndexesPerPage);
-    var imageEspesor = await svgListToDataURL(svgEspesor, true, rowIndexesPerPage);
+    var imageFossils = await svgListToDataURL(svgFossils, true, rowIndexesPerPage, null);
+    var imageEspesor = await svgListToDataURL(svgEspesor, true, rowIndexesPerPage, null);
 
+    // Funcion para generar una imagen segun la pagina
     async function generateSVGDataURLForPage(pageIndex) {
-        const indexes = rowIndexesPerPage[pageIndex];
-        const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index));
-        const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, false, rowIndexesPerPage);
+        const indexes = rowIndexesPerPage[pageIndex]; // todos los index de pageindex
+        const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la pagina que se esta generando 
+        if (filteredTdsWithSvg.length > 0) {
+            originalW = parseFloat(filteredTdsWithSvg[0].querySelector('svg').getAttribute('width'))
+        }
+        const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, false, rowIndexesPerPage[pageIndex],pageIndex);
         return imageDataURL;
     }
 
@@ -187,6 +216,8 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
         var img = await generateSVGDataURLForPage(j)
         imgPage.push(img)
     }
+
+    console.log(svgHeights)
 
     rowIndexesPerPage.forEach((pageIndexes, pageIndex) => {
         const body = [];
@@ -221,7 +252,6 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                 // overflow: 'ellipsize',
                 //fontSize: 10,
             },
-            //  startY: 20,
             margin: { top: 20, right: 20, bottom: 20, left: 20 },
             didDrawCell: (datac) => {
 
@@ -233,7 +263,6 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
                     xcellEspesor = datac.cell.x
                 }
                 else if (datac.row.index === 0 && datac.column.dataKey === header.indexOf('Estructura fosil')) {
-
                     xcellFossils = datac.cell.x
                 }
             },
@@ -242,20 +271,17 @@ const exportTableToPDFWithPagination = async (columnWidths, dataParam, headerPar
             didParseCell: function (datac) {
                 if (datac.row.section === "head") {
                     datac.cell.height = 40
-                    console.log(datac)
                 } else {
-                    datac.cell.height = (data[datac.row.index]['Litologia'].height * escala);
-                    datac.cell.styles.minCellHeight = (data[datac.row.index]['Litologia'].height * escala);
+                    datac.cell.styles.minCellHeight = svgHeights[`${pageIndex},${datac.row.index}`]*0.53 || 0;
                 }
-
             },
             didDrawPage: (datac) => {
-                datac.doc.addImage(imgPage[pageIndex], xcell, ycell);
+                datac.doc.addImage(imgPage[pageIndex], xcell, ycell); // capas
                 if (imageEspesor[pageIndex] !== "data:,") {
-                    datac.doc.addImage(imageEspesor[pageIndex], xcellEspesor, ycell)
+                    datac.doc.addImage(imageEspesor[pageIndex], xcellEspesor, ycell) // espesor
                 }
                 if (imageFossils[pageIndex] !== "data:,") {
-                    datac.doc.addImage(imageFossils[pageIndex], xcellFossils, ycell)
+                    datac.doc.addImage(imageFossils[pageIndex], xcellFossils, ycell) // fosiles
                 }
 
 

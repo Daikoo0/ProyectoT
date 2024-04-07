@@ -71,7 +71,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, newHeaders, pdfData.format)
+        exportTableToPDFWithPagination(pdfData.data, newHeaders, pdfData.format)
     }
 
     const handleRows = (e, key) => {
@@ -88,7 +88,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             data: newRows,
         }));
-        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, newRows, pdfData.format)
+        exportTableToPDFWithPagination(pdfData.data, newRows, pdfData.format)
+
     }
 
     const HeaderVal = ({ percentage, name, top }) => {
@@ -147,7 +148,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             ...prevState,
                                             format: e.target.value,
                                         }));
-                                        exportTableToPDFWithPagination(pdfData.columnWidths, pdfData.data, pdfData.header, e.target.value)
+                                        exportTableToPDFWithPagination(pdfData.data, pdfData.header, e.target.value)
                                     }} className="select select-bordered w-full max-w-xs mb-4">
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
                                         <option value={'A4'}>A4</option>

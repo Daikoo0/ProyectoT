@@ -448,7 +448,7 @@ const Grid = () => {
     (document.getElementById('modal') as HTMLDialogElement).showModal();
     var copyData = data
     var copyHeader = [...header]
-    exportTableToPDFWithPagination({}, copyData, copyHeader, 'A3')
+    exportTableToPDFWithPagination(copyData, copyHeader, 'A3')
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
