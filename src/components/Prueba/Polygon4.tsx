@@ -211,7 +211,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
       {/* Polygon Path */}
       <path d={pathData}
         fill={`url(#${patternId})`}
-        stroke="black"
+        className="stroke-current text-base-content"
         strokeWidth="0.8"
         onClick={() => {
           handleClickRow(rowIndex, 'Litologia')

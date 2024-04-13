@@ -9,9 +9,11 @@ import ResizeObserver from "resize-observer-polyfill";
 const Tabla = ({ setPdfData, pdfData, data, header, scale,
     addCircles, setSideBarState,
     fossils, setFormFosil,
+    facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
     editingUsers, isInverted, alturaTd, setAlturaTd }) => {
 
+    console.log(facies.length)
     const cellWidth = 150;
     const cellMinWidth = 100;
     const cellMaxWidth = 500;
@@ -110,7 +112,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 }
             </>)
     }
-    
+
     var adfas = useRef<HTMLTableCellElement>(null);
 
     useEffect(() => {
@@ -236,7 +238,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             {header.map((columnName) => (
                                 <th
                                     key={columnName}
-                                    className="border border-accent-content bg-primary sticky top-0"
+                                    className="border border-base-content bg-primary sticky top-0"
                                     style={{
                                         width: `${columnWidths[columnName] || cellWidth}px`,
                                         height: '120px',
@@ -279,6 +281,39 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 </svg>
                                             </> : <></>
                                         }
+
+                                        {columnName === "Facie" ?
+                                            <>
+                                                <svg
+                                                    className="absolute w-full"
+                                                    width={(columnWidths[columnName] || cellWidth) / 2}
+                                                    height="120"
+                                                    overflow={'visible'}
+                                                    style={{
+                                                        background: "transparent",
+                                                    }}
+                                                    onClick={()=>{
+                                                        setSideBarState({
+                                                            sideBar: true,
+                                                            sideBarMode: "addFacie"
+                                                        })}}
+                                                >
+
+                                                    {facies && (
+                                                        Object.keys(facies).map((key, index) => {
+                                                            // Calcular la posición x de la línea
+                                                            const xPos = (index + 1) * ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1));
+                                                            return (
+                                                                <>
+                                                                    <text
+                                                                        className="fill fill-accent-content"
+                                                                        x={xPos}
+                                                                        y={112}>{index}</text>
+                                                                </>)
+                                                        })
+                                                    )}
+                                                </svg></> : <></>
+                                        }
                                         <div
                                             className="absolute inset-y-0 right-0 h-full"
                                             onMouseOver={(e) =>
@@ -313,7 +348,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 ref={adfas}
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 rowSpan={data.length}
-                                                className="border"
+                                                className="border border-base-content"
                                                 style={{
                                                     verticalAlign: "top",
                                                 }}
@@ -329,7 +364,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 id="fossils"
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 rowSpan={data.length}
-                                                className="border"
+                                                className="border border-base-content"
                                                 style={{
                                                     verticalAlign: "top",
                                                 }}
@@ -366,13 +401,80 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 </div>
                                             </td>
                                         );
-                                    } else if (columnName !== 'Estructura fosil' && columnName !== 'Espesor') {
+                                    }
+                                    else if (columnName === 'Facie' && rowIndex === 0) {
+                                        return (
+                                            <td
+                                                id="facies"
+                                                key={`${rowIndex}-${columnIndex}`}
+                                                rowSpan={data.length}
+                                                className="border border-base-content"
+                                                style={{
+                                                    verticalAlign: "top"
+                                                }}
+                                            >
+                                                <div className="h-full max-h-full"
+                                                    style={{ top: 0 }}>
+                                                    <svg className="h-full max-h-full" width={columnWidths["Facie"] || cellWidth} height="0" overflow='visible'>
+                                                        {facies ? (
+                                                            Object.keys(facies).map((key, index) => {
+                                                                const w = ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1))
+                                                                const xPos = (index + 1) * (w);
+                                                                const rectx = (index) * (w)
+                                                                return (
+                                                                    <>
+                                                                     <rect x={xPos} y="0" height="100%" width={w} className="stroke stroke-base-content"
+                                                                                    strokeWidth={"1"} fill="transparent"
+                                                                                    onClick={() => {
+                                                                                        setSideBarState({
+                                                                                            sideBar: true,
+                                                                                            sideBarMode: "facieSection"
+                                                                                        })
+                                                                                        setFormFacies({ facie: key })
+                                                                                    }
+                                                                                    }
+                                                                                />
+                                                                        {facies[key].map((value) => (
+                                                                            <>
+                                                                                {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
+                                                                                <text
+                                                                                    className="fill fill-base-content"
+                                                                                    x={0}
+                                                                                    y={parseFloat(value.y1) + 13}>{key}</text>
+                                                                                <rect
+                                                                                    className="fill fill-base-content"
+                                                                                    x={xPos}
+                                                                                    y={parseFloat(value.y1)}
+                                                                                    width={(xPos - rectx) + 1}
+                                                                                    height={parseFloat(value.y2) - parseFloat(value.y1)}  // Altura del rectángulo
+                                                                                    onClick={() => {
+                                                                                        setSideBarState({
+                                                                                            sideBar: true,
+                                                                                            sideBarMode: "facieSection"
+                                                                                        })
+                                                                                        setFormFacies({ facie: key })
+                                                                                    }
+                                                                                    }
+                                                                                />
+                                                                            </>
+                                                                        ))}
+                                                                    </>
+                                                                );
+                                                            })
+                                                        ) : null}
+
+                                                    </svg>
+                                                </div>
+                                            </td>
+                                        );
+                                    }
+                                    else if (columnName !== 'Estructura fosil' && columnName !== 'Espesor' && columnName !== 'Facie') {
                                         return (
                                             <td
                                                 key={`${rowIndex}-${columnIndex}`}
                                                 className={
                                                     (editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia') ?
-                                                        (`border-2`):(`border`)
+                                                        (`border-2`) : (`border border-base-content`)
                                                 }
                                                 onClick={() => {
                                                     if (columnName !== "Litologia") {
@@ -428,7 +530,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         </>
                                                         :
                                                         <>
-                                                            
+
                                                             <div
                                                                 className="ql-editor prose "
                                                                 dangerouslySetInnerHTML={{ __html: RowValue[columnName] }}

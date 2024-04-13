@@ -29,6 +29,7 @@ api.interceptors.response.use(
         // Error Unauthorized
         if (error.response.status === 401) {
             console.log("Error 401: No autorizado. Por favor, inicia sesión nuevamente.");
+            
         }
         if (error.message === 'Network Error') {
             throw new Error(error);

@@ -21,14 +21,19 @@ const Grid = () => {
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
-
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
-
   const [fossils, setFossils] = useState([]);
+  const [facies, setFacies] = useState({
+    "A": [{ y1: 300, y2: 380 }],
+    "B": [{ y1: 200, y2: 300 }, { y1: 380, y2: 500 }],
+    "C": [{ y1: 50, y2: 180 }],
+    "D": [{ y1: 500, y2: 580 }, { y1: 180, y2: 200 }]
+  });
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
+  const [messageFacie, setMessageFacie] = useState('')
 
   const initialFormData = {
     index: null,
@@ -47,6 +52,7 @@ const Grid = () => {
 
   const [formData, setFormData] = useState(initialFormData);
   const [formFosil, setFormFosil] = useState({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
+  const [formFacies, setFormFacies] = useState({ facie: '', y1: 0, y2: 0, y1prev: 0, y2prev: 0 });
 
   const changeformFosil = (e) => {
     const { name, value } = e.target;
@@ -54,9 +60,15 @@ const Grid = () => {
       ...prevState,
       [name]: value,
     }));
-
   }
 
+  const changeformFacie = (e) => {
+    const { name, value } = e.target;
+    setFormFacies(prevState => ({
+      ...prevState,
+      [name]: parseFloat(value),
+    }));
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -132,8 +144,9 @@ const Grid = () => {
   useEffect(() => {
 
     const connectWebSocket = () => {
-      const newSocket = new WebSocket(`ws://${import.meta.env.VITE_SOCKET_URL}/ws/${project}?token=${token}`);
+      const newSocket = new WebSocket(`${import.meta.env.VITE_SOCKET_URL}/ws/${project}?token=${token}`);
       setSocket(newSocket);
+      //${import.meta.env.VITE_SOCKET_URL}
 
       newSocket.onopen = () => {
         console.log('Socket connected.');
@@ -381,6 +394,100 @@ const Grid = () => {
     }));
   }
 
+  const handleDeleteFacieSection = (value) => {
+
+    setFacies(prevState => {
+      // Verificar si la letra existe en el objeto facies
+      if (prevState.hasOwnProperty(formFacies.facie)) {
+        return {
+          ...prevState,
+          [formFacies.facie]: prevState[formFacies.facie].filter(item => !(item.y1 === value.y1 && item.y2 === value.y2))
+        };
+      } else {
+        return prevState;
+      }
+    });
+  }
+
+  const handleAddFacieSection = () => {
+
+    let isInsideInterval = false;
+    const faciesCopy = { ...facies };
+    let coincidences = [];
+
+    for (const key in faciesCopy) {
+      const intervalArray = faciesCopy[key];
+      for (let i = 0; i < intervalArray.length; i++) {
+        const interval = intervalArray[i];
+        if ((formFacies.y1 >= interval.y1 && formFacies.y1 <= interval.y2) || (formFacies.y2 >= interval.y1 && formFacies.y2 <= interval.y2)) {
+          isInsideInterval = true;
+          coincidences.push(key)
+        }
+        if ((interval.y1 >= formFacies.y1 && interval.y1 <= formFacies.y2) || (interval.y2 >= formFacies.y1 && interval.y2 <= formFacies.y2)) {
+          isInsideInterval = true;
+          coincidences.push(key)
+        }
+      }
+    }
+    if (isInsideInterval) {
+      const uniqueValues = [...new Set(coincidences)];
+      setMessageFacie(`El intervalo ingresado coincide con un tramo en la facie ${uniqueValues.join(", ")}`)
+    } else {
+      faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
+      setFacies(faciesCopy);
+      setMessageFacie('')
+    }
+
+    socket.send(JSON.stringify({
+      action: 'addFacieSection',
+      data: {
+        "facie": formFacies.facie,
+        "y1": Number(formFacies.y1),
+        "y2": Number(formFacies.y2),
+      }
+    }));
+  }
+
+  const handleDeleteFacie = () => {
+
+    setSideBarState({
+      sideBar: false,
+      sideBarMode: ""
+    })
+
+    if (facies[formFacies.facie]) {
+      const newFacies = { ...facies };
+      delete newFacies[formFacies.facie];
+      setFacies(newFacies);
+    }
+
+    // socket.send(JSON.stringify({
+    //   action: 'deleteFacie',
+    //   data: {
+    //     "facie": formFacies.facie,
+    //   }
+    // }));
+
+  }
+
+  const handleAddFacie = () => {
+
+    const faciesCopy = { ...facies };
+    if (!faciesCopy.hasOwnProperty(formFacies.facie)) {
+      setFacies(prevFacies => ({
+        ...prevFacies,
+        [`${formFacies.facie}`]: [],
+      }));
+    }
+
+    socket.send(JSON.stringify({
+      action: 'addFacie',
+      data: {
+        "facie": formFacies.facie,
+      }
+    }));
+  }
+
 
   // Añade un nuevo punto 
   const addCircles = (rowIndex: number, insertIndex: number, point: number) => {
@@ -467,10 +574,14 @@ const Grid = () => {
       <div className="drawer drawer-end auto-cols-max">
         <input id="my-drawer" type="checkbox" className="drawer-toggle"
           checked={sideBarState.sideBar}
-          onChange={() => setSideBarState({
-            sideBar: false,
-            sideBarMode: ""
-          })}
+          onChange={() => {
+            setSideBarState({
+              sideBar: false,
+              sideBarMode: ""
+            })
+            setMessageFacie('')
+          }
+          }
         />
 
         {/* Contenido */}
@@ -541,6 +652,8 @@ const Grid = () => {
             isInverted={isInverted}
             alturaTd={alturaTd}
             setAlturaTd={setAlturaTd}
+            setFormFacies={setFormFacies}
+            facies={facies}
           />
         </div>
 
@@ -596,7 +709,7 @@ const Grid = () => {
         <div className="drawer-side">
           <label htmlFor="my-drawer"
             onClick={() => {
-              if (socket) {
+              if (socket && formData.index !== null) {
                 socket.send(JSON.stringify({
                   action: 'deleteEditingUser',
                   data: {
@@ -912,7 +1025,7 @@ const Grid = () => {
                       </li>
                       <li>
                         <button className="btn btn-primary" onClick={handleFosilEdit}
-                        disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
+                          disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
                           Confirmar edición
                         </button>
                       </li>
@@ -1099,9 +1212,87 @@ const Grid = () => {
                               "rowIndex": Number(formData.index)
                             }
                           }));
-
-
                         }}>Enviar</button>
+                      </div>
+                    </>
+                  );
+                case "addFacie":
+                  return (
+                    <>
+                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content shadow-xl rounded-lg">
+                        <p className="menu-title text-lg font-bold mb-4">Agregar nueva facie</p>
+                        <div className="mb-4">
+                          <label htmlFor="nombre" className="block text-sm font-medium">Nombre:</label>
+                          <input type='text' id="nombre" className="input input-bordered w-full mt-1" />
+                        </div>
+                        <button className="btn btn-primary w-full" onClick={handleAddFacie}>
+                          Confirmar nueva facie
+                        </button>
+                      </div>
+                    </>
+                  );
+                case "facieSection":
+                  return (
+                    <>
+                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
+                        <p className="menu-title">Editando facie {formFacies.facie}</p>
+                        <div className="p-4">
+                          <p className="text-lg font-semibold mb-2">Tramos actuales de esta facie:</p>
+                          <ul className="list-disc list-inside space-y-2">
+                            {Object.values(facies[formFacies.facie]).map((value, index) => (
+                              <>
+                                <li key={index} className="flex items-center justify-between">
+                                  <span>{value["y1"]}cm - {value["y2"]}cm</span>
+                                  <button className="btn btn-error" onClick={() => {
+                                    handleDeleteFacieSection(value)
+                                  }}>
+                                    Eliminar
+                                  </button>
+                                </li>
+
+                              </>
+                            ))}
+                          </ul>
+
+                          <p className="text-lg font-semibold mt-4 mb-2">Agregar un nuevo tramo de esta facie:</p>
+                          <ul className="list-disc list-inside space-y-2">
+                            <li className="flex items-center">
+                              <span>Límite superior (cm):</span>
+                              <input
+                                type="number"
+                                name="y1"
+                                value={formFacies.y1}
+                                onChange={changeformFacie}
+                                className="form-input ml-2"
+                              />
+                            </li>
+                            <li className="flex items-center">
+                              <span>Límite inferior (cm):</span>
+                              <input
+                                type="number"
+                                name="y2"
+                                value={formFacies.y2}
+                                onChange={changeformFacie}
+                                className="form-input ml-2"
+                              />
+                            </li>
+                          </ul>
+
+                          <button className="btn btn-primary mt-4 w-full" onClick={handleAddFacieSection}>
+                            Confirmar nuevo tramo
+                          </button>
+
+                          {messageFacie !== '' && (<>
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mt-3 rounded relative" role="alert">
+                              <strong className="font-bold">Error: </strong>
+                              <span className="block sm:inline">{messageFacie}</span>
+                            </div></>)}
+
+                        </div>
+
+                        <button className="btn btn-error mt-4 w-full" onClick={handleDeleteFacie}>
+                          Eliminar esta facie
+                        </button>
                       </div>
                     </>
                   );
@@ -1115,7 +1306,7 @@ const Grid = () => {
             })()
           }
 
-        </div>
+        </div >
 
       </div >
     </>
