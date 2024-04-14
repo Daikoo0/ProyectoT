@@ -27,4 +27,5 @@ type Data_project struct {
 	Data       []map[string]interface{} `bson:"data"`
 	Config     map[string]interface{}   `bson:"config"`
 	Fosil      map[string]interface{}   `bson:"fosil"`
+	Facies     map[string]interface{}   `bson:"facies"`
 }

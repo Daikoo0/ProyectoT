@@ -24,12 +24,13 @@ const Grid = () => {
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
   const [fossils, setFossils] = useState([]);
-  const [facies, setFacies] = useState({
-    "A": [{ y1: 300, y2: 380 }],
-    "B": [{ y1: 200, y2: 300 }, { y1: 380, y2: 500 }],
-    "C": [{ y1: 50, y2: 180 }],
-    "D": [{ y1: 500, y2: 580 }, { y1: 180, y2: 200 }]
-  });
+  // const [facies, setFacies] = useState({
+  //   "A": [{ y1: 300, y2: 380 }],
+  //   "B": [{ y1: 200, y2: 300 }, { y1: 380, y2: 500 }],
+  //   "C": [{ y1: 50, y2: 180 }],
+  //   "D": [{ y1: 500, y2: 580 }, { y1: 180, y2: 200 }]
+  // });
+  const [facies, setFacies] = useState({});
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
@@ -66,7 +67,7 @@ const Grid = () => {
     const { name, value } = e.target;
     setFormFacies(prevState => ({
       ...prevState,
-      [name]: parseFloat(value),
+      [name]: value,
     }));
   }
 
@@ -190,6 +191,7 @@ const Grid = () => {
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
             //setPolygons(Litologia)
+            setFacies(shapeN.facies)
             setHeader(shapeN.config.header)
             setFossils(shapeN.fosil)
             setIsInverted(shapeN.config.isInverted)
@@ -300,6 +302,40 @@ const Grid = () => {
               console.log(newFossils)
               return newFossils;
             });
+            break
+          case 'deleteFacie':
+            // if (facies[shapeN.facie]) {
+            //   const newFacies = { ...facies };
+            //   delete newFacies[shapeN.facie];
+            //   setFacies(newFacies);
+            // }
+            setFacies(prevFacies => {
+              if (prevFacies[shapeN.facie]) {
+                const newFacies = { ...prevFacies };
+                delete newFacies[shapeN.facie];
+                return newFacies;
+              }
+              return prevFacies;
+            });
+            break
+          case 'addFacieSection':
+            // faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
+            // setFacies(faciesCopy);
+            setFacies(prevFacies => {
+              const faciesCopy = { ...prevFacies };
+              faciesCopy[shapeN.facie].push({ y1: shapeN.y1, y2: shapeN.y2 });
+              return faciesCopy;
+            });
+
+            break
+          case 'addFacie':
+            console.log(shapeN)
+            if (!facies.hasOwnProperty(shapeN.facie)) {
+              setFacies(prevFacies => ({
+                ...prevFacies,
+                [`${shapeN.facie}`]: [],
+              }));
+            }
             break
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -433,19 +469,20 @@ const Grid = () => {
       const uniqueValues = [...new Set(coincidences)];
       setMessageFacie(`El intervalo ingresado coincide con un tramo en la facie ${uniqueValues.join(", ")}`)
     } else {
-      faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
-      setFacies(faciesCopy);
+      // faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
+      // setFacies(faciesCopy);
       setMessageFacie('')
+      socket.send(JSON.stringify({
+        action: 'addFacieSection',
+        data: {
+          "facie": formFacies.facie,
+          "y1": Number(formFacies.y1),
+          "y2": Number(formFacies.y2),
+        }
+      }));
     }
 
-    socket.send(JSON.stringify({
-      action: 'addFacieSection',
-      data: {
-        "facie": formFacies.facie,
-        "y1": Number(formFacies.y1),
-        "y2": Number(formFacies.y2),
-      }
-    }));
+
   }
 
   const handleDeleteFacie = () => {
@@ -455,30 +492,30 @@ const Grid = () => {
       sideBarMode: ""
     })
 
-    if (facies[formFacies.facie]) {
-      const newFacies = { ...facies };
-      delete newFacies[formFacies.facie];
-      setFacies(newFacies);
-    }
+    // if (facies[formFacies.facie]) {
+    //   const newFacies = { ...facies };
+    //   delete newFacies[formFacies.facie];
+    //   setFacies(newFacies);
+    // }
 
-    // socket.send(JSON.stringify({
-    //   action: 'deleteFacie',
-    //   data: {
-    //     "facie": formFacies.facie,
-    //   }
-    // }));
+    socket.send(JSON.stringify({
+      action: 'deleteFacie',
+      data: {
+        "facie": formFacies.facie,
+      }
+    }));
 
   }
 
   const handleAddFacie = () => {
 
-    const faciesCopy = { ...facies };
-    if (!faciesCopy.hasOwnProperty(formFacies.facie)) {
-      setFacies(prevFacies => ({
-        ...prevFacies,
-        [`${formFacies.facie}`]: [],
-      }));
-    }
+    //    const faciesCopy = { ...facies };
+    // if (!faciesCopy.hasOwnProperty(formFacies.facie)) {
+    //   setFacies(prevFacies => ({
+    //     ...prevFacies,
+    //     [`${formFacies.facie}`]: [],
+    //   }));
+    // }
 
     socket.send(JSON.stringify({
       action: 'addFacie',
@@ -1223,7 +1260,7 @@ const Grid = () => {
                         <p className="menu-title text-lg font-bold mb-4">Agregar nueva facie</p>
                         <div className="mb-4">
                           <label htmlFor="nombre" className="block text-sm font-medium">Nombre:</label>
-                          <input type='text' id="nombre" className="input input-bordered w-full mt-1" />
+                          <input type='text' name='facie' onChange={changeformFacie} className="input input-bordered w-full mt-1" />
                         </div>
                         <button className="btn btn-primary w-full" onClick={handleAddFacie}>
                           Confirmar nueva facie

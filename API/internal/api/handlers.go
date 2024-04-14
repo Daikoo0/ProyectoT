@@ -1,8 +1,10 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"crypto/rand"
 	"encoding/hex"
@@ -43,6 +45,7 @@ type RoomData struct {
 	Id_project      primitive.ObjectID
 	Data            []map[string]interface{}
 	Config          map[string]interface{}
+	Facies          map[string]interface{}
 	Fosil           map[string]interface{}
 	Active          []*websocket.Conn
 	Temp            Stack
@@ -96,7 +99,7 @@ func (a *API) RegisterUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, nil) // HTTP 201 Created
 }
 
-func RemoveElement(roomID string, conn *websocket.Conn, name string, project *RoomData) {
+func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.Conn, name string, project *RoomData) {
 	var index int = -1
 	for i, c := range rooms[roomID].Active {
 		if c == conn { // asumiendo que conn es comparable directamente
@@ -122,6 +125,12 @@ func RemoveElement(roomID string, conn *websocket.Conn, name string, project *Ro
 		rooms[roomID].Active = append(rooms[roomID].Active[:index], rooms[roomID].Active[index+1:]...)
 
 		if len(rooms[roomID].Active) == 0 {
+			//guardar la sala
+			err := a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+			if err != nil {
+				return
+			}
+			//	Eliminar la sala del mapa de salas si no hay usuarios conectados
 			delete(rooms, roomID)
 		}
 
@@ -282,7 +291,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	proyect := instanceRoom(objectID,
 		room.Data,
 		room.Config,
-		room.Fosil)
+		room.Fosil,
+		room.Facies)
 	proyect.Active = append(proyect.Active, conn)
 
 	log.Print(rooms)
@@ -315,6 +325,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		"data":            proyect.Data,
 		"config":          msgData,
 		"fosil":           proyect.Fosil,
+		"facies":          proyect.Facies,
 		"sectionsEditing": proyect.SectionsEditing,
 	}
 	// Trnasformar el mapa a JSON y envio a clientes
@@ -359,7 +370,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							if roomActions[roomID] >= roomActionsThreshold {
 
 								// Función de guardado
-								err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
+								err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
 								if err != nil {
 									log.Println("Error guardando la sala automáticamente: ", err)
 								} else {
@@ -387,11 +398,13 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 								<-timer.C
 
 								// Función de guardado
-								err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
-								if err != nil {
-									log.Println("Error guardando la sala automáticamente: ", err)
-								} else {
-									log.Println("Sala guardada: ", roomID)
+								if rooms[roomID] != nil {
+									err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+									if err != nil {
+										log.Println("Error guardando la sala automáticamente: ", err)
+									} else {
+										log.Println("Sala guardada: ", roomID)
+									}
 								}
 
 								// Eliminar el timer del mapa una vez que la sala ha sido guardada
@@ -814,7 +827,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "save":
 					log.Println("guardando...")
-					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID)
+					err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
 					if err != nil {
 						log.Println("No se guardo la data")
 					}
@@ -901,6 +914,82 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 
 					sendSocketMessage(msgData, proyect, "editPolygon")
+				case "deleteFacie":
+					var facie dtos.Facie
+					err := json.Unmarshal(dataMap.Data, &facie)
+					if err != nil {
+						log.Println("Error deserializando el polygon:", err)
+						break
+					}
+
+					id := facie.Facie
+
+					innerMap := rooms[roomID].Facies
+					delete(innerMap, id)
+
+					msgData := map[string]interface{}{
+						"action": "deleteFacie",
+						"facie":  id,
+					}
+
+					sendSocketMessage(msgData, proyect, "deleteFacie")
+
+				case "addFacieSection":
+					var f dtos.AddFacieSection
+					err := json.Unmarshal(dataMap.Data, &f)
+					if err != nil {
+						log.Println("Error", err)
+					}
+					name := f.Facie
+					y1 := f.Y1
+					y2 := f.Y2
+
+					innerMap, ok := rooms[roomID].Facies[name].([]map[string]interface{})
+					if !ok {
+						// Manejar el error, por ejemplo inicializar innerMap o logear un error.
+						fmt.Println("error")
+					}
+
+					newSectionFacie := map[string]interface{}{
+						"y1": y1,
+						"y2": y2,
+					}
+
+					innerMap = append(innerMap, newSectionFacie)
+					rooms[roomID].Facies[name] = innerMap
+
+					msgData := map[string]interface{}{
+						"action": "addFacieSection",
+						"facie":  name,
+						"y1":     y1,
+						"y2":     y2,
+					}
+
+					sendSocketMessage(msgData, proyect, "addFacieSection")
+
+				case "addFacie":
+					var facie dtos.Facie
+					err := json.Unmarshal(dataMap.Data, &facie)
+					if err != nil {
+						log.Println("Error", err)
+					}
+
+					name := facie.Facie
+
+					fmt.Println(name, "esta es la linea")
+
+					if rooms[roomID].Facies == nil {
+						rooms[roomID].Facies = make(map[string]interface{})
+					}
+
+					rooms[roomID].Facies[name] = []map[string]interface{}{}
+
+					msgData := map[string]interface{}{
+						"action": "addFacie",
+						"facie":  name,
+					}
+
+					sendSocketMessage(msgData, proyect, "addFacie")
 
 				}
 
@@ -913,7 +1002,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	conn.Close()
 
-	RemoveElement(roomID, conn, claims["email"].(string), proyect)
+	RemoveElement(a, ctx, roomID, conn, claims["email"].(string), proyect)
 	return nil
 }
 
@@ -1007,7 +1096,7 @@ func (a *API) HandleInviteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}, Fosil map[string]interface{}) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, Config map[string]interface{}, Fosil map[string]interface{}, Facies map[string]interface{}) *RoomData {
 
 	projectIDString := Id_project.Hex()
 	room, exists := rooms[projectIDString]
@@ -1034,6 +1123,7 @@ func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, 
 			Data:            Data,
 			Config:          Config,
 			Fosil:           Fosil,
+			Facies:          Facies,
 			Active:          make([]*websocket.Conn, 0),
 			SectionsEditing: sectionsEditing,
 			UserColors:      userColors,
@@ -1189,6 +1279,17 @@ func (a *API) DeleteProject(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseMessage{Message: "Room deleted successfully"})
+}
+
+func (a *API) HandleGetActiveProject(c echo.Context) error {
+
+	var keys []string
+
+	for key := range rooms {
+		keys = append(keys, key)
+	}
+
+	return c.JSON(http.StatusOK, keys)
 }
 
 // codigo de una pila, (pila de cambios, del control Z)

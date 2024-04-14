@@ -1,14 +1,10 @@
 package dtos
 
-import (
-	"github.com/gorilla/websocket"
-)
-
-type DataProject struct {
-	Config         string `json:"config"`
-	Data           string `json:"data"`
-	WebSocketConns map[string]*websocket.Conn
-}
+// type DataProject struct {
+// 	Config         string `json:"config"`
+// 	Data           string `json:"data"`
+// 	WebSocketConns map[string]*websocket.Conn
+// }
 
 // Case editText
 type EditText struct {
@@ -95,4 +91,14 @@ type EditPolygon struct {
 type UserEditingState struct {
 	Section string `json:"section"`
 	Name    string `json:"name"`
+}
+
+type Facie struct {
+	Facie string `json:"facie"`
+}
+
+type AddFacieSection struct {
+	Facie string  `json:"facie"`
+	Y1    float32 `json:"y1"`
+	Y2    float32 `json:"y2"`
 }

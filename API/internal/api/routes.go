@@ -21,4 +21,5 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 	e.POST("/rooms/create", a.HandleCreateProyect)        //rooms/sala/usuario
 	e.POST("/comment", a.AddComment)
 
+	e.GET("/activeProject", a.HandleGetActiveProject)
 }

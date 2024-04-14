@@ -292,11 +292,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     style={{
                                                         background: "transparent",
                                                     }}
-                                                    onClick={()=>{
+                                                    onClick={() => {
                                                         setSideBarState({
                                                             sideBar: true,
                                                             sideBarMode: "addFacie"
-                                                        })}}
+                                                        })
+                                                    }}
                                                 >
 
                                                     {facies && (
@@ -317,7 +318,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         <div
                                             className="absolute inset-y-0 right-0 h-full"
                                             onMouseOver={(e) =>
-                                                e.currentTarget.style.backgroundColor = "red"
+                                                e.currentTarget.style.backgroundColor = "transparent"
                                             }
                                             onMouseOut={(e) => {
                                                 e.currentTarget.style.backgroundColor = "transparent";
@@ -423,25 +424,27 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                 const rectx = (index) * (w)
                                                                 return (
                                                                     <>
-                                                                     <rect x={xPos} y="0" height="100%" width={w} className="stroke stroke-base-content"
-                                                                                    strokeWidth={"1"} fill="transparent"
-                                                                                    onClick={() => {
-                                                                                        setSideBarState({
-                                                                                            sideBar: true,
-                                                                                            sideBarMode: "facieSection"
-                                                                                        })
-                                                                                        setFormFacies({ facie: key })
-                                                                                    }
-                                                                                    }
-                                                                                />
+                                                                        <rect x={xPos} y="0" height="100%" width={w} className="stroke stroke-base-content"
+                                                                            strokeWidth={"1"} fill="transparent"
+                                                                            onClick={() => {
+                                                                                setSideBarState({
+                                                                                    sideBar: true,
+                                                                                    sideBarMode: "facieSection"
+                                                                                })
+                                                                                setFormFacies({ facie: key })
+                                                                            }
+                                                                            }
+                                                                        />
                                                                         {facies[key].map((value) => (
                                                                             <>
                                                                                 {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
                                                                                 <text
+                                                                                    key={value}
                                                                                     className="fill fill-base-content"
                                                                                     x={0}
                                                                                     y={parseFloat(value.y1) + 13}>{key}</text>
                                                                                 <rect
+                                                                                    key={value}
                                                                                     className="fill fill-base-content"
                                                                                     x={xPos}
                                                                                     y={parseFloat(value.y1)}

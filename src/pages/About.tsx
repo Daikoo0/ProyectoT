@@ -120,6 +120,14 @@ const About = () => {
 
                     <p className="ml-8 mr-8 mx-auto text-justify">
                         <div className="divider w-4/5 mx-auto text-center"></div>
+                        <h3 className="p-1 text-3xl font-bold">Agregar/eliminar facies y tramos de facies</h3>
+                        <br></br>
+                        Al seleccionar el encabezado de la columna facies, se abre el menú de la derecha para agregar una nueva facie con el nombre especificado.
+                        Luego de que la facie ha sido creada, se debe seleccionar la columna generada de esa facie para agregar un nuevo tramo.
+                    </p>
+
+                    <p className="ml-8 mr-8 mx-auto text-justify">
+                        <div className="divider w-4/5 mx-auto text-center"></div>
                         <h3 className="p-1 text-3xl font-bold">Escribir en una columna</h3>
                         <br></br>
                         Al seleccionar una celda en una columna que no sea la de litología o la de fósiles, se abre un menú a la derecha que permite escribir texto en esa celda, además puedes escribir listas, imágenes, editar el texto, etc.
