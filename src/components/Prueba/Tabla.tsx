@@ -301,7 +301,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 >
 
                                                     {facies && (
-                                                        Object.keys(facies).map((key, index) => {
+                                                        Object.keys(facies).map((_, index) => {
                                                             // Calcular la posición x de la línea
                                                             const xPos = (index + 1) * ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1));
                                                             return (

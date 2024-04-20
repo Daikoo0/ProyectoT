@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"crypto/rand"
@@ -32,13 +31,16 @@ type GeneralMessage struct {
 	Data   json.RawMessage `json:"data"`
 }
 
-// type SectionInfo struct {
-// 	Name  string
-// 	Color string
-// }
-
 type ProjectResponse struct {
 	Projects []models.Data `json:"projects"`
+}
+
+type Change struct {
+	ActionType       string      // Puede ser "add", "modify" o "delete"
+	Key              string      // La clave del campo que se cambió
+	OldValue         interface{} // El valor antiguo del campo
+	NewValue         interface{} // El nuevo valor del campo
+	ModificationTime time.Time   // Fecha de modificación del campo
 }
 
 type RoomData struct {
@@ -48,9 +50,9 @@ type RoomData struct {
 	Facies          map[string]interface{}
 	Fosil           map[string]interface{}
 	Active          []*websocket.Conn
-	Temp            Stack
 	SectionsEditing map[string]interface{}
 	UserColors      map[string]string
+	Changes         []Change
 }
 
 func generateRandomColor() string {
@@ -64,8 +66,11 @@ func generateRandomColor() string {
 }
 
 var rooms = make(map[string]*RoomData)
+
+// Modificar - tienen que ir dentro del roomData
 var roomTimers = make(map[string]*time.Timer)
 var roomActions = make(map[string]int)
+
 var roomActionsThreshold = 10
 
 // registerUser recibe un email, un nombre y una contraseña, y registra un usuario en la base de datos
@@ -292,7 +297,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		room.Data,
 		room.Config,
 		room.Fosil,
-		room.Facies)
+		room.Facies,
+	)
 	proyect.Active = append(proyect.Active, conn)
 
 	log.Print(rooms)
@@ -1127,6 +1133,7 @@ func instanceRoom(Id_project primitive.ObjectID, Data []map[string]interface{}, 
 			Active:          make([]*websocket.Conn, 0),
 			SectionsEditing: sectionsEditing,
 			UserColors:      userColors,
+			Changes:         make([]Change, 0),
 		}
 
 		rooms[projectIDString] = room
@@ -1290,27 +1297,4 @@ func (a *API) HandleGetActiveProject(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, keys)
-}
-
-// codigo de una pila, (pila de cambios, del control Z)
-type Stack []map[string]interface{}
-
-func (s *Stack) Push(v map[string]interface{}) {
-	*s = append(*s, v)
-
-	// Pila de tamaño 10
-	if len(*s) > 10 {
-		*s = (*s)[1:]
-	}
-}
-
-func (s *Stack) Pop() (map[string]interface{}, error) {
-	if len(*s) == 0 {
-		return nil, errors.New("la pila esta vacia")
-	}
-	index := len(*s) - 1
-	element := (*s)[index]
-	*s = (*s)[:index]
-
-	return element, nil
 }
