@@ -2,19 +2,43 @@ package api
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 )
 
-func MakeChange(changes []*Change, data map[string]interface{}, actionType, key string, newValue interface{}) {
-	oldValue, _ := GetValueByKeyPath(data, key)
-
-	if len(changes) >= 10 {
-		changes = changes[1:]
+func MakeChange(data *RoomData, actionType, key string, newValue interface{}) {
+	// Separa la clave principal y el subpath
+	parts := strings.SplitN(key, ".", 2)
+	if len(parts) < 2 {
+		fmt.Println("Error: key must include at least one dot separator.")
+		return
 	}
-	//changes = append(changes, Change{actionType, key, oldValue, newValue, time.Now()})
-	changes = append(changes, &Change{actionType, key, oldValue, newValue, time.Now()})
+	mainKey := parts[0]
+	subPath := parts[1]
 
+	// Accede al campo principal usando reflect
+	fieldValue := reflect.ValueOf(data).Elem().FieldByName(mainKey)
+	if !fieldValue.IsValid() {
+		fmt.Println("Error: main key is not a valid field name.")
+		return
+	}
+
+	// Llama a GetValueByKeyPath con el campo específico y el subpath
+	oldValue, err := GetValueByKeyPath(fieldValue.Interface(), subPath)
+	fmt.Println("oldValue: ", oldValue)
+
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
+	if len(data.Changes) >= 10 {
+		data.Changes = data.Changes[1:]
+	}
+
+	// Agrega el cambio al registro de cambios
+	data.Changes = append(data.Changes, Change{actionType, key, oldValue, newValue, time.Now()})
 }
 
 func GetIndexFromKey(key string) (int, error) {
@@ -46,6 +70,7 @@ func GetValueByKeyPath(data interface{}, path string) (interface{}, error) {
 			}
 			current = arr[index]
 		default:
+			fmt.Println("invalid data type GetValueByKeyPath")
 			return nil, fmt.Errorf("invalid data type")
 		}
 	}
@@ -54,19 +79,19 @@ func GetValueByKeyPath(data interface{}, path string) (interface{}, error) {
 }
 
 // Añade un valor a un campo en un objeto JSON a partir de un path
-func AddValueAtKeyPath(data map[string]interface{}, path string, newValue interface{}) error {
+func AddValueAtKeyPath(data interface{}, path string, newValue interface{}) error {
 	keys := strings.Split(path, ".")
 	lastKey := keys[len(keys)-1]
 
 	if strings.HasPrefix(lastKey, "[") && strings.HasSuffix(lastKey, "]") {
 		return AddValueAtKeyPathSlice(data, path, newValue)
 	} else {
-		return assignValueByKey(data, path, newValue)
+		return AssignValueByKey(data, path, newValue)
 	}
 }
 
 // Añade un valor a un campo slice en un objeto JSON a partir de un path
-func AddValueAtKeyPathSlice(data map[string]interface{}, path string, newValue interface{}) error {
+func AddValueAtKeyPathSlice(data interface{}, path string, newValue interface{}) error {
 	keys := strings.Split(path, ".")
 	var current interface{} = data
 	var lastMap map[string]interface{} = nil
@@ -122,6 +147,7 @@ func AddValueAtKeyPathSlice(data map[string]interface{}, path string, newValue i
 			}
 			current = typed[index]
 		default:
+			fmt.Println("invalid data type AddValueAtKeyPathSlice")
 			return fmt.Errorf("invalid data type in path: %s", path)
 		}
 	}
@@ -129,7 +155,7 @@ func AddValueAtKeyPathSlice(data map[string]interface{}, path string, newValue i
 	return fmt.Errorf("path does not end with a slice or a valid map key")
 }
 
-func assignValueByKey(data interface{}, path string, value interface{}) error {
+func AssignValueByKey(data interface{}, path string, value interface{}) error {
 	keys := strings.Split(path, ".")
 	current := data
 	lastKey := keys[len(keys)-1]
@@ -174,13 +200,15 @@ func assignValueByKey(data interface{}, path string, value interface{}) error {
 	case map[string]interface{}:
 		current.(map[string]interface{})[lastKey] = value
 	default:
+		fmt.Println("invalid data type AssignValueByKey")
 		return fmt.Errorf("invalid data type")
 	}
 
 	return nil
 }
 
-func DeleteValueKeyPath(data map[string]interface{}, path string) error {
+func DeleteValueKeyPath(data interface{}, path string) error {
+
 	keys := strings.Split(path, ".")
 	var current interface{} = data
 	var lastMap map[string]interface{} = nil
@@ -206,6 +234,7 @@ func DeleteValueKeyPath(data map[string]interface{}, path string) error {
 				typed = append(typed[:index], typed[index+1:]...)
 				lastMap[lastKey] = typed
 			default:
+				fmt.Println("invalid data type DeleteValueKeyPath")
 				return fmt.Errorf("invalid data type in path")
 			}
 			return nil
@@ -226,6 +255,7 @@ func DeleteValueKeyPath(data map[string]interface{}, path string) error {
 			}
 			current = typed[index]
 		default:
+			fmt.Println("invalid data type DeleteValueKeyPath switch")
 			return fmt.Errorf("invalid data type in path")
 		}
 	}

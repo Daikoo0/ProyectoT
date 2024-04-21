@@ -9,6 +9,9 @@ import (
 	"encoding/hex"
 	"log"
 	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
 
 	"time"
 
@@ -215,7 +218,7 @@ func (a *API) AddComment(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
 	}
 
-	a.repo.HandleAddComment(ctx, params)
+	err = a.repo.HandleAddComment(ctx, params)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Invalid Credentials"})
@@ -423,6 +426,43 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				}
 				// Switch para las acciones
 				switch dataMap.Action {
+
+				case "undo":
+					if len(proyect.Changes) == 0 {
+						log.Printf("No hay cambios")
+						break
+					}
+
+					log.Printf("%v", proyect.Changes)
+					lastChange := proyect.Changes[len(proyect.Changes)-1]
+
+					// Separa la clave principal y el subpath
+					parts := strings.SplitN(lastChange.Key, ".", 2)
+					if len(parts) < 2 {
+						log.Printf("Error: key must include at least one dot separator.")
+						break
+					}
+					mainKey := parts[0]
+					subPath := parts[1]
+
+					// Accede al campo principal usando reflect
+					fieldValue := reflect.ValueOf(proyect).Elem().FieldByName(mainKey)
+					if !fieldValue.IsValid() {
+						log.Printf("Error: main key is not a valid field name.")
+						break
+					}
+
+					// Ejecuta la acción correspondiente al tipo de cambio
+					switch lastChange.ActionType {
+					case "add":
+						DeleteValueKeyPath(fieldValue.Interface(), subPath)
+					case "modify":
+						AssignValueByKey(fieldValue.Interface(), subPath, lastChange.OldValue)
+					case "delete":
+						AddValueAtKeyPath(fieldValue.Interface(), subPath, lastChange.OldValue)
+					}
+
+					proyect.Changes = proyect.Changes[:len(proyect.Changes)-1]
 
 				case "editingUser":
 
@@ -733,6 +773,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					key := editTextData.Key
 					value := editTextData.Value
 					rowIndex := editTextData.RowIndex
+
+					MakeChange(proyect, "modify", "Data.["+strconv.Itoa(rowIndex)+"]."+key, value)
 
 					//Modificamos el valor del texto, en rooms
 					innerMap := rooms[roomID].Data[rowIndex]
