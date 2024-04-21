@@ -15,8 +15,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
     console.log(facies.length)
     const cellWidth = 150;
-    const cellMinWidth = 100;
-    const cellMaxWidth = 500;
+    const cellMinWidth = 200;
+    const cellMaxWidth = 300;
     const tableref = useRef(null);
     const [columnWidths, setColumnWidths] = useState({});
 

@@ -13,7 +13,6 @@ import { useAuth } from '../../provider/authProvider';
 import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
 
-
 const Grid = () => {
 
   const navigate = useNavigate();
@@ -429,6 +428,8 @@ const Grid = () => {
       }
     }));
   }
+
+  
 
   const handleDeleteFacieSection = (value) => {
 
