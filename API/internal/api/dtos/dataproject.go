@@ -8,9 +8,9 @@ package dtos
 
 // Case editText
 type EditText struct {
-	Key      string      `json:"key"`
-	Value    interface{} `json:"value"`
-	RowIndex int         `json:"rowIndex"`
+	Key      string `json:"key"`
+	Value    string `json:"value"`
+	RowIndex int    `json:"rowIndex"`
 }
 
 // Case add
@@ -83,9 +83,9 @@ type IsInverted struct {
 }
 
 type EditPolygon struct {
-	RowIndex int    `json:"rowIndex"`
-	Column   string `json:"column"`
-	Value    string `json:"value"`
+	RowIndex int         `json:"rowIndex"`
+	Column   string      `json:"column"`
+	Value    interface{} `json:"value"`
 }
 
 type UserEditingState struct {

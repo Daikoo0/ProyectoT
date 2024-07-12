@@ -92,8 +92,8 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
     const processCircles = (circles, Width, Height) => {
       return circles.map(circle => ({
         ...circle,
-        x: circle.x * Width,
-        y: circle.y * Height
+        x: circle.X * Width,
+        y: circle.Y * Height
       }));
     };
 
@@ -290,11 +290,11 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
           cy={points.y}
           r={6}
           opacity={0.4}
-          fill={points.movable ? 'purple' : 'transparent'}
+          fill={points.Movable ? 'purple' : 'transparent'}
           onClick={() => {
-            if (points.movable) {
+            if (points.Movable) {
               //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
-              openModalPoint(rowIndex, index, circles[index].x, circles[index].name);
+              openModalPoint(rowIndex, index, circles[index].X, circles[index].Name);
             }
           }}
         />
