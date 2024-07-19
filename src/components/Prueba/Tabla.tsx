@@ -3,7 +3,7 @@ import Polygon from "./Polygon4";
 import Fosil from "./Fosil";
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
-import exportTableToPDFWithPagination from "./pdfFunction";
+import Ab from "./pdfIntento2";
 import ResizeObserver from "resize-observer-polyfill";
 
 const Tabla = ({ setPdfData, pdfData, data, header, scale,
@@ -13,10 +13,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     openModalPoint, handleClickRow, sendActionCell,
     editingUsers, isInverted, alturaTd, setAlturaTd }) => {
 
-    console.log(facies.length)
     const cellWidth = 150;
-    const cellMinWidth = 200;
-    const cellMaxWidth = 300;
+    var cellMinWidth = 150;
+    var cellMaxWidth = 300;
     const tableref = useRef(null);
     const [columnWidths, setColumnWidths] = useState({});
 
@@ -29,11 +28,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
         const handleMouseMove = (moveEvent) => {
             let newWidth = startWidth + moveEvent.clientX - startX;
+            if(columnName === "Litologia"){cellMinWidth = 250; cellMaxWidth = 400}
             newWidth = Math.max(cellMinWidth, Math.min(newWidth, cellMaxWidth));
-            setColumnWidths((prevWidths) => ({
-                ...prevWidths,
-                [columnName]: newWidth,
-            }));
+            if (columnName !== "Espesor") {
+                setColumnWidths((prevWidths) => ({
+                    ...prevWidths,
+                    [columnName]: newWidth,
+                }));
+            }
         };
 
         const handleMouseUp = () => {
@@ -73,7 +75,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        exportTableToPDFWithPagination(pdfData.data, newHeaders, pdfData.format)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation,pdfData.customWidthLit)
     }
 
     const handleRows = (e, key) => {
@@ -90,12 +92,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             data: newRows,
         }));
-        exportTableToPDFWithPagination(pdfData.data, newRows, pdfData.format)
+        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation,pdfData.customWidthLit)
 
     }
 
     const HeaderVal = ({ percentage, name, top }) => {
-        var x = percentage * (columnWidths["Litologia"] || 150)
+        var x = percentage * (columnWidths["Litologia"] || 250)
         var pos = top ? 60 : 105
         return (
             <>
@@ -133,33 +135,115 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     }, [adfas.current, data.length]);
 
 
+    
+        // const buttons =  document.getElementById('main-iframe').querySelectorAll('button');
+        // buttons.forEach(button => {
+        //   button.classList.add('btn', 'btn-primary', 'm-2');
+        // });
+
+
     return (
         <>
             <>
                 <dialog id="modal" className="modal">
-                    <div className="modal-box w-11/12 max-w-7xl h-full">
+                    <div className="modal-box w-screen h-screen max-w-full max-h-full rounded-none">
                         <div className="flex flex-col lg:flex-row h-full">
 
                             {/* Sección izquierda */}
-                            <div className="flex flex-col flex-grow card overflow-auto">
-                                (en desarrollo)
+                            <div className="flex flex-col flex-grow card w-full lg:w-7/10">
+                                {/* <p className="flex-shrink-0 text-xl">Vista previa</p>
+                                <br /> */}
+                                <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
+                              
+                              
+                              
+                            </div>
+
+{/* seccion derecha */}
+<div className="flex flex-col flex-grow card overflow-auto w-full lg:w-3/10">
+
                                 <div className="menu p-4 w-full min-h-full text-base-content">
                                     {/* Select */}
+                                    Tipo de hoja
                                     <select value={pdfData.format} onChange={(e) => {
                                         setPdfData(prevState => ({
                                             ...prevState,
                                             format: e.target.value,
                                         }));
-                                        exportTableToPDFWithPagination(pdfData.data, pdfData.header, e.target.value)
+                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation,pdfData.customWidthLit)
                                     }} className="select select-bordered w-full max-w-xs mb-4">
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
-                                        <option value={'A4'}>A4</option>
+                                        <option value={'EXECUTIVE'}>Executive</option>
+                                        <option value={'FOLIO'}>Folio</option>
+                                        <option value={'LEGAL'}>Legal</option>
+                                        <option value={'LETTER'}>Letter</option>
+                                        <option value={'TABLOID'}>Tabloid</option>
+                                        <option value={'ID1'}>ID1</option>
+                                        <option value={'4A0'}>4A0</option>
+                                        <option value={'2A0'}>2A0</option>
+                                        <option value={'A0'}>A0</option>
+                                        <option value={'A1'}>A1</option>
+                                        <option value={'A2'}>A2</option>
                                         <option value={'A3'}>A3</option>
-                                        <option value={'letter'}>Carta</option>
-                                        <option value={'tabloid'}>Tabloide</option>
-                                        <option value={'legal'}>Oficio</option>
+                                        <option value={'A4'}>A4</option>
+                                        <option value={'A5'}>A5</option>
+                                        <option value={'A6'}>A6</option>
+                                        <option value={'A7'}>A7</option>
+                                        <option value={'A8'}>A8</option>
+                                        <option value={'A9'}>A9</option>
+                                        <option value={'A10'}>A10</option>
+                                        <option value={'B0'}>B0</option>
+                                        <option value={'B1'}>B1</option>
+                                        <option value={'B2'}>B2</option>
+                                        <option value={'B3'}>B3</option>
+                                        <option value={'B4'}>B4</option>
+                                        <option value={'B5'}>B5</option>
+                                        <option value={'B6'}>B6</option>
+                                        <option value={'B7'}>B7</option>
+                                        <option value={'B8'}>B8</option>
+                                        <option value={'B9'}>B9</option>
+                                        <option value={'B10'}>B10</option>
+                                        <option value={'C0'}>C0</option>
+                                        <option value={'C1'}>C1</option>
+                                        <option value={'C2'}>C2</option>
+                                        <option value={'C3'}>C3</option>
+                                        <option value={'C4'}>C4</option>
+                                        <option value={'C5'}>C5</option>
+                                        <option value={'C6'}>C6</option>
+                                        <option value={'C7'}>C7</option>
+                                        <option value={'C8'}>C8</option>
+                                        <option value={'C9'}>C9</option>
+                                        <option value={'C10'}>C10</option>
+                                        <option value={'RA0'}>RA0</option>
+                                        <option value={'RA1'}>RA1</option>
+                                        <option value={'RA2'}>RA2</option>
+                                        <option value={'RA3'}>RA3</option>
+                                        <option value={'RA4'}>RA4</option>
+                                        <option value={'SRA0'}>SRA0</option>
+                                        <option value={'SRA1'}>SRA1</option>
+                                        <option value={'SRA2'}>SRA2</option>
+                                        <option value={'SRA3'}>SRA3</option>
+                                        <option value={'SRA4'}>SRA4</option>
                                     </select>
+                                    {/* Orientación */}
+                                    Orientación de la hoja
+                                    <div className="form-control w-full max-w-xs">
 
+                                        {pdfData.orientation == "portrait" ? <>
+                                            <label className="label-text "> Portrait </label>
+                                        </> : <>
+                                            <label className="label-text"> Landscape </label>
+                                        </>}
+                                        <input type="checkbox" className="toggle toggle-success"
+                                            checked={(pdfData.orientation == "portrait") ? true : false}
+                                            onChange={(e) => {
+                                                setPdfData(prevState => ({
+                                                    ...prevState,
+                                                    orientation: (e.target.checked) ? "portrait" : "landscape",
+                                                }));
+                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"),pdfData.customWidthLit)
+                                            }} />
+                                    </div>
                                     {/* Lista de visibilidad de columnas */}
                                     <div className="mb-4">
                                         <details open={false}>
@@ -189,6 +273,24 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         </details>
                                     </div>
 
+                                    <div className="menu p-4 w-full min-h-full text-base-content">
+                                    {/* Select */}
+                                    Espacio horizontal de la litología respecto al espacio de la hoja
+                                    <select value={pdfData.customWidthLit} onChange={(e) => {
+                                        setPdfData(prevState => ({
+                                            ...prevState,
+                                            customWidthLit: e.target.value,
+                                        }));
+                                        Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation,e.target.value)
+                                    }} className="select select-bordered w-full max-w-xs mb-4">
+                                        <option value={""} disabled>Elige el ancho de la litologia</option>
+                                        <option value={'20%'}>20%</option>
+                                        <option value={'25%'}>25%</option>
+                                        <option value={'50%'}>50%</option>
+                                        <option value={'75%'}>75%</option>
+</select>
+                                        </div>
+
                                     {/* Lista de visibilidad de capas */}
                                     <div>
                                         <details open={false}>
@@ -212,13 +314,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         </details>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Sección derecha */}
-                            <div className="flex flex-col flex-grow card">
-                                <p className="flex-shrink-0 text-xl">Vista previa</p>
-                                <br />
-                                <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
                                 <div className="modal-action mt-4">
                                     <form method="dialog">
                                         <button className="btn">Close</button>
@@ -240,18 +335,23 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     key={columnName}
                                     className="border border-base-content bg-primary sticky top-0"
                                     style={{
-                                        width: `${columnWidths[columnName] || cellWidth}px`,
+                                        width: `${columnName === "Espesor" 
+                                                    ? 70 
+                                                    : columnName === "Litologia" 
+                                                    ? (columnWidths[columnName] || 250) 
+                                                    : (columnWidths[columnName] || cellWidth)}px`,
                                         height: '120px',
                                     }}>
-
+                                    
                                     <div className="flex justify-between items-center font-semibold">
                                         <p className="text text-accent-content w-1/2">{columnName}</p>
 
                                         {columnName === "Litologia" ?
                                             <>
                                                 <svg
+                                                    id="headerLit"
                                                     className="absolute w-full"
-                                                    width={(columnWidths[columnName] || cellWidth) / 2}
+                                                    width={(columnWidths[columnName] || 250) / 2}
                                                     height="120"
                                                     overflow={'visible'}
                                                     style={{
@@ -355,7 +455,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                             >
                                                 <div className="h-full max-h-full">
-                                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 150)} isInverted={isInverted} scale={scale} />
+                                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
                                                 </div>
                                             </td>
                                         );
@@ -515,7 +615,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                             <Polygon
                                                                 rowIndex={rowIndex}
                                                                 Height={RowValue.Litologia.height * scale}
-                                                                Width={columnWidths["Litologia"] || cellWidth}
+                                                                Width={columnWidths["Litologia"] || 250}
                                                                 File={lithoJson[RowValue.Litologia.file]}
                                                                 ColorFill={RowValue.Litologia.ColorFill}
                                                                 ColorStroke={RowValue.Litologia.colorStroke}

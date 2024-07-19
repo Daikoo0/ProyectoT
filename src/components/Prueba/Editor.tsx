@@ -12,6 +12,7 @@ import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
 import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
+import Ab from './pdfIntento2';
 
 const Grid = () => {
 
@@ -429,7 +430,7 @@ const Grid = () => {
     }));
   }
 
-  
+
 
   const handleDeleteFacieSection = (value) => {
 
@@ -593,12 +594,15 @@ const Grid = () => {
     (document.getElementById('modal') as HTMLDialogElement).showModal();
     var copyData = data
     var copyHeader = [...header]
-    exportTableToPDFWithPagination(copyData, copyHeader, 'A3')
+    // exportTableToPDFWithPagination(copyData, copyHeader, 'A3')
+    Ab(copyData, copyHeader, 'A3','portrait',"")
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
       header: copyHeader,
       format: 'A3',
+      orientation :'portrait',
+      customWidthLit : ""
     };
     setPdfData(initialPdfData)
 

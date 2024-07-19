@@ -4,7 +4,7 @@ import autoTable from "jspdf-autotable";
 // data de las filas, Nombre de las columnas, formato de la hoja
 const exportTableToPDFWithPagination = async (data, headerParam, format) => {
 
-   // var data = dataParam
+    // var data = dataParam
     var header = [...headerParam]
     var format = format
     let rowIndexesPerPage = [];
@@ -36,81 +36,56 @@ const exportTableToPDFWithPagination = async (data, headerParam, format) => {
         }
     }
 
-    // Funcion para convertir los svg a imagenes por pagina     
     function svgListToDataURL(svgList, fosil, rowIndexesPerPage, pageIndex) {
         return new Promise((resolve, reject) => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            const promises = [];
             let totalHeight = 0;
-            let maxwidth = columnWidths["Litologia"];
-            var svgData;
-            if (!fosil) {
-                svgList.forEach((svg, index) => {
-                    const svgCopy = svg.cloneNode(true); // Clonar el svg para no modificar el original
-                    const circles = svgCopy.querySelectorAll('circle');
-                    circles.forEach(circle => {
-                        circle.remove();
-                    });
-                    let alturaActual = parseFloat(svgCopy.getAttribute('height'));
-                    originalW = parseFloat(svgCopy.getAttribute('width'));
-                    let nuevaAltura = alturaActual + 10;
-                    svgCopy.setAttribute('height', `${nuevaAltura}px`);
-                    var contenedor = svg.parentNode;
-                    const currentWidth = contenedor.clientWidth;
-                    var newWidth = columnWidths["Litologia"];
-                    var scaleFactor = 0
-                    if (newWidth < currentWidth) {
-                        scaleFactor = newWidth / currentWidth;
-                        svgCopy.setAttribute('transform', 'scale(' + scaleFactor + ',1)');
-                    }
-                    if (newWidth >= currentWidth) {
-                        scaleFactor = currentWidth / newWidth;
-                        svgCopy.setAttribute('transform', 'scale(' + scaleFactor + ',1)');
-                    }
-                    svgCopy.style.transformOrigin = `0 0`;
+            let maxWidth = columnWidths["Litologia"] + 200;
+            let combinedSVG = `<svg width="${maxWidth}" xmlns="http://www.w3.org/2000/svg">`;
 
-                    totalHeight += alturaActual
-                    svgHeights[`${pageIndex},${index}`] = alturaActual
-                    svgData = new XMLSerializer().serializeToString(svgCopy);
-                    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-                    const url = URL.createObjectURL(svgBlob);
-                    const imgPromise = new Promise((resolve, reject) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            console.log(img)
-                            resolve(img);
-                        };
-                        img.onerror = (e) => {
-                            console.log(e)
-                            reject(e);
-                        };
-                        img.src = url;
-                    });
-                    promises.push(imgPromise);
-                });
+            svgList.forEach((svg, index) => {
+                const svgCopy = svg.cloneNode(true);
+                const circles = svgCopy.querySelectorAll('circle');
+                circles.forEach(circle => circle.remove());
+                const alturaActual = parseFloat(svgCopy.getAttribute('height'));
+                const currentWidth = svg.parentNode.clientWidth;
+                let scaleFactor = maxWidth / currentWidth;
+                svgCopy.setAttribute('transform', `scale(${scaleFactor},1)`);
+                svgCopy.style.transformOrigin = `0 0`;
+                svgCopy.setAttribute('y', totalHeight); // Set the y position for stacking
+                totalHeight += alturaActual;
+                svgHeights[`${pageIndex},${index}`] = alturaActual
+                combinedSVG += new XMLSerializer().serializeToString(svgCopy);
+            });
+            combinedSVG += `</svg>`;
 
-                Promise.all(promises)
-                    .then(images => {
-                        canvas.width = maxwidth + 500;
-                        canvas.height = totalHeight
-                        let offsetY = 0;
-                        images.forEach((img) => {
-                            ctx.drawImage(img, 0, offsetY);
-                            offsetY += img.height - 10
-                        });
-                        const imgURL = canvas.toDataURL('image/png', 1.0);
-                        //console.log(imgURL)
-                        resolve(imgURL);
+            console.log(combinedSVG)
 
-                    }).catch(error => reject(error));
-            }
+            const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            console.log(url)
+
+            const img = new Image();
+            img.onload = () => {
+                canvas.width = maxWidth + 200;
+                canvas.height = totalHeight + 10;
+                ctx.drawImage(img, 0, 0);
+                const imgURL = canvas.toDataURL('image/png', 1.0);
+                console.log(imgURL)
+                resolve(imgURL);
+            };
+            img.onerror = (e) => {
+                reject(e);
+            };
+            img.src = url;
         });
     }
 
+
     // Funcion para calcular la cantidad de filas por pagina
     Object.values(data).forEach((key, index) => {
-        const rowHeight = key['Litologia'].height*0.75
+        const rowHeight = key['Litologia'].height * 0.75
         console.log(key['Litologia'].height)
         if ((currentPageHeight + rowHeight) > (pageHeight - 20)) {
             rowIndexesPerPage.push(currentPageIndexes);
@@ -136,21 +111,31 @@ const exportTableToPDFWithPagination = async (data, headerParam, format) => {
         });
     });
 
-    const className = "h-full.max-h-full";
-
     // Funcion para generar una imagen segun la pagina
     async function generateSVGDataURLForPage(pageIndex) {
-        const indexes = rowIndexesPerPage[pageIndex]; // todos los index de pageindex
-        const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la pagina que se esta generando 
-        const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, false, rowIndexesPerPage[pageIndex], pageIndex);
-        return imageDataURL;
+        const indexes = rowIndexesPerPage[pageIndex]; // todos los índices de pageIndex
+        const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la página que se está generando
+        if (filteredTdsWithSvg.length > 0) {
+            const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, false, rowIndexesPerPage[pageIndex], pageIndex);
+            console.log(imageDataURL)
+            return imageDataURL;
+        } else {
+            // Si no hay SVGs, podría retornar una imagen estándar o manejar de otro modo
+            return null; // O manejo alternativo
+        }
     }
 
-    var imgPage = []
+    var imgPage = [];
     for (var j = 0; j < rowIndexesPerPage.length; j++) {
-        var img = await generateSVGDataURLForPage(j)
-        imgPage.push(img)
+        const img = await generateSVGDataURLForPage(j);
+        console.log(img)
+        if (img) { // Solo añadir si la imagen existe
+            imgPage.push(img);
+        } else {
+            imgPage.push('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA'); // imagen en blanco o similar
+        }
     }
+
 
     rowIndexesPerPage.forEach((pageIndexes, pageIndex) => {
         const body = [];
@@ -158,8 +143,8 @@ const exportTableToPDFWithPagination = async (data, headerParam, format) => {
             const row = [];
             header.forEach(columnName => {
                 if (columnName !== 'Litologia' && columnName !== 'Estructura fosil') {
-                    const cellData = data[columnName]?.[rowIndex] || "";
-                    row.push([cellData])
+                    let cellData = data[rowIndex]?.[columnName] || "";
+                    row.push(cellData);
                 }
             });
             body.push(row);
@@ -180,6 +165,7 @@ const exportTableToPDFWithPagination = async (data, headerParam, format) => {
             body: body,
             theme: 'grid',
             margin: { top: 20, right: marginRight, bottom: 20, left: marginLeft },
+
             didDrawCell: (datac) => {
 
                 if (datac.row.index === 0 && datac.column.dataKey === header.indexOf('Litologia')) {
@@ -189,19 +175,21 @@ const exportTableToPDFWithPagination = async (data, headerParam, format) => {
 
             },
             columnStyles: columnStyles,
+            bodyStyles: {
+                cellPadding: 0,
+            },
             includeHiddenHtml: true,
             didParseCell: function (datac) {
                 if (datac.row.section === "head") {
-                    datac.cell.height = 400//40
+                    datac.cell.styles.minCellHeight = 40//40
                 } else {
-                    const value = svgHeights[`${pageIndex},${datac.row.index}`]//  * (colW / originalW)
-                    datac.cell.styles.minCellHeight = value*0.75
-                   // datac.cell.height = value
+                    console.log(datac)
+                    const value = svgHeights[`${pageIndex},${datac.row.index}`]
+                    datac.cell.styles.minCellHeight = value * 0.75
                 }
             },
             didDrawPage: (datac) => {
                 datac.doc.addImage(imgPage[pageIndex], xcellCapas, ycellCapas); // capas
-                //datac.doc.rect(xcellCapas, ycellCapas, 100, 40);
 
             }
         });

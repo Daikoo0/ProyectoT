@@ -4,7 +4,7 @@ import autoTable from "jspdf-autotable";
 // data de las filas, Nombre de las columnas, formato de la hoja
 const exportTableToPDFWithPagination = async (dataParam, headerParam, format) => {
     // const escala = scale || 1;
-    
+
     const escala = 1
     var data = dataParam
     var header = [...headerParam]
@@ -26,10 +26,10 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
     var pageHeight = doc.internal.pageSize.getHeight();
     console.log(pageHeight)
 
-    const colW = ((pageWidth-40) - (pageWidth-40)*0.25) / (header.length - 2) // ancho de cada columna - 50 espesor - 40 margenes 
+    const colW = ((pageWidth - 40) - (pageWidth - 40) * 0.25) / (header.length - 2) // ancho de cada columna - 50 espesor - 40 margenes 
     let originalW = 1;
-    columnWidths["Espesor"] = (pageWidth-40)*0.05
-    columnWidths["Litologia"] = (pageWidth-40)*0.2
+    columnWidths["Espesor"] = (pageWidth - 40) * 0.05
+    columnWidths["Litologia"] = (pageWidth - 40) * 0.2
 
     for (var i in header) {
         if (header[i] !== "Espesor" && header[i] !== "Litologia") {
@@ -92,7 +92,6 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
                         pageCanvas.height = endY - startY;
                         pageCtx.drawImage(img1, 0, startY, pageCanvas.width, pageCanvas.height, 0, 0, maxwidth, endY - startY);
                         const pageImgURL = pageCanvas.toDataURL('image/png', 1.0);
-                        //        console.log(pageImgURL)
                         fossilsPage.push(pageImgURL);
                     });
                     resolve(fossilsPage); // Asegúrate de resolver la promesa original después de procesar todas las páginas
@@ -109,24 +108,24 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
                     originalW = parseFloat(svgCopy.getAttribute('width'));
                     //let width = parseFloat(svgCopy.getAttribute('width'));
                     let nuevaAltura = alturaActual + 10;
-                    
+
                     svgCopy.setAttribute('height', `${nuevaAltura}px`);
-                    
+
                     const scaleW = (maxwidth / originalW);
-                  
-                    const originalY = svgCopy.getBoundingClientRect().top; 
+
+                    const originalY = svgCopy.getBoundingClientRect().top;
                     const deltaY = originalY * (1 - (scaleW / nuevaAltura));
                     const originY = (deltaY / nuevaAltura) * 100 + "%";
                     console.log(originY)
 
                     svgCopy.setAttribute("transform", `scale(${scaleW})`)
-                  
+
                     svgCopy.style.transformOrigin = `0 0`;
-                  
+
                     totalHeight += alturaActual
-                 
+
                     svgHeights[`${pageIndex},${index}`] = alturaActual
-              
+
                     svgData = new XMLSerializer().serializeToString(svgCopy);
                     const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
                     const url = URL.createObjectURL(svgBlob);
@@ -151,10 +150,10 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
                         canvas.height = totalHeight
                         let offsetY = 0;
                         images.forEach((img) => {
-                      //      if (index === 0) {svgHeights.push(img.height* (colW / originalW) - 8)}
+                            //      if (index === 0) {svgHeights.push(img.height* (colW / originalW) - 8)}
                             ctx.drawImage(img, 0, offsetY);
-                            offsetY += img.height* (maxwidth / originalW);
-                        //    svgHeights.push(img.height * (colW / originalW) - 8)
+                            offsetY += (img.height * (maxwidth / originalW));
+                            //    svgHeights.push(img.height * (colW / originalW) - 8)
                             console.log(offsetY)
                         });
                         const imgURL = canvas.toDataURL('image/png', 1.0);
@@ -185,7 +184,7 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
 
     const filteredSvgs = document.querySelectorAll('table tbody tr td svg');
     const indices = Object.keys(data); // data [0,1,2,3,4,5...n] 
-    
+
     // Filtrar los svg que contienen los patrones 
     const tdsWithSvg = Array.from(filteredSvgs).filter(svg => {
         const patterns = svg.querySelectorAll('pattern');
@@ -193,7 +192,7 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
             return indices.some(index => pattern.id === `pattern-${index}`);
         });
     });
- 
+
     const className = "h-full.max-h-full";
     var svgFossils = []
     if (document.querySelectorAll(`table tbody tr td svg.${className}`).length > 1) {
@@ -210,7 +209,7 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
         // if (filteredTdsWithSvg.length > 0) {
         //     originalW = parseFloat(filteredTdsWithSvg[0].querySelector('svg').getAttribute('width'))
         // }
-        const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, false, rowIndexesPerPage[pageIndex],pageIndex);
+        const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, false, rowIndexesPerPage[pageIndex], pageIndex);
         return imageDataURL;
     }
 
@@ -252,12 +251,21 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
             body: body,
             theme: 'grid',
             styles: {
-                // overflow: 'ellipsize',
-                //fontSize: 10,
+                fontSize: 4, // Reducir el tamaño de la fuente
+                cellPadding: 0.5, // Reducir el padding dentro de la celda
+                minCellHeight: 5 // Establecer la altura mínima de la celda a 5 pt
+            },
+            alternateRowStyles : {
+                cellPadding: 0,
             },
             margin: { top: 20, right: 20, bottom: 20, left: 20 },
             didDrawCell: (datac) => {
-
+                if (datac.section === 'body') {
+                    const maxHeight = svgHeights[`${pageIndex},${datac.row.index}`] * (colW / originalW)
+                    if (datac.cell.height > maxHeight) {
+                        datac.cell.height = maxHeight; // Ajusta la altura de la celda
+                    }
+                }
                 if (datac.row.index === 0 && datac.column.dataKey === header.indexOf('Litologia')) {
                     xcell = datac.cell.x
                     ycell = datac.cell.y
@@ -268,6 +276,7 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
                 else if (datac.row.index === 0 && datac.column.dataKey === header.indexOf('Estructura fosil')) {
                     xcellFossils = datac.cell.x
                 }
+
             },
             columnStyles: columnStyles,
             includeHiddenHtml: true,
@@ -275,11 +284,11 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
                 if (datac.row.section === "head") {
                     datac.cell.height = 400//40
                 } else {
-                    //console.log(svgHeights[`${pageIndex},${datac.row.index}`] * (colW/originalW))
-                    const value = svgHeights[`${pageIndex},${datac.row.index}`] * (colW / originalW)
-                    console.log( colW/originalW)
-                    console.log(svgHeights[`${pageIndex},${datac.row.index}`], value)
-                    datac.cell.styles.minCellHeight = value
+                   const value = svgHeights[`${pageIndex},${datac.row.index}`] * (colW / originalW)
+                   datac.cell.styles.minCellHeight = value
+                   datac.cell.contentHeight = value
+                   datac.cell.height = value
+                   
                 }
             },
             didDrawPage: (datac) => {
@@ -295,9 +304,9 @@ const exportTableToPDFWithPagination = async (dataParam, headerParam, format) =>
             }
         });
     });
-    //doc.save('table.pdf');
+
     document.getElementById('main-iframe').setAttribute('src', URL.createObjectURL(doc.output('blob')).toString());
-    //window.open(doc.output('bloburl'), '_blank');
+
 };
 
 

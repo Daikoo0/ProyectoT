@@ -8,7 +8,12 @@ export default {
     "./public/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      width: {
+        '7/10': '70%',
+        '3/10': '30%',
+      }
+    }
   },
   plugins: [require("@tailwindcss/typography"), require("daisyui")],
   daisyui: {

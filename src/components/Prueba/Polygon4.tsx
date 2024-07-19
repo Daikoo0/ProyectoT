@@ -199,7 +199,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
   const patternId = `pattern-${rowIndex}`;
   return (
-    <svg width="100%" height={Height} overflow='visible'>
+    <svg width={Width} height={Height} overflow='visible'>
 
       {/* Patrón SVG */}
       <defs>
@@ -235,7 +235,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
       {contacts[contact].arcs ?
         <>
-          <path d={pathUpperCurve}
+          <path className="pa" d={pathUpperCurve}
             stroke="black"
             fill="transparent"
             strokeWidth="1"
@@ -244,7 +244,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
       {contacts[prevContact].arcs ?
         <>
-          <path d={pathLowerCurve}
+          <path className="pa" d={pathLowerCurve}
             fill="transparent"
             stroke="black"
             strokeWidth="1"
@@ -254,23 +254,23 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
       {contacts[contact].dash && !contacts[contact].dash2 ?
         <>
-          <line x1="0" y1={Height} x2={points[points.length - 2].x} y2={Height} stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={eval(contacts[contact].dash)} />
+          <line className="pa" x1="0" y1={Height} x2={points[points.length - 2].x} y2={Height} stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={eval(contacts[contact].dash)} />
         </> : <></>}
 
       {contacts[prevContact].dash && !contacts[prevContact].dash2 && prevContact !== "119" && prevContact !== "1110" ?
         <>
-          <line x1="0" y1={points[1].y} x2={points[1].x} y2={points[1].y} stroke="black" strokeWidth={contacts[prevContact].lineWidth} strokeDasharray={contacts[prevContact].dash} />
+          <line className="pa" x1="0" y1={points[1].y} x2={points[1].x} y2={points[1].y} stroke="black" strokeWidth={contacts[prevContact].lineWidth} strokeDasharray={contacts[prevContact].dash} />
         </> : <></>}
 
 
       {contacts[contact].dash2 ?
         <>
-          <line x1="0" y1={Height} x2={points[points.length - 2].x} y2={Height} stroke="black" strokeWidth={contacts[contact].lineWidth2} strokeDasharray={contacts[contact].dash2} />
-          <line x1="0" y1={Height - 5} x2={points[points.length - 2].x} y2={Height - 5} stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={contacts[contact].dash} />
+          <line className="pa" x1="0" y1={Height} x2={points[points.length - 2].x} y2={Height} stroke="black" strokeWidth={contacts[contact].lineWidth2} strokeDasharray={contacts[contact].dash2} />
+          <line className="pa" x1="0" y1={Height - 5} x2={points[points.length - 2].x} y2={Height - 5} stroke="black" strokeWidth={contacts[contact].lineWidth} strokeDasharray={contacts[contact].dash} />
         </> : <></>}
 
       {/* Line Click */}
-      <path d={pathDataClick}
+      <path className="pa" d={pathDataClick}
         fill="none"
         stroke="transparent"
         strokeWidth="4"
