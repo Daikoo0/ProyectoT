@@ -16,9 +16,9 @@ import (
 	"github.com/ProyectoT/api/encryption"
 	"github.com/ProyectoT/api/internal/api/dtos"
 	"github.com/ProyectoT/api/internal/models"
-	"github.com/ProyectoT/api/internal/service"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"github.com/lithammer/shortuuid/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -55,54 +55,12 @@ type RoomData struct {
 	Changes         []Change
 }
 
-func generateRandomColor() string {
-	// Generar un color aleatorio en formato hexadecimal
-	color := make([]byte, 3)
-	_, err := rand.Read(color)
-	if err != nil {
-		panic(err)
-	}
-	return "#" + hex.EncodeToString(color)
-}
-
 var rooms = make(map[string]*RoomData)
 
-// Modificar - tienen que ir dentro del roomData
 var roomTimers = make(map[string]*time.Timer)
 var roomActions = make(map[string]int)
 
 var roomActionsThreshold = 10
-
-// registerUser recibe un email, un nombre y una contraseña, y registra un usuario en la base de datos
-func (a *API) RegisterUser(c echo.Context) error {
-	ctx := c.Request().Context()
-	params := dtos.RegisterUser{}
-
-	err := c.Bind(&params)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"}) // HTTP 400 Bad Request
-	}
-
-	err = a.dataValidator.Struct(params)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()})
-	}
-
-	if params.Password != params.PasswordConfirm {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Passwords do not match"}) // HTTP 400 Bad Request
-	}
-
-	err = a.serv.RegisterUser(ctx, params.Email, params.Name, params.LastName, params.Password)
-	if err != nil {
-		if err == service.ErrUserAlreadyExists {
-			return c.JSON(http.StatusConflict, responseMessage{Message: "User already exists"}) // HTTP 409 Conflict
-		}
-
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"}) // HTTP 500 Internal Server Error
-	}
-
-	return c.JSON(http.StatusCreated, nil) // HTTP 201 Created
-}
 
 func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.Conn, name string, project *RoomData) {
 	var index int = -1
@@ -149,90 +107,6 @@ func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.C
 
 	}
 
-}
-
-// LoginUser recibe un email y una contraseña, y devuelve un token de autenticación enviado en una cookie
-func (a *API) LoginUser(c echo.Context) error {
-	ctx := c.Request().Context() // Context.Context es una interfaz que permite el paso de valores entre funciones
-	params := dtos.LoginUser{}
-
-	err := c.Bind(&params) // llena a params con los datos de la solicitud
-
-	// Sin error  == nil - Con error != nil
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-		//return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"}) //HTTP 400 Bad Request
-	}
-
-	err = a.dataValidator.Struct(params) // valida los datos de la solicitud
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()}) // HTTP 400 Bad Request
-	}
-
-	u, err := a.serv.LoginUser(ctx, params.Email, params.Password) // OBJID, email, name
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Invalid Credentials"})
-	}
-
-	token, err := encryption.SignedLoginToken(u) // Genera el token con los datos del usuario (OBJID, email, name)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Internal server error"}) // HTTP 500 Internal Server Error
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{"token": token}) // HTTP 200 OK
-}
-
-// LogoutUser elimina la cookie de autenticación
-func (a *API) LogoutUser(c echo.Context) error {
-
-	expiredCookie := &http.Cookie{
-		Name:     "Authorization",
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
-		HttpOnly: true,
-		Path:     "/",
-	}
-
-	c.SetCookie(expiredCookie) // Setea la cookie en el navegador
-
-	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
-}
-
-func (a *API) AddComment(c echo.Context) error {
-	ctx := c.Request().Context() // Context.Context es una interfaz que permite el paso de valores entre funciones
-	params := models.Comment{}
-
-	err := c.Bind(&params) // llena a params con los datos de la solicitud
-
-	// Sin error  == nil - Con error != nil
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-	}
-
-	err = a.repo.HandleAddComment(ctx, params)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Invalid Credentials"})
-	}
-
-	return c.JSON(http.StatusOK, map[string]string{"success": "true"}) // HTTP 200 OK
-}
-
-// Verifica si existe una cookie de autenticación
-func (a *API) AuthUser(c echo.Context) error {
-
-	_, err := c.Cookie("Authorization")
-	if err != nil {
-		return c.NoContent(http.StatusUnauthorized) // HTTP 401 Unauthorized
-	}
-
-	return c.NoContent(http.StatusOK) // HTTP 200 OK
 }
 
 func (a *API) HandleWebSocket(c echo.Context) error {
@@ -524,519 +398,94 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println("El elemento a eliminar no existe")
 						}
 					}
-
 				case "añadir":
 
-					var addData dtos.Add
-					err := json.Unmarshal(dataMap.Data, &addData)
-					if err != nil {
-						log.Println("Error al deserializar: ", err)
-					}
+					añadir(proyect, dataMap, roomID)
 
-					rowIndex := addData.RowIndex
-					height := addData.Height
-					roomData := rooms[roomID]
+				case "addCircle":
 
-					var index int
+					addCircle(proyect, dataMap)
 
-					if rowIndex == -1 {
-						index = len(roomData.Data)
-					} else {
-						index = rowIndex
-					}
+				case "addFosil":
 
-					var prevShape string
-					var lit = roomData.Data
+					addFosil(proyect, dataMap)
 
-					if index+1 > 0 && index+1 < len(roomData.Data) {
-						lit[index+1].Litologia.PrevContact = "111"
-						rooms[roomID].Data = lit
-					}
+				case "addFacie":
 
-					if index-1 >= 0 && index-1 < len(roomData.Data) {
-						prevShape = roomData.Data[index-1].Litologia.Contact
-					} else if index == 0 {
-						prevShape = "111"
-					} else {
-						prevShape = "111"
-					}
+					addFacie(proyect, dataMap)
 
-					newShape := models.DataInfo{
-						Sistema:                "",
-						Edad:                   "",
-						Formacion:              "",
-						Miembro:                "",
-						Espesor:                "",
-						Facie:                  "",
-						AmbienteDepositacional: "",
-						Descripcion:            "",
-						Litologia: models.LitologiaStruc{
-							ColorFill:   "#ffffff",
-							ColorStroke: "#000000",
-							Zoom:        100,
-							Rotation:    0,
-							Tension:     0.5,
-							File:        "Sin Pattern",
-							Height:      height,
-							Circles: []models.CircleStruc{
-								{X: 0, Y: 0, Radius: 5, Movable: false},
-								{X: 0.5, Y: 0, Radius: 5, Movable: true, Name: "none"},
-								{X: 0.5, Y: 1, Radius: 5, Movable: true, Name: "none"},
-								{X: 0, Y: 1, Radius: 5, Movable: false},
-							},
-							Contact:     "111",
-							PrevContact: prevShape,
-						},
-					}
+				case "addFacieSection":
 
-					if rowIndex == -1 { // Agrega al final
-						roomData.Data = append(roomData.Data, newShape)
+					addFacieSection(proyect, dataMap)
 
-						// Enviar informacion a los clientes
-						msgData := map[string]interface{}{
-							"action": "añadirEnd",
-							"value":  newShape,
-						}
+				case "editCircle":
 
-						sendSocketMessage(msgData, proyect, "añadir")
+					editCircle(proyect, dataMap)
 
-					} else { // Agrega en el índice encontrado
-						roomData.Data = append(roomData.Data[:rowIndex], append([]models.DataInfo{newShape}, roomData.Data[rowIndex:]...)...)
-
-						msgData := map[string]interface{}{
-							"action":   "añadir",
-							"rowIndex": rowIndex,
-							"value":    newShape,
-						}
-
-						sendSocketMessage(msgData, proyect, "añadir")
-
-					}
-
-				case "delete":
-
-					var deleteData dtos.Delete
-					err := json.Unmarshal(dataMap.Data, &deleteData)
-					if err != nil {
-						log.Println("Error al deserializar: ", err)
-					}
-
-					rowIndex := deleteData.RowIndex
-					roomData := rooms[roomID]
-
-					if rowIndex+1 > 0 && rowIndex+1 < len(roomData.Data) {
-						if rowIndex-1 >= 0 {
-							lit := roomData.Data
-							lit[rowIndex+1].Litologia.PrevContact = roomData.Data[rowIndex-1].Litologia.Contact
-							rooms[roomID].Data = lit
-
-							var newPrev string
-							if rowIndex-1 >= 0 {
-								newPrev = roomData.Data[rowIndex-1].Litologia.Contact
-							} else {
-								newPrev = "111"
-							}
-
-							msgData2 := map[string]interface{}{
-								"action":   "editPolygon",
-								"rowIndex": rowIndex + 1,
-								"key":      "prevContact",
-								"value":    newPrev,
-							}
-							sendSocketMessage(msgData2, proyect, "editPolygon")
-						}
-					}
-
-					roomData.Data = append(roomData.Data[:rowIndex], roomData.Data[rowIndex+1:]...)
-
-					msgData := map[string]interface{}{
-						"action":   "delete",
-						"rowIndex": rowIndex,
-					}
-					sendSocketMessage(msgData, proyect, "delete")
-
-				// case "addCircle":
-
-				// 	var addCircleData dtos.AddCircle
-				// 	err := json.Unmarshal(dataMap.Data, &addCircleData)
-				// 	if err != nil {
-				// 		log.Println("Error al deserializar: ", err)
-				// 	}
-
-				// 	rowIndex := addCircleData.RowIndex
-				// 	insertIndex := addCircleData.InsertIndex
-				// 	point := addCircleData.Point
-
-				// 	roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
-
-				// 	circles := roomData["circles"].([]map[string]interface{})
-
-				// 	newCircle2 := map[string]interface{}{
-				// 		"x":       0.5,
-				// 		"y":       point,
-				// 		"radius":  5,
-				// 		"movable": true,
-				// 		"name":    "none",
-				// 	}
-
-				// 	circles = append(circles[:insertIndex], append([]map[string]interface{}{newCircle2}, circles[insertIndex:]...)...)
-
-				// 	roomData["circles"] = circles
-
-				// 	// Enviar informacion a los clientes
-				// 	msgData := map[string]interface{}{
-				// 		"action":   "addCircle",
-				// 		"rowIndex": rowIndex,
-				// 		"value":    circles,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "addCircle")
-
-				// case "deleteCircle":
-				// 	var deleteCircleData dtos.DeleteCircle
-				// 	err := json.Unmarshal(dataMap.Data, &deleteCircleData)
-				// 	if err != nil {
-				// 		log.Println("Error al deserializar: ", err)
-				// 	}
-
-				// 	rowIndex := deleteCircleData.RowIndex
-				// 	deleteIndex := deleteCircleData.DeleteIndex
-
-				// 	roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
-
-				// 	circles := roomData["circles"].([]map[string]interface{})
-
-				// 	circles = append(circles[:deleteIndex], circles[deleteIndex+1:]...)
-
-				// 	roomData["circles"] = circles
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":   "addCircle",
-				// 		"rowIndex": rowIndex,
-				// 		"value":    circles,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "deleteCircle")
-
-				// case "editCircle":
-				// 	var editCircleData dtos.EditCircle
-
-				// 	err := json.Unmarshal(dataMap.Data, &editCircleData)
-				// 	if err != nil {
-				// 		log.Println("Error al deserializar: ", err)
-				// 	}
-
-				// 	rowIndex := editCircleData.RowIndex
-				// 	editIndex := editCircleData.EditIndex
-				// 	x := editCircleData.X
-				// 	name := editCircleData.Name
-
-				// 	roomData := rooms[roomID].Data[rowIndex]["Litologia"].(map[string]interface{})
-
-				// 	circles := roomData["circles"].([]map[string]interface{})
-
-				// 	circles[editIndex]["x"] = x
-				// 	circles[editIndex]["name"] = name
-
-				// 	roomData["circles"] = circles
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":   "addCircle",
-				// 		"rowIndex": rowIndex,
-				// 		"value":    circles,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "editCircle")
-
-				// // Edicion de texto
 				case "editText":
 
-					var editTextData dtos.EditText
-					err := json.Unmarshal(dataMap.Data, &editTextData)
-					if err != nil {
-						log.Println("Error, Datos malos")
-					}
-
-					key := editTextData.Key
-					value := editTextData.Value
-					rowIndex := editTextData.RowIndex
-
-					//MakeChange(proyect, "modify", "Data.["+strconv.Itoa(rowIndex)+"]."+key, value)
-
-					roomData := &rooms[roomID].Data[rowIndex]
-					structValue := reflect.ValueOf(roomData).Elem()
-
-					field := structValue.FieldByName(key)
-					if field.IsValid() {
-						if field.CanSet() {
-							fieldValue := reflect.ValueOf(value)
-							field.Set(fieldValue)
-						}
-					}
-
-					// Enviar informacion a los clientes
-					msgData := map[string]interface{}{
-						"action":   "editText",
-						"key":      key,
-						"value":    value,
-						"rowIndex": rowIndex,
-					}
-
-					sendSocketMessage(msgData, proyect, "editText")
-
-				// case "addFosil":
-				// 	var fosil dtos.AddFosil
-				// 	err := json.Unmarshal(dataMap.Data, &fosil)
-				// 	if err != nil {
-				// 		log.Println("Error", err)
-				// 	}
-
-				// 	id := shortuuid.New()
-				// 	upper := fosil.Upper
-				// 	lower := fosil.Lower
-				// 	fosilImg := fosil.FosilImg
-				// 	x := fosil.X
-
-				// 	newFosil := map[string]interface{}{
-				// 		"upper":    upper,
-				// 		"lower":    lower,
-				// 		"fosilImg": fosilImg,
-				// 		"x":        x,
-				// 	}
-
-				// 	innerMap := rooms[roomID].Fosil
-				// 	innerMap[id] = newFosil
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":  "addFosil",
-				// 		"idFosil": id,
-				// 		"value":   newFosil,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "addFosil")
-
-				// case "deleteFosil":
-				// 	var fosilID dtos.DeleteFosil
-				// 	err := json.Unmarshal(dataMap.Data, &fosilID)
-				// 	if err != nil {
-				// 		log.Println("Error deserializando fósil:", err)
-				// 		break
-				// 	}
-
-				// 	id := fosilID.IdFosil
-
-				// 	innerMap := rooms[roomID].Fosil
-				// 	delete(innerMap, id)
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":  "deleteFosil",
-				// 		"idFosil": id,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "deleteFosil")
-
-				// case "editFosil":
-				// 	var fosilEdit dtos.EditFosil
-				// 	err := json.Unmarshal(dataMap.Data, &fosilEdit)
-				// 	if err != nil {
-				// 		log.Println("Error deserializando fósil:", err)
-				// 		break
-				// 	}
-
-				// 	id := fosilEdit.IdFosil
-				// 	upper := fosilEdit.Upper
-				// 	lower := fosilEdit.Lower
-				// 	fosilImg := fosilEdit.FosilImg
-				// 	x := fosilEdit.X
-
-				// 	newFosil := map[string]interface{}{
-				// 		"upper":    upper,
-				// 		"lower":    lower,
-				// 		"fosilImg": fosilImg,
-				// 		"x":        x,
-				// 	}
-
-				// 	innerMap := rooms[roomID].Fosil
-				// 	innerMap[id] = newFosil
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":  "editFosil",
-				// 		"idFosil": id,
-				// 		"value":   newFosil,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "editFosil")
-
-				// case "save":
-				// 	log.Println("guardando...")
-				// 	err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
-				// 	if err != nil {
-				// 		log.Println("No se guardo la data")
-				// 	}
-
-				// case "columns":
-				// 	var column dtos.Column
-				// 	err := json.Unmarshal(dataMap.Data, &column)
-				// 	if err != nil {
-				// 		log.Println("Error deserializando columna:", err)
-				// 		break
-				// 	}
-				// 	datos := rooms[roomID].Config["columns"].(map[string]interface{})
-				// 	datos[column.Column] = column.IsVisible
-
-				// 	// Crear un slice para almacenar las columnas ordenadas
-				// 	//orderedColumns := make([]interface{}, len(orden))
-				// 	var orderedVisibleColumns []string
-
-				// 	// Llenar el slice con los datos de las columnas en el orden correcto
-				// 	for _, colName := range orden {
-				// 		if isVisible, ok := datos[colName].(bool); ok && isVisible {
-				// 			// Si la columna es visible (IsVisible == true), agregar su nombre al slice.
-				// 			orderedVisibleColumns = append(orderedVisibleColumns, colName)
-				// 		}
-				// 	}
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":  "columns",
-				// 		"columns": orderedVisibleColumns,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "columns")
-
-				// case "isInverted":
-				// 	var isInverted dtos.IsInverted
-				// 	err := json.Unmarshal(dataMap.Data, &isInverted)
-				// 	if err != nil {
-				// 		log.Println("Error deserializando columna:", err)
-				// 		break
-				// 	}
-
-				// 	rooms[roomID].Config["isInverted"] = isInverted.IsInverted
-
-				// 	msgData := map[string]interface{}{
-				// 		"action":     "isInverted",
-				// 		"isInverted": isInverted.IsInverted,
-				// 	}
-
-				// 	sendSocketMessage(msgData, proyect, "isInverted")
+					editText(proyect, dataMap, roomID)
 
 				case "editPolygon":
 
-					var polygon dtos.EditPolygon
-					err := json.Unmarshal(dataMap.Data, &polygon)
+					editPolygon(proyect, dataMap)
+
+				case "editFosil":
+
+					editFosil(proyect, dataMap)
+
+				case "delete":
+
+					deleteRow(proyect, dataMap, roomID)
+
+				case "deleteCircle":
+
+					deleteCircle(proyect, dataMap)
+
+				case "deleteFosil":
+
+					deleteFosil(proyect, dataMap)
+
+				case "deleteFacie":
+
+					deleteFacie(proyect, dataMap)
+
+				case "isInverted":
+
+					isInverted(proyect, dataMap)
+
+				case "save":
+
+					a.save(proyect, roomID)
+
+				case "columns":
+					var column dtos.Column
+					err := json.Unmarshal(dataMap.Data, &column)
 					if err != nil {
-						log.Println("Error deserializando el polygon:", err)
+						log.Println("Error deserializando columna:", err)
 						break
 					}
-					rowIndex := polygon.RowIndex
-					column := polygon.Column
-					value := polygon.Value
+					datos := rooms[roomID].Config["columns"].(map[string]interface{})
+					datos[column.Column] = column.IsVisible
 
-					roomData := &proyect.Data[rowIndex].Litologia
+					// Crear un slice para almacenar las columnas ordenadas
+					//orderedColumns := make([]interface{}, len(orden))
+					var orderedVisibleColumns []string
 
-					UpdateField(roomData, column, value)
-
-					msgData := map[string]interface{}{
-						"action":   "editPolygon",
-						"rowIndex": rowIndex,
-						"key":      column,
-						"value":    value,
+					// Llenar el slice con los datos de las columnas en el orden correcto
+					for _, colName := range orden {
+						if isVisible, ok := datos[colName].(bool); ok && isVisible {
+							// Si la columna es visible (IsVisible == true), agregar su nombre al slice.
+							orderedVisibleColumns = append(orderedVisibleColumns, colName)
+						}
 					}
 
-					// if column == "contact" && rowIndex+1 < len(rooms[roomID].Data) {
-					// 	roomData2 := rooms[roomID].Data
-					// 	innerMap2 := roomData2[rowIndex+1]["Litologia"].(map[string]interface{})
-					// 	innerMap2["prevContact"] = roomData["Litologia"].(map[string]interface{})["contact"].(string)
-					// 	rooms[roomID].Data = roomData2
-					// 	msgData2 := map[string]interface{}{
-					// 		"action":   "editPolygon",
-					// 		"rowIndex": rowIndex + 1,
-					// 		"key":      "prevContact",
-					// 		"value":    roomData["Litologia"].(map[string]interface{})["contact"],
-					// 	}
-					// 	sendSocketMessage(msgData2, proyect, "editPolygon")
-					// }
+					msgData := map[string]interface{}{
+						"action":  "columns",
+						"columns": orderedVisibleColumns,
+					}
 
-					sendSocketMessage(msgData, proyect, "editPolygon")
-
-					log.Printf(proyect.Data[rowIndex].Litologia.File)
-
-					// case "deleteFacie":
-					// 	var facie dtos.Facie
-					// 	err := json.Unmarshal(dataMap.Data, &facie)
-					// 	if err != nil {
-					// 		log.Println("Error deserializando el polygon:", err)
-					// 		break
-					// 	}
-
-					// 	id := facie.Facie
-
-					// 	innerMap := rooms[roomID].Facies
-					// 	delete(innerMap, id)
-
-					// 	msgData := map[string]interface{}{
-					// 		"action": "deleteFacie",
-					// 		"facie":  id,
-					// 	}
-
-					// 	sendSocketMessage(msgData, proyect, "deleteFacie")
-
-					// case "addFacieSection":
-					// 	var f dtos.AddFacieSection
-					// 	err := json.Unmarshal(dataMap.Data, &f)
-					// 	if err != nil {
-					// 		log.Println("Error", err)
-					// 	}
-					// 	name := f.Facie
-					// 	y1 := f.Y1
-					// 	y2 := f.Y2
-
-					// 	innerMap, ok := rooms[roomID].Facies[name].([]map[string]interface{})
-					// 	if !ok {
-					// 		// Manejar el error, por ejemplo inicializar innerMap o logear un error.
-					// 		fmt.Println("error")
-					// 	}
-
-					// 	newSectionFacie := map[string]interface{}{
-					// 		"y1": y1,
-					// 		"y2": y2,
-					// 	}
-
-					// 	innerMap = append(innerMap, newSectionFacie)
-					// 	rooms[roomID].Facies[name] = innerMap
-
-					// 	msgData := map[string]interface{}{
-					// 		"action": "addFacieSection",
-					// 		"facie":  name,
-					// 		"y1":     y1,
-					// 		"y2":     y2,
-					// 	}
-
-					// 	sendSocketMessage(msgData, proyect, "addFacieSection")
-
-					// case "addFacie":
-					// 	var facie dtos.Facie
-					// 	err := json.Unmarshal(dataMap.Data, &facie)
-					// 	if err != nil {
-					// 		log.Println("Error", err)
-					// 	}
-
-					// 	name := facie.Facie
-
-					// 	fmt.Println(name, "esta es la linea")
-
-					// 	if rooms[roomID].Facies == nil {
-					// 		rooms[roomID].Facies = make(map[string]interface{})
-					// 	}
-
-					// 	rooms[roomID].Facies[name] = []map[string]interface{}{}
-
-					// 	msgData := map[string]interface{}{
-					// 		"action": "addFacie",
-					// 		"facie":  name,
-					// 	}
-
-					// 	sendSocketMessage(msgData, proyect, "addFacie")
+					sendSocketMessage(msgData, proyect, "columns")
 
 				}
 
@@ -1068,79 +517,6 @@ func sendSocketMessage(msgData map[string]interface{}, proyect *RoomData, action
 		}
 	}
 
-}
-
-func (a *API) HandleInviteUser(c echo.Context) error {
-
-	ctx := c.Request().Context()
-	auth := c.Request().Header.Get("Authorization")
-
-	//validar datos
-	if auth == "" {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	claims, err := encryption.ParseLoginJWT(auth)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	user := claims["email"].(string)
-	id := c.Param("id")
-
-	var newUser dtos.InviteUserRequest
-
-	err = c.Bind(&newUser) // llena a params con los datos de la solicitud
-
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-		//return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"}) //HTTP 400 Bad Request
-	}
-
-	log.Print(newUser)
-
-	if newUser.Email == "" || newUser.Role == "0" {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-	}
-
-	//obtener el proyecto
-	proyect, err := a.serv.GetRoomInfo(ctx, id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
-	}
-
-	//validar si el usuario tiene permisos
-	if proyect.Members["0"] != user {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	//validar si el usuario ya esta en el proyecto dentro de Members[0], Members[1][array], Members[2][array]
-	if proyect.Members["0"] == newUser.Email {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "User already in the project"})
-	}
-
-	members1 := proyect.Members["1"].(primitive.A)
-	members2 := proyect.Members["2"].(primitive.A)
-
-	for _, member := range members1 {
-		if member == newUser.Email {
-			return c.JSON(http.StatusBadRequest, responseMessage{Message: "User already in the project"})
-		}
-	}
-
-	for _, member := range members2 {
-		if member == newUser.Email {
-			return c.JSON(http.StatusBadRequest, responseMessage{Message: "User already in the project"})
-		}
-	}
-
-	err = a.repo.AddUserToProject(ctx, newUser.Email, newUser.Role, id)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to invite user"})
-	}
-
-	return c.JSON(http.StatusOK, responseMessage{Message: "User invited successfully"})
 }
 
 func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config map[string]interface{}, Fosil map[string]interface{}, Facies map[string]interface{}) *RoomData {
@@ -1183,152 +559,6 @@ func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config 
 	return room
 }
 
-func (a *API) HandleCreateProyect(c echo.Context) error {
-
-	ctx := c.Request().Context()
-
-	auth := c.Request().Header.Get("Authorization")
-	if auth == "" {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	// Si existe, revisa si es valido
-	claims, err := encryption.ParseLoginJWT(auth)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	correo := claims["email"].(string)
-	name := claims["name"].(string)
-	log.Println(correo)
-	log.Println(name)
-
-	var params dtos.Project
-
-	err = c.Bind(&params) // llena a params con los datos de la solicitud
-
-	log.Print(params)
-
-	// Sin error  == nil - Con error != nil
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
-		//return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"}) //HTTP 400 Bad Request
-	}
-
-	err = a.dataValidator.Struct(params) // valida los datos de la solicitud
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()}) // HTTP 400 Bad Request
-	}
-
-	err = a.serv.CreateRoom(ctx, params.RoomName, name, correo, params.Desc, params.Location, params.Lat, params.Long, params.Visible)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to create a room"})
-	}
-
-	return c.JSON(http.StatusOK, responseMessage{Message: "Room created successfully"})
-}
-
-func (a *API) projects(c echo.Context) error {
-
-	ctx := c.Request().Context()
-	auth := c.Request().Header.Get("Authorization")
-
-	log.Print(auth)
-
-	//validar datos
-	if auth == "" {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	claims, err := encryption.ParseLoginJWT(auth)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	user := claims["email"].(string)
-
-	proyects, err := a.serv.GetProyects(ctx, user)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
-	}
-
-	// Crear una instancia de ProjectResponse con los proyectos obtenidos
-	response := ProjectResponse{
-		Projects: proyects,
-	}
-
-	// Devolver la respuesta JSON con los proyectos
-	return c.JSON(http.StatusOK, response)
-}
-
-func (a *API) HandleGetPublicProject(c echo.Context) error {
-
-	ctx := c.Request().Context()
-	auth := c.Request().Header.Get("Authorization")
-	if auth == "" {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	proyects, err := a.serv.HandleGetPublicProject(ctx)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
-	}
-
-	// Crear una instancia de ProjectResponse con los proyectos obtenidos
-	response := ProjectResponse{
-		Projects: proyects,
-	}
-
-	// Devolver la respuesta JSON con los proyectos
-	return c.JSON(http.StatusOK, response)
-}
-
-func (a *API) DeleteProject(c echo.Context) error {
-
-	ctx := c.Request().Context()
-
-	auth := c.Request().Header.Get("Authorization")
-
-	if auth == "" {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	claims, err := encryption.ParseLoginJWT(auth)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
-	user := claims["email"].(string)
-
-	id := c.Param("id")
-	proyect, err := a.serv.GetRoomInfo(ctx, id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
-	}
-
-	if proyect.Members["0"] != user {
-		err = a.repo.DeleteUserRoom(ctx, user, id)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete user"})
-		}
-
-	} else {
-		err = a.repo.DeleteProject(ctx, id)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete room"})
-		}
-
-	}
-
-	return c.JSON(http.StatusOK, responseMessage{Message: "Room deleted successfully"})
-}
-
 func (a *API) HandleGetActiveProject(c echo.Context) error {
 
 	var keys []string
@@ -1338,4 +568,517 @@ func (a *API) HandleGetActiveProject(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, keys)
+}
+
+func generateRandomColor() string {
+	// Generar un color aleatorio en formato hexadecimal
+	color := make([]byte, 3)
+	_, err := rand.Read(color)
+	if err != nil {
+		panic(err)
+	}
+	return "#" + hex.EncodeToString(color)
+}
+
+func añadir(project *RoomData, dataMap GeneralMessage, roomID string) {
+
+	var addData dtos.Add
+	err := json.Unmarshal(dataMap.Data, &addData)
+	if err != nil {
+		log.Println("Error al deserializar: ", err)
+		return
+	}
+
+	rowIndex := addData.RowIndex
+	height := addData.Height
+	roomData := rooms[roomID]
+
+	var index int
+
+	if rowIndex == -1 {
+		index = len(roomData.Data)
+	} else {
+		index = rowIndex
+	}
+
+	var prevShape string
+	var lit = roomData.Data
+
+	if index+1 > 0 && index+1 < len(roomData.Data) {
+		lit[index+1].Litologia.PrevContact = "111"
+		rooms[roomID].Data = lit
+	}
+
+	if index-1 >= 0 && index-1 < len(roomData.Data) {
+		prevShape = roomData.Data[index-1].Litologia.Contact
+	} else if index == 0 {
+		prevShape = "111"
+	} else {
+		prevShape = "111"
+	}
+
+	newShape := models.DataInfo{
+		Sistema:                "",
+		Edad:                   "",
+		Formacion:              "",
+		Miembro:                "",
+		Espesor:                "",
+		Facie:                  "",
+		AmbienteDepositacional: "",
+		Descripcion:            "",
+		Litologia: models.LitologiaStruc{
+			ColorFill:   "#ffffff",
+			ColorStroke: "#000000",
+			Zoom:        100,
+			Rotation:    0,
+			Tension:     0.5,
+			File:        "Sin Pattern",
+			Height:      height,
+			Circles: []models.CircleStruc{
+				{X: 0, Y: 0, Radius: 5, Movable: false},
+				{X: 0.5, Y: 0, Radius: 5, Movable: true, Name: "none"},
+				{X: 0.5, Y: 1, Radius: 5, Movable: true, Name: "none"},
+				{X: 0, Y: 1, Radius: 5, Movable: false},
+			},
+			Contact:     "111",
+			PrevContact: prevShape,
+		},
+	}
+
+	if rowIndex == -1 { // Agrega al final
+		roomData.Data = append(roomData.Data, newShape)
+
+		// Enviar informacion a los clientes
+		msgData := map[string]interface{}{
+			"action": "añadirEnd",
+			"value":  newShape,
+		}
+
+		sendSocketMessage(msgData, project, "añadir")
+
+	} else { // Agrega en el índice encontrado
+		roomData.Data = append(roomData.Data[:rowIndex], append([]models.DataInfo{newShape}, roomData.Data[rowIndex:]...)...)
+
+		msgData := map[string]interface{}{
+			"action":   "añadir",
+			"rowIndex": rowIndex,
+			"value":    newShape,
+		}
+
+		sendSocketMessage(msgData, project, "añadir")
+
+	}
+
+}
+
+func deleteRow(project *RoomData, dataMap GeneralMessage, roomID string) {
+
+	var deleteData dtos.Delete
+	err := json.Unmarshal(dataMap.Data, &deleteData)
+	if err != nil {
+		log.Println("Error al deserializar: ", err)
+		return
+	}
+
+	rowIndex := deleteData.RowIndex
+	roomData := rooms[roomID]
+
+	if rowIndex+1 > 0 && rowIndex+1 < len(roomData.Data) {
+		if rowIndex-1 >= 0 {
+			lit := roomData.Data
+			lit[rowIndex+1].Litologia.PrevContact = roomData.Data[rowIndex-1].Litologia.Contact
+			rooms[roomID].Data = lit
+
+			var newPrev string
+			if rowIndex-1 >= 0 {
+				newPrev = roomData.Data[rowIndex-1].Litologia.Contact
+			} else {
+				newPrev = "111"
+			}
+
+			msgData2 := map[string]interface{}{
+				"action":   "editPolygon",
+				"rowIndex": rowIndex + 1,
+				"key":      "prevContact",
+				"value":    newPrev,
+			}
+			sendSocketMessage(msgData2, project, "editPolygon")
+		}
+	}
+
+	roomData.Data = append(roomData.Data[:rowIndex], roomData.Data[rowIndex+1:]...)
+
+	msgData := map[string]interface{}{
+		"action":   "delete",
+		"rowIndex": rowIndex,
+	}
+	sendSocketMessage(msgData, project, "delete")
+
+}
+
+func editText(project *RoomData, dataMap GeneralMessage, roomID string) {
+
+	var editTextData dtos.EditText
+	err := json.Unmarshal(dataMap.Data, &editTextData)
+	if err != nil {
+		log.Println("Error al deserializar: ", err)
+	}
+
+	key := editTextData.Key
+	value := editTextData.Value
+	rowIndex := editTextData.RowIndex
+
+	roomData := &rooms[roomID].Data[rowIndex]
+
+	UpdateFieldAll(roomData, key, value)
+
+	// Enviar informacion a los clientes
+	msgData := map[string]interface{}{
+		"action":   "editText",
+		"key":      key,
+		"value":    value,
+		"rowIndex": rowIndex,
+	}
+
+	sendSocketMessage(msgData, project, "editText")
+
+}
+
+func editPolygon(project *RoomData, dataMap GeneralMessage) {
+
+	var polygon dtos.EditPolygon
+	err := json.Unmarshal(dataMap.Data, &polygon)
+	if err != nil {
+		log.Println("Error deserializando el polygon:", err)
+		return
+	}
+	rowIndex := polygon.RowIndex
+	column := polygon.Column
+	value := polygon.Value
+
+	roomData := &project.Data[rowIndex].Litologia
+
+	UpdateFieldLit(roomData, column, value)
+
+	msgData := map[string]interface{}{
+		"action":   "editPolygon",
+		"rowIndex": rowIndex,
+		"key":      column,
+		"value":    value,
+	}
+
+	if column == "contact" && rowIndex+1 < len(project.Data) {
+		roomData2 := project.Data
+		innerMap2 := roomData2[rowIndex+1].Litologia
+		innerMap2.PrevContact = roomData.Contact
+		project.Data = roomData2
+		msgData2 := map[string]interface{}{
+			"action":   "editPolygon",
+			"rowIndex": rowIndex + 1,
+			"key":      "prevContact",
+			"value":    roomData.Contact,
+		}
+		sendSocketMessage(msgData2, project, "editPolygon")
+	}
+
+	sendSocketMessage(msgData, project, "editPolygon")
+
+}
+
+func addCircle(project *RoomData, dataMap GeneralMessage) {
+
+	var addCircleData dtos.AddCircle
+	err := json.Unmarshal(dataMap.Data, &addCircleData)
+	if err != nil {
+		log.Println("Error al deserializar: ", err)
+		return
+	}
+
+	rowIndex := addCircleData.RowIndex
+	insertIndex := addCircleData.InsertIndex
+	point := addCircleData.Point
+
+	roomData := &project.Data[rowIndex].Litologia.Circles
+
+	newCircle := models.CircleStruc{
+		X:       0.5,
+		Y:       point,
+		Radius:  5,
+		Movable: true,
+		Name:    "none",
+	}
+
+	*roomData = append((*roomData)[:insertIndex], append([]models.CircleStruc{newCircle}, (*roomData)[insertIndex:]...)...)
+
+	// Enviar informacion a los clientes
+	msgData := map[string]interface{}{
+		"action":   "addCircle",
+		"rowIndex": rowIndex,
+		"value":    roomData,
+	}
+
+	sendSocketMessage(msgData, project, "addCircle")
+
+}
+
+func deleteCircle(project *RoomData, dataMap GeneralMessage) {
+
+	var deleteCircleData dtos.DeleteCircle
+	err := json.Unmarshal(dataMap.Data, &deleteCircleData)
+	if err != nil {
+		log.Println("Error al deserializar: ", err)
+		return
+	}
+
+	rowIndex := deleteCircleData.RowIndex
+	deleteIndex := deleteCircleData.DeleteIndex
+
+	roomData := &project.Data[rowIndex].Litologia.Circles
+
+	*roomData = append((*roomData)[:deleteIndex], (*roomData)[deleteIndex+1:]...)
+
+	msgData := map[string]interface{}{
+		"action":   "addCircle",
+		"rowIndex": rowIndex,
+		"value":    roomData,
+	}
+
+	sendSocketMessage(msgData, project, "deleteCircle")
+
+}
+
+func editCircle(project *RoomData, dataMap GeneralMessage) {
+
+	var editCircleData dtos.EditCircle
+	err := json.Unmarshal(dataMap.Data, &editCircleData)
+	if err != nil {
+		log.Println("Error al deserializar: ", err)
+		return
+	}
+
+	rowIndex := editCircleData.RowIndex
+	editIndex := editCircleData.EditIndex
+	x := editCircleData.X
+	name := editCircleData.Name
+
+	roomData := &project.Data[rowIndex].Litologia.Circles
+
+	(*roomData)[editIndex].X = x
+	(*roomData)[editIndex].Name = name
+
+	msgData := map[string]interface{}{
+		"action":   "addCircle",
+		"rowIndex": rowIndex,
+		"value":    roomData,
+	}
+
+	sendSocketMessage(msgData, project, "editCircle")
+
+}
+
+func addFosil(project *RoomData, dataMap GeneralMessage) {
+
+	var fosil dtos.AddFosil
+	err := json.Unmarshal(dataMap.Data, &fosil)
+	if err != nil {
+		log.Println("Error", err)
+		return
+	}
+
+	id := shortuuid.New()
+	upper := fosil.Upper
+	lower := fosil.Lower
+	fosilImg := fosil.FosilImg
+	x := fosil.X
+
+	newFosil := map[string]interface{}{
+		"upper":    upper,
+		"lower":    lower,
+		"fosilImg": fosilImg,
+		"x":        x,
+	}
+
+	roomData := &project.Fosil
+	(*roomData)[id] = newFosil
+
+	msgData := map[string]interface{}{
+		"action":  "addFosil",
+		"idFosil": id,
+		"value":   newFosil,
+	}
+
+	sendSocketMessage(msgData, project, "addFosil")
+
+}
+
+func deleteFosil(project *RoomData, dataMap GeneralMessage) {
+
+	var fosilID dtos.DeleteFosil
+	err := json.Unmarshal(dataMap.Data, &fosilID)
+	if err != nil {
+		log.Println("Error deserializando fósil:", err)
+		return
+	}
+
+	id := fosilID.IdFosil
+
+	roomData := &project.Fosil
+	delete(*roomData, id)
+
+	msgData := map[string]interface{}{
+		"action":  "deleteFosil",
+		"idFosil": id,
+	}
+
+	sendSocketMessage(msgData, project, "deleteFosil")
+
+}
+
+func editFosil(project *RoomData, dataMap GeneralMessage) {
+
+	var fosilEdit dtos.EditFosil
+	err := json.Unmarshal(dataMap.Data, &fosilEdit)
+	if err != nil {
+		log.Println("Error deserializando fósil:", err)
+		return
+	}
+
+	id := fosilEdit.IdFosil
+	upper := fosilEdit.Upper
+	lower := fosilEdit.Lower
+	fosilImg := fosilEdit.FosilImg
+	x := fosilEdit.X
+
+	newFosil := map[string]interface{}{
+		"upper":    upper,
+		"lower":    lower,
+		"fosilImg": fosilImg,
+		"x":        x,
+	}
+
+	roomData := &project.Fosil
+	(*roomData)[id] = newFosil
+
+	msgData := map[string]interface{}{
+		"action":  "editFosil",
+		"idFosil": id,
+		"value":   newFosil,
+	}
+
+	sendSocketMessage(msgData, project, "editFosil")
+
+}
+
+func addFacie(project *RoomData, dataMap GeneralMessage) {
+	var facie dtos.Facie
+	err := json.Unmarshal(dataMap.Data, &facie)
+	if err != nil {
+		log.Println("Error", err)
+		return
+	}
+
+	name := facie.Facie
+
+	if project.Facies == nil {
+		project.Facies = make(map[string]interface{})
+	}
+
+	project.Facies[name] = []map[string]interface{}{}
+
+	msgData := map[string]interface{}{
+		"action": "addFacie",
+		"facie":  name,
+	}
+
+	sendSocketMessage(msgData, project, "addFacie")
+
+}
+
+func deleteFacie(project *RoomData, dataMap GeneralMessage) {
+	var facie dtos.Facie
+	err := json.Unmarshal(dataMap.Data, &facie)
+	if err != nil {
+		log.Println("Error", err)
+		return
+	}
+
+	id := facie.Facie
+
+	roomData := &project.Facies
+	delete(*roomData, id)
+
+	msgData := map[string]interface{}{
+		"action": "deleteFacie",
+		"facie":  id,
+	}
+
+	sendSocketMessage(msgData, project, "deleteFacie")
+
+}
+
+func isInverted(project *RoomData, dataMap GeneralMessage) {
+
+	var isInverted dtos.IsInverted
+	err := json.Unmarshal(dataMap.Data, &isInverted)
+	if err != nil {
+		log.Println("Error deserializando columna:", err)
+		return
+	}
+
+	project.Config["isInverted"] = isInverted.IsInverted
+
+	msgData := map[string]interface{}{
+		"action":     "isInverted",
+		"isInverted": isInverted.IsInverted,
+	}
+
+	sendSocketMessage(msgData, project, "isInverted")
+
+}
+
+func (a *API) save(project *RoomData, roomID string) {
+
+	err := a.serv.SaveRoom(context.Background(), project.Data, project.Config, project.Fosil, roomID, project.Facies)
+	if err != nil {
+		log.Println("No se guardo la data")
+	}
+
+}
+
+func addFacieSection(project *RoomData, dataMap GeneralMessage) {
+	var f dtos.AddFacieSection
+	err := json.Unmarshal(dataMap.Data, &f)
+	if err != nil {
+		log.Println("Error", err)
+		return
+	}
+	name := f.Facie
+	y1 := f.Y1
+	y2 := f.Y2
+
+	log.Print(name, y1, y2)
+
+	innerMap, ok := project.Facies[name].([]map[string]interface{})
+	if !ok {
+		log.Println("error", ok)
+		//return
+	}
+
+	newSectionFacie := map[string]interface{}{
+		"y1": y1,
+		"y2": y2,
+	}
+
+	innerMap = append(innerMap, newSectionFacie)
+	project.Facies[name] = innerMap
+
+	msgData := map[string]interface{}{
+		"action": "addFacieSection",
+		"facie":  name,
+		"y1":     y1,
+		"y2":     y2,
+	}
+
+	sendSocketMessage(msgData, project, "addFacieSection")
+
 }

@@ -58,9 +58,9 @@ type LitologiaStruc struct {
 }
 
 type CircleStruc struct {
-	X       float64 `json:"X"`
-	Y       float64 `json:"Y"`
-	Radius  float64 `json:"Radius"`
+	X       float32 `json:"X"`
+	Y       float32 `json:"Y"`
+	Radius  float32 `json:"Radius"`
 	Movable bool    `json:"Movable"`
 	Name    string  `json:"Name"`
 }

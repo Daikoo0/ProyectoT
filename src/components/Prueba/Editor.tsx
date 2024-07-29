@@ -19,16 +19,10 @@ const Grid = () => {
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
-  const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
+  const isPageActive = useRef(true); 
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
   const [fossils, setFossils] = useState([]);
-  // const [facies, setFacies] = useState({
-  //   "A": [{ y1: 300, y2: 380 }],
-  //   "B": [{ y1: 200, y2: 300 }, { y1: 380, y2: 500 }],
-  //   "C": [{ y1: 50, y2: 180 }],
-  //   "D": [{ y1: 500, y2: 580 }, { y1: 180, y2: 200 }]
-  // });
   const [facies, setFacies] = useState({});
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
@@ -73,6 +67,7 @@ const Grid = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     console.log(name, value)
+
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
@@ -87,6 +82,9 @@ const Grid = () => {
         'value': value,
       },
     }));
+
+    console.log(formData)
+
   };
 
   const handleChangeLocal = (e) => {
@@ -247,7 +245,7 @@ const Grid = () => {
                 ...newData[shapeN.rowIndex],
                 Litologia: {
                   ...newData[shapeN.rowIndex].Litologia,
-                  ["circles"]: shapeN.value
+                  ["Circles"]: shapeN.value
                 }
               };
               return newData;
@@ -925,7 +923,7 @@ const Grid = () => {
 
                       <li className='mb-2' >
                         <p>
-                          <input type="number" name='height' onChange={handleChangeLocal} value={formData.Height} />
+                          <input type="number" name='Height' onChange={handleChangeLocal} value={formData.Height} />
                           cm
                         </p>
                       </li>
