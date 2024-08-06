@@ -28,7 +28,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
         const handleMouseMove = (moveEvent) => {
             let newWidth = startWidth + moveEvent.clientX - startX;
-            if(columnName === "Litologia"){cellMinWidth = 250; cellMaxWidth = 400}
+            if (columnName === "Litologia") { cellMinWidth = 250; cellMaxWidth = 400 }
             newWidth = Math.max(cellMinWidth, Math.min(newWidth, cellMaxWidth));
             if (columnName !== "Espesor") {
                 setColumnWidths((prevWidths) => ({
@@ -75,7 +75,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation,pdfData.customWidthLit)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit)
     }
 
     const handleRows = (e, key) => {
@@ -92,7 +92,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             data: newRows,
         }));
-        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation,pdfData.customWidthLit)
+        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation, pdfData.customWidthLit)
 
     }
 
@@ -135,11 +135,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     }, [adfas.current, data.length]);
 
 
-    
-        // const buttons =  document.getElementById('main-iframe').querySelectorAll('button');
-        // buttons.forEach(button => {
-        //   button.classList.add('btn', 'btn-primary', 'm-2');
-        // });
+
+    // const buttons =  document.getElementById('main-iframe').querySelectorAll('button');
+    // buttons.forEach(button => {
+    //   button.classList.add('btn', 'btn-primary', 'm-2');
+    // });
 
 
     return (
@@ -154,13 +154,13 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 {/* <p className="flex-shrink-0 text-xl">Vista previa</p>
                                 <br /> */}
                                 <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
-                              
-                              
-                              
+
+
+
                             </div>
 
-{/* seccion derecha */}
-<div className="flex flex-col flex-grow card overflow-auto w-full lg:w-3/10">
+                            {/* seccion derecha */}
+                            <div className="flex flex-col flex-grow card overflow-auto w-full lg:w-3/10">
 
                                 <div className="menu p-4 w-full min-h-full text-base-content">
                                     {/* Select */}
@@ -170,7 +170,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             ...prevState,
                                             format: e.target.value,
                                         }));
-                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation,pdfData.customWidthLit)
+                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation, pdfData.customWidthLit)
                                     }} className="select select-bordered w-full max-w-xs mb-4">
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
                                         <option value={'EXECUTIVE'}>Executive</option>
@@ -241,7 +241,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     ...prevState,
                                                     orientation: (e.target.checked) ? "portrait" : "landscape",
                                                 }));
-                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"),pdfData.customWidthLit)
+                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"), pdfData.customWidthLit)
                                             }} />
                                     </div>
                                     {/* Lista de visibilidad de columnas */}
@@ -274,22 +274,22 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     </div>
 
                                     <div className="menu p-4 w-full min-h-full text-base-content">
-                                    {/* Select */}
-                                    Espacio horizontal de la litología respecto al espacio de la hoja
-                                    <select value={pdfData.customWidthLit} onChange={(e) => {
-                                        setPdfData(prevState => ({
-                                            ...prevState,
-                                            customWidthLit: e.target.value,
-                                        }));
-                                        Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation,e.target.value)
-                                    }} className="select select-bordered w-full max-w-xs mb-4">
-                                        <option value={""} disabled>Elige el ancho de la litologia</option>
-                                        <option value={'20%'}>20%</option>
-                                        <option value={'25%'}>25%</option>
-                                        <option value={'50%'}>50%</option>
-                                        <option value={'75%'}>75%</option>
-</select>
-                                        </div>
+                                        {/* Select */}
+                                        Espacio horizontal de la litología respecto al espacio de la hoja
+                                        <select value={pdfData.customWidthLit} onChange={(e) => {
+                                            setPdfData(prevState => ({
+                                                ...prevState,
+                                                customWidthLit: e.target.value,
+                                            }));
+                                            Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, e.target.value)
+                                        }} className="select select-bordered w-full max-w-xs mb-4">
+                                            <option value={""} disabled>Elige el ancho de la litologia</option>
+                                            <option value={'20%'}>20%</option>
+                                            <option value={'25%'}>25%</option>
+                                            <option value={'50%'}>50%</option>
+                                            <option value={'75%'}>75%</option>
+                                        </select>
+                                    </div>
 
                                     {/* Lista de visibilidad de capas */}
                                     <div>
@@ -335,14 +335,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     key={columnName}
                                     className="border border-base-content bg-primary sticky top-0"
                                     style={{
-                                        width: `${columnName === "Espesor" 
-                                                    ? 70 
-                                                    : columnName === "Litologia" 
-                                                    ? (columnWidths[columnName] || 250) 
-                                                    : (columnWidths[columnName] || cellWidth)}px`,
+                                        width: `${columnName === "Espesor"
+                                            ? 70
+                                            : columnName === "Litologia"
+                                                ? (columnWidths[columnName] || 250)
+                                                : (columnWidths[columnName] || cellWidth)}px`,
                                         height: '120px',
                                     }}>
-                                    
+
                                     <div className="flex justify-between items-center font-semibold">
                                         <p className="text text-accent-content w-1/2">{columnName}</p>
 
@@ -481,7 +481,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         }
                                                     }}
                                                     style={{ top: 0 }}>
-                                                    <svg className="h-full max-h-full" width={columnWidths["Estructura fosil"] || cellWidth} height="0" overflow='visible'>
+                                                    <svg id="fossilSvg" className="h-full max-h-full" width={columnWidths["Estructura fosil"] || cellWidth} height="0" overflow='visible'>
                                                         {fossils ? (
                                                             Object.keys(fossils).map((data, index) => (
 
@@ -516,16 +516,17 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             >
                                                 <div className="h-full max-h-full"
                                                     style={{ top: 0 }}>
-                                                    <svg className="h-full max-h-full" width={columnWidths["Facie"] || cellWidth} height="0" overflow='visible'>
+                                                    <svg id="svgFacies" className="h-full max-h-full" width={columnWidths["Facie"] || cellWidth} height="0" overflow='visible'>
                                                         {facies ? (
                                                             Object.keys(facies).map((key, index) => {
-                                                                const w = ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1))
-                                                                const xPos = (index + 1) * (w);
-                                                                const rectx = (index) * (w)
+                                                                const xPosp = "" + (((index + 1) / (Object.keys(facies).length + 1)) * 100) + "%";//(index + 1) * (w);
+                                                                const wp = "" + (((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1)) / (columnWidths["Facie"] || cellWidth) * 100) + "%";
                                                                 return (
                                                                     <>
-                                                                        <rect x={xPos} y="0" height="100%" width={w} className="stroke stroke-base-content"
+
+                                                                        <rect x={xPosp} y="0" height="100%" width={wp} className="stroke stroke-base-content"
                                                                             strokeWidth={"1"} fill="transparent"
+                                                                            data-value="value1"
                                                                             onClick={() => {
                                                                                 setSideBarState({
                                                                                     sideBar: true,
@@ -535,37 +536,42 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                             }
                                                                             }
                                                                         />
-                                                                        {facies[key].map((value) => (
-                                                                            <>
-                                                                                {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
-                                                                                <text
-                                                                                    key={value}
-                                                                                    className="fill fill-base-content"
-                                                                                    x={0}
-                                                                                    y={parseFloat(value.y1) + 13}>{key}</text>
-                                                                                <rect
-                                                                                    key={value}
-                                                                                    className="fill fill-base-content"
-                                                                                    x={xPos}
-                                                                                    y={parseFloat(value.y1)}
-                                                                                    width={(xPos - rectx) + 1}
-                                                                                    height={parseFloat(value.y2) - parseFloat(value.y1)}  // Altura del rectángulo
-                                                                                    onClick={() => {
-                                                                                        setSideBarState({
-                                                                                            sideBar: true,
-                                                                                            sideBarMode: "facieSection"
-                                                                                        })
-                                                                                        setFormFacies({ facie: key })
-                                                                                    }
-                                                                                    }
-                                                                                />
-                                                                            </>
-                                                                        ))}
+                                                                        {facies[key].map((value, i) => {
+                                                                            return (
+                                                                                <>
+                                                                                    {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
+                                                                                    <g key={i}>
+                                                                                        <text
+                                                                                            key={value}
+                                                                                            fontSize={14}
+                                                                                            className="fill fill-base-content"
+                                                                                            x={10}
+                                                                                            transform={`rotate(90, 5, ${parseFloat(value.y1)})`}
+                                                                                            y={parseFloat(value.y1)-2}>{key}</text>
+                                                                                    </g>
+                                                                                    <rect data-custom="valor1"
+                                                                                        key={value}
+                                                                                        className="fill fill-base-content"
+                                                                                        x={xPosp}
+                                                                                        y={parseFloat(value.y1)}
+                                                                                        width={wp}//width={(xPos - rectx) + 1}
+                                                                                        height={parseFloat(value.y2) - parseFloat(value.y1)}  // Altura del rectángulo
+                                                                                        onClick={() => {
+                                                                                            setSideBarState({
+                                                                                                sideBar: true,
+                                                                                                sideBarMode: "facieSection"
+                                                                                            })
+                                                                                            setFormFacies({ facie: key })
+                                                                                        }
+                                                                                        }
+                                                                                    />
+                                                                                </>
+                                                                            )
+                                                                        })}
                                                                     </>
                                                                 );
                                                             })
                                                         ) : null}
-
                                                     </svg>
                                                 </div>
                                             </td>

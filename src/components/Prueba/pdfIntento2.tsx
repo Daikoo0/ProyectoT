@@ -1,15 +1,17 @@
 import { Page, Text, View, Document, StyleSheet, pdf, Image as Img } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
 import sheetSize from '../../sheetSizes.json';
-import sheetSizeCm from '../../sheetSizesCm.json';
+//import sheetSizeCm from '../../sheetSizesCm.json';
 import MySVG from "../MYSVG.tsx";
 
 // Estilos
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
-    padding: 10,
-    fontSize:10,
+    paddingTop: 10,
+    paddingLeft: "0.5cm",
+    paddingRight: "0.5cm",
+    fontSize: 10,
   },
   paragraph: {
     marginTop: 1, // Ajusta el espacio entre párrafos
@@ -21,13 +23,13 @@ const styles = StyleSheet.create({
     borderBottomColor: 'grey',
     borderBottomStyle: 'solid',
     overflow: 'hidden',
-    lineHeight: 1,
+    // lineHeight: 1,
   },
   tableCol: {
-    borderRightWidth: 0.5,
+    borderRightWidth: "0.01cm",//0.5,
     borderRightColor: 'grey',
     borderRightStyle: 'solid',
-    borderLeftWidth: 0.5,
+    borderLeftWidth: "0.01cm",//0.5,
     borderLeftColor: 'grey',
     borderLeftStyle: 'solid',
     overflow: 'hidden',
@@ -44,14 +46,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const TableHeader = ({ headerImg, columnWidths, header }) => {
-
+const TableHeader = ({ columnWidths, header }) => {
   return (
     <View style={styles.tableRow}>
       {Object.keys(header).map((key, index) => (
         <View key={index} style={[styles.tableCol, styles.tableCellHeader, { width: columnWidths[header[key]], height: 120 }]}>
           {header[key] === "Litologia" ? (
-            <MySVG/>
+            <MySVG wdth={parseFloat(columnWidths["Litologia"])} />
           ) : (
             <Text>{header[key]}</Text>
           )}
@@ -62,44 +63,41 @@ const TableHeader = ({ headerImg, columnWidths, header }) => {
 
 };
 
-function svgListToDataURL(svgList, columnWidths, widthSheet) {
+function svgListToDataURL(svgList, columnWidths) {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     let totalHeight = 0;
-    let maxWidth = columnWidths["Litologia"]
-    let val = (((widthSheet - 20) / 100) * parseFloat(maxWidth))
-    let combinedSVG = `<svg width="` + val + `" xmlns="http://www.w3.org/2000/svg">`;
+    let val = parseFloat(columnWidths["Litologia"]) //(((widthSheet - 20) / 100) * parseFloat(maxWidth))
+    let combinedSVG = `<svg width="` + val + `cm" xmlns="http://www.w3.org/2000/svg">`;
 
     svgList.forEach((svg, index) => {
       const svgCopy = svg.cloneNode(true);
       const circles = svgCopy.querySelectorAll('circle');
       circles.forEach(circle => circle.remove());
       const alturaActual = parseFloat(svgCopy.getAttribute('height'));
-      const currentWidth = svg.clientWidth
-      let scaleFactor = (((widthSheet - 20) / 100) * parseFloat(maxWidth)) / (currentWidth);
+      const currentWidth = svg.clientWidth * 2.54 / 96//svg.clientWidth
+      let scaleFactor = parseFloat(columnWidths["Litologia"]) / currentWidth //(((widthSheet - 20) / 100) * parseFloat(maxWidth)) / (currentWidth);
       var path = svgCopy.getElementsByClassName("stroke-current text-base-content");
       var pa = svgCopy.getElementsByClassName("pa");
       path[0].setAttribute('transform', `scale(${scaleFactor},1)`);
       for (var i = 0; i < pa.length; i++) {
         pa[i].setAttribute('transform', `scale(${scaleFactor},1)`);
       }
-      console.log(scaleFactor)
       svgCopy.style.transformOrigin = `0 0`;
       svgCopy.setAttribute('y', totalHeight);
       totalHeight += alturaActual;
       combinedSVG += new XMLSerializer().serializeToString(svgCopy);
     });
     combinedSVG += `</svg>`;
-
-    console.log(combinedSVG, typeof (combinedSVG))
+    console.log(combinedSVG)
 
     const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
 
     const img = new Image();
     img.onload = () => {
-      canvas.width = (((widthSheet - 20) / 100) * parseFloat(maxWidth));
+      canvas.width = parseFloat(columnWidths["Litologia"]) * 96 / 2.54//(((widthSheet - 20) / 100) * parseFloat(maxWidth));
       canvas.height = totalHeight + 10;
       ctx.drawImage(img, 0, 0);
       const imgURL = canvas.toDataURL('image/png', 1.0);
@@ -112,11 +110,33 @@ function svgListToDataURL(svgList, columnWidths, widthSheet) {
   });
 }
 
-async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths, widthSheet) {
+
+const svgDivision = async (measures, columnWidths) => {
+  let arrayFossils = []
+  let arrayEspesor = []
+  let arrayFacies = []
+  var y = 0
+  const svgFossil = document.querySelector('svg#fossilSvg');
+  const svgEspesor = document.querySelector('svg#rulerSvg');
+  const svgFacies = document.querySelector('svg#svgFacies');
+  for (const measure of measures) {
+    const { height } = measure;
+    const imgPageFossils = await svgToImg(svgFossil, height, svgFossil.clientWidth, y, "Estructura fosil", columnWidths);
+    const imgPageEspesor = await svgToImg(svgEspesor, height, svgEspesor.clientWidth, y, "Espesor", columnWidths);
+    const imgPageFacies = await svgToImg(svgFacies, height, svgFacies.clientWidth, y, "Facie", columnWidths);
+    y += height;
+    arrayFossils.push(imgPageFossils);
+    arrayEspesor.push(imgPageEspesor);
+    arrayFacies.push(imgPageFacies);
+  }
+  return [arrayFossils, arrayEspesor, arrayFacies];
+};
+
+async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths) {
   const indexes = rowIndexesPerPage[pageIndex]; // todos los índices de pageIndex
   const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la página que se está generando
   if (filteredTdsWithSvg.length > 0) {
-    const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, columnWidths, widthSheet);
+    const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, columnWidths);
     console.log(imageDataURL)
     return imageDataURL;
   } else {
@@ -124,34 +144,58 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const getColumnX = (columnName, header, columnWidths, widthSheet) => {
-  let xPosition = 0
+const getColumnX = (columnName, header, columnWidths) => {
+  let xPosition = 0.01
   for (const key in header) {
+    console.log(columnWidths[header[key]])
     if (header[key] === columnName) break;
-    xPosition += parseFloat(columnWidths[header[key]]); // Suma el porcentaje 
-    //console.log(xPosition,columnWidths[header[key]],key,header[key])
+    xPosition += parseFloat(columnWidths[header[key]]) + 0.02;
   }
-  return (xPosition*(widthSheet*0.0352778))/100; // Devuelve la posición x en px
+  return xPosition;
 };
 
 
-const MyDocument = ({ headerImg, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
+const MyDocument = ({ imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
 
-  const LitologiaX = getColumnX("Litologia", header, columnWidths, widthSheet);
-  console.log(LitologiaX)
+  const litologiaX = getColumnX("Litologia", header, columnWidths);
+  const fossilsX = getColumnX("Estructura fosil", header, columnWidths);
+  const espesorX = getColumnX("Espesor", header, columnWidths);
+  const faciesX = getColumnX("Facie", header, columnWidths);
   return (
     <Document>
       {rowIndexesPerPage.map((pageIndexes, pageIndex) => (
-        <Page orientation={orientation} size={[sheetSize[format][0],sheetSize[format][1]]} style={styles.page} key={`page-${pageIndex}`}>
-          <TableHeader headerImg={headerImg} columnWidths={columnWidths} header={header} />
-          <Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor:"transparent", height: imgPage[pageIndex].totalHeight + 10, top: 130, left: (LitologiaX+10), position: "absolute", width: ((widthSheet - 20) / 100) * parseFloat(columnWidths["Litologia"]) }]} />
+        <Page orientation={orientation} size={[sheetSize[format][0], sheetSize[format][1]]} style={styles.page} key={`page-${pageIndex}`}>
+          <TableHeader columnWidths={columnWidths} header={header} />
+
+          <Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, top: 130, left: litologiaX + "cm", position: "absolute", width: columnWidths["Litologia"] }]} />
+          <Img src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: fossilsX+ "cm", position: "absolute", width: columnWidths["Estructura fosil"] }]} />
+          <Img src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: espesorX + "cm", position: "absolute", width: columnWidths["Espesor"] }]} />
+          <Img src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: faciesX + "cm", position: "absolute", width: columnWidths["Facie"] }]} />
+        
+
+          {/* {Object.keys(header).map((key, index) => (
+            <View key={index} style={[styles.tableCol, styles.tableCellHeader, { width: columnWidths[header[key]] }]}>
+              {header[key] === "Litologia" ? (
+                <Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, top: 130, left: litologiaX + "cm", position: "absolute", width: columnWidths["Litologia"] }]} />
+              ) : (<></>)}
+              {header[key] === "Estructura fosil" ? (
+                <Img src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: fossilsX + "cm", position: "absolute", width: columnWidths["Estructura fosil"] }]} />
+              ) : (<></>)}
+              {header[key] === "Espesor" ? (
+                <Img src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: espesorX + "cm", position: "absolute", width: columnWidths["Espesor"] }]} />
+              ) : (<></>)}
+              {header[key] === "Facie" ? (
+                <Img src={imageFacies[pageIndex]} style={[{ backgroundColor: "red", height: imgPage[pageIndex].totalHeight, top: 130, left: faciesX + "cm", position: "absolute", width: columnWidths["Facie"] }]} />
+              ) : (<></>)}
+            </View>
+          ))} */}
           {pageIndexes.map((item, index) => (
             <View style={[styles.tableRow, { height: data[item]["Litologia"].height }]} key={index}>
               {Object.values(header).map((key, i) => {
                 if (header[i] === 'Litologia') {
                   return (
                     <View key={i} style={[styles.tableCol, { width: columnWidths[header[i]], position: 'relative' }]}>
-                      <Text> </Text>
+                      <Text>  </Text>
                     </View>
                   );
                 }
@@ -165,34 +209,53 @@ const MyDocument = ({ headerImg, orientation, format, imgPage, columnWidths, dat
   )
 };
 
-function svgToImg(elsvg, columnWidths, format, column) {
-  const svgCopy = elsvg.cloneNode(true);
-  svgCopy.setAttribute("width", elsvg.clientWidth)
-  svgCopy.setAttribute("height", elsvg.clientHeight)
-  const maxWidth = columnWidths[column]
-  // let scaleFactor = (((widthSheet - 20) / 100) * parseFloat(maxWidth)) / (elsvg.clientWidth)
+
+function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
+  var svgCopy = elsvg.cloneNode(true);
+  let scaleFactor = parseFloat(columnWidths[columnName]) / (width * 2.54 / 96)
+  svgCopy.setAttribute("width", columnWidths[columnName]);//(parseFloat(columnWidths[columnName]) * 96 / 2.54));
+  svgCopy.setAttribute("height", height);
   // svgCopy.setAttribute('transform', `scale(${scaleFactor},1)`);
-  // svgCopy.style.transformOrigin = `0 0`;
-  const texts = svgCopy.querySelectorAll('text');
-  texts.forEach(text => {
-    const fontSize = window.getComputedStyle(text).fontSize;
-    text.style.fontSize = "12px";  //`${parseFloat(fontSize) * scaleFactor}px`;
-  });
+  if (columnName === "Estructura fosil") {
+    //svgCopy.style.background = "blue";
+    var lines = svgCopy.querySelectorAll('line');
+    lines.forEach(line => {
+      line.style.stroke = "black";
+    });
+    const fossilUnits = svgCopy.querySelectorAll('g.fossilUnit');
+    fossilUnits.forEach(fossilUnit => {
+      fossilUnit.setAttribute('transform', `scale(${scaleFactor},1)`);
+    });
+    console.log(svgCopy)
+  } else if (columnName === "Espesor") {
+    var lines = svgCopy.querySelectorAll('line');
+    lines.forEach(line => {
+      line.style.stroke = "black";
+    });
+  } else if (columnName === "Facie") {
+    var texts = svgCopy.querySelectorAll('text');
+    var rLength = svgCopy.querySelectorAll('rect[data-value="value1"]').length + 5;
+    console.log((parseFloat(columnWidths[columnName]) * 96 / 2.54) / rLength)
+    texts.forEach(text => {
+      text.setAttribute("font-size", (parseFloat(columnWidths[columnName]) * 96 / 2.54) / rLength);
+    });
+  }
+  svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${height}`);
+  //svgCopy.style.background = "white"
+  svgCopy.style.transformOrigin = `0 0`;
   var combinedSVG = new XMLSerializer().serializeToString(svgCopy);
+  console.log(combinedSVG)
   return new Promise((resolve, reject) => {
     const canvas2 = document.createElement('canvas');
     const ctx2 = canvas2.getContext('2d');
-    console.log(combinedSVG, typeof (combinedSVG))
     const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.onload = () => {
-      canvas2.width = elsvg.clientWidth// (((widthSheet - 20) / 100) * parseFloat(maxWidth));
-      canvas2.height = elsvg.clientHeight;
-      console.log(img)
+      canvas2.width = parseFloat(columnWidths[columnName]) * 96 / 2.54//width;
+      canvas2.height = height;
       ctx2.drawImage(img, 0, 0);
       const imgURL = canvas2.toDataURL('image/png', 1.0);
-      console.log(imgURL)
       resolve(imgURL);
     };
     img.onerror = (e) => {
@@ -204,22 +267,27 @@ function svgToImg(elsvg, columnWidths, format, column) {
 
 
 const Ab = async (data, headerParam, format, orientation, customWidthLit) => {
-  let widthSheet = (orientation == "portrait") ? sheetSize[format][0] : sheetSize[format][1]; 
-  let heightSheet = (orientation == "portrait") ? sheetSize[format][1] : sheetSize[format][0]; 
+  let widthSheet = (orientation == "portrait") ? sheetSize[format][0] : sheetSize[format][1];
+  let heightSheet = (orientation == "portrait") ? sheetSize[format][1] : sheetSize[format][0];
   let rowIndexesPerPage = [];
   let currentPageIndexes = [];
+  let pageLenghts = [];
   let currentPageHeight = 110;
   var header = [...headerParam]
   var format = format
   var columnWidths = {}
-  columnWidths["Espesor"] = String((1 * 100) / (widthSheet*0.0352778-20)) + "cm"
-  columnWidths["Litologia"] = customWidthLit!=="" ? customWidthLit : String((3 * 100) / (widthSheet*0.0352778)) + "cm"
-//  columnWidths["Litologia"] = customWidthLit!=="" ? customWidthLit : "25%";
+  //columnWidths["Espesor"] = String((1 * 100) / (widthSheet*0.0352778-20)) + "cm"
+  // columnWidths["Litologia"] = customWidthLit!=="" ? customWidthLit : String((3 * 100) / (widthSheet*0.0352778)) + "cm"
+  columnWidths["Litologia"] = customWidthLit !== "" ? customWidthLit : String((25 * widthSheet * 0.0352778) / 100) + "cm"
+  columnWidths["Espesor"] = (parseFloat(columnWidths["Litologia"]) / 4) + "cm"; //"2cm"
+  console.log(columnWidths["Espesor"])
+  //  columnWidths["Litologia"] = customWidthLit!=="" ? customWidthLit : "25%";
   for (var i in header) {
     if (header[i] !== "Espesor" && header[i] !== "Litologia") {
       //columnWidths[header[i]] = String((((100)-((((40+((customWidthLit !== ""? parseFloat(customWidthLit) : 25)*(widthSheet-20)/100)) * 100)/(widthSheet-20)))) / (header.length - 2))) + "%"
-      columnWidths[header[i]] = String((((100)-((((4) * 100)/(widthSheet*0.0352778-20)))) / (header.length - 2))) + "%"
-      //columnWidths[header[i]] = "1cm"
+      //columnWidths[header[i]] = String((((100)-((((4) * 100)/(widthSheet*0.0352778-20)))) / (header.length - 2))) + "%"
+      console.log(header[i])
+      columnWidths[header[i]] = String((widthSheet * 0.0352778 - (parseFloat(columnWidths["Espesor"]) + parseFloat(columnWidths["Litologia"]))) / (header.length - 2)) + "cm"
     }
   }
 
@@ -227,21 +295,34 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit) => {
     const rowHeight = key['Litologia'].height
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
+      pageLenghts.push({ 'height': currentPageHeight - 110 })
       currentPageIndexes = [];
       currentPageHeight = 110;
     }
-    currentPageHeight += rowHeight;
+    currentPageHeight += Number(rowHeight);
     currentPageIndexes.push(index);
   });
 
-  // ??
-  if (currentPageIndexes.length) rowIndexesPerPage.push(currentPageIndexes);
+  // ultima pagina
+  if (currentPageIndexes.length) {
+    rowIndexesPerPage.push(currentPageIndexes);
+    var totalPageHeight = 110
+    Object.values(data).forEach((key, index) => {
+      if (currentPageIndexes.includes(index)) {
+        const rowHeight = key['Litologia'].height
+        totalPageHeight += Number(rowHeight)
+      }
+    });
+    pageLenghts.push({
+      'height': totalPageHeight - 110
+    })
+  }
 
 
   const filteredSvgs = document.querySelectorAll('table tbody tr td svg');
-  const indices = Object.keys(data); // data [0,1,2,3,4,5...n] 
+  const indices = Object.keys(data); // data [0,1,2,3,4,5...n]
 
-  // Filtrar los svg que contienen los patrones 
+  // Filtrar los svg que contienen los patrones
   const tdsWithSvg = Array.from(filteredSvgs).filter(svg => {
     const patterns = svg.querySelectorAll('pattern');
     return Array.from(patterns).some(pattern => {
@@ -251,15 +332,12 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit) => {
 
   var imgPage = [];
   for (var j = 0; j < rowIndexesPerPage.length; j++) {
-    const img = await generateSVGDataURLForPage(j, rowIndexesPerPage, tdsWithSvg, columnWidths, widthSheet);
+    const img = await generateSVGDataURLForPage(j, rowIndexesPerPage, tdsWithSvg, columnWidths);
     imgPage.push(img);
-    console.log(img)
   }
 
-  const headerImg = document.querySelector('svg#headerLit')
-  console.log(String(headerImg.outerHTML))
-  const laimg = await svgToImg(headerImg, columnWidths, format, "Litologia")
-  const blob = await pdf(<MyDocument headerImg={laimg} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
+  const images = await svgDivision(pageLenghts, columnWidths);
+  const blob = await pdf(<MyDocument imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
   const url = URL.createObjectURL(blob);
   const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);

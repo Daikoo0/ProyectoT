@@ -42,6 +42,7 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             onClick={a}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            className="fossilUnit"
             style={{ cursor: 'pointer', margin: '10px' }}
         >
 
