@@ -47,7 +47,7 @@ type RoomData struct {
 	Id_project      primitive.ObjectID
 	Data            []models.DataInfo
 	Config          map[string]interface{}
-	Facies          map[string]interface{}
+	Facies          map[string][]models.FaciesSection
 	Fosil           map[string]interface{}
 	Active          []*websocket.Conn
 	SectionsEditing map[string]interface{}
@@ -519,7 +519,7 @@ func sendSocketMessage(msgData map[string]interface{}, proyect *RoomData, action
 
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config map[string]interface{}, Fosil map[string]interface{}, Facies map[string]interface{}) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config map[string]interface{}, Fosil map[string]interface{}, Facies map[string][]models.FaciesSection) *RoomData {
 
 	projectIDString := Id_project.Hex()
 	room, exists := rooms[projectIDString]
@@ -980,10 +980,10 @@ func addFacie(project *RoomData, dataMap GeneralMessage) {
 	name := facie.Facie
 
 	if project.Facies == nil {
-		project.Facies = make(map[string]interface{})
+		project.Facies = make(map[string][]models.FaciesSection)
 	}
 
-	project.Facies[name] = []map[string]interface{}{}
+	project.Facies[name] = []models.FaciesSection{}
 
 	msgData := map[string]interface{}{
 		"action": "addFacie",
@@ -1056,17 +1056,11 @@ func addFacieSection(project *RoomData, dataMap GeneralMessage) {
 	y1 := f.Y1
 	y2 := f.Y2
 
-	log.Print(name, y1, y2)
+	innerMap := project.Facies[name]
 
-	innerMap, ok := project.Facies[name].([]map[string]interface{})
-	if !ok {
-		log.Println("error", ok)
-		//return
-	}
-
-	newSectionFacie := map[string]interface{}{
-		"y1": y1,
-		"y2": y2,
+	newSectionFacie := models.FaciesSection{
+		Y1: y1,
+		Y2: y2,
 	}
 
 	innerMap = append(innerMap, newSectionFacie)

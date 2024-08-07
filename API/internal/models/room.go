@@ -26,10 +26,10 @@ type Data struct {
 
 type Data_project struct {
 	Id_project primitive.ObjectID
-	Data       []DataInfo             `bson:"data"`
-	Config     map[string]interface{} `bson:"config"`
-	Fosil      map[string]interface{} `bson:"fosil"`
-	Facies     map[string]interface{} `bson:"facies"`
+	Data       []DataInfo                 `bson:"data"`
+	Config     map[string]interface{}     `bson:"config"`
+	Fosil      map[string]interface{}     `bson:"fosil"`
+	Facies     map[string][]FaciesSection `bson:"facies"`
 }
 
 type DataInfo struct {
@@ -63,4 +63,9 @@ type CircleStruc struct {
 	Radius  float32 `json:"Radius"`
 	Movable bool    `json:"Movable"`
 	Name    string  `json:"Name"`
+}
+
+type FaciesSection struct {
+	Y1 float32 `json:"y1"`
+	Y2 float32 `json:"y2"`
 }

@@ -118,7 +118,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 		Id_project: roomID,
 		Data:       []models.DataInfo{},
 		Fosil:      map[string]interface{}{},
-		Facies:     map[string]interface{}{},
+		Facies:     map[string][]models.FaciesSection{},
 		Config: map[string]interface{}{
 			"columns": map[string]bool{
 				"Sistema":                 true,
@@ -178,7 +178,7 @@ func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
 	return nil
 }
 
-func (r *repo) SaveRoom(ctx context.Context, data []models.DataInfo, config map[string]interface{}, fosil map[string]interface{}, roomName string, facies map[string]interface{}) error {
+func (r *repo) SaveRoom(ctx context.Context, data []models.DataInfo, config map[string]interface{}, fosil map[string]interface{}, roomName string, facies map[string][]models.FaciesSection) error {
 	objectID, err := primitive.ObjectIDFromHex(roomName)
 	if err != nil {
 		return fmt.Errorf("invalid project ID: %w", err)
