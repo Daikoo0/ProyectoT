@@ -612,7 +612,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }
                                                 <div
                                                     style={{
-                                                        maxHeight: `${RowValue.Litologia.height * scale}px`,
+                                                        maxHeight: `${RowValue.Litologia.Height * scale}px`,
                                                         height: '100%',
                                                     }}
                                                 >
@@ -624,17 +624,17 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                 Width={columnWidths["Litologia"] || 250}
                                                                 File={lithoJson[RowValue.Litologia.file]}
                                                                 ColorFill={RowValue.Litologia.ColorFill}
-                                                                ColorStroke={RowValue.Litologia.colorStroke}
-                                                                Zoom={RowValue.Litologia.zoom}
-                                                                circles={RowValue.Litologia.circles}
+                                                                ColorStroke={RowValue.Litologia.ColorStroke}
+                                                                Zoom={RowValue.Litologia.Zoom}
+                                                                circles={RowValue.Litologia.Circles}
                                                                 addCircles={addCircles}
                                                                 openModalPoint={openModalPoint}
                                                                 setSideBarState={setSideBarState}
                                                                 handleClickRow={handleClickRow}
-                                                                tension={RowValue.Litologia.tension}
-                                                                rotation={RowValue.Litologia.rotation}
-                                                                contact={RowValue.Litologia.contact}
-                                                                prevContact={RowValue.Litologia.prevContact}
+                                                                tension={RowValue.Litologia.Tension}
+                                                                rotation={RowValue.Litologia.Rotation}
+                                                                contact={RowValue.Litologia.Contact}
+                                                                prevContact={RowValue.Litologia.PrevContact}
                                                             />
                                                         </>
                                                         :

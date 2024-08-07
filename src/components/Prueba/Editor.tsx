@@ -20,16 +20,10 @@ const Grid = () => {
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
-  const isPageActive = useRef(true); // Indica si la página está activa para reconectar con el socket
+  const isPageActive = useRef(true); 
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
   const [fossils, setFossils] = useState([]);
-  // const [facies, setFacies] = useState({
-  //   "A": [{ y1: 300, y2: 380 }],
-  //   "B": [{ y1: 200, y2: 300 }, { y1: 380, y2: 500 }],
-  //   "C": [{ y1: 50, y2: 180 }],
-  //   "D": [{ y1: 500, y2: 580 }, { y1: 180, y2: 200 }]
-  // });
   const [facies, setFacies] = useState({});
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
@@ -39,16 +33,16 @@ const Grid = () => {
   const initialFormData = {
     index: null,
     column: null,
-    file: 'Sin Pattern', //patternOption
+    File: 'Sin Pattern', //patternOption
     ColorFill: '#ffffff',
-    colorStroke: '#000000',
-    zoom: 100,
-    tension: 0.5,
+    ColorStroke: '#000000',
+    Zoom: 100,
+    Tension: 0.5,
     initialHeight: 0,
-    height: 0,
-    rotation: 0,
+    Height: 0,
+    Rotation: 0,
     text: '',
-    contact: "111",
+    Contact: "111",
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -74,6 +68,7 @@ const Grid = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     console.log(name, value)
+
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
@@ -88,6 +83,9 @@ const Grid = () => {
         'value': value,
       },
     }));
+
+    console.log(formData)
+
   };
 
   const handleChangeLocal = (e) => {
@@ -108,16 +106,16 @@ const Grid = () => {
     setFormData({
       index: index,
       column: column,
-      file: data[index].Litologia.file,
+      File: data[index].Litologia.File,
       ColorFill: data[index].Litologia.ColorFill,
-      colorStroke: data[index].Litologia.colorStroke,
-      zoom: data[index].Litologia.zoom,
-      tension: data[index].Litologia.tension,
-      height: data[index].Litologia.height,
-      initialHeight: data[index].Litologia.height,
-      rotation: data[index].Litologia.rotation,
+      ColorStroke: data[index].Litologia.ColorStroke,
+      Zoom: data[index].Litologia.Zoom,
+      Tension: data[index].Litologia.Tension,
+      Height: data[index].Litologia.Height,
+      initialHeight: data[index].Litologia.Height,
+      Rotation: data[index].Litologia.Rotation,
       text: data[index][column],
-      contact: data[index].Litologia.contact,
+      Contact: data[index].Litologia.Contact,
     });
   };
 
@@ -248,7 +246,7 @@ const Grid = () => {
                 ...newData[shapeN.rowIndex],
                 Litologia: {
                   ...newData[shapeN.rowIndex].Litologia,
-                  ["circles"]: shapeN.value
+                  ["Circles"]: shapeN.value
                 }
               };
               return newData;
@@ -929,20 +927,20 @@ const Grid = () => {
 
                       <li className='mb-2' >
                         <p>
-                          <input type="number" name='height' onChange={handleChangeLocal} value={formData.height} />
+                          <input type="number" name='Height' onChange={handleChangeLocal} value={formData.Height} />
                           cm
                         </p>
                       </li>
 
                       <li className='mb-2'>
-                        <button className='btn' disabled={formData.height < 5 || formData.height > 2000} onClick={() => addShape(0, formData.height)} >Insertar capa arriba</button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(0, formData.Height)} >Insertar capa arriba</button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.height < 5 || formData.height > 2000} onClick={() => addShape(formData.initialHeight, formData.height)}>Insertar en fila:</button>
+                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(formData.initialHeight, formData.Height)}>Insertar en fila:</button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li className='mt-2'>
-                        <button className='btn' disabled={formData.height < 5 || formData.height > 2000} onClick={() => addShape(-1, formData.height)}>Insertar capa abajo</button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(-1, formData.Height)}>Insertar capa abajo</button>
                       </li>
                     </ul>
                   );
@@ -1089,8 +1087,8 @@ const Grid = () => {
                                   <input
                                     type="checkbox"
                                     value={contact}
-                                    name='contact'
-                                    checked={formData.contact == contact ? true : false}
+                                    name='Contact'
+                                    checked={formData.Contact == contact ? true : false}
                                     onChange={handleChange}
                                     style={{ marginRight: '8px' }}
                                   />
@@ -1149,13 +1147,13 @@ const Grid = () => {
 
                       <li className='flex flex-row'>
                         <p>Tamaño de capa: cm</p>
-                        <input type="number" name='height' value={formData.height} onChange={handleChangeLocal} />
-                        <button className="btn" name='height' value={formData.height} disabled={formData.height === formData.initialHeight || formData.height < 5 || formData.height > 2000} onClick={handleChange}> Cambiar </button>
+                        <input type="number" name='Height' value={formData.Height} onChange={handleChangeLocal} />
+                        <button className="btn" name='Height' value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000} onClick={handleChange}> Cambiar </button>
                       </li>
 
                       <li>
                         <p>Seleccionar opción de Pattern: </p>
-                        <select name={"file"} value={formData.file} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
+                        <select name={"File"} value={formData.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
                           {Object.keys(lithoJson).map(option => (
                             <option key={option} value={option}>
                               {option}
@@ -1171,7 +1169,7 @@ const Grid = () => {
 
 
                       <li>
-                        <p>Seleccionar color patrón:<input type="color" name={"colorStroke"} value={formData.colorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
+                        <p>Seleccionar color patrón:<input type="color" name={"ColorStroke"} value={formData.ColorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
 
                       </li>
 
@@ -1179,10 +1177,10 @@ const Grid = () => {
                         <p>Valor Zoom:</p>
                         <input
                           type="range"
-                          name='zoom'
+                          name='Zoom'
                           min={100}
                           max={400}
-                          defaultValue={formData.zoom}
+                          defaultValue={formData.Zoom}
                           onMouseUp={handleChange}
                         />
                       </li>
@@ -1191,11 +1189,11 @@ const Grid = () => {
                         <p>Tension de lineas: </p>
                         <input
                           type="range"
-                          name='tension'
+                          name='Tension'
                           min={0}
                           max={2.5}
                           step={0.1}
-                          defaultValue={formData.tension}
+                          defaultValue={formData.Tension}
                           onMouseUp={handleChange}
                         />
                       </li>
@@ -1204,10 +1202,10 @@ const Grid = () => {
                         <p>Valor Rotacion: </p>
                         <input
                           type="range"
-                          name='rotation'
+                          name='Rotation'
                           min={0}
                           max={180}
-                          defaultValue={formData.rotation}
+                          defaultValue={formData.Rotation}
                           onMouseUp={handleChange}
                         />
                       </li>
