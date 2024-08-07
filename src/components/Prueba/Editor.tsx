@@ -302,11 +302,6 @@ const Grid = () => {
             });
             break
           case 'deleteFacie':
-            // if (facies[shapeN.facie]) {
-            //   const newFacies = { ...facies };
-            //   delete newFacies[shapeN.facie];
-            //   setFacies(newFacies);
-            // }
             setFacies(prevFacies => {
               if (prevFacies[shapeN.facie]) {
                 const newFacies = { ...prevFacies };
@@ -316,6 +311,14 @@ const Grid = () => {
               return prevFacies;
             });
             break
+          case 'deleteFacieSection':
+            setFacies(prevFacies => {
+              const faciesCopy = { ...prevFacies };
+              faciesCopy[shapeN.facie].splice(shapeN.index, 1);
+              return faciesCopy;
+            });
+            break
+          
           case 'addFacieSection':
             // faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
             // setFacies(faciesCopy);
@@ -430,19 +433,16 @@ const Grid = () => {
 
 
 
-  const handleDeleteFacieSection = (value) => {
+  const handleDeleteFacieSection = (index) => {
 
-    setFacies(prevState => {
-      // Verificar si la letra existe en el objeto facies
-      if (prevState.hasOwnProperty(formFacies.facie)) {
-        return {
-          ...prevState,
-          [formFacies.facie]: prevState[formFacies.facie].filter(item => !(item.y1 === value.y1 && item.y2 === value.y2))
-        };
-      } else {
-        return prevState;
+    socket.send(JSON.stringify({
+      action: 'deleteFacieSection',
+      data: {
+        "facie": formFacies.facie,
+        "index": index,
       }
-    });
+    }));
+
   }
 
   const handleAddFacieSection = () => {
@@ -1261,7 +1261,14 @@ const Grid = () => {
                     <>
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content shadow-xl rounded-lg">
                         <p className="menu-title text-lg font-bold mb-4">Agregar nueva facie</p>
-                        <div className="mb-4">
+                        <p className="mb-1 font-medium text-sm">Facies Existentes</p>
+                        <ul className="list-disc list-inside">
+                          {Object.keys(facies).map((key, index) => (
+                            <li key={index}>{key} - {index}</li>
+                          ))}
+                        </ul>
+
+                        <div className="mb-4 ">
                           <label htmlFor="nombre" className="block text-sm font-medium">Nombre:</label>
                           <input type='text' name='facie' onChange={changeformFacie} className="input input-bordered w-full mt-1" />
                         </div>
@@ -1284,7 +1291,7 @@ const Grid = () => {
                                 <li key={index} className="flex items-center justify-between">
                                   <span>{value["y1"]}cm - {value["y2"]}cm</span>
                                   <button className="btn btn-error" onClick={() => {
-                                    handleDeleteFacieSection(value)
+                                    handleDeleteFacieSection(index)
                                   }}>
                                     Eliminar
                                   </button>

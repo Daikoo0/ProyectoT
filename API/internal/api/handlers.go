@@ -250,7 +250,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							if roomActions[roomID] >= roomActionsThreshold {
 
 								// Función de guardado
-								err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+								err = a.serv.SaveRoom(context.Background(), rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
 								if err != nil {
 									log.Println("Error guardando la sala automáticamente: ", err)
 								} else {
@@ -279,7 +279,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 								// Función de guardado
 								if rooms[roomID] != nil {
-									err = a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+									err = a.serv.SaveRoom(context.Background(), rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
 									if err != nil {
 										log.Println("Error guardando la sala automáticamente: ", err)
 									} else {
@@ -449,6 +449,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				case "deleteFacie":
 
 					deleteFacie(proyect, dataMap)
+
+				case "deleteFacieSection":
+
+					deleteFacieSection(proyect, dataMap)
 
 				case "isInverted":
 
@@ -1074,5 +1078,32 @@ func addFacieSection(project *RoomData, dataMap GeneralMessage) {
 	}
 
 	sendSocketMessage(msgData, project, "addFacieSection")
+
+}
+
+func deleteFacieSection(project *RoomData, dataMap GeneralMessage) {
+	var f dtos.DeleteFacieSection
+	err := json.Unmarshal(dataMap.Data, &f)
+	if err != nil {
+		log.Println("Error", err)
+		return
+	}
+
+	name := f.Facie
+	index := f.Index
+
+	innerMap := project.Facies[name]
+
+	innerMap = append(innerMap[:index], innerMap[index+1:]...)
+
+	project.Facies[name] = innerMap
+
+	msgData := map[string]interface{}{
+		"action": "deleteFacieSection",
+		"facie":  name,
+		"index":  index,
+	}
+
+	sendSocketMessage(msgData, project, "deleteFacieSection")
 
 }
