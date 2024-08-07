@@ -621,7 +621,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                             <Polygon
                                                                 rowIndex={rowIndex}
                                                                 Height={RowValue.Litologia.Height * scale}
-                                                                Width={columnWidths["Litologia"] || cellWidth}
+                                                                Width={columnWidths["Litologia"] || 250}
                                                                 File={lithoJson[RowValue.Litologia.File]}
                                                                 ColorFill={RowValue.Litologia.ColorFill}
                                                                 ColorStroke={RowValue.Litologia.ColorStroke}

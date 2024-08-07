@@ -19,10 +19,10 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'grey',
-    borderBottomStyle: 'solid',
-    overflow: 'hidden',
+    // borderBottomWidth: 1,
+    // borderBottomColor: 'grey',
+    // borderBottomStyle: 'solid',
+    // overflow: 'hidden',
     // lineHeight: 1,
   },
   tableCol: {
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: "0.01cm",//0.5,
     borderLeftColor: 'grey',
     borderLeftStyle: 'solid',
-    overflow: 'hidden',
+    //  overflow: 'hidden',
   },
   tableCellHeader: {
     textAlign: 'center',
@@ -43,12 +43,14 @@ const styles = StyleSheet.create({
   tableCell: {
     textAlign: 'center',
     margin: 0,
+    borderBottomWidth: 1,
+    overflow: 'hidden',
   },
 });
 
 const TableHeader = ({ columnWidths, header }) => {
   return (
-    <View style={styles.tableRow}>
+    <View style={[styles.tableRow]}>
       {Object.keys(header).map((key, index) => (
         <View key={index} style={[styles.tableCol, styles.tableCellHeader, { width: columnWidths[header[key]], height: 120 }]}>
           {header[key] === "Litologia" ? (
@@ -144,67 +146,88 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const getColumnX = (columnName, header, columnWidths) => {
-  let xPosition = 0.01
-  for (const key in header) {
-    console.log(columnWidths[header[key]])
-    if (header[key] === columnName) break;
-    xPosition += parseFloat(columnWidths[header[key]]) + 0.02;
-  }
-  return xPosition;
-};
-
 
 const MyDocument = ({ imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
 
-  const litologiaX = getColumnX("Litologia", header, columnWidths);
-  const fossilsX = getColumnX("Estructura fosil", header, columnWidths);
-  const espesorX = getColumnX("Espesor", header, columnWidths);
-  const faciesX = getColumnX("Facie", header, columnWidths);
+  var firstArray = []
+  var secondArray = []
+  var thirdArray = []
+  var uno = 0;
+  var dos = 0;
+  var tres = 0;
+
+  var splitIndex = header.indexOf("Espesor");
+  var endIndex = header.indexOf("Facie") || header.indexOf("Estructura fosil") || header.indexOf("Litologia");
+
+  for (let i = 0; i < header.length; i++) {
+    if (i < splitIndex) {
+      firstArray.push(header[i]);
+      uno += parseFloat(columnWidths[header[i]])
+    } else if (i >= splitIndex && i <= endIndex) {
+      secondArray.push(header[i]);
+      dos += parseFloat(columnWidths[header[i]])
+    } else if (i > endIndex) {
+      thirdArray.push(header[i]);
+      tres += parseFloat(columnWidths[header[i]])
+    }
+  }
+
   return (
     <Document>
       {rowIndexesPerPage.map((pageIndexes, pageIndex) => (
         <Page orientation={orientation} size={[sheetSize[format][0], sheetSize[format][1]]} style={styles.page} key={`page-${pageIndex}`}>
           <TableHeader columnWidths={columnWidths} header={header} />
+          <View style={[{ flexDirection: 'row' }]}>
+            <View style={[{ flexDirection: 'column' }]}>
+              {pageIndexes.map((item, index) => (
 
-          <Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, top: 130, left: litologiaX + "cm", position: "absolute", width: columnWidths["Litologia"] }]} />
-          <Img src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: fossilsX+ "cm", position: "absolute", width: columnWidths["Estructura fosil"] }]} />
-          <Img src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: espesorX + "cm", position: "absolute", width: columnWidths["Espesor"] }]} />
-          <Img src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: faciesX + "cm", position: "absolute", width: columnWidths["Facie"] }]} />
-        
+                <View style={[styles.tableRow]} key={index}>
+                  {Object.values(firstArray).map((key, i) => {
+                    return (
+                      <View style={[styles.tableCol, styles.tableCell]}>
+                        <Html key={i} style={[{ width: columnWidths[firstArray[i]], height: data[item].Litologia.Height }]}>{(data[item]?.[firstArray[i]] || "")}</Html>
+                      </View>
+                    )
+                  })}
+                </View>
 
-          {/* {Object.keys(header).map((key, index) => (
-            <View key={index} style={[styles.tableCol, styles.tableCellHeader, { width: columnWidths[header[key]] }]}>
-              {header[key] === "Litologia" ? (
-                <Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, top: 130, left: litologiaX + "cm", position: "absolute", width: columnWidths["Litologia"] }]} />
-              ) : (<></>)}
-              {header[key] === "Estructura fosil" ? (
-                <Img src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: fossilsX + "cm", position: "absolute", width: columnWidths["Estructura fosil"] }]} />
-              ) : (<></>)}
-              {header[key] === "Espesor" ? (
-                <Img src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, top: 130, left: espesorX + "cm", position: "absolute", width: columnWidths["Espesor"] }]} />
-              ) : (<></>)}
-              {header[key] === "Facie" ? (
-                <Img src={imageFacies[pageIndex]} style={[{ backgroundColor: "red", height: imgPage[pageIndex].totalHeight, top: 130, left: faciesX + "cm", position: "absolute", width: columnWidths["Facie"] }]} />
-              ) : (<></>)}
+              ))}
             </View>
-          ))} */}
-          {pageIndexes.map((item, index) => (
-            <View style={[styles.tableRow, { height: data[item]["Litologia"].Height }]} key={index}>
-              {Object.values(header).map((key, i) => {
-                if (header[i] === 'Litologia') {
-                  return (
-                    <View key={i} style={[styles.tableCol, { width: columnWidths[header[i]], position: 'relative' }]}>
-                      <Text>  </Text>
-                    </View>
-                  );
-                }
-                return (
-                  <Html key={i} style={[styles.tableCol, styles.tableCell, { width: columnWidths[header[i]] }]}>{(data[item]?.[header[i]] || "")}</Html>
-                )
-              })}
-            </View>))}
-        </Page>))}
+
+            {pageIndexes.map((item, index) => (
+              <View style={[styles.tableRow,{height:imgPage[pageIndex].totalHeight + 10}]}>
+                {Object.values(secondArray).map((key, i) => {
+                  if (item === 0) {
+                    return (
+                      <View key={i} style={[styles.tableCol]}>
+                        {secondArray[i] === "Litologia" && (<Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, width: columnWidths["Litologia"] }]} />)}
+                        {secondArray[i] === "Estructura fosil" && (<Img src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, width: columnWidths["Estructura fosil"] }]} />)}
+                        {secondArray[i] === "Espesor" && (<Img src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, width: columnWidths["Espesor"] }]} />)}
+                        {secondArray[i] === "Facie" && (<Img src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight, width: columnWidths["Facie"],left : "-0.1cm" }]} />)}
+                      </View>
+                    )
+                  }
+                })}
+              </View>
+            ))}
+
+            <View style={[{ flexDirection: 'column' }]}>
+              {pageIndexes.map((item, index) => (
+
+                <View style={[styles.tableRow]} key={index}>
+                  {Object.values(thirdArray).map((key, i) => {
+                    return (
+                      <View style={[styles.tableCol, styles.tableCell]}>
+                        <Html key={i} style={[{ width: columnWidths[thirdArray[i]], height: data[item].Litologia.Height }]}>{(data[item]?.[thirdArray[i]] || "")}</Html>
+                      </View>
+                    )
+                  })}
+                </View>
+
+              ))}
+            </View>
+          </View>
+        </Page >))}
     </Document>
   )
 };
@@ -232,7 +255,8 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
     lines.forEach(line => {
       line.style.stroke = "black";
     });
-  } else if (columnName === "Facie") {
+  } 
+  else if (columnName === "Facie") {
     var texts = svgCopy.querySelectorAll('text');
     var rLength = svgCopy.querySelectorAll('rect[data-value="value1"]').length + 5;
     console.log((parseFloat(columnWidths[columnName]) * 96 / 2.54) / rLength)
