@@ -400,7 +400,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 				case "añadir":
 
-					añadir(proyect, dataMap, roomID)
+					añadir(proyect, dataMap, models.NewShape())
 
 				case "addCircle":
 
@@ -424,7 +424,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "editText":
 
-					editText(proyect, dataMap, roomID)
+					editText(proyect, dataMap)
 
 				case "editPolygon":
 
@@ -436,7 +436,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "delete":
 
-					deleteRow(proyect, dataMap, roomID)
+					deleteRow(proyect, dataMap)
 
 				case "deleteCircle":
 
@@ -584,7 +584,7 @@ func generateRandomColor() string {
 	return "#" + hex.EncodeToString(color)
 }
 
-func añadir(project *RoomData, dataMap GeneralMessage, roomID string) {
+func añadir(project *RoomData, dataMap GeneralMessage, newShape models.DataInfo) {
 
 	var addData dtos.Add
 	err := json.Unmarshal(dataMap.Data, &addData)
@@ -595,64 +595,40 @@ func añadir(project *RoomData, dataMap GeneralMessage, roomID string) {
 
 	rowIndex := addData.RowIndex
 	height := addData.Height
-	roomData := rooms[roomID]
 
 	var index int
 
-	if rowIndex == -1 {
-		index = len(roomData.Data)
-	} else {
+	if rowIndex == -1 { // al final
+		index = len(project.Data)
+
+	} else { //  índice encontrado
 		index = rowIndex
 	}
 
-	var prevShape string
-	var lit = roomData.Data
+	if index-1 >= 0 && index-1 < len(project.Data) {
+		newShape.Litologia.PrevContact = project.Data[index-1].Litologia.Contact
 
-	if index+1 > 0 && index+1 < len(roomData.Data) {
-		lit[index+1].Litologia.PrevContact = "111"
-		rooms[roomID].Data = lit
 	}
 
-	if index-1 >= 0 && index-1 < len(roomData.Data) {
-		prevShape = roomData.Data[index-1].Litologia.Contact
-	} else if index == 0 {
-		prevShape = "111"
-	} else {
-		prevShape = "111"
+	if index < len(project.Data) {
+		project.Data[index].Litologia.PrevContact = newShape.Litologia.Contact
+
+		msgData := map[string]interface{}{
+			"action":   "editPolygon",
+			"rowIndex": index,
+			"key":      "PrevContact",
+			"value":    newShape.Litologia.Contact,
+		}
+
+		sendSocketMessage(msgData, project, "editPolygon")
+
 	}
 
-	newShape := models.DataInfo{
-		Sistema:                "",
-		Edad:                   "",
-		Formacion:              "",
-		Miembro:                "",
-		Espesor:                "",
-		Facie:                  "",
-		AmbienteDepositacional: "",
-		Descripcion:            "",
-		Litologia: models.LitologiaStruc{
-			ColorFill:   "#ffffff",
-			ColorStroke: "#000000",
-			Zoom:        100,
-			Rotation:    0,
-			Tension:     0.5,
-			File:        "Sin Pattern",
-			Height:      height,
-			Circles: []models.CircleStruc{
-				{X: 0, Y: 0, Radius: 5, Movable: false},
-				{X: 0.5, Y: 0, Radius: 5, Movable: true, Name: "none"},
-				{X: 0.5, Y: 1, Radius: 5, Movable: true, Name: "none"},
-				{X: 0, Y: 1, Radius: 5, Movable: false},
-			},
-			Contact:     "111",
-			PrevContact: prevShape,
-		},
-	}
+	newShape.Litologia.Height = height
 
 	if rowIndex == -1 { // Agrega al final
-		roomData.Data = append(roomData.Data, newShape)
+		project.Data = append(project.Data, newShape)
 
-		// Enviar informacion a los clientes
 		msgData := map[string]interface{}{
 			"action": "añadirEnd",
 			"value":  newShape,
@@ -661,7 +637,7 @@ func añadir(project *RoomData, dataMap GeneralMessage, roomID string) {
 		sendSocketMessage(msgData, project, "añadir")
 
 	} else { // Agrega en el índice encontrado
-		roomData.Data = append(roomData.Data[:rowIndex], append([]models.DataInfo{newShape}, roomData.Data[rowIndex:]...)...)
+		project.Data = append(project.Data[:rowIndex], append([]models.DataInfo{newShape}, project.Data[rowIndex:]...)...)
 
 		msgData := map[string]interface{}{
 			"action":   "añadir",
@@ -675,7 +651,7 @@ func añadir(project *RoomData, dataMap GeneralMessage, roomID string) {
 
 }
 
-func deleteRow(project *RoomData, dataMap GeneralMessage, roomID string) {
+func deleteRow(project *RoomData, dataMap GeneralMessage) {
 
 	var deleteData dtos.Delete
 	err := json.Unmarshal(dataMap.Data, &deleteData)
@@ -685,42 +661,38 @@ func deleteRow(project *RoomData, dataMap GeneralMessage, roomID string) {
 	}
 
 	rowIndex := deleteData.RowIndex
-	roomData := rooms[roomID]
 
-	if rowIndex+1 > 0 && rowIndex+1 < len(roomData.Data) {
-		if rowIndex-1 >= 0 {
-			lit := roomData.Data
-			lit[rowIndex+1].Litologia.PrevContact = roomData.Data[rowIndex-1].Litologia.Contact
-			rooms[roomID].Data = lit
-
-			var newPrev string
-			if rowIndex-1 >= 0 {
-				newPrev = roomData.Data[rowIndex-1].Litologia.Contact
-			} else {
-				newPrev = "111"
-			}
-
-			msgData2 := map[string]interface{}{
-				"action":   "editPolygon",
-				"rowIndex": rowIndex + 1,
-				"key":      "prevContact",
-				"value":    newPrev,
-			}
-			sendSocketMessage(msgData2, project, "editPolygon")
-		}
+	if rowIndex < 0 || rowIndex >= len(project.Data) {
+		log.Println("Índice fuera de los límites")
+		return
 	}
 
-	roomData.Data = append(roomData.Data[:rowIndex], roomData.Data[rowIndex+1:]...)
+	if rowIndex+1 < len(project.Data) {
+		if rowIndex-1 >= 0 {
+			project.Data[rowIndex+1].Litologia.PrevContact = project.Data[rowIndex-1].Litologia.Contact
+		} else {
+			project.Data[rowIndex+1].Litologia.PrevContact = "111"
+		}
+
+		msgData2 := map[string]interface{}{
+			"action":   "editPolygon",
+			"rowIndex": rowIndex + 1,
+			"key":      "PrevContact",
+			"value":    project.Data[rowIndex+1].Litologia.PrevContact,
+		}
+		sendSocketMessage(msgData2, project, "editPolygon")
+	}
+
+	project.Data = append(project.Data[:rowIndex], project.Data[rowIndex+1:]...)
 
 	msgData := map[string]interface{}{
 		"action":   "delete",
 		"rowIndex": rowIndex,
 	}
 	sendSocketMessage(msgData, project, "delete")
-
 }
 
-func editText(project *RoomData, dataMap GeneralMessage, roomID string) {
+func editText(project *RoomData, dataMap GeneralMessage) {
 
 	var editTextData dtos.EditText
 	err := json.Unmarshal(dataMap.Data, &editTextData)
@@ -732,7 +704,7 @@ func editText(project *RoomData, dataMap GeneralMessage, roomID string) {
 	value := editTextData.Value
 	rowIndex := editTextData.RowIndex
 
-	roomData := &rooms[roomID].Data[rowIndex]
+	roomData := &project.Data[rowIndex]
 
 	UpdateFieldAll(roomData, key, value)
 
@@ -771,16 +743,15 @@ func editPolygon(project *RoomData, dataMap GeneralMessage) {
 		"value":    value,
 	}
 
-	if column == "contact" && rowIndex+1 < len(project.Data) {
-		roomData2 := project.Data
-		innerMap2 := roomData2[rowIndex+1].Litologia
-		innerMap2.PrevContact = roomData.Contact
-		project.Data = roomData2
+	if column == "Contact" && rowIndex+1 < len(project.Data) {
+
+		project.Data[rowIndex+1].Litologia.PrevContact = value.(string)
+
 		msgData2 := map[string]interface{}{
 			"action":   "editPolygon",
 			"rowIndex": rowIndex + 1,
-			"key":      "prevContact",
-			"value":    roomData.Contact,
+			"key":      "PrevContact",
+			"value":    value,
 		}
 		sendSocketMessage(msgData2, project, "editPolygon")
 	}

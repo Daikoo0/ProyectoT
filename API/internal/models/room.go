@@ -69,3 +69,33 @@ type FaciesSection struct {
 	Y1 float32 `json:"y1"`
 	Y2 float32 `json:"y2"`
 }
+
+func NewShape() DataInfo {
+	return DataInfo{
+		Sistema:                "",
+		Edad:                   "",
+		Formacion:              "",
+		Miembro:                "",
+		Espesor:                "",
+		Facie:                  "",
+		AmbienteDepositacional: "",
+		Descripcion:            "",
+		Litologia: LitologiaStruc{
+			ColorFill:   "#ffffff",
+			ColorStroke: "#000000",
+			Zoom:        100,
+			Rotation:    0,
+			Tension:     0.5,
+			File:        "Sin Pattern",
+			Height:      100,
+			Circles: []CircleStruc{
+				{X: 0, Y: 0, Radius: 5, Movable: false},
+				{X: 0.5, Y: 0, Radius: 5, Movable: true, Name: "none"},
+				{X: 0.5, Y: 1, Radius: 5, Movable: true, Name: "none"},
+				{X: 0, Y: 1, Radius: 5, Movable: false},
+			},
+			Contact:     "111",
+			PrevContact: "111",
+		},
+	}
+}

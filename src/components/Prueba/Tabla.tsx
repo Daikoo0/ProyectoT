@@ -539,23 +539,23 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                         {facies[key].map((value, i) => {
                                                                             return (
                                                                                 <>
-                                                                                    {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
                                                                                     <g key={i}>
                                                                                         <text
                                                                                             key={value}
                                                                                             fontSize={14}
                                                                                             className="fill fill-base-content"
                                                                                             x={10}
-                                                                                            transform={`rotate(90, 5, ${parseFloat(value.y1)})`}
-                                                                                            y={parseFloat(value.y1)-2}>{key}</text>
+                                                                                            transform={`rotate(90, 5, ${parseFloat(value.y1) * scale})`}
+                                                                                            y={(parseFloat(value.y1)-2)*scale}>{key}
+                                                                                        </text>
                                                                                     </g>
                                                                                     <rect data-custom="valor1"
                                                                                         key={value}
                                                                                         className="fill fill-base-content"
                                                                                         x={xPosp}
-                                                                                        y={parseFloat(value.y1)}
+                                                                                        y={parseFloat(value.y1) * scale}
                                                                                         width={wp}//width={(xPos - rectx) + 1}
-                                                                                        height={parseFloat(value.y2) - parseFloat(value.y1)}  // Altura del rectángulo
+                                                                                        height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}  // Altura del rectángulo
                                                                                         onClick={() => {
                                                                                             setSideBarState({
                                                                                                 sideBar: true,
