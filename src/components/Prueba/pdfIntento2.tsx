@@ -190,7 +190,7 @@ const MyDocument = ({ imageFossils, imageEspesor, imageFacies, orientation, form
             </View>
           ))} */}
           {pageIndexes.map((item, index) => (
-            <View style={[styles.tableRow, { height: data[item]["Litologia"].height }]} key={index}>
+            <View style={[styles.tableRow, { height: data[item]["Litologia"].Height }]} key={index}>
               {Object.values(header).map((key, i) => {
                 if (header[i] === 'Litologia') {
                   return (
@@ -292,7 +292,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit) => {
   }
 
   Object.values(data).forEach((key, index) => {
-    const rowHeight = key['Litologia'].height
+    const rowHeight = key['Litologia'].Height
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
       pageLenghts.push({ 'height': currentPageHeight - 110 })
@@ -309,7 +309,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit) => {
     var totalPageHeight = 110
     Object.values(data).forEach((key, index) => {
       if (currentPageIndexes.includes(index)) {
-        const rowHeight = key['Litologia'].height
+        const rowHeight = key['Litologia'].Height
         totalPageHeight += Number(rowHeight)
       }
     });
