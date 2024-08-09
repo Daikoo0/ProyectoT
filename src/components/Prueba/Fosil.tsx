@@ -57,7 +57,7 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={centerX} y1={upper} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
 
             {/* Imagen del fosil  */}
-            <g className="stroke-base-content" transform={`translate(${gTranslateX},${gTranslateY}) `}>
+            <g id="iconFosil" className="stroke-base-content" transform={`translate(${gTranslateX},${gTranslateY}) `}>
 
                 {loading ?
 

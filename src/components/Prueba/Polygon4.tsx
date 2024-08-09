@@ -129,7 +129,6 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
       const imageURL = new URL(`../../assets/patrones/${File}.svg`, import.meta.url).href;
       const response = await fetch(imageURL);
       const svgText = await response.text();
-      console.log("cargo svg");
       updateSvgContent(svgText);
     };
 

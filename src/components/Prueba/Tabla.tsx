@@ -75,7 +75,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils)
     }
 
     const handleRows = (e, key) => {
@@ -92,7 +92,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             data: newRows,
         }));
-        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation, pdfData.customWidthLit)
+        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale,pdfData.fossils)
 
     }
 
@@ -170,7 +170,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             ...prevState,
                                             format: e.target.value,
                                         }));
-                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation, pdfData.customWidthLit)
+                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation, pdfData.customWidthLit, pdfData.scale,pdfData.fossils)
                                     }} className="select select-bordered w-full max-w-xs mb-4">
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
                                         <option value={'EXECUTIVE'}>Executive</option>
@@ -241,7 +241,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     ...prevState,
                                                     orientation: (e.target.checked) ? "portrait" : "landscape",
                                                 }));
-                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"), pdfData.customWidthLit)
+                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"), pdfData.customWidthLit, pdfData.scale,pdfData.fossils)
                                             }} />
                                     </div>
                                     {/* Lista de visibilidad de columnas */}
@@ -281,7 +281,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 ...prevState,
                                                 customWidthLit: e.target.value,
                                             }));
-                                            Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, e.target.value)
+                                            Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, e.target.value, pdfData.scale,pdfData.fossils)
                                         }} className="select select-bordered w-full max-w-xs mb-4">
                                             <option value={""} disabled>Elige el ancho de la litologia</option>
                                             <option value={'20%'}>20%</option>
@@ -539,6 +539,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                         {facies[key].map((value, i) => {
                                                                             return (
                                                                                 <>
+                                                                                    {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
                                                                                     <g key={i}>
                                                                                         <text
                                                                                             key={value}
@@ -546,8 +547,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                                             className="fill fill-base-content"
                                                                                             x={10}
                                                                                             transform={`rotate(90, 5, ${parseFloat(value.y1) * scale})`}
-                                                                                            y={(parseFloat(value.y1)-2)*scale}>{key}
-                                                                                        </text>
+                                                                                            y={(parseFloat(value.y1) - 2) * scale}>{key}</text>
                                                                                     </g>
                                                                                     <rect data-custom="valor1"
                                                                                         key={value}

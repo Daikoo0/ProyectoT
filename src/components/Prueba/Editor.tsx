@@ -6,13 +6,13 @@ import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import contacts from '../../contacts.json';
-import exportTableToPDFWithPagination from './pdfFunction';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
 import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
 import Ab from './pdfIntento2';
+import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 
 const Grid = () => {
 
@@ -20,7 +20,7 @@ const Grid = () => {
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
-  const isPageActive = useRef(true); 
+  const isPageActive = useRef(true);
   const [data, setData] = useState([]);
   const [header, setHeader] = useState([]);
   const [fossils, setFossils] = useState([]);
@@ -28,7 +28,14 @@ const Grid = () => {
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
-  const [messageFacie, setMessageFacie] = useState('')
+  const [messageFacie, setMessageFacie] = useState('');
+  var contactsSvg = []
+  {
+    Object.keys(contacts).map((contact) => {
+      const { loading, SvgIcon } = useDynamicSvgImport(contact, "contacts");
+      contactsSvg.push({ loading, SvgIcon, contact });
+    })
+  }
 
   const initialFormData = {
     index: null,
@@ -318,7 +325,7 @@ const Grid = () => {
               return faciesCopy;
             });
             break
-          
+
           case 'addFacieSection':
             // faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
             // setFacies(faciesCopy);
@@ -592,15 +599,16 @@ const Grid = () => {
     (document.getElementById('modal') as HTMLDialogElement).showModal();
     var copyData = data
     var copyHeader = [...header]
-    // exportTableToPDFWithPagination(copyData, copyHeader, 'A3')
-    Ab(copyData, copyHeader, 'A3','portrait',"")
+    Ab(copyData, copyHeader, 'A3', 'portrait', "", scale, fossils)
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
       header: copyHeader,
       format: 'A3',
-      orientation :'portrait',
-      customWidthLit : ""
+      orientation: 'portrait',
+      customWidthLit: "",
+      scale: scale,
+      fossils: fossils,
     };
     setPdfData(initialPdfData)
 
@@ -1072,6 +1080,8 @@ const Grid = () => {
                       <li><button className="btn btn-error" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
                     </ul>)
                 case "polygon":
+                
+
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">Editando polígono</li>
@@ -1080,19 +1090,31 @@ const Grid = () => {
                         <details open={false}>
                           <summary>Contacto inferior</summary>
                           <ul>
-                            {Object.entries(contacts).map(([contact, key]) => (
-                              <li key={contact} className='bg-neutral-content' style={{ padding: '10px', marginBottom: '10px' }}>
+                            {contactsSvg.map((items, index) => {
 
-                                <label style={{ display: 'flex', alignItems: 'center' }}>
-                                  <input
-                                    type="checkbox"
-                                    value={contact}
-                                    name='Contact'
-                                    checked={formData.Contact == contact ? true : false}
-                                    onChange={handleChange}
-                                    style={{ marginRight: '8px' }}
-                                  />
-                                  <svg width="150" height="20" className='stroke-base-content'>
+                              return (
+                                <li key={`contact-${index}`} className='bg-neutral-content' style={{ padding: '10px', marginBottom: '10px' }}>
+
+                                  <label style={{ display: 'flex', alignItems: 'center' }}>
+                                    <input
+                                      type="checkbox"
+                                      value={items.contact}
+                                      name='Contact'
+                                      checked={formData.Contact == items.contact ? true : false}
+                                      onChange={handleChange}
+                                      style={{ marginRight: '8px' }}
+                                    />
+
+                                    {items.loading ?
+
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="150" height="20" viewBox="0 0 200 200"><circle className="stroke-primary" fill="none" strokeOpacity="1" strokeWidth=".5" cx="100" cy="100" r="0"><animate attributeName="r" calcMode="spline" dur="1.3" values="1;80" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-width" calcMode="spline" dur="1.3" values="0;25" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-opacity" calcMode="spline" dur="1.3" values="1;0" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate></circle></svg>
+                                      :
+                                      items.SvgIcon && (
+
+                                        <items.SvgIcon {...{ width: "150", height: "20" }} />
+
+                                      )}
+                                    {/* <svg width="150" height="20" className='stroke-base-content'>
                                     {typeof (key.dash) === 'string' ?
                                       <>
                                         <line
@@ -1100,7 +1122,7 @@ const Grid = () => {
                                           y1="15"
                                           x2="150"
                                           y2="15"
-                                          // stroke="black"
+                                          stroke="black"
                                           strokeWidth={key.lineWidth}
                                           strokeDasharray={`[67,2,2,2,2,2]`}
                                         />
@@ -1110,7 +1132,7 @@ const Grid = () => {
                                           y1="15"
                                           x2="150"
                                           y2="15"
-                                          // stroke="black"
+                                          stroke="black"
                                           strokeWidth={key.lineWidth}
                                           strokeDasharray={`${key.dash}`}
                                         /></>
@@ -1135,10 +1157,13 @@ const Grid = () => {
                                       <path
                                         d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,5 30,15 Q 35,25 40,15 Q 45,5 50,15 Q 55,25 60,15 Q 65,5 70,15 Q 75,25 80,15 Q 85,5 90,15 Q 95,25 100,15 Q 105,5 110,15 Q 115,25 120,15 Q 125,5 130,15 Q 135,25 140,15 Q 145,5 150,15" fill="none" stroke="black" strokeWidth="1" />
                                     )}
-                                  </svg>
-                                </label>
-                              </li>
-                            ))}
+                                  </svg> */}
+                                  </label>
+                                </li>
+                              )
+                            }
+
+                            )}
                           </ul>
 
                         </details>

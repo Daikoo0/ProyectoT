@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import 'quill/dist/quill.bubble.css';  // Usa el tema "bubble", asegúrate de importar el CSS
 
+
 const EditorQuill = ({ Text, SetText }) => {
 
     const fontSizeArr = ['8px', '9px', '10px', '12px', '14px', '16px', '20px', '24px', '32px', '42px', '54px', '68px', '84px', '98px'];
@@ -41,7 +42,28 @@ const EditorQuill = ({ Text, SetText }) => {
             theme: 'snow',
             placeholder: 'Escribe algo...',
             modules: {
-                toolbar: toolbarOptions
+                toolbar: {
+                container : toolbarOptions,
+                handlers: {
+                    'image': function() {
+                        const input = document.createElement('input');
+                        input.setAttribute('type', 'file');
+                        input.setAttribute('accept', 'image/*');
+                        input.click();
+
+                        input.onchange = function() {
+                            const file = input.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    const range = quill.getSelection();
+                                    quill.insertEmbed(range.index, 'image', e.target.result);
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        };
+                    }
+                }}
             }
         });
         if (Text) {
