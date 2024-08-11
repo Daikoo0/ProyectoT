@@ -4,14 +4,15 @@ import sheetSize from '../../sheetSizes.json';
 import MySVG from "../MYSVG.tsx";
 import lithologic from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
+import contactsJson from '../../contacts.json';
 
 // Estilos
 const styles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     paddingTop: 10,
-    paddingLeft: "0.5cm",
-    paddingRight: "0.5cm",
+    paddingLeft: "0.3cm",
+    paddingRight: "0.3cm",
     fontSize: 10,
   },
   paragraph: {
@@ -134,8 +135,7 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-
-const MyDocument = ({ contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
+const MyDocument = ({ infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
 
   var firstArray = []
   var secondArray = []
@@ -143,6 +143,7 @@ const MyDocument = ({ contacts, fossils, patterns, scale, imageFossils, imageEsp
   var uno = 0;
   var dos = 0;
   var tres = 0;
+  console.log(infoProject)
 
   var splitIndex = header.indexOf("Espesor");
   var endIndex = header.indexOf("Facie") || header.indexOf("Estructura fosil") || header.indexOf("Litologia");
@@ -160,119 +161,128 @@ const MyDocument = ({ contacts, fossils, patterns, scale, imageFossils, imageEsp
     }
   }
 
+
   return (
     <Document>
       {rowIndexesPerPage.map((pageIndexes, pageIndex) => (
         <Page orientation={orientation} size={[sheetSize[format][0], sheetSize[format][1]]} style={styles.page} key={`page-${pageIndex}`}>
-          <TableHeader columnWidths={columnWidths} header={header} />
-          <View style={[{ flexDirection: 'row' }]}>
-            <View style={[{ flexDirection: 'column' }]}>
-              {pageIndexes.map((item, index) => (
-
-                <View style={[styles.tableRow]} key={index}>
-                  {Object.values(firstArray).map((key, i) => {
-                    return (
-                      <View style={[styles.tableCol, styles.tableCell]}>
-                        <Html key={i} style={[{ width: columnWidths[firstArray[i]], height: data[item].Litologia.Height * scale }]}>
-                          {(data[item]?.[firstArray[i]] || "")}
-                        </Html>
-                      </View>
-                    )
-                  })}
-                </View>
-
-              ))}
+          <View wrap={false}>
+            <View style={[{ height: 40 }]}>
+              <Text style={[{ fontSize: 14, fontFamily: "Times-Roman" }]}>
+                Orientación Estratificación: __________ ESCALA: 1:{100 / scale} Orientación Levantamiento: __________ LOCALIDAD: {infoProject.Location}
+                Etiqueta Sección: _________ Coordenadas: {infoProject.Lat},{infoProject.Long} Página: {pageIndex + 1}/{rowIndexesPerPage.length} FECHA: ____________
+              </Text>
             </View>
+            <TableHeader columnWidths={columnWidths} header={header} />
+            <View style={[{ flexDirection: 'row' }]} >
+              <View style={[{ flexDirection: 'column' }]}>
+                {pageIndexes.map((item, index) => (
+                  <View style={[styles.tableRow]} key={`first-${pageIndex}${index}${item}`}>
+                    {Object.values(firstArray).map((key, i) => {
+                      return (
+                        <View style={[styles.tableCol, styles.tableCell]} key={`first-${pageIndex}${index}${item}${key}`}>
+                          <Html key={`first-${pageIndex}${index}${item}${key}${i}`}
+                            style={[{ width: columnWidths[firstArray[i]], height: data[item].Litologia.Height * scale }]}>
+                            {(data[item]?.[firstArray[i]] || "")}
+                          </Html>
+                        </View>
+                      )
+                    })}
+                  </View>
 
-            <View style={[styles.tableRow, { borderBottomWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-              {Object.values(secondArray).map((key, i) => {
-                return (
-                  <>
-                    {secondArray[i] === "Litologia" && (<View style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) + 10 }]}>
-                      <Img src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length) + 10, width: columnWidths["Litologia"] }]} />
-                    </View>)}
-                    {secondArray[i] === "Estructura fosil" && (
-                      <View style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-                        <Img src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
+                ))}
+              </View>
+              <View key={`second-${pageIndex}`} style={[styles.tableRow, { borderBottomWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
+                {Object.values(secondArray).map((key, i) => {
+                  return (
+                    <>
+                      {secondArray[i] === "Litologia" && (<View key={`second-${pageIndex}${key}${i}`}
+                        style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) + 10 }]}>
+                        <Img key={`secondImg-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length) + 10, width: columnWidths["Litologia"] }]} />
                       </View>)}
-                    {secondArray[i] === "Espesor" && (
-                      <View style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-                        <Img src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
-                      </View>)}
-                    {secondArray[i] === "Facie" && (
-                      <View style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-                        <Img src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
-                      </View>)}
-                  </>
-                )
-              })}
-            </View>
+                      {secondArray[i] === "Estructura fosil" && (
+                        <View key={`second-${pageIndex}${key}${i}`}
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
+                        </View>)}
+                      {secondArray[i] === "Espesor" && (
+                        <View key={`second-${pageIndex}${key}${i}`}
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
+                        </View>)}
+                      {secondArray[i] === "Facie" && (
+                        <View key={`second-${pageIndex}${key}${i}`}
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
+                        </View>)}
+                    </>
+                  )
+                })}
+              </View>
 
-            <View style={[{ flexDirection: 'column' }]}>
-              {pageIndexes.map((item, index) => (
+              <View style={[{ flexDirection: 'column' }]}>
+                {pageIndexes.map((item, index) => (
 
-                <View style={[styles.tableRow]} key={index}>
-                  {Object.values(thirdArray).map((key, i) => {
-                    return (
-                      <View style={[styles.tableCol, styles.tableCell]}>
-                        <Html key={i} style={[{ width: columnWidths[thirdArray[i]], height: data[item].Litologia.Height * scale }]}>{(data[item]?.[thirdArray[i]] || "")}</Html>
-                      </View>
-                    )
-                  })}
-                </View>
+                  <View style={[styles.tableRow]} key={index}>
+                    {Object.values(thirdArray).map((key, i) => {
+                      return (
+                        <View style={[styles.tableCol, styles.tableCell]}>
+                          <Html key={i} style={[{ width: columnWidths[thirdArray[i]], height: data[item].Litologia.Height * scale }]}>{(data[item]?.[thirdArray[i]] || "")}</Html>
+                        </View>
+                      )
+                    })}
+                  </View>
 
-              ))}
+                ))}
+              </View>
             </View>
           </View>
         </Page >))}
       <Page orientation={orientation} size={[sheetSize[format][0], sheetSize[format][1]]} style={styles.page} key={`page-symbols`}>
-        <Text style={[{ marginTop: 20, marginBottom: 10, fontSize: 20, fontFamily: "Times-Roman" }]}>Simbología</Text>
-        {patterns && (<>
-          <Text style={[{ marginBottom: 10, fontSize: 15, fontFamily: "Times-Roman" }]}>Patrones</Text>
-          <View style={[{ flexDirection: "column" }]}>
-            {patterns.map((pattern) => {
-              return (
-                <View style={[styles.tableRow, { marginTop: 10, height: 50 }]}>
+        <Text style={[{ paddingLeft: 10, marginTop: 20, marginBottom: 10, fontSize: 20, fontFamily: "Times-Roman" }]}>Simbología</Text>
+        <View style={[{ flexDirection: "row", flexWrap: "wrap" }]}>
+          {patterns && (
+            <View style={[{ paddingLeft: 10, flexDirection: "column" }]}>
+              <Text style={[{ marginBottom: 10, fontSize: 15, fontFamily: "Times-Roman" }]}>Patrones</Text>
+              {patterns.map((pattern) => (
+                <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={pattern[0]} style={{ height: 50, width: 50 }} />
-                  <Text style={{ marginLeft: 5, alignSelf: 'center', fontSize: 12 }}>
+                  <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
                     {pattern[1]}
                   </Text>
                 </View>
-              )
-            })}
-          </View>
-        </>)}
-        {fossils && (<>
-          <Text style={[{ marginTop: 10, marginBottom: 10, fontSize: 15, fontFamily: "Times-Roman" }]}>Fósiles</Text>
-          <View style={[{ flexDirection: "column" }]}>
-            {Object.values(fossils).map((fosil) => {
-              return (
-                <View style={[styles.tableRow, { marginTop: 10, height: 50 }]}>
-                  <Img src={fosil[0]} style={[{ height: 50, width: 50 }]}></Img>
-                  <Text style={{ marginLeft: 5, alignSelf: 'center', fontSize: 12 }}>
+              ))}
+            </View>
+          )}
+          {fossils && (
+            <View style={[{ paddingLeft: 10, flexDirection: "column" }]}>
+              <Text style={[{ marginTop: 10, marginBottom: 10, fontSize: 15, fontFamily: "Times-Roman" }]}>Fósiles</Text>
+              {Object.values(fossils).map((fosil) => (
+                <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
+                  <Img src={fosil[0]} style={[{ height: 50, width: 50 }]} />
+                  <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
                     {fosil[1]}
                   </Text>
                 </View>
-              )
-            })}
-          </View>
-        </>)}
-        {contacts && (<>
-          <Text style={[{ marginTop: 10, marginBottom: 10, fontSize: 15, fontFamily: "Times-Roman" }]}>Contactos</Text>
-          <View style={[{ flexDirection: "column" }]}>
-            {contacts.map((contact) => {
-              return (
-                <View style={[styles.tableRow, { marginTop: 10, height: 30 }]}>
+              ))}
+            </View>
+          )}
+          {contacts && (
+            <View style={[{ paddingLeft: 10, flexDirection: "column" }]}>
+              <Text style={[{ marginTop: 10, marginBottom: 10, fontSize: 15, fontFamily: "Times-Roman" }]}>Contactos</Text>
+              {contacts.map((contact) => (
+                <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={contact[0]} style={{ height: 30, width: 150 }} />
-                  <Text style={{ marginLeft: 5, alignSelf: 'center', fontSize: 12 }}>
-                    {contact[1]}
+                  <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
+                    {contactsJson[String(contact[1])].description}
                   </Text>
                 </View>
-              )
-            })}
-          </View>
-        </>)}
+              ))}
+            </View>
+          )}
+        </View>
       </Page>
+
     </Document >
   )
 };
@@ -289,11 +299,9 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
       line.style.stroke = "black";
     });
     const fossilUnits = svgCopy.querySelectorAll('g.fossilUnit');
+    var scaleFactorF = (parseFloat(columnWidths[columnName]) - (15 * 2.54 / 96)) / (width * 2.54 / 96)
     fossilUnits.forEach(fossilUnit => {
-      fossilUnit.setAttribute('transform', `scale(${scaleFactor},1)`);
-      var icon = fossilUnit.querySelector('g#iconFosil');
-      var iconH = icon.getAttribute("height");
-      icon.setAttribute('height', iconH * scaleFactor)
+      fossilUnit.setAttribute('transform', `scale(${scaleFactorF},1)`);
     });
 
   } else if (columnName === "Espesor") {
@@ -316,7 +324,6 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
     });
   }
   svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${height}`);
-  //svgCopy.style.background = "white"
   svgCopy.style.transformOrigin = `0 0`;
   var combinedSVG = new XMLSerializer().serializeToString(svgCopy);
   return new Promise((resolve, reject) => {
@@ -326,7 +333,7 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.onload = () => {
-      canvas2.width = parseFloat(columnWidths[columnName]) * 96 / 2.54//width;
+      canvas2.width = parseFloat(columnWidths[columnName]) * 96 / 2.54;
       canvas2.height = height;
       ctx2.drawImage(img, 0, 0);
       const imgURL = canvas2.toDataURL('image/png', 1.0);
@@ -340,13 +347,13 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
 }
 
 
-const Ab = async (data, headerParam, format, orientation, customWidthLit, scale, fossils) => {
+const Ab = async (data, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject) => {
   let widthSheet = (orientation == "portrait") ? sheetSize[format][0] : sheetSize[format][1];
   let heightSheet = (orientation == "portrait") ? sheetSize[format][1] : sheetSize[format][0];
   let rowIndexesPerPage = [];
   let currentPageIndexes = [];
   let pageLenghts = [];
-  let currentPageHeight = 110;
+  let currentPageHeight = 180;
   var header = [...headerParam]
   var format = format
   var columnWidths = {}
@@ -358,13 +365,21 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
     }
   }
 
+  const topHeaders = 180
+  const indexLimited = []
+
   Object.values(data).forEach((key, index) => {
-    const rowHeight = key['Litologia'].Height * scale
+    var rowHeight = key['Litologia'].Height * scale
+    const maxLitHeight = heightSheet - topHeaders - 10;
+    if (rowHeight > maxLitHeight) {
+      indexLimited.push(index);
+      rowHeight = maxLitHeight;
+    }
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
-      pageLenghts.push({ 'height': currentPageHeight - 110 })
+      pageLenghts.push({ 'height': currentPageHeight - topHeaders })
       currentPageIndexes = [];
-      currentPageHeight = 110;
+      currentPageHeight = topHeaders;
     }
     currentPageHeight += Number(rowHeight);
     currentPageIndexes.push(index);
@@ -373,7 +388,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
   // ultima pagina
   if (currentPageIndexes.length) {
     rowIndexesPerPage.push(currentPageIndexes);
-    var totalPageHeight = 110
+    var totalPageHeight = topHeaders
     Object.values(data).forEach((key, index) => {
       if (currentPageIndexes.includes(index)) {
         const rowHeight = key['Litologia'].Height * scale
@@ -381,7 +396,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
       }
     });
     pageLenghts.push({
-      'height': totalPageHeight - 110
+      'height': totalPageHeight - topHeaders
     })
   }
 
@@ -547,7 +562,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
   }
 
   const images = await svgDivision(pageLenghts, columnWidths);
-  const blob = await pdf(<MyDocument contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
+  const blob = await pdf(<MyDocument infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
   const url = URL.createObjectURL(blob);
   const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);

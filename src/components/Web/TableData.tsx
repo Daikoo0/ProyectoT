@@ -204,7 +204,7 @@ const TableData = ({ Data, refresh }) => {
                         <form method="dialog">
                             <button className="btn" onClick={() => setstateRequest("")}>Cancelar</button>
                         </form>
-                       
+
                     </div>
                 </div>
             </dialog>
@@ -265,7 +265,7 @@ const TableData = ({ Data, refresh }) => {
                                 <td>{data.CreationDate}</td>
                                 <td>{data.Description}</td>
                                 <th>
-                                    <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/editor/${data.ID}`)}>Editar</button>
+                                    <button className="btn btn-ghost btn-xs" onClick={() => { navigate(`/editor/${data.ID}`,{ state: { infoProject: data }})}}>Editar</button>
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalInvite') as HTMLDialogElement).showModal(); }}>Invite</button>
                                     {/* <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/invite/${data.ID}`)}>Co-Autores</button> */}
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalDelete') as HTMLDialogElement).showModal() }} >Eliminar</button>
@@ -288,7 +288,7 @@ const TableData = ({ Data, refresh }) => {
 
 
 
-            </table>
+            </table >
 
         </>
 

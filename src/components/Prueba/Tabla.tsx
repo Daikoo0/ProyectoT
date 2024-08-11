@@ -11,7 +11,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd }) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd, infoProject }) => {
 
     const cellWidth = 150;
     var cellMinWidth = 150;
@@ -75,7 +75,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
     }
 
     const handleRows = (e, key) => {
@@ -92,7 +92,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             data: newRows,
         }));
-        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale,pdfData.fossils)
+        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
 
     }
 
@@ -170,7 +170,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             ...prevState,
                                             format: e.target.value,
                                         }));
-                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation, pdfData.customWidthLit, pdfData.scale,pdfData.fossils)
+                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
                                     }} className="select select-bordered w-full max-w-xs mb-4">
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
                                         <option value={'EXECUTIVE'}>Executive</option>
@@ -241,7 +241,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     ...prevState,
                                                     orientation: (e.target.checked) ? "portrait" : "landscape",
                                                 }));
-                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"), pdfData.customWidthLit, pdfData.scale,pdfData.fossils)
+                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"), pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
                                             }} />
                                     </div>
                                     {/* Lista de visibilidad de columnas */}
@@ -281,7 +281,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 ...prevState,
                                                 customWidthLit: e.target.value,
                                             }));
-                                            Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, e.target.value, pdfData.scale,pdfData.fossils)
+                                            Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, e.target.value, pdfData.scale, pdfData.fossils,infoProject)
                                         }} className="select select-bordered w-full max-w-xs mb-4">
                                             <option value={""} disabled>Elige el ancho de la litologia</option>
                                             <option value={'20%'}>20%</option>
@@ -330,7 +330,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 <table style={{ height: '100px' }}>
                     <thead>
                         <tr>
-                            {header.map((columnName) => (
+                            {header.map((columnName, number) => (
                                 <th
                                     key={columnName}
                                     className="border border-base-content bg-primary sticky top-0"
@@ -385,6 +385,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         {columnName === "Facie" ?
                                             <>
                                                 <svg
+                                                    key={`facieSvg-${columnName}${number}`}
                                                     className="absolute w-full"
                                                     width={(columnWidths[columnName] || cellWidth) / 2}
                                                     height="120"
@@ -401,12 +402,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 >
 
                                                     {facies && (
-                                                        Object.keys(facies).map((_, index) => {
-                                                            // Calcular la posición x de la línea
+                                                        Object.keys(facies).map((key, index) => {
                                                             const xPos = (index + 1) * ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1));
                                                             return (
                                                                 <>
                                                                     <text
+                                                                        key={`textFacie-${key}${index}${number}`}
                                                                         className="fill fill-accent-content"
                                                                         x={xPos}
                                                                         y={112}>{index}</text>

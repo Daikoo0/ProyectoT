@@ -3,13 +3,15 @@
         "dash": [],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Contact-Identity and existence certain, location accurate"
     },
     "112": {
         "dash": [],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Contact-Identity or existence questionable, location accurate"
     },
     "113": {
         "dash": [
@@ -18,7 +20,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Contact-Identity and existence certain, location approximate"
     },
     "114": {
         "dash": [
@@ -27,7 +30,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Contact-Identity or existence questionable, location approximate"
     },
     "115": {
         "dash": [
@@ -36,7 +40,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Contact-Identity and existence certain, location inferred"
     },
     "116": {
         "dash": [
@@ -45,7 +50,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Contact-Identity or existence questionable, location inferred"
     },
     "117": {
         "dash": [
@@ -54,7 +60,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Contact-Identity and existence certain, location concealed"
     },
     "118": {
         "dash": [
@@ -63,19 +70,22 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Contact-Identity or existence questionable, location concealed"
     },
     "119": {
         "dash": "[((points[points.length-2].x + points[points.length-1].x)/2)-8, 3, 3,4,3,3]",
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Internal contact-Identity and existence certain, location accurate"
     },
     "1110": {
         "dash": "[((points[points.length-2].x + points[points.length-1].x)/2)-8, 3, 3,4,3,3]",
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Internal contact-Identity or existence questionable, location accurate"
     },
     "1111": {
         "dash": [
@@ -88,7 +98,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Internal contact-Identity and existence certain, location approximate"
     },
     "1112": {
         "dash": [
@@ -101,7 +112,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Internal contact-Identity or existence questionable, location approximate"
     },
     "1113": {
         "dash": [
@@ -114,7 +126,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Internal contact-Identity and existence certain, location inferred"
     },
     "1114": {
         "dash": [
@@ -127,7 +140,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Internal contact-Identity or existence questionable, location inferred"
     },
     "1115": {
         "dash": [
@@ -140,7 +154,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Internal contact-Identity and existence certain, location concealed"
     },
     "1116": {
         "dash": [
@@ -153,7 +168,8 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Internal contact-Identity or existence questionable, location concealed"
     },
     "1117": {
         "dash": [
@@ -162,7 +178,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Gradational contact-Identity and existence certain, location accurate"
     },
     "1118": {
         "dash": [
@@ -171,7 +188,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Gradational contact-Identity or existence questionable, location accurate"
     },
     "1119": {
         "dash": [
@@ -194,7 +212,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Gradational contact-Identity and existence certain, location approximate"
     },
     "1120": {
         "dash": [
@@ -217,7 +236,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Gradational contact-Identity or existence questionable, location approximate"
     },
     "1121": {
         "dash":  [
@@ -234,7 +254,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Gradational contact-Identity and existence certain, location inferred"
     },
     "1122": {
         "dash": [
@@ -251,7 +272,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Gradational contact-Identity or existence questionable, location inferred"
     },
     "1123": {
         "dash": [
@@ -264,7 +286,8 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": false
+        "question": false,
+        "description": "Gradational contact-Identity and existence certain, location concealed"
     },
     "1124": {
         "dash": [
@@ -277,19 +300,22 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Gradational contact-Identity or existence questionable, location concealed"
     },
     "1125": {
         "dash": [],
         "lineWidth": 1,
         "arcs": true,
-        "question": false
+        "question": false,
+        "description": "Unconformable contact-Identity and existence certain, location accurate"
     },
     "1126": {
         "dash": [],
         "lineWidth": 1,
         "arcs": true,
-        "question": true
+        "question": true,
+        "description": "Unconformable contact-Identity or existence questionable, location accurate"
     },
     "1127": {
         "dash": [
@@ -298,7 +324,8 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-        "question": false
+        "question": false,
+        "description": "Unconformable contact-Identity and existence certain, location approximate"
     },
     "1128": {
         "dash": [
@@ -307,81 +334,47 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-        "question": true
+        "question": true,
+        "description": "Unconformable contact-Identity or existence questionable, location approximate"
     },
     "1129": {
         "dash": [
             10,
-            8
+            4
         ],
         "lineWidth": 1,
         "arcs": true,
-        "question": false
+        "question": false,
+        "description": "Unconformable contact-Identity and existence certain, location inferred"
     },
     "1130": {
         "dash": [
             10,
-            8
+            4
         ],
         "lineWidth": 1,
         "arcs": true,
-        "question": true
+        "question": true,
+        "description": "Unconformable contact-Identity or existence questionable, location inferred"
     },
     "1131": {
         "dash": [
-            0,
-            8,
-            4,
-            6,
-            4,
-            8
+            5,
+            2
         ],
         "lineWidth": 1,
         "arcs": true,
-        "question": false
+        "question": false,
+        "description": "Unconformable contact-Identity and existence certain, location concealed"
     },
     "1132": {
         "dash": [
-            4,
-            8,
-            4,
-            6
-            
+            5,
+            2
         ],
         "lineWidth": 1,
         "arcs": true,
-        "question": true
-    },
-    "1133": {
-        "dash": [1,10],
-        "dash2": [],
-        "lineWidth": 10,
-        "lineWidth2": 3,
-        "arcs": false,
-        "question": false
-    },
-    "1134": {
-        "dash": [1,10],
-        "dash2": [] ,
-        "lineWidth": 10,
-        "lineWidth2": 3,
-        "arcs": false,
-        "question": true
-    },
-    "1135": {
-        "dash": [0,1,1,10],
-        "dash2": [14,10],
-        "lineWidth": 10,
-        "lineWidth2": 3,
-        "arcs": false,
-        "question": false
-    },
-    "1136": {
-        "dash": [0,1,1,10],
-        "dash2": [14,10],
-        "lineWidth": 10,
-        "lineWidth2": 3,
-        "arcs": false,
-        "question": true
+        "question": true,
+        "description": "Unconformable contact-Identity or existence questionable, location concealed"
     }
 }

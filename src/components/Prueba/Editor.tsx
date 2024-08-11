@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { useParams } from "react-router-dom";
+import { useParams , useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Tabla from './Tabla';
 import SelectTheme from '../Web/SelectTheme';
@@ -29,11 +29,14 @@ const Grid = () => {
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
   const [messageFacie, setMessageFacie] = useState('');
+  const location = useLocation();
+  const infoProject = location.state?.infoProject;
   var contactsSvg = []
   {
     Object.keys(contacts).map((contact) => {
       const { loading, SvgIcon } = useDynamicSvgImport(contact, "contacts");
-      contactsSvg.push({ loading, SvgIcon, contact });
+      var description = contacts[contact].description;
+      contactsSvg.push({ loading, SvgIcon, contact, description });
     })
   }
 
@@ -599,7 +602,7 @@ const Grid = () => {
     (document.getElementById('modal') as HTMLDialogElement).showModal();
     var copyData = data
     var copyHeader = [...header]
-    Ab(copyData, copyHeader, 'A3', 'portrait', "", scale, fossils)
+    Ab(copyData, copyHeader, 'A3', 'portrait', "", scale, fossils,infoProject)
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
@@ -684,6 +687,7 @@ const Grid = () => {
 
           <Tabla
             // Data 
+            infoProject={infoProject}
             setPdfData={setPdfData}
             pdfData={pdfData}
             data={data}
@@ -1080,7 +1084,7 @@ const Grid = () => {
                       <li><button className="btn btn-error" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
                     </ul>)
                 case "polygon":
-                
+
 
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -1114,51 +1118,20 @@ const Grid = () => {
                                         <items.SvgIcon {...{ width: "150", height: "20" }} />
 
                                       )}
-                                    {/* <svg width="150" height="20" className='stroke-base-content'>
-                                    {typeof (key.dash) === 'string' ?
-                                      <>
-                                        <line
-                                          x1="0"
-                                          y1="15"
-                                          x2="150"
-                                          y2="15"
-                                          stroke="black"
-                                          strokeWidth={key.lineWidth}
-                                          strokeDasharray={`[67,2,2,2,2,2]`}
-                                        />
-                                      </> : <>
-                                        <line
-                                          x1="0"
-                                          y1="15"
-                                          x2="150"
-                                          y2="15"
-                                          stroke="black"
-                                          strokeWidth={key.lineWidth}
-                                          strokeDasharray={`${key.dash}`}
-                                        /></>
-                                    }
 
-
-                                    {('dash2' in key) && key.dash2 && (
-                                      <line
-                                        x1="0"
-                                        y1="20"
-                                        x2="150"
-                                        y2="20"
-                                        stroke="black"
-                                        strokeWidth={key.lineWidth2 ?? 1}
-                                        strokeDasharray={`${key.dash2}`}
-                                      />
-                                    )}
-                                    {key.question && (
-                                      <text x="75" y="15" overflow={'visible'} textAnchor="middle" dominantBaseline="middle" fontSize="20" fill="red">?</text>
-                                    )}
-                                    {key.arcs && (
-                                      <path
-                                        d="M 0,15 Q 5,5 10,15 Q 15,25 20,15 Q 25,5 30,15 Q 35,25 40,15 Q 45,5 50,15 Q 55,25 60,15 Q 65,5 70,15 Q 75,25 80,15 Q 85,5 90,15 Q 95,25 100,15 Q 105,5 110,15 Q 115,25 120,15 Q 125,5 130,15 Q 135,25 140,15 Q 145,5 150,15" fill="none" stroke="black" strokeWidth="1" />
-                                    )}
-                                  </svg> */}
+                                    <div className="dropdown dropdown-hover dropdown-left dropdown-end">
+                                      {/* <div tabIndex={0} role="button" className="btn m-1"> */}
+                                      <svg tabIndex={0} role="button" className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                      </svg>
+                                      {/* </div> */}
+                                      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                        <li><a>{items.description}</a></li>
+                                      </ul>
+                                    </div>
                                   </label>
+
+
                                 </li>
                               )
                             }
