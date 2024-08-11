@@ -31,6 +31,30 @@ func UpdateFieldAll(litologia interface{}, field string, value interface{}) {
 	}
 }
 
+func GetFieldString(data interface{}, campo string) string {
+	val := reflect.ValueOf(data)
+	field := val.FieldByName(campo)
+	if !field.IsValid() || !field.CanInterface() {
+		return ""
+	}
+
+	// Usa fmt.Sprintf para convertir el valor del campo a string
+	switch field.Kind() {
+	case reflect.String:
+		return field.String()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return fmt.Sprintf("%d", field.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return fmt.Sprintf("%d", field.Uint())
+	case reflect.Float32, reflect.Float64:
+		return fmt.Sprintf("%f", field.Float())
+	case reflect.Bool:
+		return fmt.Sprintf("%t", field.Bool())
+	default:
+		return ""
+	}
+}
+
 func UpdateFieldLit(litologia *models.LitologiaStruc, field string, value interface{}) {
 	switch field {
 	case "ColorFill":
@@ -83,6 +107,8 @@ func UpdateFieldLit(litologia *models.LitologiaStruc, field string, value interf
 		}
 	case "Height":
 		if v, ok := value.(int); ok {
+			litologia.Height = v
+		} else if v, err := strconv.Atoi(value.(string)); err == nil {
 			litologia.Height = v
 		} else {
 			fmt.Println("Valor inválido para Height")

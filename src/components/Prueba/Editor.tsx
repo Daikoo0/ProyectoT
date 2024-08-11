@@ -681,6 +681,23 @@ const Grid = () => {
                 </div>
               </div>
 
+              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({action: 'undo'}))} data-tip="Deshacer">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4"/>
+                  </svg>
+                </div>
+              </div>
+
+              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({action: 'redo'}))} data-tip="Rehacer">
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4"/>
+                  </svg>
+
+                </div>
+              </div>
+              
 
             </div>
           </div>

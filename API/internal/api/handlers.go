@@ -8,8 +8,6 @@ import (
 	"encoding/hex"
 	"log"
 	"net/http"
-	"reflect"
-	"strings"
 
 	"time"
 
@@ -52,7 +50,8 @@ type RoomData struct {
 	Active          []*websocket.Conn
 	SectionsEditing map[string]interface{}
 	UserColors      map[string]string
-	Changes         []Change
+	undoStack       []Action
+	redoStack       []Action
 }
 
 var rooms = make(map[string]*RoomData)
@@ -299,41 +298,10 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				switch dataMap.Action {
 
 				case "undo":
-					if len(proyect.Changes) == 0 {
-						log.Printf("No hay cambios")
-						break
-					}
+					undo(proyect)
 
-					log.Printf("%v", proyect.Changes)
-					lastChange := proyect.Changes[len(proyect.Changes)-1]
-
-					// Separa la clave principal y el subpath
-					parts := strings.SplitN(lastChange.Key, ".", 2)
-					if len(parts) < 2 {
-						log.Printf("Error: key must include at least one dot separator.")
-						break
-					}
-					mainKey := parts[0]
-					subPath := parts[1]
-
-					// Accede al campo principal usando reflect
-					fieldValue := reflect.ValueOf(proyect).Elem().FieldByName(mainKey)
-					if !fieldValue.IsValid() {
-						log.Printf("Error: main key is not a valid field name.")
-						break
-					}
-
-					// Ejecuta la acción correspondiente al tipo de cambio
-					switch lastChange.ActionType {
-					case "add":
-						DeleteValueKeyPath(fieldValue.Interface(), subPath)
-					case "modify":
-						AssignValueByKey(fieldValue.Interface(), subPath, lastChange.OldValue)
-					case "delete":
-						AddValueAtKeyPath(fieldValue.Interface(), subPath, lastChange.OldValue)
-					}
-
-					proyect.Changes = proyect.Changes[:len(proyect.Changes)-1]
+				case "redo":
+					redo(proyect)
 
 				case "editingUser":
 
@@ -378,6 +346,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					err := json.Unmarshal(dataMap.Data, &editing)
 					if err != nil {
 						log.Println("Error al deserializar: ", err)
+						break
 					}
 					section := editing.Section
 					roomData := rooms[roomID]
@@ -400,7 +369,23 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					}
 				case "añadir":
 
-					añadir(proyect, dataMap, models.NewShape())
+					var addData dtos.Add
+					err := json.Unmarshal(dataMap.Data, &addData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+						break
+					}
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								añadir(proyect, addData, models.NewShape())
+							},
+							Undo: func() {
+								deleteRow(proyect, dtos.Delete{RowIndex: addData.RowIndex})
+							},
+						},
+					)
 
 				case "addCircle":
 
@@ -424,11 +409,51 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "editText":
 
-					editText(proyect, dataMap)
+					var editTextData dtos.EditText
+					err := json.Unmarshal(dataMap.Data, &editTextData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+						break
+					}
+
+					oldvalue := GetFieldString(proyect.Data[editTextData.RowIndex], editTextData.Key)
+					textData := editTextData
+					textData.Value = oldvalue
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								editText(proyect, editTextData)
+							},
+							Undo: func() {
+								editText(proyect, textData)
+							},
+						},
+					)
 
 				case "editPolygon":
 
-					editPolygon(proyect, dataMap)
+					var polygon dtos.EditPolygon
+					err := json.Unmarshal(dataMap.Data, &polygon)
+					if err != nil {
+						log.Println("Error deserializando el polygon:", err)
+						break
+					}
+
+					oldvalue := GetFieldString(proyect.Data[polygon.RowIndex].Litologia, polygon.Column)
+					editpolygon := polygon
+					editpolygon.Value = oldvalue
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								editPolygon(proyect, polygon)
+							},
+							Undo: func() {
+								editPolygon(proyect, editpolygon)
+							},
+						},
+					)
 
 				case "editFosil":
 
@@ -436,7 +461,25 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "delete":
 
-					deleteRow(proyect, dataMap)
+					var deleteData dtos.Delete
+					err := json.Unmarshal(dataMap.Data, &deleteData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+						break
+					}
+
+					copia := proyect.Data[deleteData.RowIndex]
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								deleteRow(proyect, deleteData)
+							},
+							Undo: func() {
+								añadir(proyect, dtos.Add{RowIndex: deleteData.RowIndex}, copia)
+							},
+						},
+					)
 
 				case "deleteCircle":
 
@@ -554,7 +597,8 @@ func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config 
 			Active:          make([]*websocket.Conn, 0),
 			SectionsEditing: sectionsEditing,
 			UserColors:      userColors,
-			Changes:         make([]Change, 0),
+			undoStack:       make([]Action, 0),
+			redoStack:       make([]Action, 0),
 		}
 
 		rooms[projectIDString] = room
@@ -584,83 +628,57 @@ func generateRandomColor() string {
 	return "#" + hex.EncodeToString(color)
 }
 
-func añadir(project *RoomData, dataMap GeneralMessage, newShape models.DataInfo) {
-
-	var addData dtos.Add
-	err := json.Unmarshal(dataMap.Data, &addData)
-	if err != nil {
-		log.Println("Error al deserializar: ", err)
-		return
-	}
+func añadir(project *RoomData, addData dtos.Add, newShape models.DataInfo) {
 
 	rowIndex := addData.RowIndex
 	height := addData.Height
 
-	var index int
-
-	if rowIndex == -1 { // al final
-		index = len(project.Data)
-
-	} else { //  índice encontrado
+	index := len(project.Data)
+	if rowIndex != -1 {
 		index = rowIndex
 	}
 
-	if index-1 >= 0 && index-1 < len(project.Data) {
+	if index > 0 && index-1 < len(project.Data) {
 		newShape.Litologia.PrevContact = project.Data[index-1].Litologia.Contact
-
 	}
 
 	if index < len(project.Data) {
 		project.Data[index].Litologia.PrevContact = newShape.Litologia.Contact
-
 		msgData := map[string]interface{}{
 			"action":   "editPolygon",
 			"rowIndex": index,
 			"key":      "PrevContact",
 			"value":    newShape.Litologia.Contact,
 		}
-
 		sendSocketMessage(msgData, project, "editPolygon")
-
 	}
 
-	newShape.Litologia.Height = height
+	if height != 0 {
+		newShape.Litologia.Height = height
+	}
 
+	msgData := map[string]interface{}{
+		"action": "añadir",
+		"value":  newShape,
+	}
 	if rowIndex == -1 { // Agrega al final
 		project.Data = append(project.Data, newShape)
-
-		msgData := map[string]interface{}{
-			"action": "añadirEnd",
-			"value":  newShape,
-		}
-
-		sendSocketMessage(msgData, project, "añadir")
-
+		msgData["action"] = "añadirEnd"
 	} else { // Agrega en el índice encontrado
 		project.Data = append(project.Data[:rowIndex], append([]models.DataInfo{newShape}, project.Data[rowIndex:]...)...)
-
-		msgData := map[string]interface{}{
-			"action":   "añadir",
-			"rowIndex": rowIndex,
-			"value":    newShape,
-		}
-
-		sendSocketMessage(msgData, project, "añadir")
-
+		msgData["rowIndex"] = rowIndex
 	}
 
+	sendSocketMessage(msgData, project, msgData["action"].(string))
 }
 
-func deleteRow(project *RoomData, dataMap GeneralMessage) {
-
-	var deleteData dtos.Delete
-	err := json.Unmarshal(dataMap.Data, &deleteData)
-	if err != nil {
-		log.Println("Error al deserializar: ", err)
-		return
-	}
+func deleteRow(project *RoomData, deleteData dtos.Delete) {
 
 	rowIndex := deleteData.RowIndex
+
+	if rowIndex == -1 {
+		rowIndex = len(project.Data) - 1
+	}
 
 	if rowIndex < 0 || rowIndex >= len(project.Data) {
 		log.Println("Índice fuera de los límites")
@@ -692,13 +710,7 @@ func deleteRow(project *RoomData, dataMap GeneralMessage) {
 	sendSocketMessage(msgData, project, "delete")
 }
 
-func editText(project *RoomData, dataMap GeneralMessage) {
-
-	var editTextData dtos.EditText
-	err := json.Unmarshal(dataMap.Data, &editTextData)
-	if err != nil {
-		log.Println("Error al deserializar: ", err)
-	}
+func editText(project *RoomData, editTextData dtos.EditText) {
 
 	key := editTextData.Key
 	value := editTextData.Value
@@ -708,7 +720,6 @@ func editText(project *RoomData, dataMap GeneralMessage) {
 
 	UpdateFieldAll(roomData, key, value)
 
-	// Enviar informacion a los clientes
 	msgData := map[string]interface{}{
 		"action":   "editText",
 		"key":      key,
@@ -720,14 +731,8 @@ func editText(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func editPolygon(project *RoomData, dataMap GeneralMessage) {
+func editPolygon(project *RoomData, polygon dtos.EditPolygon) {
 
-	var polygon dtos.EditPolygon
-	err := json.Unmarshal(dataMap.Data, &polygon)
-	if err != nil {
-		log.Println("Error deserializando el polygon:", err)
-		return
-	}
 	rowIndex := polygon.RowIndex
 	column := polygon.Column
 	value := polygon.Value
