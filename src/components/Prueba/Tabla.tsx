@@ -275,7 +275,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="menu p-4 w-full min-h-full text-base-content">
                                         {/* Select */}
-                                        Espacio horizontal de la litología respecto al espacio de la hoja
+                                        Espacio horizontal de la litología respecto al ancho de la hoja
                                         <select value={pdfData.customWidthLit} onChange={(e) => {
                                             setPdfData(prevState => ({
                                                 ...prevState,

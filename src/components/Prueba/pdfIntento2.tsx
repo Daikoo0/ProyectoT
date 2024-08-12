@@ -56,26 +56,30 @@ const TableHeader = ({ columnWidths, header }) => {
 
 };
 
-function svgListToDataURL(svgList, columnWidths) {
+function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths) {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     let totalHeight = 0;
-    let val = parseFloat(columnWidths["Litologia"]) //(((widthSheet - 20) / 100) * parseFloat(maxWidth))
-    let combinedSVG = `<svg width="` + val + `cm" xmlns="http://www.w3.org/2000/svg">`;
+    let val = parseFloat(columnWidths["Litologia"])
+    const pageLength = pageLengths[pageIndex];
+    let combinedSVG = `<svg width="${val}cm" xmlns="http://www.w3.org/2000/svg">`;
 
     svgList.forEach((svg, index) => {
       const svgCopy = svg.cloneNode(true);
       const circles = svgCopy.querySelectorAll('circle');
       circles.forEach(circle => circle.remove());
+      if (limited) {
+        var scaleY = pageLength / svgCopy.getAttribute('height');
+      }
       const alturaActual = parseFloat(svgCopy.getAttribute('height'));
       const currentWidth = svg.clientWidth * 2.54 / 96//svg.clientWidth
       let scaleFactor = parseFloat(columnWidths["Litologia"]) / currentWidth //(((widthSheet - 20) / 100) * parseFloat(maxWidth)) / (currentWidth);
       var path = svgCopy.getElementsByClassName("stroke-current text-base-content");
       var pa = svgCopy.getElementsByClassName("pa");
-      path[0].setAttribute('transform', `scale(${scaleFactor},1)`);
+      path[0].setAttribute('transform', `scale(${scaleFactor},${(scaleY || 1)})`);
       for (var i = 0; i < pa.length; i++) {
-        pa[i].setAttribute('transform', `scale(${scaleFactor},1)`);
+        pa[i].setAttribute('transform', `scale(${scaleFactor},${(scaleY || 1)})`);
       }
       svgCopy.style.transformOrigin = `0 0`;
       svgCopy.setAttribute('y', totalHeight);
@@ -113,53 +117,51 @@ const svgDivision = async (measures, columnWidths) => {
   const svgFacies = document.querySelector('svg#svgFacies');
   for (const measure of measures) {
     const { height } = measure;
-    const imgPageFossils = await svgToImg(svgFossil, height, svgFossil.clientWidth, y, "Estructura fosil", columnWidths);
-    const imgPageEspesor = await svgToImg(svgEspesor, height, svgEspesor.clientWidth, y, "Espesor", columnWidths);
-    const imgPageFacies = await svgToImg(svgFacies, height, svgFacies.clientWidth, y, "Facie", columnWidths);
+    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height, svgFossil.clientWidth, y, "Estructura fosil", columnWidths) : "";
+    const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, svgEspesor.clientWidth, y, "Espesor", columnWidths) : "";
+    const imgPageFacies = svgFacies ? await svgToImg(svgFacies, height, svgFacies.clientWidth, y, "Facie", columnWidths) : "";
     y += height;
-    arrayFossils.push(imgPageFossils);
-    arrayEspesor.push(imgPageEspesor);
-    arrayFacies.push(imgPageFacies);
+    imgPageFossils ? arrayFossils.push(imgPageFossils) : arrayFossils = [];
+    imgPageEspesor ? arrayEspesor.push(imgPageEspesor) : arrayEspesor = [];
+    imgPageFacies ? arrayFacies.push(imgPageFacies) : arrayFacies = [];
   }
   return [arrayFossils, arrayEspesor, arrayFacies];
 };
 
-async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths) {
+async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths, indexLimited, pageLengths) {
   const indexes = rowIndexesPerPage[pageIndex]; // todos los índices de pageIndex
+  var limited = indexLimited.includes(indexes[0]) ? true : false;
   const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la página que se está generando
   if (filteredTdsWithSvg.length > 0) {
-    const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, columnWidths);
+    const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, columnWidths, limited, pageIndex, pageLengths);
     return imageDataURL;
   } else {
     return null;
   }
 }
 
-const MyDocument = ({ infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
+const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
 
   var firstArray = []
   var secondArray = []
   var thirdArray = []
-  var uno = 0;
-  var dos = 0;
-  var tres = 0;
-  console.log(infoProject)
-
   var splitIndex = header.indexOf("Espesor");
-  var endIndex = header.indexOf("Facie") || header.indexOf("Estructura fosil") || header.indexOf("Litologia");
+  var endIndex = Math.max(header.indexOf("Facie"), header.indexOf("Estructura fosil"), header.indexOf("Litologia"));
 
   for (let i = 0; i < header.length; i++) {
     if (i < splitIndex) {
       firstArray.push(header[i]);
-      uno += parseFloat(columnWidths[header[i]])
     } else if (i >= splitIndex && i <= endIndex) {
       secondArray.push(header[i]);
-      dos += parseFloat(columnWidths[header[i]])
     } else if (i > endIndex) {
       thirdArray.push(header[i]);
-      tres += parseFloat(columnWidths[header[i]])
     }
   }
+
+  console.log(firstArray, secondArray, thirdArray)
+  secondArray.map((key, i) => {
+    console.log(secondArray, key, i)
+  })
 
 
   return (
@@ -194,23 +196,28 @@ const MyDocument = ({ infoProject, contacts, fossils, patterns, scale, imageFoss
               </View>
               <View key={`second-${pageIndex}`} style={[styles.tableRow, { borderBottomWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
                 {Object.values(secondArray).map((key, i) => {
+                  console.log(secondArray, key, i)
                   return (
                     <>
-                      {secondArray[i] === "Litologia" && (<View key={`second-${pageIndex}${key}${i}`}
-                        style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) + 10 }]}>
-                        <Img key={`secondImg-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length) + 10, width: columnWidths["Litologia"] }]} />
-                      </View>)}
-                      {secondArray[i] === "Estructura fosil" && (
+                      {key === "Litologia" && (
+                        <View key={`second-${pageIndex}${key}${i}`}
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + 10 }]}>
+                          <Text>Hooa{secondArray[i]}</Text>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, width: columnWidths["Litologia"] }]} />
+
+                        </View>
+                      )}
+                      {(secondArray[i] === "Estructura fosil" && imageFossils.length) && (
                         <View key={`second-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
                           <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
                         </View>)}
-                      {secondArray[i] === "Espesor" && (
+                      {(secondArray[i] === "Espesor" && imageEspesor.length) && (
                         <View key={`second-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
                           <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
                         </View>)}
-                      {secondArray[i] === "Facie" && (
+                      {(secondArray[i] === "Facie" && imageFacies.length) && (
                         <View key={`second-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
                           <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
@@ -352,12 +359,12 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
   let heightSheet = (orientation == "portrait") ? sheetSize[format][1] : sheetSize[format][0];
   let rowIndexesPerPage = [];
   let currentPageIndexes = [];
-  let pageLenghts = [];
+  let pageLengths = [];
   let currentPageHeight = 180;
   var header = [...headerParam]
   var format = format
   var columnWidths = {}
-  columnWidths["Litologia"] = customWidthLit !== "" ? customWidthLit : String((25 * widthSheet * 0.0352778) / 100) + "cm"
+  columnWidths["Litologia"] = String(((customWidthLit ? parseFloat(customWidthLit) : 20) * widthSheet * 0.0352778) / 100) + "cm"
   columnWidths["Espesor"] = (parseFloat(columnWidths["Litologia"]) / 4) + "cm"; //"2cm"
   for (var i in header) {
     if (header[i] !== "Espesor" && header[i] !== "Litologia") {
@@ -377,7 +384,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
     }
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
-      pageLenghts.push({ 'height': currentPageHeight - topHeaders })
+      pageLengths.push({ 'height': currentPageHeight - topHeaders })
       currentPageIndexes = [];
       currentPageHeight = topHeaders;
     }
@@ -395,7 +402,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
         totalPageHeight += Number(rowHeight)
       }
     });
-    pageLenghts.push({
+    pageLengths.push({
       'height': totalPageHeight - topHeaders
     })
   }
@@ -557,12 +564,12 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
 
   var imgPage = [];
   for (var j = 0; j < rowIndexesPerPage.length; j++) {
-    const img = await generateSVGDataURLForPage(j, rowIndexesPerPage, tdsWithSvg, columnWidths);
+    const img = await generateSVGDataURLForPage(j, rowIndexesPerPage, tdsWithSvg, columnWidths, indexLimited, pageLengths);
     imgPage.push(img);
   }
 
-  const images = await svgDivision(pageLenghts, columnWidths);
-  const blob = await pdf(<MyDocument infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
+  const images = await svgDivision(pageLengths, columnWidths);
+  const blob = await pdf(<MyDocument indexLimited={indexLimited} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
   const url = URL.createObjectURL(blob);
   const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);
