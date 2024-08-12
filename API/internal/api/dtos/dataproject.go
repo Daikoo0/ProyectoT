@@ -101,6 +101,7 @@ type AddFacieSection struct {
 	Facie string  `json:"facie"`
 	Y1    float32 `json:"y1"`
 	Y2    float32 `json:"y2"`
+	Index int     `json:"index"`
 }
 
 type DeleteFacieSection struct {

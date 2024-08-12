@@ -28,7 +28,7 @@ type Data_project struct {
 	Id_project primitive.ObjectID
 	Data       []DataInfo                 `bson:"data"`
 	Config     map[string]interface{}     `bson:"config"`
-	Fosil      map[string]interface{}     `bson:"fosil"`
+	Fosil      map[string]Fosil           `bson:"fosil"`
 	Facies     map[string][]FaciesSection `bson:"facies"`
 }
 
@@ -68,6 +68,32 @@ type CircleStruc struct {
 type FaciesSection struct {
 	Y1 float32 `json:"y1"`
 	Y2 float32 `json:"y2"`
+}
+
+type Fosil struct {
+	Upper    int     `json:"upper"`
+	Lower    int     `json:"lower"`
+	FosilImg string  `json:"fosilImg"`
+	X        float32 `json:"x"`
+}
+
+func NewFosil(upper int, lower int, fosilImg string, x float32) Fosil {
+	return Fosil{
+		Upper:    upper,
+		Lower:    lower,
+		FosilImg: fosilImg,
+		X:        x,
+	}
+}
+
+func NewCircle(point float32) CircleStruc {
+	return CircleStruc{
+		X:       0.5,
+		Y:       point,
+		Radius:  5,
+		Movable: true,
+		Name:    "none",
+	}
 }
 
 func NewShape() DataInfo {

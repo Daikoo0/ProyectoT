@@ -46,7 +46,7 @@ type RoomData struct {
 	Data            []models.DataInfo
 	Config          map[string]interface{}
 	Facies          map[string][]models.FaciesSection
-	Fosil           map[string]interface{}
+	Fosil           map[string]models.Fosil
 	Active          []*websocket.Conn
 	SectionsEditing map[string]interface{}
 	UserColors      map[string]string
@@ -294,7 +294,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						}
 					}()
 				}
-				// Switch para las acciones
 				switch dataMap.Action {
 
 				case "undo":
@@ -367,6 +366,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							log.Println("El elemento a eliminar no existe")
 						}
 					}
+
 				case "añadir":
 
 					var addData dtos.Add
@@ -389,23 +389,110 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "addCircle":
 
-					addCircle(proyect, dataMap)
+					var addCircleData dtos.AddCircle
+					err := json.Unmarshal(dataMap.Data, &addCircleData)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+						break
+					}
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								addCircle(proyect, addCircleData, models.NewCircle(addCircleData.Point))
+							},
+							Undo: func() {
+								deleteCircle(proyect, dtos.DeleteCircle{RowIndex: addCircleData.RowIndex, DeleteIndex: addCircleData.InsertIndex})
+							},
+						},
+					)
 
 				case "addFosil":
 
-					addFosil(proyect, dataMap)
+					var fosil models.Fosil
+					err := json.Unmarshal(dataMap.Data, &fosil)
+					if err != nil {
+						log.Println("Error", err)
+						break
+					}
+
+					id := shortuuid.New()
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								addFosil(proyect, id, fosil)
+							},
+							Undo: func() {
+								deleteFosil(proyect, dtos.DeleteFosil{IdFosil: id})
+							},
+						},
+					)
 
 				case "addFacie":
 
-					addFacie(proyect, dataMap)
+					var facie dtos.Facie
+					err := json.Unmarshal(dataMap.Data, &facie)
+					if err != nil {
+						log.Println("Error", err)
+						break
+					}
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								addFacie(proyect, facie, nil)
+							},
+							Undo: func() {
+								deleteFacie(proyect, facie)
+							},
+						},
+					)
 
 				case "addFacieSection":
 
-					addFacieSection(proyect, dataMap)
+					var f dtos.AddFacieSection
+					err := json.Unmarshal(dataMap.Data, &f)
+					if err != nil {
+						log.Println("Error", err)
+						break
+					}
+
+					previousIndex := len(proyect.Facies[f.Facie])
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								addFacieSection(proyect, f, models.FaciesSection{Y1: f.Y1, Y2: f.Y2})
+							},
+							Undo: func() {
+								deleteFacieSection(proyect, dtos.DeleteFacieSection{Facie: f.Facie, Index: previousIndex})
+							},
+						},
+					)
 
 				case "editCircle":
 
-					editCircle(proyect, dataMap)
+					var editCircles dtos.EditCircle
+					err := json.Unmarshal(dataMap.Data, &editCircles)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+						break
+					}
+
+					oldx := proyect.Data[editCircles.RowIndex].Litologia.Circles[editCircles.EditIndex].X
+					oldname := proyect.Data[editCircles.RowIndex].Litologia.Circles[editCircles.EditIndex].Name
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								editCircle(proyect, editCircles)
+							},
+							Undo: func() {
+								editCircle(proyect, dtos.EditCircle{RowIndex: editCircles.RowIndex, EditIndex: editCircles.EditIndex, X: oldx, Name: oldname})
+							},
+						},
+					)
 
 				case "editText":
 
@@ -457,7 +544,25 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "editFosil":
 
-					editFosil(proyect, dataMap)
+					var fosil dtos.EditFosil
+					err := json.Unmarshal(dataMap.Data, &fosil)
+					if err != nil {
+						log.Println("Error deserializando fósil:", err)
+						break
+					}
+
+					oldFosil := proyect.Fosil[fosil.IdFosil]
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								editFosil(proyect, fosil.IdFosil, models.NewFosil(fosil.Upper, fosil.Lower, fosil.FosilImg, fosil.X))
+							},
+							Undo: func() {
+								editFosil(proyect, fosil.IdFosil, oldFosil)
+							},
+						},
+					)
 
 				case "delete":
 
@@ -483,19 +588,94 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "deleteCircle":
 
-					deleteCircle(proyect, dataMap)
+					var delCircle dtos.DeleteCircle
+					err := json.Unmarshal(dataMap.Data, &delCircle)
+					if err != nil {
+						log.Println("Error al deserializar: ", err)
+						break
+					}
+
+					oldcircle := proyect.Data[delCircle.RowIndex].Litologia.Circles[delCircle.DeleteIndex]
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								deleteCircle(proyect, delCircle)
+							},
+							Undo: func() {
+								addCircle(proyect, dtos.AddCircle{RowIndex: delCircle.RowIndex, InsertIndex: delCircle.DeleteIndex}, oldcircle)
+							},
+						},
+					)
 
 				case "deleteFosil":
 
-					deleteFosil(proyect, dataMap)
+					var fosilID dtos.DeleteFosil
+					err := json.Unmarshal(dataMap.Data, &fosilID)
+					if err != nil {
+						log.Println("Error deserializando fósil:", err)
+						break
+					}
+
+					fosil := proyect.Fosil[fosilID.IdFosil]
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								deleteFosil(proyect, fosilID)
+							},
+							Undo: func() {
+								addFosil(proyect, fosilID.IdFosil, fosil)
+							},
+						},
+					)
 
 				case "deleteFacie":
 
-					deleteFacie(proyect, dataMap)
+					var facie dtos.Facie
+					err := json.Unmarshal(dataMap.Data, &facie)
+					if err != nil {
+						log.Println("Error", err)
+						break
+					}
+
+					oldfacie := proyect.Facies[facie.Facie]
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								deleteFacie(proyect, facie)
+							},
+							Undo: func() {
+								addFacie(proyect, facie, oldfacie)
+							},
+						},
+					)
 
 				case "deleteFacieSection":
 
-					deleteFacieSection(proyect, dataMap)
+					var f dtos.DeleteFacieSection
+					err := json.Unmarshal(dataMap.Data, &f)
+					if err != nil {
+						log.Println("Error", err)
+						break
+					}
+
+					var removedSection models.FaciesSection
+					if sections, exists := proyect.Facies[f.Facie]; exists && f.Index >= 0 && f.Index < len(sections) {
+						removedSection = sections[f.Index]
+					}
+
+					performAction(proyect,
+						Action{
+							Execute: func() {
+								deleteFacieSection(proyect, f)
+							},
+							Undo: func() {
+								addFacieSection(proyect, dtos.AddFacieSection{Facie: f.Facie, Index: f.Index}, removedSection)
+							},
+						},
+					)
 
 				case "isInverted":
 
@@ -566,7 +746,7 @@ func sendSocketMessage(msgData map[string]interface{}, proyect *RoomData, action
 
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config map[string]interface{}, Fosil map[string]interface{}, Facies map[string][]models.FaciesSection) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config map[string]interface{}, Fosil map[string]models.Fosil, Facies map[string][]models.FaciesSection) *RoomData {
 
 	projectIDString := Id_project.Hex()
 	room, exists := rooms[projectIDString]
@@ -765,28 +945,12 @@ func editPolygon(project *RoomData, polygon dtos.EditPolygon) {
 
 }
 
-func addCircle(project *RoomData, dataMap GeneralMessage) {
-
-	var addCircleData dtos.AddCircle
-	err := json.Unmarshal(dataMap.Data, &addCircleData)
-	if err != nil {
-		log.Println("Error al deserializar: ", err)
-		return
-	}
+func addCircle(project *RoomData, addCircleData dtos.AddCircle, newCircle models.CircleStruc) {
 
 	rowIndex := addCircleData.RowIndex
 	insertIndex := addCircleData.InsertIndex
-	point := addCircleData.Point
 
 	roomData := &project.Data[rowIndex].Litologia.Circles
-
-	newCircle := models.CircleStruc{
-		X:       0.5,
-		Y:       point,
-		Radius:  5,
-		Movable: true,
-		Name:    "none",
-	}
 
 	*roomData = append((*roomData)[:insertIndex], append([]models.CircleStruc{newCircle}, (*roomData)[insertIndex:]...)...)
 
@@ -801,14 +965,7 @@ func addCircle(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func deleteCircle(project *RoomData, dataMap GeneralMessage) {
-
-	var deleteCircleData dtos.DeleteCircle
-	err := json.Unmarshal(dataMap.Data, &deleteCircleData)
-	if err != nil {
-		log.Println("Error al deserializar: ", err)
-		return
-	}
+func deleteCircle(project *RoomData, deleteCircleData dtos.DeleteCircle) {
 
 	rowIndex := deleteCircleData.RowIndex
 	deleteIndex := deleteCircleData.DeleteIndex
@@ -827,14 +984,7 @@ func deleteCircle(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func editCircle(project *RoomData, dataMap GeneralMessage) {
-
-	var editCircleData dtos.EditCircle
-	err := json.Unmarshal(dataMap.Data, &editCircleData)
-	if err != nil {
-		log.Println("Error al deserializar: ", err)
-		return
-	}
+func editCircle(project *RoomData, editCircleData dtos.EditCircle) {
 
 	rowIndex := editCircleData.RowIndex
 	editIndex := editCircleData.EditIndex
@@ -856,27 +1006,7 @@ func editCircle(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func addFosil(project *RoomData, dataMap GeneralMessage) {
-
-	var fosil dtos.AddFosil
-	err := json.Unmarshal(dataMap.Data, &fosil)
-	if err != nil {
-		log.Println("Error", err)
-		return
-	}
-
-	id := shortuuid.New()
-	upper := fosil.Upper
-	lower := fosil.Lower
-	fosilImg := fosil.FosilImg
-	x := fosil.X
-
-	newFosil := map[string]interface{}{
-		"upper":    upper,
-		"lower":    lower,
-		"fosilImg": fosilImg,
-		"x":        x,
-	}
+func addFosil(project *RoomData, id string, newFosil models.Fosil) {
 
 	roomData := &project.Fosil
 	(*roomData)[id] = newFosil
@@ -891,14 +1021,7 @@ func addFosil(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func deleteFosil(project *RoomData, dataMap GeneralMessage) {
-
-	var fosilID dtos.DeleteFosil
-	err := json.Unmarshal(dataMap.Data, &fosilID)
-	if err != nil {
-		log.Println("Error deserializando fósil:", err)
-		return
-	}
+func deleteFosil(project *RoomData, fosilID dtos.DeleteFosil) {
 
 	id := fosilID.IdFosil
 
@@ -914,27 +1037,7 @@ func deleteFosil(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func editFosil(project *RoomData, dataMap GeneralMessage) {
-
-	var fosilEdit dtos.EditFosil
-	err := json.Unmarshal(dataMap.Data, &fosilEdit)
-	if err != nil {
-		log.Println("Error deserializando fósil:", err)
-		return
-	}
-
-	id := fosilEdit.IdFosil
-	upper := fosilEdit.Upper
-	lower := fosilEdit.Lower
-	fosilImg := fosilEdit.FosilImg
-	x := fosilEdit.X
-
-	newFosil := map[string]interface{}{
-		"upper":    upper,
-		"lower":    lower,
-		"fosilImg": fosilImg,
-		"x":        x,
-	}
+func editFosil(project *RoomData, id string, newFosil models.Fosil) {
 
 	roomData := &project.Fosil
 	(*roomData)[id] = newFosil
@@ -949,13 +1052,7 @@ func editFosil(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func addFacie(project *RoomData, dataMap GeneralMessage) {
-	var facie dtos.Facie
-	err := json.Unmarshal(dataMap.Data, &facie)
-	if err != nil {
-		log.Println("Error", err)
-		return
-	}
+func addFacie(project *RoomData, facie dtos.Facie, sections []models.FaciesSection) {
 
 	name := facie.Facie
 
@@ -963,24 +1060,22 @@ func addFacie(project *RoomData, dataMap GeneralMessage) {
 		project.Facies = make(map[string][]models.FaciesSection)
 	}
 
-	project.Facies[name] = []models.FaciesSection{}
+	if sections != nil {
+		project.Facies[name] = sections
+	} else {
+		project.Facies[name] = []models.FaciesSection{}
+	}
 
 	msgData := map[string]interface{}{
-		"action": "addFacie",
-		"facie":  name,
+		"action":   "addFacie",
+		"facie":    name,
+		"sections": sections,
 	}
 
 	sendSocketMessage(msgData, project, "addFacie")
-
 }
 
-func deleteFacie(project *RoomData, dataMap GeneralMessage) {
-	var facie dtos.Facie
-	err := json.Unmarshal(dataMap.Data, &facie)
-	if err != nil {
-		log.Println("Error", err)
-		return
-	}
+func deleteFacie(project *RoomData, facie dtos.Facie) {
 
 	id := facie.Facie
 
@@ -1025,52 +1120,38 @@ func (a *API) save(project *RoomData, roomID string) {
 
 }
 
-func addFacieSection(project *RoomData, dataMap GeneralMessage) {
-	var f dtos.AddFacieSection
-	err := json.Unmarshal(dataMap.Data, &f)
-	if err != nil {
-		log.Println("Error", err)
-		return
-	}
+func addFacieSection(project *RoomData, f dtos.AddFacieSection, section models.FaciesSection) {
+
 	name := f.Facie
-	y1 := f.Y1
-	y2 := f.Y2
 
-	innerMap := project.Facies[name]
-
-	newSectionFacie := models.FaciesSection{
-		Y1: y1,
-		Y2: y2,
+	// Restaurar la sección en la posición original si es necesario
+	if f.Index >= 0 && f.Index <= len(project.Facies[name]) {
+		project.Facies[name] = append(project.Facies[name][:f.Index], append([]models.FaciesSection{section}, project.Facies[name][f.Index:]...)...)
+	} else {
+		// Añadir la sección al final si no se proporciona una posición válida
+		project.Facies[name] = append(project.Facies[name], section)
 	}
-
-	innerMap = append(innerMap, newSectionFacie)
-	project.Facies[name] = innerMap
 
 	msgData := map[string]interface{}{
 		"action": "addFacieSection",
 		"facie":  name,
-		"y1":     y1,
-		"y2":     y2,
+		"y1":     section.Y1,
+		"y2":     section.Y2,
 	}
 
 	sendSocketMessage(msgData, project, "addFacieSection")
-
 }
 
-func deleteFacieSection(project *RoomData, dataMap GeneralMessage) {
-	var f dtos.DeleteFacieSection
-	err := json.Unmarshal(dataMap.Data, &f)
-	if err != nil {
-		log.Println("Error", err)
-		return
-	}
+func deleteFacieSection(project *RoomData, f dtos.DeleteFacieSection) {
 
 	name := f.Facie
 	index := f.Index
 
 	innerMap := project.Facies[name]
 
-	innerMap = append(innerMap[:index], innerMap[index+1:]...)
+	if index >= 0 && index < len(innerMap) {
+		innerMap = append(innerMap[:index], innerMap[index+1:]...)
+	}
 
 	project.Facies[name] = innerMap
 
@@ -1081,5 +1162,4 @@ func deleteFacieSection(project *RoomData, dataMap GeneralMessage) {
 	}
 
 	sendSocketMessage(msgData, project, "deleteFacieSection")
-
 }

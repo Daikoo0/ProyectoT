@@ -20,7 +20,7 @@ type Service interface {
 	GetRoom(ctx context.Context, roomName string) (*models.Data_project, error) // Devuelve la entidad data-project :  data, config
 	GetRoomInfo(ctx context.Context, roomID string) (*models.Data, error)
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error
-	SaveRoom(ctx context.Context, data []models.DataInfo, config map[string]interface{}, fosil map[string]interface{}, roomName string, facies map[string][]models.FaciesSection) error
+	SaveRoom(ctx context.Context, data []models.DataInfo, config map[string]interface{}, fosil map[string]models.Fosil, roomName string, facies map[string][]models.FaciesSection) error
 	SaveProject(ctx context.Context, data string, name string) error
 	GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
 

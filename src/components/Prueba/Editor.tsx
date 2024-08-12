@@ -330,24 +330,23 @@ const Grid = () => {
             break
 
           case 'addFacieSection':
-            // faciesCopy[formFacies.facie].push({ y1: formFacies.y1, y2: formFacies.y2 })
-            // setFacies(faciesCopy);
             setFacies(prevFacies => {
-              const faciesCopy = { ...prevFacies };
-              faciesCopy[shapeN.facie].push({ y1: shapeN.y1, y2: shapeN.y2 });
-              return faciesCopy;
+                const faciesCopy = { ...prevFacies };
+                if (!faciesCopy.hasOwnProperty(shapeN.facie)) {
+                    faciesCopy[shapeN.facie] = [];
+                }
+                faciesCopy[shapeN.facie].push({ y1: shapeN.y1, y2: shapeN.y2 });
+                return faciesCopy;
             });
-
-            break
+            break;
           case 'addFacie':
-            console.log(shapeN)
             if (!facies.hasOwnProperty(shapeN.facie)) {
-              setFacies(prevFacies => ({
-                ...prevFacies,
-                [`${shapeN.facie}`]: [],
-              }));
+                setFacies(prevFacies => ({
+                    ...prevFacies,
+                    [`${shapeN.facie}`]: shapeN.sections || [],
+                }));
             }
-            break
+            break;
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
