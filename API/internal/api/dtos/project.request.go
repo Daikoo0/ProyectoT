@@ -1,7 +1,5 @@
 package dtos
 
-// import "github.com/ProyectoT/api/internal/models"
-
 type Project struct {
 	RoomName string  `json:"roomName" validate:"required"`
 	Location string  `json:"location" validate:"required"`
@@ -9,4 +7,10 @@ type Project struct {
 	Long     float64 `json:"long"`
 	Desc     string  `json:"desc"`
 	Visible  bool    `json:"visible"`
+}
+
+type Comment struct {
+	Content   string   `bson:"content"`
+	CreatedAt string   `bson:"createdAt"`
+	Labels    []string `bson:"labels"`
 }

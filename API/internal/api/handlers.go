@@ -753,18 +753,6 @@ func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config 
 	//room, exists := rooms[Id_project] //instancia el room con los datos de la bd
 	if !exists {
 
-		// for _, element := range Data {
-		// 	data := element["Litologia"].(map[string]interface{})
-		// 	circles := make([]map[string]interface{}, 0) // Create an empty slice to store the circles
-
-		// 	for _, c := range data["circles"].(primitive.A) {
-		// 		circle := c.(map[string]interface{})
-		// 		circles = append(circles, circle)
-		// 	}
-
-		// 	data["circles"] = circles
-		// }
-
 		var sectionsEditing map[string]interface{}
 		userColors := make(map[string]string)
 

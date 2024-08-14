@@ -75,26 +75,17 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, infoProject, pdfData.minHeight)
     }
 
-    const handleRows = (e, key) => {
-        var newRows = pdfData.data
-        if (e.target.checked) {
-            newRows.push(key)
-        } else {
-            const index = newRows.indexOf(key);
-            if (index !== -1) {
-                newRows.splice(index, 1);
-            }
-        }
-        setPdfData(prevState => ({
-            ...prevState,
-            data: newRows,
-        }));
-        Ab(pdfData.data, newRows, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
-
+    const handleRows = (number) => {
+        console.log(number)
+        var rowsBefore = [...pdfData.data];
+        var indexes = rowsBefore.map((row, index) => Number(row.Litologia.Height) > Number(number) ? index : -1)
+            .filter(index => index !== -1);
+        Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, infoProject, indexes);
     }
+
 
     const HeaderVal = ({ percentage, name, top }) => {
         var x = percentage * (columnWidths["Litologia"] || 250)
@@ -134,14 +125,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         }
     }, [adfas.current, data.length]);
 
-
-
-    // const buttons =  document.getElementById('main-iframe').querySelectorAll('button');
-    // buttons.forEach(button => {
-    //   button.classList.add('btn', 'btn-primary', 'm-2');
-    // });
-
-
     return (
         <>
             <>
@@ -151,27 +134,35 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                             {/* Sección izquierda */}
                             <div className="flex flex-col flex-grow card w-full lg:w-7/10">
-                                {/* <p className="flex-shrink-0 text-xl">Vista previa</p>
-                                <br /> */}
                                 <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
-
-
-
                             </div>
 
                             {/* seccion derecha */}
-                            <div className="flex flex-col flex-grow card overflow-auto w-full lg:w-3/10">
-
-                                <div className="menu p-4 w-full min-h-full text-base-content">
+                            <div className="flex flex-col card w-full lg:w-3/10 overflow-y-auto">
+                                <div className="menu p-4 w-full text-base-content">
                                     {/* Select */}
                                     Tipo de hoja
-                                    <select value={pdfData.format} onChange={(e) => {
-                                        setPdfData(prevState => ({
-                                            ...prevState,
-                                            format: e.target.value,
-                                        }));
-                                        Ab(pdfData.data, pdfData.header, e.target.value, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
-                                    }} className="select select-bordered w-full max-w-xs mb-4">
+                                    <select
+                                        value={pdfData.format}
+                                        onChange={(e) => {
+                                            setPdfData((prevState) => ({
+                                                ...prevState,
+                                                format: e.target.value,
+                                            }));
+                                            Ab(
+                                                pdfData.data,
+                                                pdfData.header,
+                                                e.target.value,
+                                                pdfData.orientation,
+                                                pdfData.customWidthLit,
+                                                pdfData.scale,
+                                                pdfData.fossils,
+                                                infoProject,
+                                                pdfData.minHeight
+                                            );
+                                        }}
+                                        className="select select-bordered w-full mb-4"
+                                    >
                                         <option value={''} disabled>Elige el tamaño de hoja</option>
                                         <option value={'EXECUTIVE'}>Executive</option>
                                         <option value={'FOLIO'}>Folio</option>
@@ -227,28 +218,38 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     </select>
                                     {/* Orientación */}
                                     Orientación de la hoja
-                                    <div className="form-control w-full max-w-xs">
-
-                                        {pdfData.orientation == "portrait" ? <>
-                                            <label className="label-text "> Portrait </label>
-                                        </> : <>
-                                            <label className="label-text"> Landscape </label>
-                                        </>}
-                                        <input type="checkbox" className="toggle toggle-success"
-                                            checked={(pdfData.orientation == "portrait") ? true : false}
+                                    <div className="form-control w-full">
+                                        <label className="label-text">
+                                            {pdfData.orientation === "portrait" ? "Portrait" : "Landscape"}
+                                        </label>
+                                        <input
+                                            type="checkbox"
+                                            className="toggle toggle-success"
+                                            checked={pdfData.orientation === "portrait"}
                                             onChange={(e) => {
-                                                setPdfData(prevState => ({
+                                                setPdfData((prevState) => ({
                                                     ...prevState,
-                                                    orientation: (e.target.checked) ? "portrait" : "landscape",
+                                                    orientation: e.target.checked ? "portrait" : "landscape",
                                                 }));
-                                                Ab(pdfData.data, pdfData.header, pdfData.format, ((e.target.checked) ? "portrait" : "landscape"), pdfData.customWidthLit, pdfData.scale, pdfData.fossils,infoProject)
-                                            }} />
+                                                Ab(
+                                                    pdfData.data,
+                                                    pdfData.header,
+                                                    pdfData.format,
+                                                    e.target.checked ? "portrait" : "landscape",
+                                                    pdfData.customWidthLit,
+                                                    pdfData.scale,
+                                                    pdfData.fossils,
+                                                    infoProject,
+                                                    pdfData.minHeight
+                                                );
+                                            }}
+                                        />
                                     </div>
                                     {/* Lista de visibilidad de columnas */}
                                     <div className="mb-4">
-                                        <details open={false}>
+                                        <details>
                                             <summary>Visibilidad de columnas</summary>
-                                            <ul className="menu p-2 w-full min-h-full text-base-content">
+                                            <ul className="menu p-2 w-full text-base-content">
                                                 {list.map((key) => {
                                                     if (key !== "Espesor" && key !== "Litologia") {
                                                         return (
@@ -269,49 +270,63 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     }
                                                 })}
                                             </ul>
-
                                         </details>
                                     </div>
-
-                                    <div className="menu p-4 w-full min-h-full text-base-content">
-                                        {/* Select */}
-                                        Espacio horizontal de la litología respecto al ancho de la hoja
-                                        <select value={pdfData.customWidthLit} onChange={(e) => {
-                                            setPdfData(prevState => ({
+                                    {/* Espacio horizontal de la litología */}
+                                    Espacio horizontal de la litología respecto al ancho de la hoja
+                                    <select
+                                        value={pdfData.customWidthLit}
+                                        onChange={(e) => {
+                                            setPdfData((prevState) => ({
                                                 ...prevState,
                                                 customWidthLit: e.target.value,
                                             }));
-                                            Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, e.target.value, pdfData.scale, pdfData.fossils,infoProject)
-                                        }} className="select select-bordered w-full max-w-xs mb-4">
-                                            <option value={""} disabled>Elige el ancho de la litologia</option>
-                                            <option value={'20%'}>20%</option>
-                                            <option value={'25%'}>25%</option>
-                                            <option value={'50%'}>50%</option>
-                                            <option value={'75%'}>75%</option>
-                                        </select>
-                                    </div>
-
+                                            Ab(
+                                                pdfData.data,
+                                                pdfData.header,
+                                                pdfData.format,
+                                                pdfData.orientation,
+                                                e.target.value,
+                                                pdfData.scale,
+                                                pdfData.fossils,
+                                                infoProject,
+                                                pdfData.minHeight
+                                            );
+                                        }}
+                                        className="select select-bordered w-full mb-4"
+                                    >
+                                        <option value={""} disabled>Elige el ancho de la litologia</option>
+                                        <option value={'20%'}>20%</option>
+                                        <option value={'25%'}>25%</option>
+                                        <option value={'50%'}>50%</option>
+                                        <option value={'75%'}>75%</option>
+                                    </select>
                                     {/* Lista de visibilidad de capas */}
                                     <div>
-                                        <details open={false}>
+                                        <details>
                                             <summary>Visibilidad de capas</summary>
-                                            <p>Elimina las capas que no deben estar en el pdf (en orden de arriba hacia abajo)</p>
-                                            <ul className="menu p-2 w-full min-h-full text-base-content">
-                                                {Object.values(data).map((item, index) =>
-                                                    <li key={index} className="py-0 h-6">
-                                                        <label className="inline-flex items-center">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={pdfData.data?.includes(item) ? true : false}
-                                                                onChange={(e) => handleRows(e, item)}
-                                                                className="form-checkbox h-4 w-4 text-indigo-600"
-                                                            />
-                                                            <span>{index}</span>
-                                                        </label>
-                                                    </li>
-                                                )}
-                                            </ul>
+                                            <div className="p-4">
+                                                <p className="mb-2">Eliminar todas las capas con altura menor que:</p>
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="number"
+                                                        placeholder="En centímetros"
+                                                        id="heightInput"
+                                                        className="input input-bordered w-32 text-indigo-600"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            const height = document.getElementById('heightInput')["value"];
+                                                            handleRows(height);
+                                                        }}
+                                                        className="btn btn-primary"
+                                                    >
+                                                        Aplicar
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </details>
+
                                     </div>
                                 </div>
                                 <div className="modal-action mt-4">
@@ -320,6 +335,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     </form>
                                 </div>
                             </div>
+
 
                         </div>
                     </div>

@@ -601,7 +601,8 @@ const Grid = () => {
     (document.getElementById('modal') as HTMLDialogElement).showModal();
     var copyData = data
     var copyHeader = [...header]
-    Ab(copyData, copyHeader, 'A3', 'portrait', "", scale, fossils,infoProject)
+    var indexes = Array.from({ length: data.length }, (_, index) => index);
+    Ab(copyData, copyHeader, 'A3', 'portrait', "", scale, fossils,infoProject,indexes)
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
@@ -611,6 +612,8 @@ const Grid = () => {
       customWidthLit: "",
       scale: scale,
       fossils: fossils,
+      infoProject : infoProject,
+      indexesM : indexes
     };
     setPdfData(initialPdfData)
 

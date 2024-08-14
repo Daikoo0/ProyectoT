@@ -62,7 +62,7 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
     const ctx = canvas.getContext('2d');
     let totalHeight = 0;
     let val = parseFloat(columnWidths["Litologia"])
-    const pageLength = pageLengths[pageIndex];
+    const pageLength = pageLengths[pageIndex].height;
     let combinedSVG = `<svg width="${val}cm" xmlns="http://www.w3.org/2000/svg">`;
 
     svgList.forEach((svg, index) => {
@@ -131,6 +131,7 @@ const svgDivision = async (measures, columnWidths) => {
 async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths, indexLimited, pageLengths) {
   const indexes = rowIndexesPerPage[pageIndex]; // todos los índices de pageIndex
   var limited = indexLimited.includes(indexes[0]) ? true : false;
+ // var scaleH = pageLengths[pageIndex].height /  tdsWithSvg[indexes[0]].getAttribute("height")
   const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la página que se está generando
   if (filteredTdsWithSvg.length > 0) {
     const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, columnWidths, limited, pageIndex, pageLengths);
@@ -140,8 +141,7 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet }) => {
-
+const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet, pageLengths }) => {
   var firstArray = []
   var secondArray = []
   var thirdArray = []
@@ -157,12 +157,6 @@ const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, sc
       thirdArray.push(header[i]);
     }
   }
-
-  console.log(firstArray, secondArray, thirdArray)
-  secondArray.map((key, i) => {
-    console.log(secondArray, key, i)
-  })
-
 
   return (
     <Document>
@@ -194,33 +188,31 @@ const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, sc
 
                 ))}
               </View>
-              <View key={`second-${pageIndex}`} style={[styles.tableRow, { borderBottomWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
+              <View key={`second-${pageIndex}`} style={[styles.tableRow, { borderBottomWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
                 {Object.values(secondArray).map((key, i) => {
-                  console.log(secondArray, key, i)
                   return (
                     <>
                       {key === "Litologia" && (
                         <View key={`second-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + 10 }]}>
-                          <Text>Hooa{secondArray[i]}</Text>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + 10, width: columnWidths["Litologia"] }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + 10 }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + 10, width: columnWidths["Litologia"] }]} />
 
                         </View>
                       )}
                       {(secondArray[i] === "Estructura fosil" && imageFossils.length) && (
                         <View key={`second-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
                         </View>)}
                       {(secondArray[i] === "Espesor" && imageEspesor.length) && (
                         <View key={`second-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
                         </View>)}
                       {(secondArray[i] === "Facie" && imageFacies.length) && (
                         <View key={`second-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight + (pageIndexes.length) }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
+                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
                         </View>)}
                     </>
                   )
@@ -354,7 +346,8 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
 }
 
 
-const Ab = async (data, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject) => {
+const Ab = async (data, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject,indexesM) => {
+  data = Array.from(data).filter((_, index) => indexesM.includes(index)); 
   let widthSheet = (orientation == "portrait") ? sheetSize[format][0] : sheetSize[format][1];
   let heightSheet = (orientation == "portrait") ? sheetSize[format][1] : sheetSize[format][0];
   let rowIndexesPerPage = [];
@@ -384,7 +377,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
     }
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
-      pageLengths.push({ 'height': currentPageHeight - topHeaders })
+      pageLengths.push({ 'height': Math.min(currentPageHeight-topHeaders,maxLitHeight) })
       currentPageIndexes = [];
       currentPageHeight = topHeaders;
     }
@@ -402,8 +395,9 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
         totalPageHeight += Number(rowHeight)
       }
     });
+    const maxLitHeight = heightSheet - topHeaders - 10;
     pageLengths.push({
-      'height': totalPageHeight - topHeaders
+      'height': Math.min(currentPageHeight-topHeaders,maxLitHeight)
     })
   }
 
@@ -551,14 +545,14 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
 
   var cImages = await createContactImages(contacts);
 
-  const filteredSvgs = document.querySelectorAll('table tbody tr td svg');
-  const indices = Object.keys(data); // data [0,1,2,3,4,5...n]
+  const filteredSvgs = document.querySelectorAll('table tbody tr td svg'); // todos los svg
+  //const indices = Object.keys(data); // data [0,1,2,3,4,5...n]
 
-  // Filtrar los svg que contienen los patrones
-  const tdsWithSvg = Array.from(filteredSvgs).filter(svg => {
+  // Filtrar los svg que son capas
+  var tdsWithSvg = Array.from(filteredSvgs).filter(svg => {
     const patterns = svg.querySelectorAll('pattern');
     return Array.from(patterns).some(pattern => {
-      return indices.some(index => pattern.id === `pattern-${index}`);
+      return indexesM.some(index => pattern.id === `pattern-${index}`);
     });
   });
 
@@ -569,7 +563,7 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
   }
 
   const images = await svgDivision(pageLengths, columnWidths);
-  const blob = await pdf(<MyDocument indexLimited={indexLimited} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
+  const blob = await pdf(<MyDocument pageLengths={pageLengths} indexLimited={indexLimited} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
   const url = URL.createObjectURL(blob);
   const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);
