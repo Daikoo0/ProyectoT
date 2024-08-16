@@ -75,7 +75,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, infoProject, pdfData.minHeight)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, infoProject, pdfData.indexesM)
     }
 
     const handleRows = (number) => {
@@ -140,115 +140,150 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             {/* seccion derecha */}
                             <div className="flex flex-col card w-full lg:w-3/10 overflow-y-auto">
                                 <div className="menu p-4 w-full text-base-content">
-                                    {/* Select */}
-                                    Tipo de hoja
-                                    <select
-                                        value={pdfData.format}
-                                        onChange={(e) => {
-                                            setPdfData((prevState) => ({
-                                                ...prevState,
-                                                format: e.target.value,
-                                            }));
-                                            Ab(
-                                                pdfData.data,
-                                                pdfData.header,
-                                                e.target.value,
-                                                pdfData.orientation,
-                                                pdfData.customWidthLit,
-                                                pdfData.scale,
-                                                pdfData.fossils,
-                                                infoProject,
-                                                pdfData.minHeight
-                                            );
-                                        }}
-                                        className="select select-bordered w-full mb-4"
-                                    >
-                                        <option value={''} disabled>Elige el tamaño de hoja</option>
-                                        <option value={'EXECUTIVE'}>Executive</option>
-                                        <option value={'FOLIO'}>Folio</option>
-                                        <option value={'LEGAL'}>Legal</option>
-                                        <option value={'LETTER'}>Letter</option>
-                                        <option value={'TABLOID'}>Tabloid</option>
-                                        <option value={'ID1'}>ID1</option>
-                                        <option value={'4A0'}>4A0</option>
-                                        <option value={'2A0'}>2A0</option>
-                                        <option value={'A0'}>A0</option>
-                                        <option value={'A1'}>A1</option>
-                                        <option value={'A2'}>A2</option>
-                                        <option value={'A3'}>A3</option>
-                                        <option value={'A4'}>A4</option>
-                                        <option value={'A5'}>A5</option>
-                                        <option value={'A6'}>A6</option>
-                                        <option value={'A7'}>A7</option>
-                                        <option value={'A8'}>A8</option>
-                                        <option value={'A9'}>A9</option>
-                                        <option value={'A10'}>A10</option>
-                                        <option value={'B0'}>B0</option>
-                                        <option value={'B1'}>B1</option>
-                                        <option value={'B2'}>B2</option>
-                                        <option value={'B3'}>B3</option>
-                                        <option value={'B4'}>B4</option>
-                                        <option value={'B5'}>B5</option>
-                                        <option value={'B6'}>B6</option>
-                                        <option value={'B7'}>B7</option>
-                                        <option value={'B8'}>B8</option>
-                                        <option value={'B9'}>B9</option>
-                                        <option value={'B10'}>B10</option>
-                                        <option value={'C0'}>C0</option>
-                                        <option value={'C1'}>C1</option>
-                                        <option value={'C2'}>C2</option>
-                                        <option value={'C3'}>C3</option>
-                                        <option value={'C4'}>C4</option>
-                                        <option value={'C5'}>C5</option>
-                                        <option value={'C6'}>C6</option>
-                                        <option value={'C7'}>C7</option>
-                                        <option value={'C8'}>C8</option>
-                                        <option value={'C9'}>C9</option>
-                                        <option value={'C10'}>C10</option>
-                                        <option value={'RA0'}>RA0</option>
-                                        <option value={'RA1'}>RA1</option>
-                                        <option value={'RA2'}>RA2</option>
-                                        <option value={'RA3'}>RA3</option>
-                                        <option value={'RA4'}>RA4</option>
-                                        <option value={'SRA0'}>SRA0</option>
-                                        <option value={'SRA1'}>SRA1</option>
-                                        <option value={'SRA2'}>SRA2</option>
-                                        <option value={'SRA3'}>SRA3</option>
-                                        <option value={'SRA4'}>SRA4</option>
-                                    </select>
-                                    {/* Orientación */}
-                                    Orientación de la hoja
-                                    <div className="form-control w-full">
-                                        <label className="label-text">
-                                            {pdfData.orientation === "portrait" ? "Portrait" : "Landscape"}
-                                        </label>
-                                        <input
-                                            type="checkbox"
-                                            className="toggle toggle-success"
-                                            checked={pdfData.orientation === "portrait"}
-                                            onChange={(e) => {
-                                                setPdfData((prevState) => ({
-                                                    ...prevState,
-                                                    orientation: e.target.checked ? "portrait" : "landscape",
-                                                }));
-                                                Ab(
-                                                    pdfData.data,
-                                                    pdfData.header,
-                                                    pdfData.format,
-                                                    e.target.checked ? "portrait" : "landscape",
-                                                    pdfData.customWidthLit,
-                                                    pdfData.scale,
-                                                    pdfData.fossils,
-                                                    infoProject,
-                                                    pdfData.minHeight
-                                                );
-                                            }}
-                                        />
+                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                        <input type="checkbox" className="peer" />
+                                        <div className="collapse-title text-xl font-medium">Formato de papel</div>
+                                        <div className="collapse-content">
+                                            <select
+                                                value={pdfData.format}
+                                                onChange={(e) => {
+                                                    setPdfData((prevState) => ({
+                                                        ...prevState,
+                                                        format: e.target.value,
+                                                    }));
+                                                    Ab(
+                                                        pdfData.data,
+                                                        pdfData.header,
+                                                        e.target.value,
+                                                        pdfData.orientation,
+                                                        pdfData.customWidthLit,
+                                                        pdfData.scale,
+                                                        pdfData.fossils,
+                                                        infoProject,
+                                                        pdfData.indexesM
+                                                    );
+                                                }}
+                                                className="select select-bordered w-full mb-4"
+                                            >
+                                                <option value={''} disabled>Elige el tamaño de hoja</option>
+                                                <option value={'EXECUTIVE'}>Executive</option>
+                                                <option value={'FOLIO'}>Folio</option>
+                                                <option value={'LEGAL'}>Legal</option>
+                                                <option value={'LETTER'}>Letter</option>
+                                                <option value={'TABLOID'}>Tabloid</option>
+                                                <option value={'ID1'}>ID1</option>
+                                                <option value={'4A0'}>4A0</option>
+                                                <option value={'2A0'}>2A0</option>
+                                                <option value={'A0'}>A0</option>
+                                                <option value={'A1'}>A1</option>
+                                                <option value={'A2'}>A2</option>
+                                                <option value={'A3'}>A3</option>
+                                                <option value={'A4'}>A4</option>
+                                                <option value={'A5'}>A5</option>
+                                                <option value={'A6'}>A6</option>
+                                                <option value={'A7'}>A7</option>
+                                                <option value={'A8'}>A8</option>
+                                                <option value={'A9'}>A9</option>
+                                                <option value={'A10'}>A10</option>
+                                                <option value={'B0'}>B0</option>
+                                                <option value={'B1'}>B1</option>
+                                                <option value={'B2'}>B2</option>
+                                                <option value={'B3'}>B3</option>
+                                                <option value={'B4'}>B4</option>
+                                                <option value={'B5'}>B5</option>
+                                                <option value={'B6'}>B6</option>
+                                                <option value={'B7'}>B7</option>
+                                                <option value={'B8'}>B8</option>
+                                                <option value={'B9'}>B9</option>
+                                                <option value={'B10'}>B10</option>
+                                                <option value={'C0'}>C0</option>
+                                                <option value={'C1'}>C1</option>
+                                                <option value={'C2'}>C2</option>
+                                                <option value={'C3'}>C3</option>
+                                                <option value={'C4'}>C4</option>
+                                                <option value={'C5'}>C5</option>
+                                                <option value={'C6'}>C6</option>
+                                                <option value={'C7'}>C7</option>
+                                                <option value={'C8'}>C8</option>
+                                                <option value={'C9'}>C9</option>
+                                                <option value={'C10'}>C10</option>
+                                                <option value={'RA0'}>RA0</option>
+                                                <option value={'RA1'}>RA1</option>
+                                                <option value={'RA2'}>RA2</option>
+                                                <option value={'RA3'}>RA3</option>
+                                                <option value={'RA4'}>RA4</option>
+                                                <option value={'SRA0'}>SRA0</option>
+                                                <option value={'SRA1'}>SRA1</option>
+                                                <option value={'SRA2'}>SRA2</option>
+                                                <option value={'SRA3'}>SRA3</option>
+                                                <option value={'SRA4'}>SRA4</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    {/* Lista de visibilidad de columnas */}
-                                    <div className="mb-4">
-                                        <details>
-                                            <summary>Visibilidad de columnas</summary>
+
+                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                        <input type="checkbox" className="peer" />
+                                        <div className="collapse-title text-xl font-medium">Información en cabecera</div>
+                                        <div className="collapse-content">
+                                            <ul>
+                                                <li>
+                                                    <label>Orientación estratificación: </label>
+                                                    <input className="input input-bordered w-full mb-2" />
+                                                </li>
+                                                <li>
+                                                    <label>Orientación levantamiento: </label>
+                                                    <input className="input input-bordered w-full mb-2" />
+                                                </li>
+                                                <li>
+                                                    <label>Etiqueta sección: </label>
+                                                    <input className="input input-bordered w-full mb-2" />
+                                                </li>
+                                                <li>
+                                                    <label>Fecha: </label>
+                                                    <input className="input input-bordered w-full mb-2" />
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                        <input type="checkbox" className="peer" />
+                                        <div className="collapse-title text-xl font-medium">Orientación de papel</div>
+                                        <div className="collapse-content">
+                                            <div className="form-control w-full">
+                                                <label className="label-text">
+                                                    {pdfData.orientation === "portrait" ? "Hoja vertical" : "Hoja horizontal"}
+                                                </label>
+                                                <input
+                                                    type="checkbox"
+                                                    className="toggle toggle-success"
+                                                    checked={pdfData.orientation === "portrait"}
+                                                    onChange={(e) => {
+                                                        setPdfData((prevState) => ({
+                                                            ...prevState,
+                                                            orientation: e.target.checked ? "portrait" : "landscape",
+                                                        }));
+                                                        Ab(
+                                                            pdfData.data,
+                                                            pdfData.header,
+                                                            pdfData.format,
+                                                            e.target.checked ? "portrait" : "landscape",
+                                                            pdfData.customWidthLit,
+                                                            pdfData.scale,
+                                                            pdfData.fossils,
+                                                            infoProject,
+                                                            pdfData.indexesM
+                                                        );
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                        <input type="checkbox" className="peer" />
+                                        <div className="collapse-title text-xl font-medium">Visibilidad de columnas</div>
+                                        <div className="collapse-content">
                                             <ul className="menu p-2 w-full text-base-content">
                                                 {list.map((key) => {
                                                     if (key !== "Espesor" && key !== "Litologia") {
@@ -270,65 +305,73 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     }
                                                 })}
                                             </ul>
-                                        </details>
+                                        </div>
                                     </div>
-                                    {/* Espacio horizontal de la litología */}
-                                    Espacio horizontal de la litología respecto al ancho de la hoja
-                                    <select
-                                        value={pdfData.customWidthLit}
-                                        onChange={(e) => {
-                                            setPdfData((prevState) => ({
-                                                ...prevState,
-                                                customWidthLit: e.target.value,
-                                            }));
-                                            Ab(
-                                                pdfData.data,
-                                                pdfData.header,
-                                                pdfData.format,
-                                                pdfData.orientation,
-                                                e.target.value,
-                                                pdfData.scale,
-                                                pdfData.fossils,
-                                                infoProject,
-                                                pdfData.minHeight
-                                            );
-                                        }}
-                                        className="select select-bordered w-full mb-4"
-                                    >
-                                        <option value={""} disabled>Elige el ancho de la litologia</option>
-                                        <option value={'20%'}>20%</option>
-                                        <option value={'25%'}>25%</option>
-                                        <option value={'50%'}>50%</option>
-                                        <option value={'75%'}>75%</option>
-                                    </select>
-                                    {/* Lista de visibilidad de capas */}
-                                    <div>
-                                        <details>
-                                            <summary>Visibilidad de capas</summary>
-                                            <div className="p-4">
-                                                <p className="mb-2">Eliminar todas las capas con altura menor que:</p>
-                                                <div className="flex items-center space-x-2">
-                                                    <input
-                                                        type="number"
-                                                        placeholder="En centímetros"
-                                                        id="heightInput"
-                                                        className="input input-bordered w-32 text-indigo-600"
-                                                    />
-                                                    <button
-                                                        onClick={() => {
-                                                            const height = document.getElementById('heightInput')["value"];
-                                                            handleRows(height);
-                                                        }}
-                                                        className="btn btn-primary"
-                                                    >
-                                                        Aplicar
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </details>
 
+                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                        <input type="checkbox" className="peer" />
+                                        <div className="collapse-title text-xl font-medium">
+                                            Espacio horizontal de la litología respecto al ancho de la hoja
+                                        </div>
+                                        <div className="collapse-content">
+                                            <select
+                                                value={pdfData.customWidthLit}
+                                                onChange={(e) => {
+                                                    setPdfData((prevState) => ({
+                                                        ...prevState,
+                                                        customWidthLit: e.target.value,
+                                                    }));
+                                                    Ab(
+                                                        pdfData.data,
+                                                        pdfData.header,
+                                                        pdfData.format,
+                                                        pdfData.orientation,
+                                                        e.target.value,
+                                                        pdfData.scale,
+                                                        pdfData.fossils,
+                                                        infoProject,
+                                                        pdfData.indexesM
+                                                    );
+                                                }}
+                                                className="select select-bordered w-full mb-4"
+                                            >
+                                                <option value={""} disabled>Elige el ancho de la litologia</option>
+                                                <option value={'20%'}>20%</option>
+                                                <option value={'25%'}>25%</option>
+                                                <option value={'50%'}>50%</option>
+                                                <option value={'75%'}>75%</option>
+                                            </select>
+                                        </div>
                                     </div>
+
+                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                        <input type="checkbox" className="peer" />
+                                        <div className="collapse-title text-xl font-medium">Visibilidad de capas</div>
+                                        <div className="collapse-content">
+                                            <p className="mb-2">Eliminar todas las capas con altura menor que:</p>
+                                            <div className="flex items-center space-x-2">
+                                                <input
+                                                    type="number"
+                                                    placeholder="En centímetros"
+                                                    id="heightInput"
+                                                    className="input input-bordered w-32 text-indigo-600"
+                                                /> <p>cm</p>
+                                                <button
+                                                    onClick={() => {
+                                                        const height = document.getElementById('heightInput')["value"];
+                                                        handleRows(height);
+                                                    }}
+                                                    className="btn btn-primary"
+                                                >
+                                                    Aplicar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                 
                                 </div>
+
                                 <div className="modal-action mt-4">
                                     <form method="dialog">
                                         <button className="btn">Close</button>

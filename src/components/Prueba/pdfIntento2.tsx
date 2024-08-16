@@ -69,17 +69,18 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
       const svgCopy = svg.cloneNode(true);
       const circles = svgCopy.querySelectorAll('circle');
       circles.forEach(circle => circle.remove());
-      if (limited) {
-        var scaleY = pageLength / svgCopy.getAttribute('height');
-      }
       const alturaActual = parseFloat(svgCopy.getAttribute('height'));
       const currentWidth = svg.clientWidth * 2.54 / 96//svg.clientWidth
       let scaleFactor = parseFloat(columnWidths["Litologia"]) / currentWidth //(((widthSheet - 20) / 100) * parseFloat(maxWidth)) / (currentWidth);
       var path = svgCopy.getElementsByClassName("stroke-current text-base-content");
       var pa = svgCopy.getElementsByClassName("pa");
-      path[0].setAttribute('transform', `scale(${scaleFactor},${(scaleY || 1)})`);
+      path[0].setAttribute('transform', `scale(${scaleFactor},1)`);
       for (var i = 0; i < pa.length; i++) {
-        pa[i].setAttribute('transform', `scale(${scaleFactor},${(scaleY || 1)})`);
+        pa[i].setAttribute('transform', `scale(${scaleFactor},1)`);
+      }
+      if (limited) {
+        const scaleH = pageLengths[pageIndex].height / parseFloat(svgCopy.getAttribute("height"))
+        svgCopy.setAttribute("transform", `scale(1,${scaleH})`);
       }
       svgCopy.style.transformOrigin = `0 0`;
       svgCopy.setAttribute('y', totalHeight);
@@ -106,7 +107,6 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
   });
 }
 
-
 const svgDivision = async (measures, columnWidths) => {
   let arrayFossils = []
   let arrayEspesor = []
@@ -116,11 +116,11 @@ const svgDivision = async (measures, columnWidths) => {
   const svgEspesor = document.querySelector('svg#rulerSvg');
   const svgFacies = document.querySelector('svg#svgFacies');
   for (const measure of measures) {
-    const { height } = measure;
-    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height, svgFossil.clientWidth, y, "Estructura fosil", columnWidths) : "";
-    const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, svgEspesor.clientWidth, y, "Espesor", columnWidths) : "";
-    const imgPageFacies = svgFacies ? await svgToImg(svgFacies, height, svgFacies.clientWidth, y, "Facie", columnWidths) : "";
-    y += height;
+    const { height, originalHeight } = measure;
+    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height,originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths) : "";
+    const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, originalHeight, svgEspesor.clientWidth, y, "Espesor", columnWidths) : "";
+    const imgPageFacies = svgFacies ? await svgToImg(svgFacies,height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths) : "";
+    y += originalHeight;
     imgPageFossils ? arrayFossils.push(imgPageFossils) : arrayFossils = [];
     imgPageEspesor ? arrayEspesor.push(imgPageEspesor) : arrayEspesor = [];
     imgPageFacies ? arrayFacies.push(imgPageFacies) : arrayFacies = [];
@@ -131,7 +131,6 @@ const svgDivision = async (measures, columnWidths) => {
 async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths, indexLimited, pageLengths) {
   const indexes = rowIndexesPerPage[pageIndex]; // todos los índices de pageIndex
   var limited = indexLimited.includes(indexes[0]) ? true : false;
- // var scaleH = pageLengths[pageIndex].height /  tdsWithSvg[indexes[0]].getAttribute("height")
   const filteredTdsWithSvg = Array.from(tdsWithSvg).filter((_, index) => indexes.includes(index)); // filtrar los svg de la página que se está generando
   if (filteredTdsWithSvg.length > 0) {
     const imageDataURL = await svgListToDataURL(filteredTdsWithSvg, columnWidths, limited, pageIndex, pageLengths);
@@ -287,11 +286,13 @@ const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, sc
 };
 
 
-function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
+function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWidths) {
   var svgCopy = elsvg.cloneNode(true);
   let scaleFactor = parseFloat(columnWidths[columnName]) / (width * 2.54 / 96)
+  const scaleY = height / originalHeight
+  console.log(height , originalHeight)
   svgCopy.setAttribute("width", columnWidths[columnName]);
-  svgCopy.setAttribute("height", height);
+  svgCopy.setAttribute("height", originalHeight);
   if (columnName === "Estructura fosil") {
     var lines = svgCopy.querySelectorAll('line');
     lines.forEach(line => {
@@ -302,13 +303,14 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
     fossilUnits.forEach(fossilUnit => {
       fossilUnit.setAttribute('transform', `scale(${scaleFactorF},1)`);
     });
-
+    svgCopy.setAttribute('transform', `scale(1,${scaleY})`);
   } else if (columnName === "Espesor") {
     var lines = svgCopy.querySelectorAll('line');
     lines.forEach(line => {
       line.style.stroke = "black";
     });
-    svgCopy.setAttribute('transform', `scale(${scaleFactor},1)`);
+    svgCopy.setAttribute('transform', `scale(${scaleFactor},${scaleY})`);
+    console.log(svgCopy)
   }
   else if (columnName === "Facie") {
     var texts = svgCopy.querySelectorAll('text');
@@ -321,8 +323,9 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
       rect.setAttribute("stroke", "black");
       rect.setAttribute("stroke-width", 1);
     });
+    svgCopy.setAttribute('transform', `scale(1,${scaleY})`);
   }
-  svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${height}`);
+  svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${originalHeight}`);
   svgCopy.style.transformOrigin = `0 0`;
   var combinedSVG = new XMLSerializer().serializeToString(svgCopy);
   return new Promise((resolve, reject) => {
@@ -346,8 +349,10 @@ function svgToImg(elsvg, height, width, y, columnName, columnWidths) {
 }
 
 
-const Ab = async (data, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject,indexesM) => {
-  data = Array.from(data).filter((_, index) => indexesM.includes(index)); 
+const Ab = async (info, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject, indexesM) => {
+  //  const data = Array.from(info).filter((_, index) => indexesM.includes(index));
+  const clonedInfo = JSON.parse(JSON.stringify(info)); // Clon profundo
+  const data = clonedInfo.filter((_, index) => indexesM.includes(index));
   let widthSheet = (orientation == "portrait") ? sheetSize[format][0] : sheetSize[format][1];
   let heightSheet = (orientation == "portrait") ? sheetSize[format][1] : sheetSize[format][0];
   let rowIndexesPerPage = [];
@@ -367,17 +372,20 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
 
   const topHeaders = 180
   const indexLimited = []
+  const maxLitHeight = heightSheet - topHeaders - 10;
 
   Object.values(data).forEach((key, index) => {
     var rowHeight = key['Litologia'].Height * scale
-    const maxLitHeight = heightSheet - topHeaders - 10;
     if (rowHeight > maxLitHeight) {
       indexLimited.push(index);
-      rowHeight = maxLitHeight;
+    //  rowHeight = maxLitHeight;
+      key['Litologia'].Height = maxLitHeight
     }
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
-      pageLengths.push({ 'height': Math.min(currentPageHeight-topHeaders,maxLitHeight) })
+      pageLengths.push({ 'height': Math.min(currentPageHeight - topHeaders, maxLitHeight),
+        'originalHeight' : currentPageHeight - topHeaders
+       })
       currentPageIndexes = [];
       currentPageHeight = topHeaders;
     }
@@ -388,27 +396,27 @@ const Ab = async (data, headerParam, format, orientation, customWidthLit, scale,
   // ultima pagina
   if (currentPageIndexes.length) {
     rowIndexesPerPage.push(currentPageIndexes);
-    var totalPageHeight = topHeaders
+    var totalPageHeight = topHeaders;
     Object.values(data).forEach((key, index) => {
       if (currentPageIndexes.includes(index)) {
-        const rowHeight = key['Litologia'].Height * scale
-        totalPageHeight += Number(rowHeight)
+        const rowHeight = Math.min(key['Litologia'].Height * scale, maxLitHeight);
+        totalPageHeight += Number(rowHeight);
       }
     });
-    const maxLitHeight = heightSheet - topHeaders - 10;
     pageLengths.push({
-      'height': Math.min(currentPageHeight-topHeaders,maxLitHeight)
-    })
+      'height': Math.min(currentPageHeight - topHeaders, maxLitHeight),
+      'originalHeight' : currentPageHeight - topHeaders
+    });
   }
 
   var patterns = []
   var contacts = []
   data.forEach(row => {
-    if (!patterns.includes(row.Litologia.File)) {
-      patterns.push(row.Litologia.File);
+    if (!patterns.includes(row["Litologia"].File)) {
+      patterns.push(row["Litologia"].File);
     }
-    if (!contacts.includes(row.Litologia.Contact)) {
-      contacts.push(row.Litologia.Contact)
+    if (!contacts.includes(row["Litologia"].Contact)) {
+      contacts.push(row["Litologia"].Contact)
     }
   });
 
