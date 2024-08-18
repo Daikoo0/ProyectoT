@@ -15,8 +15,6 @@ const TableData = ({ Data, refresh }) => {
     const [error, setError] = useState(false);
 
 
-
-
     const filterById = (id) => {
         const result = Data.find(item => item.ID === id);
         setFilteredItem(result);
@@ -252,18 +250,18 @@ const TableData = ({ Data, refresh }) => {
                                 <td>
                                     <div className="flex items-center gap-3">
                                         <div>
-                                            <div className="font-bold">{data.Name}</div>
-                                            <div className="text-sm opacity-50">{data.Owner}</div>
+                                            <div className="font-bold">{data.ProjectInfo.Name}</div>
+                                            <div className="text-sm opacity-50">{data.ProjectInfo.Owner}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    {data.Location}
+                                    {data.ProjectInfo.Location}
                                     <br />
-                                    <span className="badge badge-ghost badge-sm">{data.Lat}, {data.Long}</span>
+                                    <span className="badge badge-ghost badge-sm">{data.ProjectInfo.Lat}, {data.ProjectInfo.Long}</span>
                                 </td>
-                                <td>{data.CreationDate}</td>
-                                <td>{data.Description}</td>
+                                <td>{data.ProjectInfo.CreationDate}</td>
+                                <td>{data.ProjectInfo.Description}</td>
                                 <th>
                                     <button className="btn btn-ghost btn-xs" onClick={() => { navigate(`/editor/${data.ID}`,{ state: { infoProject: data }})}}>Editar</button>
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalInvite') as HTMLDialogElement).showModal(); }}>Invite</button>

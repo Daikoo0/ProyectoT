@@ -30,23 +30,16 @@ type GeneralMessage struct {
 }
 
 type ProjectResponse struct {
-	Projects []models.Data `json:"projects"`
-}
-
-type Change struct {
-	ActionType       string      // Puede ser "add", "modify" o "delete"
-	Key              string      // La clave del campo que se cambió
-	OldValue         interface{} // El valor antiguo del campo
-	NewValue         interface{} // El nuevo valor del campo
-	ModificationTime time.Time   // Fecha de modificación del campo
+	Projects []models.InfoProject `json:"projects"`
 }
 
 type RoomData struct {
-	Id_project      primitive.ObjectID
+	ID              primitive.ObjectID
+	ProjectInfo     models.ProjectInfo
 	Data            []models.DataInfo
-	Config          map[string]interface{}
-	Facies          map[string][]models.FaciesSection
+	Config          models.Config
 	Fosil           map[string]models.Fosil
+	Facies          map[string][]models.FaciesSection
 	Active          []*websocket.Conn
 	SectionsEditing map[string]interface{}
 	UserColors      map[string]string
@@ -144,7 +137,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	user := claims["email"].(string)
 
-	//validar aun mas datos (forma parte de la sala)
 	room, err := a.serv.GetRoom(ctx, roomID)
 	if err != nil {
 		errMessage := "Error: Room not found"
@@ -153,20 +145,22 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		return nil
 	}
 
-	//revisa los permisos del usuario
-	permission, e := a.serv.GetPermission(ctx, user, roomID)
-	if permission == -1 {
-		log.Println(e)
-		errMessage := "Error: Unauthorized"
-		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
-		conn.Close()
-		return nil
+	permission := 3
+
+	if room.ProjectInfo.Members.Owner == user {
+		permission = 1
+
+	} else if contains(room.ProjectInfo.Members.Editors, user) {
+		permission = 2
+
+	} else if contains(room.ProjectInfo.Members.Readers, user) {
+		permission = 3
 	}
 
 	objectID, _ := primitive.ObjectIDFromHex(roomID)
 
-	//conectar a la sala
 	proyect := instanceRoom(objectID,
+		room.ProjectInfo,
 		room.Data,
 		room.Config,
 		room.Fosil,
@@ -174,40 +168,34 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	)
 	proyect.Active = append(proyect.Active, conn)
 
-	//log.Print(rooms)
-	//log.Println(proyect.Active)
-
-	// Sacamos la conf y la transformamos a []
-	datos := proyect.Config["columns"].(map[string]interface{})
+	datos := proyect.Config.Columns
 
 	orden := []string{"Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"}
 
 	var claves []string
 
 	for _, clave := range orden {
-		if valor, existe := datos[clave]; existe {
-			// Comprobar si el valor es bool y es true
-			if boolVal, ok := valor.(bool); ok && boolVal {
-				claves = append(claves, clave)
-			}
+		if valor, existe := datos[clave]; existe && valor {
+			claves = append(claves, clave)
 		}
 	}
 
 	msgData := map[string]interface{}{
 		"header":     claves,
-		"isInverted": proyect.Config["isInverted"],
+		"isInverted": proyect.Config.IsInverted,
 	}
 
 	// Enviar configuracion y datos de la sala
 	dataRoom := map[string]interface{}{
 		"action":          "data",
+		"projectInfo":     proyect.ProjectInfo,
 		"data":            proyect.Data,
 		"config":          msgData,
 		"fosil":           proyect.Fosil,
 		"facies":          proyect.Facies,
 		"sectionsEditing": proyect.SectionsEditing,
 	}
-	// Trnasformar el mapa a JSON y envio a clientes
+
 	databytes, err := json.Marshal(dataRoom)
 	if err != nil {
 		errMessage := "Error: cannot sent room config"
@@ -216,11 +204,9 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	conn.WriteMessage(websocket.TextMessage, databytes)
 
 	if err == nil {
-		//conn.WriteMessage(websocket.TextMessage, []byte(dataBytes))
-		log.Printf("user %s: Permission %d", user, permission)
-		// var v interface{}
-		// conn.ReadJSON(v)
-		// log.Println(v, "aaaa")
+
+		log.Println("Usuario conectado: ", user)
+		log.Println("Permisos: ", permission)
 
 		for {
 			_, msg, err := conn.ReadMessage()
@@ -231,9 +217,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 			if permission != 2 {
 				var dataMap GeneralMessage
 				err := json.Unmarshal([]byte(msg), &dataMap)
-				//undo := true
+
 				if err != nil {
-					log.Println("le falta el id a la wea")
 					log.Fatal(err)
 				}
 
@@ -692,7 +677,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 						log.Println("Error deserializando columna:", err)
 						break
 					}
-					datos := rooms[roomID].Config["columns"].(map[string]interface{})
+					// datos := rooms[roomID].Config["columns"].(map[string]interface{})
+					datos := rooms[roomID].Config.Columns
 					datos[column.Column] = column.IsVisible
 
 					// Crear un slice para almacenar las columnas ordenadas
@@ -701,7 +687,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 					// Llenar el slice con los datos de las columnas en el orden correcto
 					for _, colName := range orden {
-						if isVisible, ok := datos[colName].(bool); ok && isVisible {
+						if isVisible, ok := datos[colName]; ok && isVisible {
 							// Si la columna es visible (IsVisible == true), agregar su nombre al slice.
 							orderedVisibleColumns = append(orderedVisibleColumns, colName)
 						}
@@ -746,7 +732,7 @@ func sendSocketMessage(msgData map[string]interface{}, proyect *RoomData, action
 
 }
 
-func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config map[string]interface{}, Fosil map[string]models.Fosil, Facies map[string][]models.FaciesSection) *RoomData {
+func instanceRoom(Id_project primitive.ObjectID, ProjectInfo models.ProjectInfo, Data []models.DataInfo, Config models.Config, Fosil map[string]models.Fosil, Facies map[string][]models.FaciesSection) *RoomData {
 
 	projectIDString := Id_project.Hex()
 	room, exists := rooms[projectIDString]
@@ -757,7 +743,8 @@ func instanceRoom(Id_project primitive.ObjectID, Data []models.DataInfo, Config 
 		userColors := make(map[string]string)
 
 		room = &RoomData{
-			Id_project:      Id_project,
+			ID:              Id_project,
+			ProjectInfo:     ProjectInfo,
 			Data:            Data,
 			Config:          Config,
 			Fosil:           Fosil,
@@ -1088,7 +1075,7 @@ func isInverted(project *RoomData, dataMap GeneralMessage) {
 		return
 	}
 
-	project.Config["isInverted"] = isInverted.IsInverted
+	project.Config.IsInverted = isInverted.IsInverted
 
 	msgData := map[string]interface{}{
 		"action":     "isInverted",
@@ -1150,4 +1137,13 @@ func deleteFacieSection(project *RoomData, f dtos.DeleteFacieSection) {
 	}
 
 	sendSocketMessage(msgData, project, "deleteFacieSection")
+}
+
+func contains(slice []string, value string) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }

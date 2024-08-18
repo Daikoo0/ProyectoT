@@ -4,17 +4,41 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Data struct {
-	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Name         string
-	Owner        string
-	Members      map[string]interface{}
-	CreationDate string
-	Description  string
-	Location     string
-	Lat          float64
-	Long         float64
-	Visible      bool
+type Members struct {
+	Owner   string
+	Editors []string
+	Readers []string
+}
+
+type Config struct {
+	Columns    map[string]bool `bson:"columns" json:"Columns"`
+	IsInverted bool            `bson:"isInverted" json:"IsInverted"`
+}
+
+type Project struct {
+	ID          primitive.ObjectID         `bson:"_id,omitempty"`
+	ProjectInfo ProjectInfo                `bson:"projectinfo"`
+	Data        []DataInfo                 `bson:"data"`
+	Config      Config                     `bson:"config"`
+	Fosil       map[string]Fosil           `bson:"fosil"`
+	Facies      map[string][]FaciesSection `bson:"facies"`
+}
+
+type InfoProject struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	ProjectInfo ProjectInfo        `bson:"projectinfo" json:"ProjectInfo"`
+}
+
+type ProjectInfo struct {
+	Name         string  `bson:"name"`
+	Owner        string  `bson:"owner"`
+	Members      Members `bson:"members"`
+	CreationDate string  `bson:"creationdate"`
+	Description  string  `bson:"description"`
+	Location     string  `bson:"location"`
+	Lat          float64 `bson:"lat"`
+	Long         float64 `bson:"long"`
+	Visible      bool    `bson:"visible"`
 }
 
 type Data_project struct {
