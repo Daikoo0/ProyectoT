@@ -1,10 +1,10 @@
 import { createContext, useState, useContext, ReactNode, useEffect } from "react";
 
 const themes = [
-  "lofi","light", "dark", "cupcake", "bumblebee", "emerald", "corporate", "synthwave",
-  "retro", "cyberpunk", "valentine", "halloween", "garden", "forest", "aqua", "pastel", "wireframe", "black", "dracula",
+  "bumblebee","lofi","light", "cupcake", "emerald", "corporate", "synthwave",
+  "retro", "cyberpunk", "valentine", "halloween", "garden", "black", "dracula",
   "cmyk", "autumn", "business", "acid", "lemonade", "night", "coffee", "winter",
-  "dim", "nord", "sunset","tamara"
+  "dim", "nord", "sunset"
 ];
 
 type ThemeContextType = {

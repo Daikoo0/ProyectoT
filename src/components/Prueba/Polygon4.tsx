@@ -196,6 +196,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
   };
 
+
   const patternId = `pattern-${rowIndex}`;
   return (
     <svg width={Width} height={Height} overflow='visible'>
@@ -221,11 +222,34 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         }}
       />
 
+      {File === 0 && (
+        <>
+          <line
+            x1={0}
+            y1={0}
+            x2={points[points.length - 2].x}
+            y2={points[points.length - 2].y}
+            stroke="black"
+            strokeWidth={1}
+          />
+
+          <line
+            x1={points[1].x}
+            y1={0}
+            x2={points[points.length - 1].x}
+            y2={points[points.length - 1].y}
+            stroke="black"
+            strokeWidth={1}
+          />
+        </>
+      )}
+
+
       <line x1="0" y1={Height} x2={points[points.length - 2].x} y2={Height} className={ColorFill !== "#ffffff" ? `` : "stroke-base-100"} strokeWidth={2} />
 
       {(!contacts[contact].arcs && contacts[contact].lineWidth2) ? (
         <>
-          <line x1="0" y1={Height} x2={points[1].x} y2={Height} className={ColorFill === "#ffffff" ? "stroke-base-100": `stroke-bg-${ColorFill}`} strokeWidth={0.5} />
+          <line x1="0" y1={Height} x2={points[1].x} y2={Height} className={ColorFill === "#ffffff" ? "stroke-base-100" : `stroke-bg-${ColorFill}`} strokeWidth={0.5} />
         </>
       ) : (
         <>

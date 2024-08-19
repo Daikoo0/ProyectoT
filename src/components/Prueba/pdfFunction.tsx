@@ -117,9 +117,9 @@ const svgDivision = async (measures, columnWidths) => {
   const svgFacies = document.querySelector('svg#svgFacies');
   for (const measure of measures) {
     const { height, originalHeight } = measure;
-    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height,originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths) : "";
+    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height, originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths) : "";
     const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, originalHeight, svgEspesor.clientWidth, y, "Espesor", columnWidths) : "";
-    const imgPageFacies = svgFacies ? await svgToImg(svgFacies,height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths) : "";
+    const imgPageFacies = svgFacies ? await svgToImg(svgFacies, height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths) : "";
     y += originalHeight;
     imgPageFossils ? arrayFossils.push(imgPageFossils) : arrayFossils = [];
     imgPageEspesor ? arrayEspesor.push(imgPageEspesor) : arrayEspesor = [];
@@ -140,7 +140,7 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet, pageLengths }) => {
+const MyDocument = ({ oLev, date, etSec, oEstrat, indexLimited, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet, pageLengths }) => {
   var firstArray = []
   var secondArray = []
   var thirdArray = []
@@ -164,8 +164,8 @@ const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, sc
           <View wrap={false}>
             <View style={[{ height: 40 }]}>
               <Text style={[{ fontSize: 14, fontFamily: "Times-Roman" }]}>
-                Orientación Estratificación: __________ ESCALA: 1:{100 / scale} Orientación Levantamiento: __________ LOCALIDAD: {infoProject.Location}
-                Etiqueta Sección: _________ Coordenadas: {infoProject.Lat},{infoProject.Long} Página: {pageIndex + 1}/{rowIndexesPerPage.length} FECHA: ____________
+                Orientación Estratificación: {oEstrat} ESCALA: 1:{100 / scale} Orientación Levantamiento: {oLev} LOCALIDAD: {infoProject.Location}
+                Etiqueta Sección: {etSec} Coordenadas: {infoProject.Lat},{infoProject.Long} Página: {pageIndex + 1}/{rowIndexesPerPage.length} FECHA: {date}
               </Text>
             </View>
             <TableHeader columnWidths={columnWidths} header={header} />
@@ -192,26 +192,26 @@ const MyDocument = ({ indexLimited, infoProject, contacts, fossils, patterns, sc
                   return (
                     <>
                       {key === "Litologia" && (
-                        <View key={`second-${pageIndex}${key}${i}`}
+                        <View key={`secondLIT-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + 10 }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + 10, width: columnWidths["Litologia"] }]} />
+                          <Img key={`secondImgLitologia-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + 10, width: columnWidths["Litologia"] }]} />
 
                         </View>
                       )}
                       {(secondArray[i] === "Estructura fosil" && imageFossils.length) && (
-                        <View key={`second-${pageIndex}${key}${i}`}
+                        <View key={`secondEST-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
+                          <Img key={`secondImgFosil-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
                         </View>)}
                       {(secondArray[i] === "Espesor" && imageEspesor.length) && (
-                        <View key={`second-${pageIndex}${key}${i}`}
+                        <View key={`secondESP-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
+                          <Img key={`secondImgEspesor-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
                         </View>)}
                       {(secondArray[i] === "Facie" && imageFacies.length) && (
-                        <View key={`second-${pageIndex}${key}${i}`}
+                        <View key={`secondFAC-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImg-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
+                          <Img key={`secondImgFacies-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
                         </View>)}
                     </>
                   )
@@ -290,7 +290,7 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
   var svgCopy = elsvg.cloneNode(true);
   let scaleFactor = parseFloat(columnWidths[columnName]) / (width * 2.54 / 96)
   const scaleY = height / originalHeight
-  console.log(height , originalHeight)
+  console.log(height, originalHeight)
   svgCopy.setAttribute("width", columnWidths[columnName]);
   svgCopy.setAttribute("height", originalHeight);
   if (columnName === "Estructura fosil") {
@@ -349,7 +349,10 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
 }
 
 
-const Ab = async (info, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject, indexesM) => {
+const Ab = async (info, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject, indexesM, oEstrat,
+  oLev,
+  etSec,
+  date) => {
   //  const data = Array.from(info).filter((_, index) => indexesM.includes(index));
   const clonedInfo = JSON.parse(JSON.stringify(info)); // Clon profundo
   const data = clonedInfo.filter((_, index) => indexesM.includes(index));
@@ -362,14 +365,17 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   var header = [...headerParam]
   var format = format
   var columnWidths = {}
-  columnWidths["Litologia"] = String(((customWidthLit ? parseFloat(customWidthLit) : 20) * widthSheet * 0.0352778) / 100) + "cm"
-  columnWidths["Espesor"] = (parseFloat(columnWidths["Litologia"]) / 4) + "cm"; //"2cm"
+  columnWidths["Litologia"] = String(((customWidthLit ? parseFloat(customWidthLit) : 20) * widthSheet * 0.0352778) / 100) + "cm";
+
+  var remainingWidth = widthSheet * 0.0352778 - parseFloat(columnWidths["Litologia"]);
+  var otherColumnsCount = header.length - 2; 
+  var otherColumnWidth = remainingWidth / (otherColumnsCount + 0.5);
   for (var i in header) {
     if (header[i] !== "Espesor" && header[i] !== "Litologia") {
-      columnWidths[header[i]] = String((widthSheet * 0.0352778 - (parseFloat(columnWidths["Espesor"]) + parseFloat(columnWidths["Litologia"]))) / (header.length - 2)) + "cm"
+      columnWidths[header[i]] = String(otherColumnWidth) + "cm";
     }
   }
-
+  columnWidths["Espesor"] = String(otherColumnWidth / 2) + "cm";
   const topHeaders = 180
   const indexLimited = []
   const maxLitHeight = heightSheet - topHeaders - 10;
@@ -378,14 +384,15 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
     var rowHeight = key['Litologia'].Height * scale
     if (rowHeight > maxLitHeight) {
       indexLimited.push(index);
-    //  rowHeight = maxLitHeight;
+      //  rowHeight = maxLitHeight;
       key['Litologia'].Height = maxLitHeight
     }
     if ((currentPageHeight + rowHeight) > (heightSheet - 10)) {
       rowIndexesPerPage.push(currentPageIndexes);
-      pageLengths.push({ 'height': Math.min(currentPageHeight - topHeaders, maxLitHeight),
-        'originalHeight' : currentPageHeight - topHeaders
-       })
+      pageLengths.push({
+        'height': Math.min(currentPageHeight - topHeaders, maxLitHeight),
+        'originalHeight': currentPageHeight - topHeaders
+      })
       currentPageIndexes = [];
       currentPageHeight = topHeaders;
     }
@@ -405,7 +412,7 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
     });
     pageLengths.push({
       'height': Math.min(currentPageHeight - topHeaders, maxLitHeight),
-      'originalHeight' : currentPageHeight - topHeaders
+      'originalHeight': currentPageHeight - topHeaders
     });
   }
 
@@ -571,7 +578,7 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   }
 
   const images = await svgDivision(pageLengths, columnWidths);
-  const blob = await pdf(<MyDocument pageLengths={pageLengths} indexLimited={indexLimited} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
+  const blob = await pdf(<MyDocument oLev={oLev} date={date} etSec={etSec} oEstrat={oEstrat} pageLengths={pageLengths} indexLimited={indexLimited} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
   const url = URL.createObjectURL(blob);
   const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);

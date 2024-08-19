@@ -3,7 +3,7 @@ import Polygon from "./Polygon4";
 import Fosil from "./Fosil";
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
-import Ab from "./pdfIntento2";
+import Ab from "./pdfFunction";
 import ResizeObserver from "resize-observer-polyfill";
 
 const Tabla = ({ setPdfData, pdfData, data, header, scale,
@@ -11,7 +11,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd, infoProject }) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd }) => {
 
     const cellWidth = 150;
     var cellMinWidth = 150;
@@ -75,7 +75,10 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             ...prevState,
             header: newHeaders,
         }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, infoProject, pdfData.indexesM)
+        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, pdfData.indexesM, pdfData.oEstrat,
+            pdfData.oLev,
+            pdfData.etSec,
+            pdfData.date)
     }
 
     const handleRows = (number) => {
@@ -83,7 +86,10 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         var rowsBefore = [...pdfData.data];
         var indexes = rowsBefore.map((row, index) => Number(row.Litologia.Height) > Number(number) ? index : -1)
             .filter(index => index !== -1);
-        Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, infoProject, indexes);
+        Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, indexes, pdfData.oEstrat,
+            pdfData.oLev,
+            pdfData.etSec,
+            pdfData.date);
     }
 
 
@@ -159,64 +165,68 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         pdfData.customWidthLit,
                                                         pdfData.scale,
                                                         pdfData.fossils,
-                                                        infoProject,
-                                                        pdfData.indexesM
+                                                        pdfData.infoProject,
+                                                        pdfData.indexesM,
+                                                        pdfData.oEstrat,
+                                                        pdfData.oLev,
+                                                        pdfData.etSec,
+                                                        pdfData.date
                                                     );
                                                 }}
                                                 className="select select-bordered w-full mb-4"
                                             >
-                                                <option value={''} disabled>Elige el tamaño de hoja</option>
-                                                <option value={'EXECUTIVE'}>Executive</option>
-                                                <option value={'FOLIO'}>Folio</option>
-                                                <option value={'LEGAL'}>Legal</option>
-                                                <option value={'LETTER'}>Letter</option>
-                                                <option value={'TABLOID'}>Tabloid</option>
-                                                <option value={'ID1'}>ID1</option>
-                                                <option value={'4A0'}>4A0</option>
-                                                <option value={'2A0'}>2A0</option>
-                                                <option value={'A0'}>A0</option>
-                                                <option value={'A1'}>A1</option>
-                                                <option value={'A2'}>A2</option>
-                                                <option value={'A3'}>A3</option>
-                                                <option value={'A4'}>A4</option>
-                                                <option value={'A5'}>A5</option>
-                                                <option value={'A6'}>A6</option>
-                                                <option value={'A7'}>A7</option>
-                                                <option value={'A8'}>A8</option>
-                                                <option value={'A9'}>A9</option>
-                                                <option value={'A10'}>A10</option>
-                                                <option value={'B0'}>B0</option>
-                                                <option value={'B1'}>B1</option>
-                                                <option value={'B2'}>B2</option>
-                                                <option value={'B3'}>B3</option>
-                                                <option value={'B4'}>B4</option>
-                                                <option value={'B5'}>B5</option>
-                                                <option value={'B6'}>B6</option>
-                                                <option value={'B7'}>B7</option>
-                                                <option value={'B8'}>B8</option>
-                                                <option value={'B9'}>B9</option>
-                                                <option value={'B10'}>B10</option>
-                                                <option value={'C0'}>C0</option>
-                                                <option value={'C1'}>C1</option>
-                                                <option value={'C2'}>C2</option>
-                                                <option value={'C3'}>C3</option>
-                                                <option value={'C4'}>C4</option>
-                                                <option value={'C5'}>C5</option>
-                                                <option value={'C6'}>C6</option>
-                                                <option value={'C7'}>C7</option>
-                                                <option value={'C8'}>C8</option>
-                                                <option value={'C9'}>C9</option>
-                                                <option value={'C10'}>C10</option>
-                                                <option value={'RA0'}>RA0</option>
-                                                <option value={'RA1'}>RA1</option>
-                                                <option value={'RA2'}>RA2</option>
-                                                <option value={'RA3'}>RA3</option>
-                                                <option value={'RA4'}>RA4</option>
-                                                <option value={'SRA0'}>SRA0</option>
-                                                <option value={'SRA1'}>SRA1</option>
-                                                <option value={'SRA2'}>SRA2</option>
-                                                <option value={'SRA3'}>SRA3</option>
-                                                <option value={'SRA4'}>SRA4</option>
+                                                <option className="bg-base-100 text-base-content" value={''} disabled>Elige el tamaño de hoja</option>
+                                                <option className="bg-base-100 text-base-content" value={'EXECUTIVE'}>Executive</option>
+                                                <option className="bg-base-100 text-base-content" value={'FOLIO'}>Folio</option>
+                                                <option className="bg-base-100 text-base-content" value={'LEGAL'}>Legal</option>
+                                                <option className="bg-base-100 text-base-content" value={'LETTER'}>Letter</option>
+                                                <option className="bg-base-100 text-base-content" value={'TABLOID'}>Tabloid</option>
+                                                {/* <option className="bg-base-100 text-base-content" value={'ID1'}>ID1</option> */}
+                                                <option className="bg-base-100 text-base-content" value={'4A0'}>4A0</option>
+                                                <option className="bg-base-100 text-base-content" value={'2A0'}>2A0</option>
+                                                <option className="bg-base-100 text-base-content" value={'A0'}>A0</option>
+                                                <option className="bg-base-100 text-base-content" value={'A1'}>A1</option>
+                                                <option className="bg-base-100 text-base-content" value={'A2'}>A2</option>
+                                                <option className="bg-base-100 text-base-content" value={'A3'}>A3</option>
+                                                <option className="bg-base-100 text-base-content" value={'A4'}>A4</option>
+                                                {/* <option className="bg-base-100 text-base-content" value={'A5'}>A5</option>
+                                                <option className="bg-base-100 text-base-content" value={'A6'}>A6</option>
+                                                <option className="bg-base-100 text-base-content" value={'A7'}>A7</option>
+                                                <option className="bg-base-100 text-base-content" value={'A8'}>A8</option>
+                                                <option className="bg-base-100 text-base-content" value={'A9'}>A9</option>
+                                                <option className="bg-base-100 text-base-content" value={'A10'}>A10</option> */}
+                                                <option className="bg-base-100 text-base-content" value={'B0'}>B0</option>
+                                                <option className="bg-base-100 text-base-content" value={'B1'}>B1</option>
+                                                <option className="bg-base-100 text-base-content" value={'B2'}>B2</option>
+                                                <option className="bg-base-100 text-base-content" value={'B3'}>B3</option>
+                                                <option className="bg-base-100 text-base-content" value={'B4'}>B4</option>
+                                                {/* <option className="bg-base-100 text-base-content" value={'B5'}>B5</option>
+                                                <option className="bg-base-100 text-base-content" value={'B6'}>B6</option>
+                                                <option className="bg-base-100 text-base-content" value={'B7'}>B7</option>
+                                                <option className="bg-base-100 text-base-content" value={'B8'}>B8</option>
+                                                <option className="bg-base-100 text-base-content" value={'B9'}>B9</option>
+                                                <option className="bg-base-100 text-base-content" value={'B10'}>B10</option> */}
+                                                <option className="bg-base-100 text-base-content" value={'C0'}>C0</option>
+                                                <option className="bg-base-100 text-base-content" value={'C1'}>C1</option>
+                                                <option className="bg-base-100 text-base-content" value={'C2'}>C2</option>
+                                                <option className="bg-base-100 text-base-content" value={'C3'}>C3</option>
+                                                {/* <option className="bg-base-100 text-base-content" value={'C4'}>C4</option>
+                                                <option className="bg-base-100 text-base-content" value={'C5'}>C5</option>
+                                                <option className="bg-base-100 text-base-content" value={'C6'}>C6</option>
+                                                <option className="bg-base-100 text-base-content" value={'C7'}>C7</option>
+                                                <option className="bg-base-100 text-base-content" value={'C8'}>C8</option>
+                                                <option className="bg-base-100 text-base-content" value={'C9'}>C9</option>
+                                                <option className="bg-base-100 text-base-content" value={'C10'}>C10</option> */}
+                                                <option className="bg-base-100 text-base-content" value={'RA0'}>RA0</option>
+                                                <option className="bg-base-100 text-base-content" value={'RA1'}>RA1</option>
+                                                <option className="bg-base-100 text-base-content" value={'RA2'}>RA2</option>
+                                                <option className="bg-base-100 text-base-content" value={'RA3'}>RA3</option>
+                                                <option className="bg-base-100 text-base-content" value={'RA4'}>RA4</option>
+                                                <option className="bg-base-100 text-base-content" value={'SRA0'}>SRA0</option>
+                                                <option className="bg-base-100 text-base-content" value={'SRA1'}>SRA1</option>
+                                                <option className="bg-base-100 text-base-content" value={'SRA2'}>SRA2</option>
+                                                <option className="bg-base-100 text-base-content" value={'SRA3'}>SRA3</option>
+                                                <option className="bg-base-100 text-base-content" value={'SRA4'}>SRA4</option>
                                             </select>
                                         </div>
                                     </div>
@@ -228,19 +238,124 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             <ul>
                                                 <li>
                                                     <label>Orientación estratificación: </label>
-                                                    <input className="input input-bordered w-full mb-2" />
+                                                    <p>
+                                                        <input id="oEstrat" className="input input-bordered w-full" value={pdfData.oEstrat}
+                                                            onChange={(e) => setPdfData(prevState => ({
+                                                                ...prevState,
+                                                                oEstrat: e.target.value,
+                                                            }))} />
+                                                        <button className="btn btn-primary"
+                                                            onClick={() => {
+                                                                const val = document.getElementById('oEstrat')["value"];
+                                                                Ab(
+                                                                    pdfData.data,
+                                                                    pdfData.header,
+                                                                    pdfData.format,
+                                                                    pdfData.orientation,
+                                                                    pdfData.customWidthLit,
+                                                                    pdfData.scale,
+                                                                    pdfData.fossils,
+                                                                    pdfData.infoProject,
+                                                                    pdfData.indexesM,
+                                                                    val,
+                                                                    pdfData.oLev,
+                                                                    pdfData.etSec,
+                                                                    pdfData.date
+                                                                );
+                                                            }}
+                                                        >Aplicar</button>
+                                                    </p>
                                                 </li>
                                                 <li>
                                                     <label>Orientación levantamiento: </label>
-                                                    <input className="input input-bordered w-full mb-2" />
+                                                    <p>
+                                                        <input id="oLev" className="input input-bordered w-full" value={pdfData.oLev}
+                                                            onChange={(e) => setPdfData(prevState => ({
+                                                                ...prevState,
+                                                                oLev: e.target.value,
+                                                            }))} />
+                                                        <button className="btn btn-primary"
+                                                            onClick={() => {
+                                                                const val = document.getElementById('oLev')["value"];
+                                                                Ab(
+                                                                    pdfData.data,
+                                                                    pdfData.header,
+                                                                    pdfData.format,
+                                                                    pdfData.orientation,
+                                                                    pdfData.customWidthLit,
+                                                                    pdfData.scale,
+                                                                    pdfData.fossils,
+                                                                    pdfData.infoProject,
+                                                                    pdfData.indexesM,
+                                                                    pdfData.oEstrat,
+                                                                    val,
+                                                                    pdfData.etSec,
+                                                                    pdfData.date
+                                                                );
+                                                            }}
+                                                        >Aplicar</button>
+                                                    </p>
                                                 </li>
                                                 <li>
                                                     <label>Etiqueta sección: </label>
-                                                    <input className="input input-bordered w-full mb-2" />
+                                                    <p>
+                                                        <input id="etSec" className="input input-bordered w-full" value={pdfData.etSec}
+                                                            onChange={(e) => setPdfData(prevState => ({
+                                                                ...prevState,
+                                                                etSec: e.target.value,
+                                                            }))} />
+                                                        <button className="btn btn-primary"
+                                                            onClick={() => {
+                                                                const val = document.getElementById('etSec')["value"];
+                                                                Ab(
+                                                                    pdfData.data,
+                                                                    pdfData.header,
+                                                                    pdfData.format,
+                                                                    pdfData.orientation,
+                                                                    pdfData.customWidthLit,
+                                                                    pdfData.scale,
+                                                                    pdfData.fossils,
+                                                                    pdfData.infoProject,
+                                                                    pdfData.indexesM,
+                                                                    pdfData.oEstrat,
+                                                                    pdfData.oLev,
+                                                                    val,
+                                                                    pdfData.date
+                                                                );
+                                                            }}
+                                                        >Aplicar</button>
+                                                    </p>
                                                 </li>
                                                 <li>
                                                     <label>Fecha: </label>
-                                                    <input className="input input-bordered w-full mb-2" />
+                                                    <p>
+                                                        <input id="date" className="input input-bordered w-full" value={pdfData.date}
+                                                            onChange={(e) => setPdfData(prevState => ({
+                                                                ...prevState,
+                                                                date: e.target.value,
+                                                            }))}
+                                                        />
+                                                        <button className="btn btn-primary"
+                                                            onClick={() => {
+                                                                const val = document.getElementById('date')["value"];
+                                                                Ab(
+                                                                    pdfData.data,
+                                                                    pdfData.header,
+                                                                    pdfData.format,
+                                                                    pdfData.orientation,
+                                                                    pdfData.customWidthLit,
+                                                                    pdfData.scale,
+                                                                    pdfData.fossils,
+                                                                    pdfData.infoProject,
+                                                                    pdfData.indexesM,
+                                                                    pdfData.oEstrat,
+                                                                    pdfData.oLev,
+                                                                    pdfData.etSec,
+                                                                    val
+                                                                );
+                                                            }}
+                                                        >Aplicar</button>
+                                                    </p>
                                                 </li>
                                             </ul>
                                         </div>
@@ -261,7 +376,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     onChange={(e) => {
                                                         setPdfData((prevState) => ({
                                                             ...prevState,
-                                                            orientation: e.target.checked ? "portrait" : "landscape",
+                                                            orientation: (e.target.checked ? "portrait" : "landscape"),
                                                         }));
                                                         Ab(
                                                             pdfData.data,
@@ -271,8 +386,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                             pdfData.customWidthLit,
                                                             pdfData.scale,
                                                             pdfData.fossils,
-                                                            infoProject,
-                                                            pdfData.indexesM
+                                                            pdfData.infoProject,
+                                                            pdfData.indexesM,
+                                                            pdfData.oEstrat,
+                                                            pdfData.oLev,
+                                                            pdfData.etSec,
+                                                            pdfData.date
                                                         );
                                                     }}
                                                 />
@@ -311,7 +430,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
                                         <div className="collapse-title text-xl font-medium">
-                                            Espacio horizontal de la litología respecto al ancho de la hoja
+                                            Ancho de la litología
                                         </div>
                                         <div className="collapse-content">
                                             <select
@@ -329,17 +448,21 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         e.target.value,
                                                         pdfData.scale,
                                                         pdfData.fossils,
-                                                        infoProject,
-                                                        pdfData.indexesM
+                                                        pdfData.infoProject,
+                                                        pdfData.indexesM,
+                                                        pdfData.oEstrat,
+                                                        pdfData.oLev,
+                                                        pdfData.etSec,
+                                                        pdfData.date
                                                     );
                                                 }}
                                                 className="select select-bordered w-full mb-4"
                                             >
-                                                <option value={""} disabled>Elige el ancho de la litologia</option>
-                                                <option value={'20%'}>20%</option>
-                                                <option value={'25%'}>25%</option>
-                                                <option value={'50%'}>50%</option>
-                                                <option value={'75%'}>75%</option>
+                                                <option className="bg-base-100 text-base-content" value={""} disabled>Elige el ancho de la litologia</option>
+                                                <option className="bg-base-100 text-base-content" value={'20%'}>20%</option>
+                                                <option className="bg-base-100 text-base-content" value={'25%'}>25%</option>
+                                                <option className="bg-base-100 text-base-content" value={'30%'}>30%</option>
+                                                <option className="bg-base-100 text-base-content" value={'40%'}>40%</option>
                                             </select>
                                         </div>
                                     </div>
@@ -369,7 +492,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         </div>
                                     </div>
 
-                                 
+
                                 </div>
 
                                 <div className="modal-action mt-4">
@@ -651,7 +774,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                             sideBar: true,
                                                             sideBarMode: "text"
                                                         });
-                                                        console.log(rowIndex, columnName)
                                                         handleClickRow(rowIndex, columnName)
                                                     }
                                                     sendActionCell(rowIndex, columnIndex)
@@ -660,6 +782,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     overflowY: (columnName === 'Litologia') ? 'visible' : 'auto',
                                                     padding: '0',
                                                     top: '0',
+                                                    borderTop: (columnName === 'Litologia') ? 'none' : '',   // Eliminar borde superior si es Litologia
+                                                    borderBottom: (columnName === 'Litologia') ? 'none' : '', // Eliminar borde inferior si es Litologia
                                                     borderColor: (columnName !== 'Litologia') ? (editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color || '') : '',
                                                     verticalAlign: "top",
                                                 }}

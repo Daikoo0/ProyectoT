@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { useParams , useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Tabla from './Tabla';
 import SelectTheme from '../Web/SelectTheme';
@@ -11,7 +11,7 @@ import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
 import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
-import Ab from './pdfIntento2';
+import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 
 const Grid = () => {
@@ -25,12 +25,11 @@ const Grid = () => {
   const [header, setHeader] = useState([]);
   const [fossils, setFossils] = useState([]);
   const [facies, setFacies] = useState({});
-  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: null });
+  const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: 'none' });
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
   const [messageFacie, setMessageFacie] = useState('');
-  const location = useLocation();
-  const infoProject = location.state?.infoProject;
+  const [infoProject, setInfoProject] = useState()
   var contactsSvg = []
   {
     Object.keys(contacts).map((contact) => {
@@ -204,6 +203,7 @@ const Grid = () => {
             setFossils(shapeN.fosil)
             setIsInverted(shapeN.config.isInverted)
             setEditingUsers(shapeN.sectionsEditing)
+            setInfoProject(shapeN.projectInfo)
             break;
           }
           case 'editingUser': {
@@ -331,20 +331,20 @@ const Grid = () => {
 
           case 'addFacieSection':
             setFacies(prevFacies => {
-                const faciesCopy = { ...prevFacies };
-                if (!faciesCopy.hasOwnProperty(shapeN.facie)) {
-                    faciesCopy[shapeN.facie] = [];
-                }
-                faciesCopy[shapeN.facie].push({ y1: shapeN.y1, y2: shapeN.y2 });
-                return faciesCopy;
+              const faciesCopy = { ...prevFacies };
+              if (!faciesCopy.hasOwnProperty(shapeN.facie)) {
+                faciesCopy[shapeN.facie] = [];
+              }
+              faciesCopy[shapeN.facie].push({ y1: shapeN.y1, y2: shapeN.y2 });
+              return faciesCopy;
             });
             break;
           case 'addFacie':
             if (!facies.hasOwnProperty(shapeN.facie)) {
-                setFacies(prevFacies => ({
-                    ...prevFacies,
-                    [`${shapeN.facie}`]: shapeN.sections || [],
-                }));
+              setFacies(prevFacies => ({
+                ...prevFacies,
+                [`${shapeN.facie}`]: shapeN.sections || [],
+              }));
             }
             break;
           default:
@@ -551,6 +551,8 @@ const Grid = () => {
       }
     }));
 
+    openModalPoint(rowIndex, insertIndex, point, 'none');
+
   };
 
   // Elimina un punto
@@ -602,24 +604,29 @@ const Grid = () => {
     var copyData = data
     var copyHeader = [...header]
     var indexes = Array.from({ length: data.length }, (_, index) => index);
-    Ab(copyData, copyHeader, 'A3', 'portrait', "", scale, fossils,infoProject,indexes)
+    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________','_____________','_____________','_____________')
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
       header: copyHeader,
-      format: 'A3',
+      format: 'C3',
       orientation: 'portrait',
       customWidthLit: "",
       scale: scale,
       fossils: fossils,
-      infoProject : infoProject,
-      indexesM : indexes
+      infoProject: infoProject,
+      indexesM: indexes,
+      oEstrat : '_____________',
+      oLev : '_____________',
+      etSec: '_____________',
+      date: '_____________'
     };
     setPdfData(initialPdfData)
 
   };
 
   const [isInverted, setIsInverted] = useState(false)
+
 
   return (
     <>
@@ -683,30 +690,31 @@ const Grid = () => {
                 </div>
               </div>
 
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({action: 'undo'}))} data-tip="Deshacer">
+              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'undo' }))} data-tip="Deshacer">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4"/>
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4" />
                   </svg>
                 </div>
               </div>
 
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({action: 'redo'}))} data-tip="Rehacer">
+              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'redo' }))} data-tip="Rehacer">
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4"/>
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4" />
                   </svg>
 
                 </div>
               </div>
-              
 
+              <div className="text-3xl my-2 ml-4">
+                {infoProject ? infoProject['Name'] : ' '}
+              </div>
             </div>
           </div>
 
           <Tabla
-            // Data 
-            infoProject={infoProject}
+            // Data
             setPdfData={setPdfData}
             pdfData={pdfData}
             data={data}
@@ -740,7 +748,7 @@ const Grid = () => {
                     <select className='select select-accent' disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
 
                       {Object.keys(mudgraingravel).map((item) =>
-                        <option key={item} value={item}>{item}</option>
+                        <option className="bg-base-100 text-base-content" key={item} value={item} >{item}</option>
                       )}
                     </select>
                   </div>
@@ -750,7 +758,7 @@ const Grid = () => {
                     <select className='select select-accent' disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
 
                       {Object.keys(limestones).map((item) =>
-                        <option key={item} value={item}>{item}</option>
+                        <option className="bg-base-100 text-base-content" key={item} value={item}>{item}</option>
                       )}
                     </select>
                   </div>
@@ -767,7 +775,7 @@ const Grid = () => {
                   <button className="btn btn-error">Eliminar punto</button>
                 </form>
 
-                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51, name: null })}>
+                <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51, name: 'none' })}>
                   <button className="btn">Cerrar</button>
                 </form>
               </div>
@@ -927,27 +935,6 @@ const Grid = () => {
                           </ul>
                         </details>
                       </li>
-
-                      {/* {list.map((key) => {
-                        if (key !== "Espesor" && key !== "Litologia") {
-                          return (
-                            <li key={key} className="py-2">
-                              <label className="inline-flex items-center">
-                                <input
-                                  type="checkbox"
-                                  id={key}
-                                  name={key}
-                                  checked={header.includes(key) ? true : false}
-                                  onChange={(e) => handleColumns(e, key)}
-                                  className="form-checkbox h-5 w-5 text-indigo-600"
-                                />
-                                <span className="ml-2">{key}</span>
-                              </label>
-                            </li>
-                          );
-                        }
-                      })} */}
-
                     </ul>)
 
                 case "añadirCapa":
@@ -985,9 +972,9 @@ const Grid = () => {
                         <form onSubmit={handleAddFosil}>
                           <li>
                             <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
-                              <option value={""} disabled >Elige el tipo de fósil</option>
+                              <option className="bg-base-100 text-base-content" value={""} disabled >Elige el tipo de fósil</option>
                               {Object.keys(fosilJson).map(option => (
-                                <option key={option} value={option}>{option}</option>
+                                <option className="bg-base-100 text-base-content" key={option} value={option}>{option}</option>
                               ))}
                             </select>
                           </li>
@@ -1042,9 +1029,9 @@ const Grid = () => {
                       <li className="menu-title">Editando fósil</li>
                       <li>
                         <select className="select select-bordered w-full max-w-xs" name='fosilImgCopy' value={formFosil.fosilImgCopy} onChange={changeformFosil}>
-                          <option value={""} disabled>Selecciona un fósil</option>
+                          <option className="bg-base-100 text-base-content" value={""} disabled>Selecciona un fósil</option>
                           {Object.keys(fosilJson).map(option => (
-                            <option key={option} value={option}>{option}</option>
+                            <option className="bg-base-100 text-base-content" key={option} value={option}>{option}</option>
                           ))}
                         </select>
                       </li>
@@ -1172,7 +1159,7 @@ const Grid = () => {
                         <p>Seleccionar opción de Pattern: </p>
                         <select name={"File"} value={formData.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
                           {Object.keys(lithoJson).map(option => (
-                            <option key={option} value={option}>
+                            <option className="bg-base-100 text-base-content" key={option} value={option}>
                               {option}
                             </option>
 

@@ -9,7 +9,7 @@ import About from "../pages/About";
 import Home from "../pages/Home";
 import CreateProyect from "../pages/create.proyect";
 import Editor from "../components/Prueba/Editor";
-import Ab from "../components/Prueba/pdfIntento2";
+import Profile from "../pages/perfil";
 
 const Routes = () => {
     const { token } = useAuth();
@@ -53,8 +53,8 @@ const Routes = () => {
           element: <Navigate to="/home"  />,
         },
         {
-          path: "/cualquierwea",
-          element: <Ab/>,
+          path: "/myProfile",
+          element: <Profile/>,
         }
       ],
     },
