@@ -131,14 +131,14 @@ required styles
 
 .leaflet-control {
 	position: relative;
-	z-index: 800;
+	/* z-index: 800; */
 	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
 	pointer-events: auto;
 	}
 .leaflet-top,
 .leaflet-bottom {
 	position: absolute;
-	z-index: 1000;
+	z-index: auto;
 	pointer-events: none;
 	}
 .leaflet-top {
@@ -478,6 +478,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	position: absolute;
 	text-align: center;
 	margin-bottom: 20px;
+	z-index: 1000;
 	}
 .leaflet-popup-content-wrapper {
 	padding: 1px;

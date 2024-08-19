@@ -2,12 +2,7 @@ package repository
 
 import (
 	"context"
-	"log"
 
-	//"log"
-	//"fmt"
-
-	//entity "github.com/ProyectoT/api/internal/entity"
 	"github.com/ProyectoT/api/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,7 +23,6 @@ func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.InfoPro
 		"projectinfo": 1,
 	}
 
-	// Realiza la consulta con la proyección
 	cursor, err := users.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
 		return nil, err
@@ -94,32 +88,29 @@ func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.InfoPro
 // 	return -1, nil // Correo no encontrado en ninguna lista
 // }
 
-func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.ProjectInfo, error) {
+func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.InfoProject, error) {
 
-	dbprojects := r.db.Collection("projects")
+	db := r.db.Collection("projects")
 
-	// Define el filtro usando bson.M en lugar de bson.D
 	filter := bson.M{
-		"visible": true,
+		"projectinfo.visible": true,
 	}
 
-	// Realiza la consulta
-	cursor, err := dbprojects.Find(ctx, filter)
+	projection := bson.M{
+		"projectinfo": 1,
+	}
+
+	cursor, err := db.Find(ctx, filter, options.Find().SetProjection(projection))
 	if err != nil {
-		// Manejar el error, por ejemplo, imprimirlo o devolverlo
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 
-	// Decodifica los resultados en una slice de la estructura que representa tus proyectos
-	var projects []models.ProjectInfo
+	var projects []models.InfoProject
 
 	if err := cursor.All(ctx, &projects); err != nil {
-		// Manejar el error, por ejemplo, imprimirlo o devolverlo
 		return nil, err
 	}
-
-	log.Println(projects)
 
 	return projects, nil
 

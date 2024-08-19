@@ -64,7 +64,6 @@ func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.C
 	}
 
 	if index != -1 {
-		// Eliminar el elemento en el índice encontrado
 		for key, value := range rooms[roomID].SectionsEditing {
 			if value.(map[string]interface{})["name"] == name {
 				delete(rooms[roomID].SectionsEditing, key)
@@ -103,9 +102,8 @@ func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.C
 
 func (a *API) HandleWebSocket(c echo.Context) error {
 	ctx := c.Request().Context()
-	roomID := c.Param("room") // ID de la sala conectada
+	roomID := c.Param("room")
 
-	//convertir la peticion en websocket (lo coloco antes de las validaciones para devolver mensajes de error)
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
@@ -119,7 +117,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	auth := c.QueryParam("token")
 
-	//validar datos
 	if auth == "" {
 		errMessage := "Error: Unauthorized"
 		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
@@ -137,35 +134,31 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	user := claims["email"].(string)
 
-	room, err := a.serv.GetRoom(ctx, roomID)
-	if err != nil {
+	proyect := a.instanceRoom(ctx, roomID)
+	if proyect == nil {
 		errMessage := "Error: Room not found"
 		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
 		conn.Close()
 		return nil
 	}
 
-	permission := 3
+	permission := 2
 
-	if room.ProjectInfo.Members.Owner == user {
+	if proyect.ProjectInfo.Members.Owner == user {
+		permission = 0
+	} else if contains(proyect.ProjectInfo.Members.Editors, user) {
 		permission = 1
-
-	} else if contains(room.ProjectInfo.Members.Editors, user) {
+	} else if contains(proyect.ProjectInfo.Members.Readers, user) {
 		permission = 2
-
-	} else if contains(room.ProjectInfo.Members.Readers, user) {
-		permission = 3
+	} else if proyect.ProjectInfo.Visible {
+		permission = 2
+	} else {
+		errMessage := "Error: Access denied"
+		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		conn.Close()
+		return nil
 	}
 
-	objectID, _ := primitive.ObjectIDFromHex(roomID)
-
-	proyect := instanceRoom(objectID,
-		room.ProjectInfo,
-		room.Data,
-		room.Config,
-		room.Fosil,
-		room.Facies,
-	)
 	proyect.Active = append(proyect.Active, conn)
 
 	datos := proyect.Config.Columns
@@ -185,7 +178,6 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 		"isInverted": proyect.Config.IsInverted,
 	}
 
-	// Enviar configuracion y datos de la sala
 	dataRoom := map[string]interface{}{
 		"action":          "data",
 		"projectInfo":     proyect.ProjectInfo,
@@ -732,34 +724,34 @@ func sendSocketMessage(msgData map[string]interface{}, proyect *RoomData, action
 
 }
 
-func instanceRoom(Id_project primitive.ObjectID, ProjectInfo models.ProjectInfo, Data []models.DataInfo, Config models.Config, Fosil map[string]models.Fosil, Facies map[string][]models.FaciesSection) *RoomData {
+func (a *API) instanceRoom(ctx context.Context, roomID string) *RoomData {
 
-	projectIDString := Id_project.Hex()
-	room, exists := rooms[projectIDString]
-	//room, exists := rooms[Id_project] //instancia el room con los datos de la bd
-	if !exists {
-
-		var sectionsEditing map[string]interface{}
-		userColors := make(map[string]string)
-
-		room = &RoomData{
-			ID:              Id_project,
-			ProjectInfo:     ProjectInfo,
-			Data:            Data,
-			Config:          Config,
-			Fosil:           Fosil,
-			Facies:          Facies,
-			Active:          make([]*websocket.Conn, 0),
-			SectionsEditing: sectionsEditing,
-			UserColors:      userColors,
-			undoStack:       make([]Action, 0),
-			redoStack:       make([]Action, 0),
-		}
-
-		rooms[projectIDString] = room
+	existingRoom, exists := rooms[roomID]
+	if exists {
+		return existingRoom
 	}
 
-	return room
+	room, err := a.serv.GetRoom(ctx, roomID)
+	if err != nil {
+		return nil
+	}
+
+	newRoom := &RoomData{
+		ID:              room.ID,
+		ProjectInfo:     room.ProjectInfo,
+		Data:            room.Data,
+		Config:          room.Config,
+		Fosil:           room.Fosil,
+		Facies:          room.Facies,
+		Active:          make([]*websocket.Conn, 0),
+		SectionsEditing: make(map[string]interface{}),
+		UserColors:      make(map[string]string),
+		undoStack:       make([]Action, 0),
+		redoStack:       make([]Action, 0),
+	}
+
+	rooms[roomID] = newRoom
+	return newRoom
 }
 
 func (a *API) HandleGetActiveProject(c echo.Context) error {

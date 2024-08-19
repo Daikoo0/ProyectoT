@@ -68,21 +68,21 @@ const TableData = ({ Data, refresh }) => {
 
                     <h3 className="font-bold text-lg"> Comparte con tus colaboradores</h3>
 
-                    <p>Proyecto: {filteredItem?.Name}</p>
+                    <p>Proyecto: {filteredItem?.ProjectInfo.Name}</p>
 
                     {filteredItem && (
                         <ul className='my-2 list-disc list-inside'>
-                            <li>Owner: {filteredItem.Members[0]}</li>
-                            {filteredItem.Members[1].length > 0 && (
-                                <li>Editor: {filteredItem.Members[1].join(', ')}</li>
+                            <li>Owner: {filteredItem.ProjectInfo.Members.Owner}</li>
+                            {filteredItem.ProjectInfo.Members.Editors.length > 0 && (
+                                <li>Editor: {filteredItem.ProjectInfo.Members.Editors.join(', ')}</li>
                             )}
-                            {filteredItem.Members[2].length > 0 && (
-                                <li>Lector: {filteredItem.Members[2].join(', ')} </li>
+                            {filteredItem.ProjectInfo.Members.Readers.length > 0 && (
+                                <li>Lector: {filteredItem.ProjectInfo.Members.Readers.join(', ')} </li>
                             )}
                         </ul>
                     )}
 
-                    {filteredItem?.Members[0] == user.email ?
+                    {filteredItem?.ProjectInfo.Members.Owner == user.email ?
                         <form onSubmit={handleSubmit}>
                             <div className="flex">
                                 <div className="form-control w-full max-w-xs mr-2">
@@ -125,9 +125,17 @@ const TableData = ({ Data, refresh }) => {
                                     Invitar Usuarios
                                 </button>
 
-                                <form method="dialog" onClick={() => setUsuario({ email: '', role: '' })}>
-                                    <button className='btn'>Cancelar</button>
-                                </form>
+
+                                <button className="btn" 
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setUsuario({ email: '', role: '' }); 
+                                            (document.getElementById('modalInvite') as HTMLDialogElement).close()} 
+                                        }
+                                >
+                                    Cancelar
+                                </button>
+
                             </div>
 
                         </form>
@@ -150,8 +158,8 @@ const TableData = ({ Data, refresh }) => {
             <dialog id="modalDelete" className="modal">
                 <div className="modal-box">
                     <h3 className="font-bold text-lg">¿Estas seguro de eliminar este proyecto?</h3>
-                    <p className="py-4">Estas por eliminar el proyecto: <strong>{filteredItem?.Name}</strong></p>
-                    {filteredItem?.Members[0] === user.email ? <p>Como eres el dueño del proyecto, al eliminarlo, este se eliminara para todos los usuarios</p> : <p>Si eliminas este proyecto, ya no podras acceder a el</p>}
+                    <p className="py-4">Estas por eliminar el proyecto: <strong>{filteredItem?.ProjectInfo.Name}</strong></p>
+                    {filteredItem?.ProjectInfo.Members.Owner === user.email ? <p>Como eres el dueño del proyecto, al eliminarlo, este se eliminara para todos los usuarios</p> : <p>Si eliminas este proyecto, ya no podras acceder a el</p>}
 
                     <div className="modal-action">
                         {/* p en la posicion de la izquierda */}
@@ -198,9 +206,9 @@ const TableData = ({ Data, refresh }) => {
 
                                 Eliminar
                             </button>
-                        </form>
+                        </form> 
                         <form method="dialog">
-                            <button className="btn" onClick={() => setstateRequest("")}>Cancelar</button>
+                            <button className="btn" formMethod='dialog' onClick={() => setstateRequest("")}>Cancelar</button>
                         </form>
 
                     </div>

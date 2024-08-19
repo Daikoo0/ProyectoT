@@ -80,8 +80,8 @@ func (r *repo) DeleteUserRoom(ctx context.Context, email string, roomID string) 
 	filter := bson.M{"_id": projectID}
 	update := bson.M{
 		"$pull": bson.M{
-			"members.1": email,
-			"members.2": email,
+			"projectinfo.members.editors": email,
+			"projectinfo.members.readers": email,
 		},
 	}
 	opts := options.Update().SetUpsert(true)

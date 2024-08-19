@@ -16,6 +16,7 @@ type Repository interface { //comunicaciones con la base de datos
 	// Room - room.repository.go
 	GetRoom(ctx context.Context, roomName string) (*models.Project, error)
 	GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectInfo, error)                                                                                            // Devuelve la entidad sala
+	GetMembers(ctx context.Context, roomID string) (*models.Members, error)                                                                                                 // Devuelve los miembros de una sala
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error               // Crea una sala
 	SaveProject(ctx context.Context, data string, name string) error                                                                                                        // Guarda un nuevo proyecto en la base de datos
 	SaveRoom(ctx context.Context, data []models.DataInfo, config models.Config, fosil map[string]models.Fosil, name string, facies map[string][]models.FaciesSection) error // Actualiza un proyecto en MongoDB
@@ -25,7 +26,7 @@ type Repository interface { //comunicaciones con la base de datos
 	// Profile - profile.repository.go
 	GetProyects(ctx context.Context, email string) ([]models.InfoProject, error) // Devuelve los proyectos de un usuario
 	//GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
-	HandleGetPublicProject(ctx context.Context) ([]models.ProjectInfo, error) // Devuelve los proyectos publicos
+	HandleGetPublicProject(ctx context.Context) ([]models.InfoProject, error) // Devuelve los proyectos publicos
 
 	// Users - user.repository.go
 	SaveUser(ctx context.Context, email, name, lastname, password string) error // Guarda un usuario en la base de datos

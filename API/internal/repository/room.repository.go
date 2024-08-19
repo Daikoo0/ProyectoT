@@ -41,6 +41,7 @@ func (r *repo) GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectI
 	objectID, err := primitive.ObjectIDFromHex(roomID)
 	if err != nil {
 		log.Fatal(err)
+		return nil, err
 	}
 
 	projection := bson.M{
@@ -117,7 +118,6 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 
 func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
 	dbProject := r.db.Collection("projects")
-	dbDataProject := r.db.Collection("data-projects")
 
 	projectID, err := primitive.ObjectIDFromHex(roomID)
 	if err != nil {
@@ -131,12 +131,6 @@ func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
 	}
 	if res.DeletedCount == 0 {
 		return fmt.Errorf("project not found in projects collection")
-	}
-
-	_, err = dbDataProject.DeleteOne(ctx, bson.M{"id_project": projectID})
-	if err != nil {
-		log.Println("Error deleting room:", err)
-		return err
 	}
 
 	return nil
@@ -216,4 +210,29 @@ func (r *repo) SaveProject(ctx context.Context, data string, name string) error 
 	}
 
 	return nil
+}
+
+func (r *repo) GetMembers(ctx context.Context, roomID string) (*models.Members, error) {
+	rooms := r.db.Collection("projects")
+	var result struct {
+		ProjectInfo struct {
+			Members models.Members `bson:"members"`
+		} `bson:"projectinfo"`
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	projection := bson.M{
+		"projectinfo.members": 1,
+	}
+
+	err = rooms.FindOne(ctx, bson.M{"_id": objectID}, options.FindOne().SetProjection(projection)).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result.ProjectInfo.Members, nil
 }

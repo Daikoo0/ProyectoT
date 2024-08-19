@@ -125,12 +125,12 @@ func (a *API) DeleteProject(c echo.Context) error {
 	user := claims["email"].(string)
 
 	id := c.Param("id")
-	proyect, err := a.serv.GetRoomInfo(ctx, id)
+	proyect, err := a.repo.GetMembers(ctx, id)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
 	}
-	// El usuario es el dueño elimina el proyecto, sino elimina al usuario del proyecto
-	if proyect.Members.Owner != user {
+
+	if proyect.Owner != user {
 		err = a.repo.DeleteUserRoom(ctx, user, id)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete user"})
@@ -147,28 +147,25 @@ func (a *API) DeleteProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, responseMessage{Message: "Room deleted successfully"})
 }
 
-// func (a *API) HandleGetPublicProject(c echo.Context) error {
+func (a *API) HandleGetPublicProject(c echo.Context) error {
 
-// 	ctx := c.Request().Context()
-// 	auth := c.Request().Header.Get("Authorization")
-// 	if auth == "" {
-// 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-// 	}
+	ctx := c.Request().Context()
+	auth := c.Request().Header.Get("Authorization")
+	if auth == "" {
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
 
-// 	proyects, err := a.serv.HandleGetPublicProject(ctx)
-// 	if err != nil {
-// 		log.Println(err)
-// 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
-// 	}
+	proyects, err := a.repo.HandleGetPublicProject(ctx)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Error getting proyects"})
+	}
 
-// 	// Crear una instancia de ProjectResponse con los proyectos obtenidos
-// 	response := ProjectResponse{
-// 		Projects: proyects,
-// 	}
+	response := ProjectResponse{
+		Projects: proyects,
+	}
 
-// 	// Devolver la respuesta JSON con los proyectos
-// 	return c.JSON(http.StatusOK, response)
-// }
+	return c.JSON(http.StatusOK, response)
+}
 
 // func (a *API) HandleInviteUser(c echo.Context) error {
 
