@@ -4,7 +4,7 @@ import { useState } from "react";
 import api from "../api/ApiClient";
 
 async function sendComment(setMessage, selectedBadges, comment) {
-    // Comprobar que todos los campos estén llenos
+
     if (!comment) {
         setMessage("Por favor, no comentarios vacíos.");
         return;
@@ -38,7 +38,6 @@ async function sendComment(setMessage, selectedBadges, comment) {
 
 const About = () => {
 
-
     const [message, setMessage] = useState("");
     const [selectedBadges, setSelectedBadges] = useState([]);
     const [comment, setComment] = useState("");
@@ -62,13 +61,16 @@ const About = () => {
             {/* Navbar*/}
             <Navbar logohidden={true} />
             {/* Contenido dentro de la imagen */}
-            <div className="hero min-h-screen bg-fixed" style={{ backgroundImage: 'url(https://wallpapercosmos.com/w/full/6/6/8/1194912-2500x1668-desktop-hd-geology-wallpaper-image.jpg)' }}>
+            <div className="hero min-h-screen bg-fixed" style={{
+                backgroundImage: `url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbG5zOnN2Z2pzPSJodHRwOi8vc3ZnanMuZGV2L3N2Z2pzIiB3aWR0aD0iMTQ0MCIgaGVpZ2h0PSI1NjAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiIHZpZXdCb3g9IjAgMCAxNDQwIDU2MCI+PGcgbWFzaz0idXJsKCZxdW90OyNTdmdqc01hc2sxMDAwJnF1b3Q7KSIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNTYwIiB4PSIwIiB5PSIwIiBmaWxsPSIjMGUyYTQ3Ij48L3JlY3Q+PHBhdGggZD0iTTE0MCAwQzE0MCAwIDE0MCAwIDE0MCAwQzIxMCAyMSAyMTIuNCA0MiAyODAgNDJDMzE5LjE1IDQyIDMxNC4zIDExLjc2IDM1My41IDBDMzg0LjMgLTkuMjQgMzg2Ljc1IDAgNDIwIDBDNDU5LjEyIDAgNDY4LjIzIC0xOC4wMSA0OTguMjQgMEM1MzguMjMgMjMuOTkgNTM1LjE4IDg0IDU2MCA4NEM1ODEuMjcgODQgNTU4Ljk5IDE4Ljg2IDU5MC40MyAwQzYyOC45OSAtMjMuMTQgNjQ1LjIxIDAgNzAwIDBDNzcwIDAgNzcwIDAgODQwIDBDOTEwIDAgOTEwIDAgOTgwIDBDMTA0Ni44MiAwIDEwODUuMzQgLTM0LjA1IDExMTMuNjQgMEMxMTQzLjUxIDM1Ljk1IDEwOTQuMTQgNzEuNDUgMTA5Ni4zNCAxNDBDMTA5Ny4zMiAxNzAuNDEgMTA5NC45MiAxOTIuMzMgMTEyMCAxOTcuOTNDMTE3Ni43NSAyMTAuNTkgMTE5NC40NCAxOTcuMTQgMTI2MCAxNzYuNTJDMTI4Ni41NCAxNjguMTcgMTMwNC4yMSAxNjIuMDEgMTMwNC4yMSAxNDBDMTMwNC4yMSAxMDcuMjMgMTI5Mi4wMSA5Mi45MyAxMjYwIDY2Ljk2QzEyMDUuNzQgMjIuOTMgMTEzMS42NyAxNy43NSAxMTMxLjY3IDBDMTEzMS42NyAtMTUuNzMgMTE5NS44NCAwIDEyNjAgMEMxMzMwIDAgMTMzMCAwIDE0MDAgMEMxNDcwIDAgMTUwNSAtMzUgMTU0MCAwQzE1NzUgMzUgMTU0MCA3MCAxNTQwIDE0MEMxNTQwIDIxMCAxNTQwIDIxMCAxNTQwIDI4MEMxNTQwIDM1MCAxNTQwIDM1MCAxNTQwIDQyMEMxNTQwIDQ1Mi41IDE1NTQuOTggNDU5LjAzIDE1NDAgNDg1QzE1MTQuNiA1MjkuMDMgMTUwNC43NiA1MzUuNjEgMTQ1OS4yMyA1NjBDMTQzNC43NiA1NzMuMTEgMTQyOS42MSA1NjAgMTQwMCA1NjBDMTM3NS4xNiA1NjAgMTM3MS42NyA1NzAuNDEgMTM1MC4zMiA1NjBDMTMwMS42NyA1MzYuMjcgMTMxMC42MyA0OTkuMDQgMTI2MCA0OTEuNzFDMTE5NS40NyA0ODIuMzcgMTE4OC45OSA1MDUuOTYgMTEyMCA1MjYuNjdDMTA3NS4yNCA1NDAuMTEgMTA3Ny4zNSA1NDkuMzIgMTAzMi41IDU2MEMxMDA3LjM1IDU2NS45OSAxMDA2LjI1IDU2MCA5ODAgNTYwQzkxMCA1NjAgOTEwIDU2MCA4NDAgNTYwQzc3MCA1NjAgNzcwIDU2MCA3MDAgNTYwQzY1Ny4xIDU2MCA2MzUuMjQgNTg2LjMyIDYxNC4xOSA1NjBDNTc5LjI0IDUxNi4zMiA2MDkuODkgNDg0LjI2IDU4OCA0MjBDNTgyLjc5IDQwNC43MSA1NzYuMzUgNDAzLjU3IDU2MCA0MDAuOTFDNDkyLjM1IDM4OS44OSA0ODYuNyAzODUuNDggNDIwIDM5Mi42NEMzOTcuODEgMzk1LjAyIDM4Mi4yMiA0MDEuMzcgMzgyLjIyIDQyMEMzODIuMjIgNDU2LjA4IDM5Ni44NCA0NjMuNjggNDIwIDUwMi4wN0M0MzkuMDcgNTMzLjY4IDQ2Ni42NyA1NDIuMiA0NjYuNjcgNTYwQzQ2Ni42NyA1NzEuMTcgNDQzLjM0IDU2MCA0MjAgNTYwQzM1MCA1NjAgMzUwIDU2MCAyODAgNTYwQzIxMS44NCA1NjAgMTg5LjkxIDU4My4xMSAxNDMuNjggNTYwQzExOS45MSA1NDguMTEgMTQyLjY3IDUyNC45NCAxNDAgNDkwQzEzNy4zMyA0NTQuOTQgMTUyLjk3IDQ0Ni40OCAxMzMgNDIwQzgyLjk3IDM1My42NiA1OC40MyAzNjUuODUgMCAzMDQuMzVDLTguMDcgMjk1Ljg1IDAgMjkyLjE3IDAgMjgwQzAgMjEwIDAgMjEwIDAgMTQwQzAgNzAgLTM1IDM1IDAgMEMzNSAtMzUgNzAgMCAxNDAgMCIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik03MDAgMTAwLjhDNjUwLjQ1IDEwNi40NCA2MDUuMTYgMTE4LjM4IDYwNS4xNiAxNDBDNjA1LjE2IDE2Mi40OCA2NDkuMzcgMTc1LjEzIDcwMCAxODlDNzY2Ljc5IDIwNy4yOSA3ODMuMiAyMjAuNTcgODQwIDIwNC4zMkM4NjguODYgMTk2LjA3IDg3MS4zMiAxNjguOSA4NzEuMzIgMTQwQzg3MS4zMiAxMjMuMzcgODU5LjQxIDExNy43IDg0MCAxMTMuMjZDNzczLjc1IDk4LjEgNzY3Ljg3IDkzLjA3IDcwMCAxMDAuOCIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik05ODAgMjQwLjczQzk0Mi4yNyAyNDAuNzMgOTA1LjEyIDI0OS4yMiA5MDUuMTIgMjgwQzkwNS4xMiAzMzUuOTQgOTQxLjUxIDQxNC4xNyA5ODAgNDE0LjE3QzEwMTkuMiA0MTQuMTcgMTA2MC41IDMzNS4xNSAxMDYwLjUgMjgwQzEwNjAuNSAyNDguNDMgMTAxOS45NiAyNDAuNzMgOTgwIDI0MC43MyIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik0wIDUwNS44MUM0Ni42IDUwNS44MSAxMjkuMjMgNTQ1LjkgMTI5LjIzIDU2MEMxMjkuMjMgNTczIDQ1LjUzIDU3OS4wOSAwIDU2MEMtMTkuMDkgNTUxLjk5IC0xOC4wMiA1MDUuODEgMCA1MDUuODEiIHN0cm9rZT0icmdiYSg1MSwgMTIxLCAxOTQsIDAuNTgpIiBzdHJva2Utd2lkdGg9IjIiPjwvcGF0aD48cGF0aCBkPSJNMzcuMzMgMTQwQzU4LjA1IDkyLjMxIDgzLjc4IDg1LjU5IDE0MCA3NC40N0MyMDUuMTIgNjEuNTkgMjExLjQ3IDk4LjggMjgwIDkyQzM1MS40NyA4NC45IDM2Mi42MiAzMy4wNSA0MjAgNDYuNjdDNDYzLjczIDU3LjA1IDQ0My4zMiAxMDEuNjYgNDgyLjIyIDE0MEM1MTMuMzIgMTcwLjY2IDUxOS44MiAxNjQuODggNTYwIDE4NC42OEM2MjguNzEgMjE4LjU0IDYyOC43MSAyMTkuMzkgNzAwIDI0Ny4zM0M3NTAuMjkgMjY3LjA1IDc1MS44OCAyNjIuOCA4MDMuMTYgMjgwQzgyMS44OCAyODYuMjggODI3LjA1IDI4MC4wNyA4NDAgMjk0LjI5Qzg5MC43NyAzNTAuMDcgOTE2LjU4IDM1MS4yOSA5MzAuNTkgNDIwQzk0My42NyA0ODQuMTQgOTI3LjE0IDUwOS4wOCA4OTQuMTkgNTYwQzg4MS44NSA1NzkuMDggODY3LjEgNTYwIDg0MCA1NjBDNzcwIDU2MCA3NzAgNTYwIDcwMCA1NjBDNjg1LjMzIDU2MCA2NzMuNjEgNTcyLjEzIDY3MC42NSA1NjBDNjU2LjUgNTAyLjEzIDY5NC42OSA0NzUuNDIgNjY1Ljc4IDQyMEM2MzkuMzYgMzY5LjM2IDYxOC42OCAzNjQuMDIgNTYwIDM0Ny44OEM0OTUuNzkgMzMwLjIyIDQ4NC4wMSAzMzIuNjMgNDIwIDM1Mi40MUMzNjcuMzQgMzY4LjY5IDM0My4wMSAzNzMuNDEgMzI2LjY3IDQyMEMzMDYuNjEgNDc3LjIxIDM2My4wMiA1MTIuNTQgMzQ3LjIgNTYwQzMzOS42OSA1ODIuNTQgMzEzLjYgNTYwIDI4MCA1NjBDMjU3Ljg5IDU2MCAyNDMuNTYgNTc2LjY2IDIzNS43OSA1NjBDMjEwLjkgNTA2LjY2IDI0My42IDQ3OC45MiAyMTQuNjcgNDIwQzE5NS43MSAzODEuMzggMTc1LjIyIDM5NC45OSAxNDAgMzY0LjkyQzkzLjIzIDMyNC45OSA3NC42NyAzMzIuNTIgNTAuNjkgMjgwQzIzLjMzIDIyMC4wNiAxMy40IDE5NS4wNyAzNy4zMyAxNDAiIHN0cm9rZT0icmdiYSg1MSwgMTIxLCAxOTQsIDAuNTgpIiBzdHJva2Utd2lkdGg9IjIiPjwvcGF0aD48cGF0aCBkPSJNMjMuMzMgMEMyMy4zMyAxOS4yNyA2LjA4IDUzLjg1IDAgNTMuODVDLTUuNTggNTMuODUgLTguMTQgMTguNzkgMCAwQzMuNTMgLTguMTQgMjMuMzMgLTcuNjYgMjMuMzMgMCIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik03MDAgNTQuMTNDNjY0LjA5IDQwLjc4IDY0MS4xNiAxNS41OSA2NDEuMTYgMEM2NDEuMTYgLTExLjQ3IDY3MC41OCAwIDcwMCAwQzc3MCAwIDc3MCAwIDg0MCAwQzkwNC41MSAwIDkwNy43NSAtNi40NSA5NjkuMDIgMEM5NzcuNzUgMC45MiA5NzUuNTMgNi43MiA5ODAgMTQuNzRDMTAxNC41NCA3Ni43MiAxMDQ3LjA0IDgzLjU3IDEwNDcuMDQgMTQwQzEwNDcuMDQgMTc1LjIyIDEwMTMuMDMgMTk4LjA1IDk4MCAxOTguMDVDOTQ4LjE5IDE5OC4wNSA5NDkuMzEgMTY4LjMyIDkxNy4zNyAxNDBDODc5LjMxIDEwNi4yNiA4ODUuNDggOTEuOSA4NDAgNzMuOTNDNzc2LjggNDguOTYgNzYzLjUxIDc3Ljc0IDcwMCA1NC4xMyIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik0xMzk2LjMyIDE0MEMxNDA5LjY4IDc5LjczIDEzMTQuNzkgNDYuMDQgMTMxNiAwQzEzMTYuNjMgLTIzLjk2IDEzNTggMCAxNDAwIDBDMTQ0My4yNCAwIDE0NTYuMzQgLTIxLjc2IDE0ODYuNDcgMEMxNTI2LjM0IDI4Ljc5IDE1MjAuMDMgNDguODcgMTU0MCAxMDEuMTFDMTU0Ni43OSAxMTguODcgMTU0MCAxMjAuNTYgMTU0MCAxNDBDMTU0MCAxNjYuOTMgMTU0Ni4yNCAxNjguMTEgMTU0MCAxOTMuODVDMTUyOS4yNyAyMzguMTEgMTUxOC43NCAyMzUuNjIgMTUwNi4wNiAyODBDMTQ4Ni40MyAzNDguNjkgMTUwNi4yNSAzNTguODcgMTQ3NS4zOCA0MjBDMTQ1My4yMiA0NjMuODcgMTQ0MC44IDQ5MCAxNDAwIDQ5MEMxMzQ4LjY2IDQ5MCAxMzQwLjc0IDQ2MC4wOSAxMjkxLjExIDQyMEMxMjcwLjc0IDQwMy41NSAxMjc4LjE5IDM3Ni45MiAxMjYwIDM3Ni45MkMxMjM3LjE4IDM3Ni45MiAxMjM4LjQ5IDQwNi4wNSAxMjA5LjA5IDQyMEMxMTY4LjQ5IDQzOS4yNiAxMTYyLjMgNDQzLjMzIDExMjAgNDQzLjMzQzExMDEuOTUgNDQzLjMzIDEwODguMzkgNDM1LjU3IDEwODguMzkgNDIwQzEwODguMzkgMzkxLjI0IDEwOTkuNDUgMzg0LjE4IDExMjAgMzU0LjY3QzExNDguMiAzMTQuMTggMTE0Ni44NSAzMDguNDUgMTE4NS44OCAyODBDMTIxNi44NSAyNTcuNDIgMTIyNy41IDI3NC4yMyAxMjYwIDI1Mi42MUMxMzMyLjcyIDIwNC4yMyAxMzgxLjY4IDIwNi4wMyAxMzk2LjMyIDE0MCIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik0yODAgMjE2LjM2QzI1Ni40MyAyMTYuMzYgMjMwLjg4IDI0Ny43NyAyMzAuODggMjgwQzIzMC44OCAzMTMuNzMgMjU2LjQ4IDM0OC4yOSAyODAgMzQ4LjI5QzMwMi41OCAzNDguMjkgMzIzLjA4IDMxMy44IDMyMy4wOCAyODBDMzIzLjA4IDI0Ny44MyAzMDIuNTMgMjE2LjM2IDI4MCAyMTYuMzYiIHN0cm9rZT0icmdiYSg1MSwgMTIxLCAxOTQsIDAuNTgpIiBzdHJva2Utd2lkdGg9IjIiPjwvcGF0aD48cGF0aCBkPSJNNzAwIDcuNDdDNjk0LjY4IDYuMjMgNjkxLjg4IDIuMTUgNjkxLjg4IDBDNjkxLjg4IC0xLjU4IDY5NS45NCAwIDcwMCAwQzc3MCAwIDc3MCAwIDg0MCAwQzg3MC4xOSAwIDkwMC4zOSAtOC4wNCA5MDAuMzkgMEM5MDAuMzkgOS4yNyA4NzIuODYgMzMuMzggODQwIDM0LjYxQzc3Mi42NyAzNy4xMiA3NjguNzQgMjMuNTMgNzAwIDcuNDciIHN0cm9rZT0icmdiYSg1MSwgMTIxLCAxOTQsIDAuNTgpIiBzdHJva2Utd2lkdGg9IjIiPjwvcGF0aD48cGF0aCBkPSJNOTYzLjQyIDE0MEM5NjMuNDIgMTI0LjkzIDk3MS40OCAxMDYuODQgOTgwIDEwNi44NEM5ODguNjQgMTA2Ljg0IDk5Ny43NSAxMjUuMDYgOTk3Ljc1IDE0MEM5OTcuNzUgMTQ5LjMzIDk4OC43NCAxNTUuMzcgOTgwIDE1NS4zN0M5NzEuNTggMTU1LjM3IDk2My40MiAxNDkuMTkgOTYzLjQyIDE0MCIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjxwYXRoIGQ9Ik0xMTEuMDMgMjgwQzExMS4wMyAyMjguMTUgMTI1LjQgMTY4IDE0MCAxNjhDMTU0LjYyIDE2OCAxNjkuNDcgMjI4LjI1IDE2OS40NyAyODBDMTY5LjQ3IDI5OC4wMiAxNTQuNjggMzA3LjU0IDE0MCAzMDcuNTRDMTI1LjQ2IDMwNy41NCAxMTEuMDMgMjk3LjkyIDExMS4wMyAyODAiIHN0cm9rZT0icmdiYSg1MSwgMTIxLCAxOTQsIDAuNTgpIiBzdHJva2Utd2lkdGg9IjIiPjwvcGF0aD48cGF0aCBkPSJNMzc2LjkyIDI4MEMzNzYuOTIgMjQyLjYxIDM4NS4wMyAxOTkuMTMgNDIwIDE5NS4xNUM0NzYuNTcgMTg4LjcxIDQ4OS40OCAyMjguMzggNTYwIDI1OS4xNUM1ODYuNyAyNzAuOCA2MTQuNDQgMjcwLjkzIDYxNC40NCAyODBDNjE0LjQ0IDI4OC43OCA1ODcuNzggMjkwLjI1IDU2MCAyOTQuODVDNDkwLjU2IDMwNi4zNCA0ODYuMjggMzE3LjU2IDQyMCAzMTIuMThDMzk0Ljc0IDMxMC4xMyAzNzYuOTIgMzAxLjEzIDM3Ni45MiAyODAiIHN0cm9rZT0icmdiYSg1MSwgMTIxLCAxOTQsIDAuNTgpIiBzdHJva2Utd2lkdGg9IjIiPjwvcGF0aD48cGF0aCBkPSJNNzU5LjM5IDQyMEM3NTkuMzkgMzg4LjY1IDgwNC41NSAzNjUuNzEgODQwIDM2NS43MUM4NjQuNDEgMzY1LjcxIDg3OS4xMiAzOTEuMDQgODc5LjEyIDQyMEM4NzkuMTIgNDU5Ljc1IDg2Ni40OCA1MDMuMTMgODQwIDUwMy4xM0M4MDYuNjIgNTAzLjEzIDc1OS4zOSA0NTcuMzYgNzU5LjM5IDQyMCIgc3Ryb2tlPSJyZ2JhKDUxLCAxMjEsIDE5NCwgMC41OCkiIHN0cm9rZS13aWR0aD0iMiI+PC9wYXRoPjwvZz48ZGVmcz48bWFzayBpZD0iU3ZnanNNYXNrMTAwMCI+PHJlY3Qgd2lkdGg9IjE0NDAiIGhlaWdodD0iNTYwIiBmaWxsPSIjZmZmZmZmIj48L3JlY3Q+PC9tYXNrPjwvZGVmcz48L3N2Zz4=")`
+                
+            }}>
                 <div className="hero-overlay bg-opacity-60" ></div>
                 <div className="hero-content text-center text-neutral-content w-4/5">
                     <div className="max-w-2xl ">
                         <h1 className="mb-5 text-5xl font-bold">Crea tu propia columna estratigráfica</h1>
                         {/* <p className="mb-5">Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem quasi. In deleniti eaque aut repudiandae et a id nisi.</p> */}
-                        <button className="btn btn-primary" onClick={() => navigate('/home')}>Comenzar</button>
+                        <button aria-label="Comenzar" className="btn btn-primary" onClick={() => navigate('/home')}>Comenzar</button>
                     </div>
                 </div>
             </div>
@@ -173,7 +175,7 @@ const About = () => {
                         </p>
 
 
-                        <div>
+                        <div> 
                             <div className={badgeClass('Diseño')} onClick={() => toggleBadge('Diseño')}>Diseño</div>
                             <div className={badgeClass('Rendimiento')} onClick={() => toggleBadge('Rendimiento')}>Rendimiento</div>
                             <div className={badgeClass('Funcionalidad')} onClick={() => toggleBadge('Funcionalidad')}>Funcionalidad</div>
@@ -185,11 +187,20 @@ const About = () => {
                             <div className={badgeClass('Tecnicismos')} onClick={() => toggleBadge('Tecnicismos')}>Otros</div>
                             <div className={badgeClass('Otros')} onClick={() => toggleBadge('Otros')}>Otros</div>
                         </div>
-                     <br></br>
-                        <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder=" " className="textarea textarea-primary w-full" ></textarea>
-                        <button
-                            onClick={() => sendComment(setMessage, selectedBadges, comment)}
-                            className="btn btn-primary">Enviar</button>
+
+                        <div className="mt-4">
+                            <textarea 
+                                aria-label="Comentarios"
+                                placeholder=" " className="textarea textarea-primary w-full"
+                                value={comment} 
+                                onChange={(e) => setComment(e.target.value)} >
+                            </textarea>
+                            <button
+                                onClick={() => sendComment(setMessage, selectedBadges, comment)}
+                                className="btn btn-primary" aria-label="Enviar">Enviar</button>
+                            {message}
+                        </div>
+            
                         {message}
                     </div>
                 </div>

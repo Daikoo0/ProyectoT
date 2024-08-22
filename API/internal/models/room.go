@@ -128,7 +128,7 @@ func NewShape() DataInfo {
 			ColorStroke: "#000000",
 			Zoom:        100,
 			Rotation:    0,
-			Tension:     0.5,
+			Tension:     0,
 			File:        "Sin Pattern",
 			Height:      100,
 			Circles: []CircleStruc{

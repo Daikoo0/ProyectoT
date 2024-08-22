@@ -167,6 +167,40 @@ func (a *API) HandleGetPublicProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
+func (a *API) HandleEditProfile(c echo.Context) error {
+	ctx := c.Request().Context()
+	auth := c.Request().Header.Get("Authorization")
+
+	if auth == "" {
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+	claims, err := encryption.ParseLoginJWT(auth)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+	email := claims["email"].(string)
+
+	var req dtos.EditProfileRequest
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: "Invalid request"})
+	}
+
+	if err := a.dataValidator.Struct(req); err != nil {
+		return c.JSON(http.StatusBadRequest, responseMessage{Message: err.Error()})
+	}
+
+	err = a.repo.UpdateUserProfile(ctx, req, email)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to update profile"})
+	}
+
+	return c.JSON(http.StatusOK, responseMessage{Message: "Profile updated successfully"})
+}
+
 // func (a *API) HandleInviteUser(c echo.Context) error {
 
 // 	ctx := c.Request().Context()

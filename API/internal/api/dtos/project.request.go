@@ -14,3 +14,10 @@ type Comment struct {
 	CreatedAt string   `bson:"createdAt"`
 	Labels    []string `bson:"labels"`
 }
+
+type EditProfileRequest struct {
+	FirstName  string `json:"first_name" validate:"required"`
+	LastName   string `json:"last_name" validate:"required"`
+	Profession string `json:"profession" validate:"required"`
+	Bio        string `json:"bio"`
+}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/ProyectoT/api/internal/api/dtos"
 	"github.com/ProyectoT/api/internal/entity"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -97,4 +98,27 @@ func (r *repo) DeleteUserRoom(ctx context.Context, email string, roomID string) 
 	}
 
 	return nil
+}
+
+func (r *repo) UpdateUserProfile(ctx context.Context, edit dtos.EditProfileRequest, email string) error {
+
+	users := r.db.Collection("users")
+	filter := bson.M{"email": email}
+	update := bson.M{
+		"$set": bson.M{
+			"name":       edit.FirstName,
+			"lastName":   edit.LastName,
+			"profession": edit.Profession,
+			"bio":        edit.Bio,
+		},
+	}
+	opts := options.Update().SetUpsert(true)
+	_, err := users.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		log.Println("Error updating user profile:", err)
+		return err
+	}
+
+	return nil
+
 }
