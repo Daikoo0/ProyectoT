@@ -2,6 +2,7 @@ import { Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 import Map from '../../components/Web/Map';
 import { useNavigate } from 'react-router-dom';
+import "./leaflet-markercluster.css";
 
 const MapProject = ({Data}) => {
 

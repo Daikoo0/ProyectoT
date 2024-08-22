@@ -1,5 +1,18 @@
 {
     "Home": {
-        "Create_button":"Create lithological project",
-        "public_project_button":"Public projects"
-}}
+        "Create_button": "Create lithological project",
+        "projects": "Projects",
+        "public_project": "Public projects",
+        "all_p": "All projects",
+        "your_p": "Your projects",
+        "shared_wup": "Shared with you",
+        "search": "Search",
+        "invitations": "Invitations",
+        "p_user": "",
+        "p_user_2": "<b>'s projects</b>",
+        "t_project" : "Project title",
+        "loc_project":"Location",
+        "u_change":"Last change",
+        "description":"Description"
+    }
+}

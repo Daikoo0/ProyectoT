@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-
+// import SVGES  from '../../assets/language/es.svg';
 const SwitchLanguage: React.FC = () => {
     useEffect(() => {
 
@@ -14,11 +14,8 @@ const SwitchLanguage: React.FC = () => {
                 const section = textToChange.dataset.section as string;
                 const value = textToChange.dataset.value as string;
                 textToChange.innerHTML = texts[section][value];
-                
-            console.log(value,textToChange.innerHTML)
             }
 
-            
         };
 
         flagsElement?.addEventListener("click", (e) => {
@@ -33,7 +30,8 @@ const SwitchLanguage: React.FC = () => {
         <div>
             <div id="flags" className="flags">
                 <div className="flags_item" data-language="ES">
-                     <img src="src/assets/language/es.svg" alt="" /> 
+                    <img src="src/assets/language/es.svg" alt="" /> 
+                    {/* <SVGES /> */}
                 </div>
                 <div className="flags_item" data-language="EN">
                     <img src="src/assets/language/en.svg" alt="" />

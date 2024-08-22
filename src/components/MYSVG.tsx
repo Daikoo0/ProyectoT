@@ -1,21 +1,5 @@
-import React from 'react';
-import { Page, Text, View, Svg, Line, Path, G, Document, StyleSheet, Tspan } from '@react-pdf/renderer';
+import { Text, Svg, Line, Path } from '@react-pdf/renderer';
 
-const styles = StyleSheet.create({
-  text: {
-    fontWeight: 'bold',
-    fontSize: 8,
-    textAlign: 'center',
-    // transform : 'rotate(90)',
-    //  transform: 'rotate(-90 40 40)'
-  },
-  rotatedText: {
-    fontWeight: 'bold',
-    fontSize: 8,
-    textAlign: 'center',
-    transform: 'rotate(45deg)', // Cambia el ángulo según sea necesario
-  },
-});
 
 var y90 = String(120*0.9)
 var y50 = String(120*0.5)

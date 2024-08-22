@@ -1,6 +1,7 @@
 import SelectTheme from "./SelectTheme";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../provider/authProvider';
+import SwitchLanguage from "./Language";
 
 const Navbar = ({ logohidden }) => {
   const { setToken } = useAuth();
@@ -23,7 +24,7 @@ const Navbar = ({ logohidden }) => {
         <div className="flex-1">
 
           {logohidden ?
-            <a className="btn btn-ghost text-xl px-4 w-80" onClick={() => navigate(`/home`)}>Proyecto T</a>
+            <Link className="btn btn-ghost text-xl px-4 w-80" to="/home">Proyecto T</Link>
             :
             <>
               <label htmlFor="my-drawer-2" aria-label="open sidebar" className="btn btn-primary drawer-button lg:hidden">
@@ -39,7 +40,9 @@ const Navbar = ({ logohidden }) => {
           <div className="dropdown dropdown-end">
             <SelectTheme />
           </div>
-
+          <div>
+            <SwitchLanguage/>
+          </div>
           <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" aria-label="User Navegation" className="btn btn-ghost btn-circle">
               <svg className="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
@@ -47,9 +50,9 @@ const Navbar = ({ logohidden }) => {
               </svg>
             </div>
             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-              <li><a onClick={()=>{navigate(`/myProfile`)}}>Profile</a></li>
-              <li><a>Settings</a></li>
-              <li><a onClick={logout}>Logout</a></li>
+              <li><Link to="/myProfile" >Profile</Link></li>
+              <li><p>Settings</p></li>
+              <li><p onClick={logout}>Logout</p></li>
             </ul>
           </div>
         </div>

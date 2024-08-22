@@ -1,4 +1,4 @@
-import { Page, Text, View, Document, StyleSheet, pdf, Image as Img, Rect, Svg } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet, pdf, Image as Img } from '@react-pdf/renderer';
 import Html from 'react-pdf-html';
 import sheetSize from '../../sheetSizes.json';
 import MySVG from "../MYSVG.tsx";
@@ -62,10 +62,9 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
     const ctx = canvas.getContext('2d');
     let totalHeight = 0;
     let val = parseFloat(columnWidths["Litologia"])
-    const pageLength = pageLengths[pageIndex].height;
     let combinedSVG = `<svg width="${val}cm" xmlns="http://www.w3.org/2000/svg">`;
 
-    svgList.forEach((svg, index) => {
+    svgList.forEach((svg, _) => {
       const svgCopy = svg.cloneNode(true);
       const circles = svgCopy.querySelectorAll('circle');
       circles.forEach(circle => circle.remove());
@@ -140,7 +139,7 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const MyDocument = ({ oLev, date, etSec, oEstrat, indexLimited, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, widthSheet, heightSheet, pageLengths }) => {
+const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, pageLengths }) => {
   var firstArray = []
   var secondArray = []
   var thirdArray = []
@@ -222,7 +221,7 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, indexLimited, infoProject, con
                 {pageIndexes.map((item, index) => (
 
                   <View style={[styles.tableRow]} key={index}>
-                    {Object.values(thirdArray).map((key, i) => {
+                    {Object.values(thirdArray).map((_, i) => {
                       return (
                         <View style={[styles.tableCol, styles.tableCell]}>
                           <Html key={i} style={[{ width: columnWidths[thirdArray[i]], height: data[item].Litologia.Height * scale }]}>{(data[item]?.[thirdArray[i]] || "")}</Html>
@@ -578,7 +577,7 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   }
 
   const images = await svgDivision(pageLengths, columnWidths);
-  const blob = await pdf(<MyDocument oLev={oLev} date={date} etSec={etSec} oEstrat={oEstrat} pageLengths={pageLengths} indexLimited={indexLimited} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} widthSheet={widthSheet} heightSheet={heightSheet} />).toBlob();
+  const blob = await pdf(<MyDocument oLev={oLev} date={date} etSec={etSec} oEstrat={oEstrat} pageLengths={pageLengths} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} />).toBlob();
   const url = URL.createObjectURL(blob);
   const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);

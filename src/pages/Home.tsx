@@ -82,15 +82,12 @@ const Home = () => {
             <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}><p data-section="Home" data-value="Create_button">Crear proyecto litológico</p></button>
 
             <li className="menu-title">Proyecto</li>
-            <li onClick={() => setItem('tabla')}><a>All Projects </a></li>
-            <li><a>Your Projects</a></li>
-            <li><a>Shared with you</a></li>
-            <li className="menu-title">Busqueda</li>
-            <li onClick={() => { setItem('mapa'); fetchMapData() }}><a data-section="Home" data-value="public_project_button">Proyectos públicos</a></li>
-            <li className="menu-title">Organización</li>
-            <li><a>Item 1</a></li>
-            <li><a>Item 2</a></li>
-            <li><a>Item 3</a></li>
+            <li onClick={() => setItem('tabla')}><a data-section="Home" data-value="all_p">Todos los proyectos</a></li>
+            <li><a data-section="Home" data-value="your_p">Tus proyectos</a></li>
+            <li><a data-section="Home" data-value="shared_wup">Compartidos contigo</a></li>
+            <li className="menu-title" data-section="Home" data-value="search">Busqueda</li>
+            <li onClick={() => { setItem('mapa'); fetchMapData() }}><a data-section="Home" data-value="public_project">Proyectos públicos</a></li>
+            <li><a data-section="Home" data-value="invitations">Invitaciones</a></li>
           </ul>
 
         </div>

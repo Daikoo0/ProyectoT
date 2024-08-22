@@ -2,7 +2,7 @@
 import Quill from 'quill';
 import { useEffect, useRef } from 'react';
 import 'react-quill/dist/quill.snow.css';
-import 'quill/dist/quill.bubble.css';  // Usa el tema "bubble", asegúrate de importar el CSS
+import 'quill/dist/quill.bubble.css';  
 
 
 const EditorQuill = ({ Text, SetText }) => {

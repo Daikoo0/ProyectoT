@@ -32,9 +32,6 @@ const TableData = ({ Data, refresh }) => {
             setstateRequest("loading");
             const response = await api.post(`/project/${filteredItem.ID}/inviteUser`, usuario)
 
-
-            console.log(response.status, response.data);
-
             if (response.status === 200) {
                 setError(true);
                 setstateRequest("success");
@@ -59,6 +56,7 @@ const TableData = ({ Data, refresh }) => {
             setMessage("Error al invitar al usuario. Por favor, inténtelo de nuevo.");
         }
     };
+
 
     return (
         <>
@@ -126,12 +124,13 @@ const TableData = ({ Data, refresh }) => {
                                 </button>
 
 
-                                <button className="btn" 
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            setUsuario({ email: '', role: '' }); 
-                                            (document.getElementById('modalInvite') as HTMLDialogElement).close()} 
-                                        }
+                                <button className="btn"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setUsuario({ email: '', role: '' });
+                                        (document.getElementById('modalInvite') as HTMLDialogElement).close()
+                                    }
+                                    }
                                 >
                                     Cancelar
                                 </button>
@@ -206,7 +205,7 @@ const TableData = ({ Data, refresh }) => {
 
                                 Eliminar
                             </button>
-                        </form> 
+                        </form>
                         <form method="dialog">
                             <button className="btn" formMethod='dialog' onClick={() => setstateRequest("")}>Cancelar</button>
                         </form>
@@ -217,7 +216,8 @@ const TableData = ({ Data, refresh }) => {
 
             {/* Tabla de  */}
 
-            <h1>Proyectos del usuario {user.name}</h1>
+            <div style={{display:'flex'}}><p data-section="Home" data-value="p_user"><b>Proyectos de</b></p>
+            <p style={{ marginLeft: '2px' }}><b>{user.name}</b></p><p data-section="Home" data-value="p_user_2"></p></div>
 
             <button className="btn btn-neutral lg:hidden" onClick={() => navigate('/create')}>Crear Sala</button>
             <table className="table">
@@ -229,10 +229,10 @@ const TableData = ({ Data, refresh }) => {
                                 {Data === null ? null : <input type="checkbox" className="checkbox" />}
                             </label>
                         </th>
-                        <th>Titulo Proyecto</th>
-                        <th>Localizacion</th>
-                        <th>Ultimo Cambio</th>
-                        <th>Descripcion</th>
+                        <th data-section="Home" data-value="t_project">Título Proyecto</th>
+                        <th data-section="Home" data-value="loc_project">Localización</th>
+                        <th data-section="Home" data-value="u_change">Último Cambio</th>
+                        <th data-section="Home" data-value="description">Descripción</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -271,7 +271,7 @@ const TableData = ({ Data, refresh }) => {
                                 <td>{data.ProjectInfo.CreationDate}</td>
                                 <td>{data.ProjectInfo.Description}</td>
                                 <th>
-                                    <button className="btn btn-ghost btn-xs" onClick={() => { navigate(`/editor/${data.ID}`)}}>Editar</button>
+                                    <button className="btn btn-ghost btn-xs" onClick={() => { navigate(`/editor/${data.ID}`) }}>Editar</button>
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalInvite') as HTMLDialogElement).showModal(); }}>Invite</button>
                                     {/* <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/invite/${data.ID}`)}>Co-Autores</button> */}
                                     <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalDelete') as HTMLDialogElement).showModal() }} >Eliminar</button>
@@ -283,10 +283,10 @@ const TableData = ({ Data, refresh }) => {
                 <tfoot>
                     <tr>
                         <th></th>
-                        <th>Titulo Proyecto</th>
-                        <th>Localizacion</th>
-                        <th>Ultimo Cambio</th>
-                        <th>Descripcion</th>
+                        <th data-section="Home" data-value="t_project">Título Proyecto</th>
+                        <th data-section="Home" data-value="loc_project">Localización</th>
+                        <th data-section="Home" data-value="u_change">Último Cambio</th>
+                        <th data-section="Home" data-value="description">Descripción</th>
                         <th></th>
                     </tr>
                 </tfoot>
