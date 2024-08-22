@@ -7,18 +7,18 @@ import TableData from '../components/Web/TableData';
 
 const Home = () => {
 
-  const [item, setItem] = useState('tabla'); 
+  const [item, setItem] = useState('tabla');
   const navigate = useNavigate();
   const [proyectos, setProyectos] = useState([]);
   const [proyectMap, setProyectMap] = useState([]);
 
   async function fetchData() {
     try {
-        const response = await api.get("/users/projects");
-        setProyectos(response.data.projects);
+      const response = await api.get("/users/projects");
+      setProyectos(response.data.projects);
 
     } catch (error) {
-        console.error('Error al obtener datos:', error);
+      console.error('Error al obtener datos:', error);
 
     }
   };
@@ -37,9 +37,9 @@ const Home = () => {
     }
   };
 
-useEffect(() => {
+  useEffect(() => {
     fetchData();
-}, []);
+  }, []);
 
 
   return (
@@ -56,10 +56,10 @@ useEffect(() => {
             {/* PROYECTOS */}
             <div className="overflow-x-auto bg-base-200 rounded-box p-4 h-full">
 
-              {item === 'tabla' && <TableData Data={proyectos} refresh={fetchData}/> }
-              {item === 'mapa' && 
+              {item === 'tabla' && <TableData Data={proyectos} refresh={fetchData} />}
+              {item === 'mapa' &&
                 <div className='h-full'>
-                  <MapProject Data={proyectMap}/>
+                  <MapProject Data={proyectMap} />
                 </div>
               }
             </div>
@@ -79,14 +79,14 @@ useEffect(() => {
 
             <li className='pb-6 hidden lg:block'><a className="btn btn-ghost text-xl">Proyecto T</a></li>
 
-            <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}>Crear Sala</button>
+            <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}><p data-section="Home" data-value="Create_button">Crear proyecto litológico</p></button>
 
             <li className="menu-title">Proyecto</li>
-            <li onClick={() => setItem('tabla')   }><a>All Projects </a></li>
+            <li onClick={() => setItem('tabla')}><a>All Projects </a></li>
             <li><a>Your Projects</a></li>
             <li><a>Shared with you</a></li>
             <li className="menu-title">Busqueda</li>
-            <li onClick={() => {setItem('mapa'); fetchMapData()}}><a>Proyectos Publicos</a></li>
+            <li onClick={() => { setItem('mapa'); fetchMapData() }}><a data-section="Home" data-value="public_project_button">Proyectos públicos</a></li>
             <li className="menu-title">Organización</li>
             <li><a>Item 1</a></li>
             <li><a>Item 2</a></li>
