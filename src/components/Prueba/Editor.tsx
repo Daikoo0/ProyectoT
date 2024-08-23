@@ -13,6 +13,7 @@ import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
 import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
+import Language from '../Web/Language';
 
 const Grid = () => {
 
@@ -710,6 +711,7 @@ const Grid = () => {
               <div className="text-3xl my-2 ml-4">
                 {infoProject ? infoProject['Name'] : ' '}
               </div>
+              
             </div>
           </div>
 
@@ -932,6 +934,7 @@ const Grid = () => {
                           <summary>De la sala</summary>
                           <ul>
                             <li><SelectTheme /></li>
+                            <li><Language/></li>
                           </ul>
                         </details>
                       </li>

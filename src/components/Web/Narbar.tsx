@@ -50,9 +50,9 @@ const Navbar = ({ logohidden }) => {
               </svg>
             </div>
             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-              <li><Link to="/myProfile" >Profile</Link></li>
-              <li><p>Settings</p></li>
-              <li><p onClick={logout}>Logout</p></li>
+              <li><Link to="/myProfile"><p data-section="Home" data-value="profile">Perfil</p></Link></li>
+              <li><p data-section="Home" data-value="settings">Configuraciones</p></li>
+              <li><p data-section="Home" data-value="logout" onClick={logout}>Cerrar sesión</p></li>
             </ul>
           </div>
         </div>

@@ -8,11 +8,29 @@
         "shared_wup": "Shared with you",
         "search": "Search",
         "invitations": "Invitations",
-        "p_user": "",
+        "p_user": " ",
         "p_user_2": "<b>'s projects</b>",
         "t_project" : "Project title",
         "loc_project":"Location",
         "u_change":"Last change",
-        "description":"Description"
+        "description":"Description",
+        "edit_project":"Edit",
+        "delete_project":"Delete",
+        "profile":"Profile",
+        "logout":"Log out",
+        "settings":"Settings"
+    },
+    "Editor":{
+        "invite_project":"Invite",
+        "Sistema": "System",
+        "Edad": "Age",
+        "Formacion": "Formation",
+        "Miembro": "Member",
+        "Espesor": "Thickness",
+        "Litologia": "Lithology",
+        "Estructura fosil": "Fossil structure",
+        "Facie": "Facies",
+        "Ambiente Deposicional": "Depositional Environment",
+        "Descripcion": "Description"
     }
 }

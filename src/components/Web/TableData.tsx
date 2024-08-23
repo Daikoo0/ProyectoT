@@ -271,10 +271,9 @@ const TableData = ({ Data, refresh }) => {
                                 <td>{data.ProjectInfo.CreationDate}</td>
                                 <td>{data.ProjectInfo.Description}</td>
                                 <th>
-                                    <button className="btn btn-ghost btn-xs" onClick={() => { navigate(`/editor/${data.ID}`) }}>Editar</button>
-                                    <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalInvite') as HTMLDialogElement).showModal(); }}>Invite</button>
-                                    {/* <button className="btn btn-ghost btn-xs" onClick={() => navigate(`/invite/${data.ID}`)}>Co-Autores</button> */}
-                                    <button className="btn btn-ghost btn-xs" onClick={() => { filterById(data.ID); (document.getElementById('modalDelete') as HTMLDialogElement).showModal() }} >Eliminar</button>
+                                    <button className="btn btn-ghost btn-xs" onClick={()=>{navigate(`/editor/${data.ID}`)}}><p data-section="Home" data-value="edit_project">Editar</p></button>
+                                    {/* <button data-section="Home" data-value="invite_project" className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalInvite') as HTMLDialogElement).showModal();}}>Invitar</button> */}
+                                    <button className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalDelete') as HTMLDialogElement).showModal();}}><p data-section="Home" data-value="delete_project">Eliminar</p></button>
                                 </th>
                             </tr>
                         ))}

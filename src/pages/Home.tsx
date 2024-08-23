@@ -85,7 +85,7 @@ const Home = () => {
             <li onClick={() => setItem('tabla')}><a data-section="Home" data-value="all_p">Todos los proyectos</a></li>
             <li><a data-section="Home" data-value="your_p">Tus proyectos</a></li>
             <li><a data-section="Home" data-value="shared_wup">Compartidos contigo</a></li>
-            <li className="menu-title" data-section="Home" data-value="search">Busqueda</li>
+            <li className="menu-title" data-section="Home" data-value="search">Búsqueda</li>
             <li onClick={() => { setItem('mapa'); fetchMapData() }}><a data-section="Home" data-value="public_project">Proyectos públicos</a></li>
             <li><a data-section="Home" data-value="invitations">Invitaciones</a></li>
           </ul>

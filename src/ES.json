@@ -8,11 +8,29 @@
         "shared_wup": "Compartidos contigo",
         "search": "Búsqueda",
         "invitations": "Invitaciones",
-        "p_user": "<b>Proyectos de</b><hr>",
-        "p_user_2": "",
+        "p_user": "<b>Proyectos de</b>",
+        "p_user_2": " ",
         "t_project" : "Título Proyecto",
         "loc_project":"Localización",
         "u_change":"Último Cambio",
-        "description":"Descripción"
+        "description":"Descripción",
+        "edit_project":"Editar",
+        "delete_project":"Eliminar",
+        "profile":"Perfil",
+        "logout":"Cerrar sesión",
+        "settings":"Configuraciones"
+    },
+    "Editor":{
+        "invite_project":"Invitar",
+        "Sistema":"Sistema",
+        "Edad":"Edad",
+        "Formacion":"Formación",
+        "Miembro":"Miembro",
+        "Espesor":"Espesor",
+        "Litologia":"Litología",
+        "Estructura fosil":"Estructura fósil",
+        "Facie":"Facies",
+        "Ambiente Depositacional":"Ambiente Depositacional",
+        "Descripcion":"Descripción"
     }
 }

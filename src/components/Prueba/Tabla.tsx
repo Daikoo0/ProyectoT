@@ -526,7 +526,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     }}>
 
                                     <div className="flex justify-between items-center font-semibold">
-                                        <p className="text text-accent-content w-1/2">{columnName}</p>
+                                        <p className="text text-accent-content w-1/2" data-section="Editor" data-value={`${columnName}`}>{columnName}</p>
 
                                         {columnName === "Litologia" ?
                                             <>
