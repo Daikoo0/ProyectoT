@@ -18,9 +18,9 @@ const HeaderVal = ({ percentage, name, top, columnWidths }) => {
             </textPath>
             </text>
             {top ? <>
-                <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
+                <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={x} x2={x} strokeWidth="1"></line>
             </> : <>
-                <line className="stroke stroke-accent-content" y1="90%" y2="100%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
+                <line className="stroke stroke-accent-content" y1="90%" y2="100%" x1={x} x2={x} strokeWidth="1"></line>
             </>
             }
         </>)
@@ -510,14 +510,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 </dialog>
             </>
 
-            <div ref={tableref} >
+            <div ref={tableref} className="pt-16">
                 <table style={{ height: '100px' }}>
-                    <thead>
+                    <thead className="sticky top-16 z-5">
                         <tr>
                             {header.map((columnName, number) => (
                                 <th
                                     key={columnName}
-                                    className="border border-base-content bg-primary sticky top-0"
+                                    className="border border-base-content bg-primary"
                                     style={{
                                         width: `${columnName === "Espesor"
                                             ? 70
@@ -534,15 +534,15 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             <>
                                                 <svg
                                                     id="headerLit"
-                                                    className="absolute w-full"
+                                                    className="absolute"
                                                     width={(columnWidths[columnName] || 250) / 2}
                                                     height="120"
                                                     overflow={'visible'}
                                                     style={{
                                                         background: "transparent",
                                                     }}>
-                                                    <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1="50%" x2="50%" strokeWidth="1"></line>
-                                                    <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1="50%" x2="100%" strokeWidth="1"></line>
+                                                    <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1={0.5 * (columnWidths["Litologia"] || 250)}x2={0.5 * (columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
+                                                    <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={(columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
 
                                                     <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"clay"} top={false} />
                                                     <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"mud"} top={true} />
@@ -570,7 +570,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             <>
                                                 <svg
                                                     key={`facieSvg-${columnName}${number}`}
-                                                    className="absolute w-full"
+                                                    className="absolute"
                                                     width={(columnWidths[columnName] || cellWidth) / 2}
                                                     height="120"
                                                     overflow={'visible'}
@@ -601,7 +601,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 </svg></> : <></>
                                         }
                                         <div
-                                            className="absolute inset-y-0 right-0 h-full"
+                                            className="inset-y-0 right-0 h-full"
                                             onMouseOver={(e) =>
                                                 e.currentTarget.style.backgroundColor = "transparent"
                                             }
@@ -623,9 +623,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </thead>
                     <tbody>
                         {data.map((RowValue, rowIndex) => (
-
-                            <tr key={rowIndex}
-                                className={"page-break"} >
+                            <tr key={rowIndex} >
                                 {header.map((columnName, columnIndex) => {
 
                                     if (columnName === 'Espesor' && rowIndex === 0) {

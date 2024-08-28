@@ -605,7 +605,7 @@ const Grid = () => {
     var copyData = data
     var copyHeader = [...header]
     var indexes = Array.from({ length: data.length }, (_, index) => index);
-    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________','_____________','_____________','_____________')
+    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________')
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
@@ -617,8 +617,8 @@ const Grid = () => {
       fossils: fossils,
       infoProject: infoProject,
       indexesM: indexes,
-      oEstrat : '_____________',
-      oLev : '_____________',
+      oEstrat: '_____________',
+      oLev: '_____________',
       etSec: '_____________',
       date: '_____________'
     };
@@ -648,20 +648,19 @@ const Grid = () => {
         {/* Contenido */}
         <div className="drawer-content">
 
-          <div className="navbar bg-base-200">
+          <div className="navbar bg-base-200 fixed top-0 z-9">
             <div className="flex-none">
 
-              <div className="dropdown dropdown-end">
 
                 <div className="tooltip tooltip-bottom pl-5" onClick={() => navigate('/home')} data-tip={t("Editor.return")}>
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle ">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
                       <path fill="currentColor" strokeLinejoin="round" strokeLinecap="round" d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
                     </svg>
                   </div>
                 </div>
 
-                <div className="tooltip tooltip-bottom" onClick={config} data-tip={t("Editor.config")}>
+                <div className="tooltip tooltip-bottom z-30" onClick={config} data-tip={t("Editor.config")}>
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                     <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
@@ -670,49 +669,47 @@ const Grid = () => {
 
                 </div>
 
-                <div className="dropdown dropdown-end">
-                  <div className="tooltip tooltip-bottom" onClick={openModal} data-tip={t("Editor.export")}>
+
+                <div className="tooltip tooltip-bottom" onClick={openModal} data-tip={t("Editor.export")}>
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
+                    </svg>
+                  </div>
+                </div>
+
+
+
+                <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
+                  <div className="tooltip tooltip-bottom" data-tip={t("Editor.add")}>
                     <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                      <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
+                      <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
                       </svg>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
-                <div className="tooltip tooltip-bottom" data-tip={t("Editor.add")}>
+                <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'undo' }))} data-tip={t("Editor.undo")}>
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
+                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4" />
                     </svg>
                   </div>
                 </div>
-              </div>
 
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'undo' }))} data-tip={t("Editor.undo")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4" />
-                  </svg>
+                <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'redo' }))} data-tip={t("Editor.redo")}>
+                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4" />
+                    </svg>
+
+                  </div>
                 </div>
               </div>
-
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'redo' }))} data-tip={t("Editor.redo")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4" />
-                  </svg>
-
-                </div>
-              </div>
-
               <div className="text-3xl my-2 ml-4">
                 {infoProject ? infoProject['Name'] : ' '}
               </div>
-              
-            </div>
           </div>
 
           <Tabla
@@ -916,7 +913,7 @@ const Grid = () => {
                                               onChange={(e) => handleColumns(e, key)}
                                               className="form-checkbox h-5 w-5 text-indigo-600"
                                             />
-                                            <span className="ml-2">{t("Editor."+key)}</span>
+                                            <span className="ml-2">{t("Editor." + key)}</span>
                                           </label>
                                         </li>
                                       );
@@ -992,7 +989,7 @@ const Grid = () => {
 
                           </li>
                           <li>
-                           <label>{t("Editor.lim_sup")}</label>
+                            <label>{t("Editor.lim_sup")}</label>
                             <input
                               type="number"
                               name='upper'
@@ -1074,7 +1071,7 @@ const Grid = () => {
                         />
                       </li>
                       <li>
-                      <label>{t("Editor.lim_inf")}</label>
+                        <label>{t("Editor.lim_inf")}</label>
                         <input
                           type="number"
                           name='lower'
@@ -1085,7 +1082,7 @@ const Grid = () => {
                       <li>
                         <button className="btn btn-primary" onClick={handleFosilEdit}
                           disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
-                            <p>{t("Editor.confirm_edit")}</p>
+                          <p>{t("Editor.confirm_edit")}</p>
                         </button>
                       </li>
                       <li><button className="btn btn-error" onClick={handleDeleteFosil}><p>{t("Editor.delete_fossil")}</p></button></li>
@@ -1166,7 +1163,7 @@ const Grid = () => {
                       </li>
 
                       <li>
-                        <p>{t("Editor.color_cap")}<input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange}/></p>
+                        <p>{t("Editor.color_cap")}<input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /></p>
                       </li>
                       <li>
                         <p>{t("Editor.color_pattern")}<input type="color" name={"ColorStroke"} value={formData.ColorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
@@ -1292,7 +1289,7 @@ const Grid = () => {
                                   <button className="btn btn-error" onClick={() => {
                                     handleDeleteFacieSection(index)
                                   }}>
-                                   <p>{t("Editor.delete_facie_sec")}</p>
+                                    <p>{t("Editor.delete_facie_sec")}</p>
                                   </button>
                                 </li>
 
