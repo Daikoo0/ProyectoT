@@ -229,8 +229,9 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
             y1={0}
             x2={points[points.length - 2].x}
             y2={points[points.length - 2].y}
-            stroke="black"
+            className="stroke-current text-base-content"
             strokeWidth={1}
+            stroke="black"
           />
 
           <line
@@ -238,8 +239,9 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
             y1={0}
             x2={points[points.length - 1].x}
             y2={points[points.length - 1].y}
-            stroke="black"
+            className="stroke-current text-base-content"         
             strokeWidth={1}
+            stroke="black"
           />
         </>
       )}

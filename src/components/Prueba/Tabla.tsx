@@ -5,6 +5,26 @@ import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
 import Ab from "./pdfFunction";
 import ResizeObserver from "resize-observer-polyfill";
+import { useTranslation } from 'react-i18next';
+
+const HeaderVal = ({ percentage, name, top, columnWidths }) => {
+    var x = percentage * (columnWidths["Litologia"] || 250)
+    var pos = top ? 60 : 105
+    return (
+        <>
+            <path id={name} d={`M${x},${pos} L${x},0`} />
+            <text className="stroke stroke-accent-content" fontWeight="1" fontSize="10"><textPath href={`#${name}`}>
+                {name}
+            </textPath>
+            </text>
+            {top ? <>
+                <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
+            </> : <>
+                <line className="stroke stroke-accent-content" y1="90%" y2="100%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
+            </>
+            }
+        </>)
+}
 
 const Tabla = ({ setPdfData, pdfData, data, header, scale,
     addCircles, setSideBarState,
@@ -12,7 +32,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
     editingUsers, isInverted, alturaTd, setAlturaTd }) => {
-
+    const { t } = useTranslation();
     const cellWidth = 150;
     var cellMinWidth = 150;
     var cellMaxWidth = 300;
@@ -92,26 +112,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             pdfData.date);
     }
 
-
-    const HeaderVal = ({ percentage, name, top }) => {
-        var x = percentage * (columnWidths["Litologia"] || 250)
-        var pos = top ? 60 : 105
-        return (
-            <>
-                <path id={name} d={`M${x},${pos} L${x},0`} />
-                <text className="stroke stroke-accent-content" fontWeight="1" fontSize="10"><textPath href={`#${name}`}>
-                    {name}
-                </textPath>
-                </text>
-                {top ? <>
-                    <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
-                </> : <>
-                    <line className="stroke stroke-accent-content" y1="90%" y2="100%" x1={`${percentage * 100}%`} x2={`${percentage * 100}%`} strokeWidth="1"></line>
-                </>
-                }
-            </>)
-    }
-
     var adfas = useRef<HTMLTableCellElement>(null);
 
     useEffect(() => {
@@ -148,7 +148,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 <div className="menu p-4 w-full text-base-content">
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium">Formato de papel</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("PDF.paper_format")}</div>
                                         <div className="collapse-content">
                                             <select
                                                 value={pdfData.format}
@@ -175,7 +175,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                                 className="select select-bordered w-full mb-4"
                                             >
-                                                <option className="bg-base-100 text-base-content" value={''} disabled>Elige el tamaño de hoja</option>
+                                                <option className="bg-base-100 text-base-content" value={''} disabled>{t("PDF.choose_paper")}</option>
                                                 <option className="bg-base-100 text-base-content" value={'EXECUTIVE'}>Executive</option>
                                                 <option className="bg-base-100 text-base-content" value={'FOLIO'}>Folio</option>
                                                 <option className="bg-base-100 text-base-content" value={'LEGAL'}>Legal</option>
@@ -233,11 +233,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium">Información en cabecera</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("PDF.header_info")}</div>
                                         <div className="collapse-content">
                                             <ul>
                                                 <li>
-                                                    <label>Orientación estratificación: </label>
+                                                    <label >{t("PDF.o_est")}</label>
                                                     <p>
                                                         <input id="oEstrat" className="input input-bordered w-full" value={pdfData.oEstrat}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -267,7 +267,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     </p>
                                                 </li>
                                                 <li>
-                                                    <label>Orientación levantamiento: </label>
+                                                    <label >{t("PDF.o_lev")}</label>
                                                     <p>
                                                         <input id="oLev" className="input input-bordered w-full" value={pdfData.oLev}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -293,11 +293,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     pdfData.date
                                                                 );
                                                             }}
-                                                        >Aplicar</button>
+                                                        >
+                                                            <p >{t("PDF.apply")}</p></button>
                                                     </p>
                                                 </li>
                                                 <li>
-                                                    <label>Etiqueta sección: </label>
+                                                    <label >{t("PDF.section_etiq")}</label>
                                                     <p>
                                                         <input id="etSec" className="input input-bordered w-full" value={pdfData.etSec}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -323,11 +324,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     pdfData.date
                                                                 );
                                                             }}
-                                                        >Aplicar</button>
+                                                        ><p >{t("PDF.apply")}</p></button>
                                                     </p>
                                                 </li>
                                                 <li>
-                                                    <label>Fecha: </label>
+                                                    <label >{t("PDF.date")}</label>
                                                     <p>
                                                         <input id="date" className="input input-bordered w-full" value={pdfData.date}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -354,7 +355,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     val
                                                                 );
                                                             }}
-                                                        >Aplicar</button>
+                                                        ><p >{t("PDF.apply")}</p></button>
                                                     </p>
                                                 </li>
                                             </ul>
@@ -363,11 +364,13 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium">Orientación de papel</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("PDF.orientation")}</div>
                                         <div className="collapse-content">
                                             <div className="form-control w-full">
                                                 <label className="label-text">
-                                                    {pdfData.orientation === "portrait" ? "Hoja vertical" : "Hoja horizontal"}
+                                                    {pdfData.orientation === "portrait" ?
+                                                        <label>Vertical</label> :
+                                                        <label>Horizontal</label>}
                                                 </label>
                                                 <input
                                                     type="checkbox"
@@ -401,7 +404,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium">Visibilidad de columnas</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("PDF.visibility")}</div>
                                         <div className="collapse-content">
                                             <ul className="menu p-2 w-full text-base-content">
                                                 {list.map((key) => {
@@ -417,7 +420,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                         onChange={(e) => handleColumns(e, key)}
                                                                         className="form-checkbox h-4 w-4 text-indigo-600"
                                                                     />
-                                                                    <span>{key}</span>
+                                                                    <span>{t("Editor."+key)}</span>
                                                                 </label>
                                                             </li>
                                                         );
@@ -429,8 +432,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium">
-                                            Ancho de la litología
+                                        <div className="collapse-title text-xl font-medium" >{t("PDF.w_lit")}
                                         </div>
                                         <div className="collapse-content">
                                             <select
@@ -458,7 +460,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                                 className="select select-bordered w-full mb-4"
                                             >
-                                                <option className="bg-base-100 text-base-content" value={""} disabled>Elige el ancho de la litologia</option>
+                                                <option className="bg-base-100 text-base-content" value={""} disabled>{t("PDF.c_w_lit")}</option>
                                                 <option className="bg-base-100 text-base-content" value={'20%'}>20%</option>
                                                 <option className="bg-base-100 text-base-content" value={'25%'}>25%</option>
                                                 <option className="bg-base-100 text-base-content" value={'30%'}>30%</option>
@@ -469,9 +471,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium">Visibilidad de capas</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("PDF.visibility_rows")}</div>
                                         <div className="collapse-content">
-                                            <p className="mb-2">Eliminar todas las capas con altura menor que:</p>
+                                            <p className="mb-2" >{t("PDF.delete_rows")}</p>
                                             <div className="flex items-center space-x-2">
                                                 <input
                                                     type="number"
@@ -486,7 +488,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     }}
                                                     className="btn btn-primary"
                                                 >
-                                                    Aplicar
+                                                    <p >{t("PDF.apply")}</p>
                                                 </button>
                                             </div>
                                         </div>
@@ -497,7 +499,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                 <div className="modal-action mt-4">
                                     <form method="dialog">
-                                        <button className="btn">Close</button>
+                                        <button className="btn"><p >{t("PDF.close")}</p></button>
                                     </form>
                                 </div>
                             </div>
@@ -526,7 +528,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     }}>
 
                                     <div className="flex justify-between items-center font-semibold">
-                                        <p className="text text-accent-content w-1/2" data-section="Editor" data-value={`${columnName}`}>{columnName}</p>
+                                        <p className="text text-accent-content w-1/2">{t("Editor."+columnName)}</p>
 
                                         {columnName === "Litologia" ?
                                             <>
@@ -542,24 +544,24 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1="50%" x2="50%" strokeWidth="1"></line>
                                                     <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1="50%" x2="100%" strokeWidth="1"></line>
 
-                                                    <HeaderVal percentage={0.55} name={"clay"} top={false} />
-                                                    <HeaderVal percentage={0.55} name={"mud"} top={true} />
-                                                    <HeaderVal percentage={0.59} name={"silt"} top={false} />
-                                                    <HeaderVal percentage={0.63} name={"vf"} top={false} />
-                                                    <HeaderVal percentage={0.63} name={"wacke"} top={true} />
-                                                    <HeaderVal percentage={0.67} name={"f"} top={false} />
-                                                    <HeaderVal percentage={0.71} name={"m"} top={false} />
-                                                    <HeaderVal percentage={0.71} name={"pack"} top={true} />
-                                                    <HeaderVal percentage={0.75} name={"c"} top={false} />
-                                                    <HeaderVal percentage={0.79} name={"vc"} top={false} />
-                                                    <HeaderVal percentage={0.79} name={"grain"} top={true} />
-                                                    <HeaderVal percentage={0.83} name={"gran"} top={false} />
-                                                    <HeaderVal percentage={0.83} name={"redstone"} top={true} />
-                                                    <HeaderVal percentage={0.87} name={"pebb"} top={false} />
-                                                    <HeaderVal percentage={0.87} name={"rud & bound"} top={true} />
-                                                    <HeaderVal percentage={0.91} name={"cobb"} top={false} />
-                                                    <HeaderVal percentage={0.91} name={"rudstone"} top={true} />
-                                                    <HeaderVal percentage={0.95} name={"boul"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"clay"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"mud"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.59} name={"silt"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"vf"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"wacke"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.67} name={"f"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"m"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"pack"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.75} name={"c"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"vc"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"grain"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"gran"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"redstone"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"pebb"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"rud & bound"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"cobb"} top={false} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"rudstone"} top={true} />
+                                                    <HeaderVal columnWidths={columnWidths} percentage={0.95} name={"boul"} top={false} />
                                                 </svg>
                                             </> : <></>
                                         }

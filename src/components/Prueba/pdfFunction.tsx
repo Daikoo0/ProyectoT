@@ -5,6 +5,7 @@ import MySVG from "../MYSVG.tsx";
 import lithologic from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
 import contactsJson from '../../contacts.json';
+import { useTranslation } from 'react-i18next';
 
 // Estilos
 const styles = StyleSheet.create({
@@ -16,7 +17,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   paragraph: {
-    marginTop: 1, // Ajusta el espacio entre párrafos
+    marginTop: 1, 
     marginBottom: 1,
   },
   tableRow: {
@@ -40,6 +41,8 @@ const styles = StyleSheet.create({
 });
 
 const TableHeader = ({ columnWidths, header }) => {
+  
+  const { t } = useTranslation();
   return (
     <View style={[styles.tableRow]}>
       {Object.keys(header).map((key, index) => (
@@ -47,7 +50,7 @@ const TableHeader = ({ columnWidths, header }) => {
           {header[key] === "Litologia" ? (
             <MySVG wdth={parseFloat(columnWidths["Litologia"])} />
           ) : (
-            <Text>{header[key]}</Text>
+            <Text>{t("Editor."+header[key])}</Text>
           )}
         </View>
       ))}
@@ -139,12 +142,13 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, pageLengths }) => {
+const MyDocument = ({oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, pageLengths }) => {
   var firstArray = []
   var secondArray = []
   var thirdArray = []
   var splitIndex = header.indexOf("Espesor");
   var endIndex = Math.max(header.indexOf("Facie"), header.indexOf("Estructura fosil"), header.indexOf("Litologia"));
+  const { t } = useTranslation();
 
   for (let i = 0; i < header.length; i++) {
     if (i < splitIndex) {
@@ -163,8 +167,8 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
           <View wrap={false}>
             <View style={[{ height: 40 }]}>
               <Text style={[{ fontSize: 14, fontFamily: "Times-Roman" }]}>
-                Orientación Estratificación: {oEstrat} ESCALA: 1:{100 / scale} Orientación Levantamiento: {oLev} LOCALIDAD: {infoProject.Location}
-                Etiqueta Sección: {etSec} Coordenadas: {infoProject.Lat},{infoProject.Long} Página: {pageIndex + 1}/{rowIndexesPerPage.length} FECHA: {date}
+              {t("PDF.oEst")} {oEstrat} {t("PDF.scale")} 1:{100 / scale} {t("PDF.oLev")} {oLev} {t("PDF.locality")} {infoProject.Location}
+              {t("PDF.etSec")} {etSec}  {t("PDF.coord")} {infoProject.Lat},{infoProject.Long} {t("PDF.page")} {pageIndex + 1}/{rowIndexesPerPage.length} {t("PDF.date")} {date}
               </Text>
             </View>
             <TableHeader columnWidths={columnWidths} header={header} />

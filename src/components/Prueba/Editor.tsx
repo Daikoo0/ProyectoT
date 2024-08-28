@@ -13,10 +13,10 @@ import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
 import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
-import Language from '../Web/Language';
+import { useTranslation } from 'react-i18next';
 
 const Grid = () => {
-
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
@@ -653,7 +653,7 @@ const Grid = () => {
 
               <div className="dropdown dropdown-end">
 
-                <div className="tooltip tooltip-bottom pl-5" onClick={() => navigate('/home')} data-tip="Volver al Home">
+                <div className="tooltip tooltip-bottom pl-5" onClick={() => navigate('/home')} data-tip={t("Editor.return")}>
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                     <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
                       <path fill="currentColor" strokeLinejoin="round" strokeLinecap="round" d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
@@ -661,7 +661,7 @@ const Grid = () => {
                   </div>
                 </div>
 
-                <div className="tooltip tooltip-bottom" onClick={config} data-tip="Configuración">
+                <div className="tooltip tooltip-bottom" onClick={config} data-tip={t("Editor.config")}>
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                     <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
@@ -671,7 +671,7 @@ const Grid = () => {
                 </div>
 
                 <div className="dropdown dropdown-end">
-                  <div className="tooltip tooltip-bottom" onClick={openModal} data-tip="Exportar PDF">
+                  <div className="tooltip tooltip-bottom" onClick={openModal} data-tip={t("Editor.export")}>
                     <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                       <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
@@ -682,7 +682,7 @@ const Grid = () => {
               </div>
 
               <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
-                <div className="tooltip tooltip-bottom" data-tip="Agregar capa">
+                <div className="tooltip tooltip-bottom" data-tip={t("Editor.add")}>
                   <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                     <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
                       <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
@@ -691,7 +691,7 @@ const Grid = () => {
                 </div>
               </div>
 
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'undo' }))} data-tip="Deshacer">
+              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'undo' }))} data-tip={t("Editor.undo")}>
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4" />
@@ -699,7 +699,7 @@ const Grid = () => {
                 </div>
               </div>
 
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'redo' }))} data-tip="Rehacer">
+              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'redo' }))} data-tip={t("Editor.redo")}>
                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
                   <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4" />
@@ -809,15 +809,15 @@ const Grid = () => {
                   const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className='pb-6 hidden lg:block'>Configuración</li>
+                      <li className='pb-6 hidden lg:block'>{t("Editor.config")}</li>
 
                       <li>
                         <details open>
-                          <summary>De la tabla</summary>
+                          <summary>{t("Editor.config_t")}</summary>
                           <ul>
                             <li>
                               <details open={false}>
-                                <summary>Escala</summary>
+                                <summary>{t("Editor.scale")}</summary>
                                 <ul>
                                   <li>
                                     <label className="inline-flex items-center">
@@ -877,7 +877,7 @@ const Grid = () => {
                             </li>
                             <li>
                               <details open={false}>
-                                <summary>Posición regla</summary>
+                                <summary>{t("Editor.position_r")}</summary>
                                 <ul>
                                   <li>
 
@@ -893,7 +893,7 @@ const Grid = () => {
                                             }
                                           }));
                                         }
-                                      }} />{isInverted ? "Invertida" : "No invertida"}
+                                      }} />{isInverted ? <p>{t("Editor.inverted")}</p> : <p>{t("Editor.notinverted")}</p>}
 
                                   </li>
                                 </ul>
@@ -901,7 +901,7 @@ const Grid = () => {
                             </li>
                             <li>
                               <details open={false}>
-                                <summary>Visibilidad de columnas</summary>
+                                <summary>{t("Editor.visibility")}</summary>
                                 <ul>
                                   {list.map((key) => {
                                     if (key !== "Espesor" && key !== "Litologia") {
@@ -916,7 +916,7 @@ const Grid = () => {
                                               onChange={(e) => handleColumns(e, key)}
                                               className="form-checkbox h-5 w-5 text-indigo-600"
                                             />
-                                            <span className="ml-2">{key}</span>
+                                            <span className="ml-2">{t("Editor."+key)}</span>
                                           </label>
                                         </li>
                                       );
@@ -931,10 +931,9 @@ const Grid = () => {
 
                       <li>
                         <details open>
-                          <summary>De la sala</summary>
+                          <summary>{t("Editor.sala")}</summary>
                           <ul>
                             <li><SelectTheme /></li>
-                            <li><Language/></li>
                           </ul>
                         </details>
                       </li>
@@ -944,7 +943,7 @@ const Grid = () => {
                   return (
 
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Añadir capa</li>
+                      <li className="menu-title">{t("Editor.add")}</li>
 
                       <li className='mb-2' >
                         <p>
@@ -954,28 +953,28 @@ const Grid = () => {
                       </li>
 
                       <li className='mb-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(0, formData.Height)} >Insertar capa arriba</button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(0, formData.Height)}><p>{t("Editor.add_t")}</p></button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(formData.initialHeight, formData.Height)}>Insertar en fila:</button>
+                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(formData.initialHeight, formData.Height)}><p>{t("Editor.add_index")}</p></button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li className='mt-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(-1, formData.Height)}>Insertar capa abajo</button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(-1, formData.Height)}><p>{t("Editor.add_b")}</p></button>
                       </li>
                     </ul>
                   );
                 case "fosil":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Fósiles</li>
+                      <li className="menu-title">{t("Editor.fossils")}</li>
 
                       <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
-                        <li>Agregar nuevo fósil:</li>
+                        <li>{t("Editor.add_fossils")}</li>
                         <form onSubmit={handleAddFosil}>
                           <li>
                             <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
-                              <option className="bg-base-100 text-base-content" value={""} disabled >Elige el tipo de fósil</option>
+                              <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("Editor.fossils_type")}</p></option>
                               {Object.keys(fosilJson).map(option => (
                                 <option className="bg-base-100 text-base-content" key={option} value={option}>{option}</option>
                               ))}
@@ -993,7 +992,7 @@ const Grid = () => {
 
                           </li>
                           <li>
-                            límite superior (cm):
+                           <label>{t("Editor.lim_sup")}</label>
                             <input
                               type="number"
                               name='upper'
@@ -1005,7 +1004,7 @@ const Grid = () => {
                             />
                           </li>
                           <li>
-                            Límite inferior (cm):
+                            <label>{t("Editor.lim_sup")}</label>
                             <input
                               type="number"
                               name='lower'
@@ -1018,9 +1017,8 @@ const Grid = () => {
                           </li>
 
                           <button type='submit' className="btn btn-primary"
-                            disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}
-                          >
-                            Confirmar
+                            disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
+                            <p>{t("Editor.confirm")}</p>
                           </button>
                         </form>
                       </div>
@@ -1029,10 +1027,10 @@ const Grid = () => {
                 case "editFosil":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Editando fósil</li>
+                      <li className="menu-title">{t("Editor.fossil_edit")}</li>
                       <li>
                         <select className="select select-bordered w-full max-w-xs" name='fosilImgCopy' value={formFosil.fosilImgCopy} onChange={changeformFosil}>
-                          <option className="bg-base-100 text-base-content" value={""} disabled>Selecciona un fósil</option>
+                          <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("Editor.fossil_select")}</p></option>
                           {Object.keys(fosilJson).map(option => (
                             <option className="bg-base-100 text-base-content" key={option} value={option}>{option}</option>
                           ))}
@@ -1067,7 +1065,7 @@ const Grid = () => {
 
                       </li>
                       <li>
-                        límite superior (cm):
+                        <label>{t("Editor.lim_sup")}</label>
                         <input
                           type="number"
                           name='upper'
@@ -1076,7 +1074,7 @@ const Grid = () => {
                         />
                       </li>
                       <li>
-                        Límite inferior (cm):
+                      <label>{t("Editor.lim_inf")}</label>
                         <input
                           type="number"
                           name='lower'
@@ -1087,21 +1085,18 @@ const Grid = () => {
                       <li>
                         <button className="btn btn-primary" onClick={handleFosilEdit}
                           disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
-                          Confirmar edición
+                            <p>{t("Editor.confirm_edit")}</p>
                         </button>
                       </li>
-                      <li><button className="btn btn-error" onClick={handleDeleteFosil}>Eliminar fósil</button></li>
+                      <li><button className="btn btn-error" onClick={handleDeleteFosil}><p>{t("Editor.delete_fossil")}</p></button></li>
                     </ul>)
                 case "polygon":
-
-
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Editando polígono</li>
-
+                      <li className="menu-title">{t("Editor.editing_p")}</li>
                       <li>
                         <details open={false}>
-                          <summary>Contacto inferior</summary>
+                          <summary>{t("Editor.c_inf")}</summary>
                           <ul>
                             {contactsSvg.map((items, index) => {
 
@@ -1153,13 +1148,13 @@ const Grid = () => {
 
 
                       <li className='flex flex-row'>
-                        <p>Tamaño de capa: cm</p>
+                        <p>{t("Editor.tam_cap")}</p>
                         <input type="number" name='Height' value={formData.Height} onChange={handleChangeLocal} />
-                        <button className="btn" name='Height' value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000} onClick={handleChange}> Cambiar </button>
+                        <button className="btn" name='Height' value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000} onClick={handleChange}><p>{t("Editor.change")}</p></button>
                       </li>
 
                       <li>
-                        <p>Seleccionar opción de Pattern: </p>
+                        <p>{t("Editor.op_pattern")}</p>
                         <select name={"File"} value={formData.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
                           {Object.keys(lithoJson).map(option => (
                             <option className="bg-base-100 text-base-content" key={option} value={option}>
@@ -1171,17 +1166,14 @@ const Grid = () => {
                       </li>
 
                       <li>
-                        <p>Seleccionar color de relleno: <input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
+                        <p>{t("Editor.color_cap")}<input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange}/></p>
                       </li>
-
-
                       <li>
-                        <p>Seleccionar color patrón:<input type="color" name={"ColorStroke"} value={formData.ColorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
-
+                        <p>{t("Editor.color_pattern")}<input type="color" name={"ColorStroke"} value={formData.ColorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
                       </li>
 
                       <li>
-                        <p>Valor Zoom:</p>
+                        <p>{t("Editor.zoom")}</p>
                         <input
                           type="range"
                           name='Zoom'
@@ -1193,7 +1185,7 @@ const Grid = () => {
                       </li>
 
                       <li>
-                        <p>Tension de lineas: </p>
+                        <p>{t("Editor.tension")} </p>
                         <input
                           type="range"
                           name='Tension'
@@ -1206,7 +1198,7 @@ const Grid = () => {
                       </li>
 
                       <li>
-                        <p>Valor Rotacion: </p>
+                        <p>{t("Editor.rotation")}</p>
                         <input
                           type="range"
                           name='Rotation'
@@ -1230,7 +1222,7 @@ const Grid = () => {
                             sideBar: false,
                             sideBarMode: ""
                           })
-                        }}>Eliminar capa</button>
+                        }}><p>{t("Editor.delete_layer")}</p></button>
                       </li>
                     </ul>
 
@@ -1239,7 +1231,7 @@ const Grid = () => {
                   return (
                     <>
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
-                        <p className="menu-title">Editando texto</p>
+                        <p className="menu-title">{t("Editor.edit_text")}</p>
 
 
                         <EditorQuill
@@ -1259,7 +1251,7 @@ const Grid = () => {
                               "rowIndex": Number(formData.index)
                             }
                           }));
-                        }}>Enviar</button>
+                        }}><p>{t("Editor.send")}</p></button>
                       </div>
                     </>
                   );
@@ -1267,8 +1259,8 @@ const Grid = () => {
                   return (
                     <>
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content shadow-xl rounded-lg">
-                        <p className="menu-title text-lg font-bold mb-4">Agregar nueva facie</p>
-                        <p className="mb-1 font-medium text-sm">Facies Existentes</p>
+                        <p className="menu-title text-lg font-bold mb-4">{t("Editor.add_facie")}</p>
+                        <p className="mb-1 font-medium text-sm">{t("Editor.e_facies")}</p>
                         <ul className="list-disc list-inside">
                           {Object.keys(facies).map((key, index) => (
                             <li key={index}>{key} - {index}</li>
@@ -1276,11 +1268,11 @@ const Grid = () => {
                         </ul>
 
                         <div className="mb-4 ">
-                          <label htmlFor="nombre" className="block text-sm font-medium">Nombre:</label>
+                          <label htmlFor="nombre" className="block text-sm font-medium">{t("Editor.facie_name")}</label>
                           <input type='text' name='facie' onChange={changeformFacie} className="input input-bordered w-full mt-1" />
                         </div>
                         <button className="btn btn-primary w-full" onClick={handleAddFacie}>
-                          Confirmar nueva facie
+                          <p>{t("Editor.new_facie_confirm")}</p>
                         </button>
                       </div>
                     </>
@@ -1289,9 +1281,9 @@ const Grid = () => {
                   return (
                     <>
                       <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
-                        <p className="menu-title">Editando facie {formFacies.facie}</p>
+                        <p className="menu-title">{t("Editor.editing_facie")} {formFacies.facie}</p>
                         <div className="p-4">
-                          <p className="text-lg font-semibold mb-2">Tramos actuales de esta facie:</p>
+                          <p className="text-lg font-semibold mb-2">{t("Editor.tramos_facie")}</p>
                           <ul className="list-disc list-inside space-y-2">
                             {Object.values(facies[formFacies.facie]).map((value, index) => (
                               <>
@@ -1300,7 +1292,7 @@ const Grid = () => {
                                   <button className="btn btn-error" onClick={() => {
                                     handleDeleteFacieSection(index)
                                   }}>
-                                    Eliminar
+                                   <p>{t("Editor.delete_facie_sec")}</p>
                                   </button>
                                 </li>
 
@@ -1308,10 +1300,10 @@ const Grid = () => {
                             ))}
                           </ul>
 
-                          <p className="text-lg font-semibold mt-4 mb-2">Agregar un nuevo tramo de esta facie:</p>
+                          <p className="text-lg font-semibold mt-4 mb-2">{t("Editor.add_tramo_facie")}</p>
                           <ul className="list-disc list-inside space-y-2">
                             <li className="flex items-center">
-                              <span>Límite superior (cm):</span>
+                              <span>{t("Editor.lim_sup")}</span>
                               <input
                                 type="number"
                                 name="y1"
@@ -1321,7 +1313,7 @@ const Grid = () => {
                               />
                             </li>
                             <li className="flex items-center">
-                              <span>Límite inferior (cm):</span>
+                              <span>{t("Editor.lim_inf")}</span>
                               <input
                                 type="number"
                                 name="y2"
@@ -1333,7 +1325,7 @@ const Grid = () => {
                           </ul>
 
                           <button className="btn btn-primary mt-4 w-full" onClick={handleAddFacieSection}>
-                            Confirmar nuevo tramo
+                            <p>{t("Editor.confirm_new_t")}</p>
                           </button>
 
                           {messageFacie !== '' && (<>
@@ -1345,7 +1337,7 @@ const Grid = () => {
                         </div>
 
                         <button className="btn btn-error mt-4 w-full" onClick={handleDeleteFacie}>
-                          Eliminar esta facie
+                          <p>{t("Editor.delete_facie")}</p>
                         </button>
                       </div>
                     </>

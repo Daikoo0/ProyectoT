@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../provider/authProvider';
 import api from '../../api/ApiClient';
+import { useTranslation } from 'react-i18next';
 
 
 const TableData = ({ Data, refresh }) => {
 
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { user } = useAuth();
     const [filteredItem, setFilteredItem] = useState(null);
@@ -216,8 +218,7 @@ const TableData = ({ Data, refresh }) => {
 
             {/* Tabla de  */}
 
-            <div style={{display:'flex'}}><p data-section="Home" data-value="p_user"><b>Proyectos de</b></p>
-            <p style={{ marginLeft: '2px' }}><b>{user.name}</b></p><p data-section="Home" data-value="p_user_2"></p></div>
+            <div style={{display:'flex'}}>{t("Home.p_user",{user: user.name})}</div>
 
             <button className="btn btn-neutral lg:hidden" onClick={() => navigate('/create')}>Crear Sala</button>
             <table className="table">
@@ -229,10 +230,10 @@ const TableData = ({ Data, refresh }) => {
                                 {Data === null ? null : <input type="checkbox" className="checkbox" />}
                             </label>
                         </th>
-                        <th data-section="Home" data-value="t_project">Título Proyecto</th>
-                        <th data-section="Home" data-value="loc_project">Localización</th>
-                        <th data-section="Home" data-value="u_change">Último Cambio</th>
-                        <th data-section="Home" data-value="description">Descripción</th>
+                        <th >{t("Home.t_project")}</th>
+                        <th >{t("Home.loc_project")}</th>
+                        <th >{t("Home.u_change")}</th>
+                        <th >{t("Home.description")}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -271,9 +272,9 @@ const TableData = ({ Data, refresh }) => {
                                 <td>{data.ProjectInfo.CreationDate}</td>
                                 <td>{data.ProjectInfo.Description}</td>
                                 <th>
-                                    <button className="btn btn-ghost btn-xs" onClick={()=>{navigate(`/editor/${data.ID}`)}}><p data-section="Home" data-value="edit_project">Editar</p></button>
+                                    <button className="btn btn-ghost btn-xs" onClick={()=>{navigate(`/editor/${data.ID}`)}}><p >{t("Home.edit_project")}</p></button>
                                     {/* <button data-section="Home" data-value="invite_project" className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalInvite') as HTMLDialogElement).showModal();}}>Invitar</button> */}
-                                    <button className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalDelete') as HTMLDialogElement).showModal();}}><p data-section="Home" data-value="delete_project">Eliminar</p></button>
+                                    <button className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalDelete') as HTMLDialogElement).showModal();}}><p >{t("Home.delete_project")}</p></button>
                                 </th>
                             </tr>
                         ))}
@@ -282,10 +283,10 @@ const TableData = ({ Data, refresh }) => {
                 <tfoot>
                     <tr>
                         <th></th>
-                        <th data-section="Home" data-value="t_project">Título Proyecto</th>
-                        <th data-section="Home" data-value="loc_project">Localización</th>
-                        <th data-section="Home" data-value="u_change">Último Cambio</th>
-                        <th data-section="Home" data-value="description">Descripción</th>
+                        <th >{t("Home.t_project")}</th>
+                        <th >{t("Home.loc_project")}</th>
+                        <th >{t("Home.u_change")}</th>
+                        <th >{t("Home.description")}</th>
                         <th></th>
                     </tr>
                 </tfoot>

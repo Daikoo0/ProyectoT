@@ -1,25 +1,24 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface LanguageContextProps {
-  language: string;
-  changeLanguage: (lang: string) => void;
+  currentLanguage: string;
+  setLanguage: (lang: string) => void;
+  availableLanguages: string[];
 }
 
+const languages = ['es', 'en']; // Lista de idiomas disponibles
 const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<string>('es'); 
- 
-  const changeLanguage = async (lang: string) => {
-    setLanguage(lang);
+  const localLanguagePreference = localStorage.getItem('language') || 'es';
+  const [currentLanguage, setCurrentLanguage] = useState<string>(localLanguagePreference);
 
-    localStorage.setItem('language', lang);
-
+  const changeLanguageTexts = async (lang: string) => {
     const requestJson = await fetch(`../../src/${lang}.json`);
     const texts = await requestJson.json();
 
     const textsToChange = document.querySelectorAll("[data-section]") as NodeListOf<HTMLElement>;
-    
+  
     textsToChange.forEach((textToChange) => {
       const section = textToChange.dataset.section as string;
       const value = textToChange.dataset.value as string;
@@ -31,13 +30,21 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') || 'es';
-    setLanguage(savedLanguage);
-    changeLanguage(savedLanguage);
-  }, []);
+    localStorage.setItem('language', currentLanguage);
+    changeLanguageTexts(currentLanguage);
+  }, [currentLanguage]);
+
+  const setLanguage = (lang: string) => {
+    if (languages.includes(lang)) {
+      setCurrentLanguage(lang);
+    } else {
+      console.warn(`El idioma '${lang}' no es reconocido. Utilizando idioma por defecto.`);
+      setCurrentLanguage('en');
+    }
+  };
 
   return (
-    <LanguageContext.Provider value={{ language, changeLanguage }}>
+    <LanguageContext.Provider value={{ currentLanguage, setLanguage, availableLanguages: languages }}>
       {children}
     </LanguageContext.Provider>
   );
