@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 
 const TableData = ({ Data, refresh }) => {
 
-    const { t } = useTranslation();
+    const { t } = useTranslation("Home");
     const navigate = useNavigate();
     const { user } = useAuth();
     const [filteredItem, setFilteredItem] = useState(null);
@@ -218,7 +218,7 @@ const TableData = ({ Data, refresh }) => {
 
             {/* Tabla de  */}
 
-            <div style={{display:'flex'}}>{t("Home.p_user",{user: user.name})}</div>
+            <div style={{display:'flex'}}>{t("p_user",{user: user.name})}</div>
 
             <button className="btn btn-neutral lg:hidden" onClick={() => navigate('/create')}>Crear Sala</button>
             <table className="table">
@@ -230,10 +230,10 @@ const TableData = ({ Data, refresh }) => {
                                 {Data === null ? null : <input type="checkbox" className="checkbox" />}
                             </label>
                         </th>
-                        <th >{t("Home.t_project")}</th>
-                        <th >{t("Home.loc_project")}</th>
-                        <th >{t("Home.u_change")}</th>
-                        <th >{t("Home.description")}</th>
+                        <th >{t("t_project")}</th>
+                        <th >{t("loc_project")}</th>
+                        <th >{t("u_change")}</th>
+                        <th >{t("description")}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -272,9 +272,9 @@ const TableData = ({ Data, refresh }) => {
                                 <td>{data.ProjectInfo.CreationDate}</td>
                                 <td>{data.ProjectInfo.Description}</td>
                                 <th>
-                                    <button className="btn btn-ghost btn-xs" onClick={()=>{navigate(`/editor/${data.ID}`)}}><p >{t("Home.edit_project")}</p></button>
+                                    <button className="btn btn-ghost btn-xs" onClick={()=>{navigate(`/editor/${data.ID}`)}}><p >{t("edit_project")}</p></button>
                                     {/* <button data-section="Home" data-value="invite_project" className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalInvite') as HTMLDialogElement).showModal();}}>Invitar</button> */}
-                                    <button className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalDelete') as HTMLDialogElement).showModal();}}><p >{t("Home.delete_project")}</p></button>
+                                    <button className="btn btn-ghost btn-xs" onClick={()=>{filterById(data.ID);(document.getElementById('modalDelete') as HTMLDialogElement).showModal();}}><p >{t("delete_project")}</p></button>
                                 </th>
                             </tr>
                         ))}
@@ -283,10 +283,10 @@ const TableData = ({ Data, refresh }) => {
                 <tfoot>
                     <tr>
                         <th></th>
-                        <th >{t("Home.t_project")}</th>
-                        <th >{t("Home.loc_project")}</th>
-                        <th >{t("Home.u_change")}</th>
-                        <th >{t("Home.description")}</th>
+                        <th >{t("t_project")}</th>
+                        <th >{t("loc_project")}</th>
+                        <th >{t("u_change")}</th>
+                        <th >{t("description")}</th>
                         <th></th>
                     </tr>
                 </tfoot>

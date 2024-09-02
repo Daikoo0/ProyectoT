@@ -5,7 +5,6 @@ import Navbar from '../components/Web/Narbar';
 import MapProject from '../components/Web/MapProject';
 import TableData from '../components/Web/TableData';
 import { useTranslation } from 'react-i18next';
-import LangSelector from '../components/Web/LanguageComponent';
 
 const Home = () => {
 
@@ -13,7 +12,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [proyectos, setProyectos] = useState([]);
   const [proyectMap, setProyectMap] = useState([]);
-  const { t } = useTranslation();
+  const { t } = useTranslation("Home");
 
   async function fetchData() {
     try {
@@ -53,7 +52,6 @@ const Home = () => {
         <div className="drawer-content justify-center">
 
           <Navbar logohidden={false} />
-          <LangSelector/>
 
           {/* Contenido */}
           <main className="flex-1 p-4">
@@ -82,15 +80,15 @@ const Home = () => {
 
             <li className='pb-6 hidden lg:block'><a className="btn btn-ghost text-xl">Proyecto T</a></li>
 
-            <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}><p>{t("Home.Create_button")}</p></button>
+            <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}><p>{t("Create_button")}</p></button>
 
-            <li className="menu-title">{t("Home.projects")}</li>
-            <li onClick={() => setItem('tabla')}><a>{t("Home.all_p")}</a></li>
-            <li><a>{t("Home.your_p")}</a></li>
-            <li><a>{t("Home.shared_wup")}</a></li>
-            <li className="menu-title">{t("Home.search")}</li>
-            <li onClick={() => { setItem('mapa'); fetchMapData() }}><a>{t("Home.public_project")}</a></li>
-            <li><a>{t("Home.invitations")}</a></li>
+            <li className="menu-title">{t("projects")}</li>
+            <li onClick={() => setItem('tabla')}><a>{t("all_p")}</a></li>
+            <li><a>{t("your_p")}</a></li>
+            <li><a>{t("shared_wup")}</a></li>
+            <li className="menu-title">{t("search")}</li>
+            <li onClick={() => { setItem('mapa'); fetchMapData() }}><a>{t("public_project")}</a></li>
+            <li><a>{t("invitations")}</a></li>
           </ul>
 
         </div>

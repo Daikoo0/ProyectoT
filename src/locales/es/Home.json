@@ -1,0 +1,20 @@
+{
+    "Create_button": "Crear proyecto litológico",
+    "projects": "Proyectos",
+    "public_project": "Proyectos públicos",
+    "all_p": "Todos los proyectos",
+    "your_p": "Tus proyectos",
+    "shared_wup": "Compartidos contigo",
+    "search": "Búsqueda",
+    "invitations": "Invitaciones",
+    "p_user": "Proyectos de {{user}}",
+    "t_project": "Título Proyecto",
+    "loc_project": "Localización",
+    "u_change": "Último Cambio",
+    "description": "Descripción",
+    "edit_project": "Editar",
+    "delete_project": "Eliminar",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión",
+    "settings": "Configuraciones"
+}

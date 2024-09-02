@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from '../provider/authProvider';
 import SelectTheme from '../components/Web/SelectTheme';
 import api from '../api/ApiClient';
+import { useTranslation } from 'react-i18next';
 
 function Login() {
   const { setToken } = useAuth();
@@ -10,6 +11,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
+  const { t } = useTranslation("Login");
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCorreo(e.target.value);
@@ -48,9 +50,9 @@ async function handleLogin(e) {
       <div className="hero-content flex-col lg:flex-row-reverse">
 
         <div className="text-center">
-          <h1 className="text-5xl font-bold">Inicia sesión</h1>
+          <h1 className="text-5xl font-bold">{t("iniciar")}</h1>
           <div className="form-control mt-6">
-            <label className="label-text">Elige un tema:</label>
+            <label className="label-text">{t("theme")}</label>
             <SelectTheme/>
           </div>
         </div>
@@ -58,7 +60,7 @@ async function handleLogin(e) {
         <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
           <form className="card-body" onSubmit={handleLogin}  >
             <div className="form-control w-4/5 max-w-xs">
-              <label className="label-text">Correo:</label>
+              <label className="label-text">{t("mail")}</label>
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="name@uct.cl"
@@ -71,7 +73,7 @@ async function handleLogin(e) {
               />
             </div>
             <div className="form-control w-4/5 max-w-xs">
-              <label className="label-text">Contraseña:</label>
+              <label className="label-text">{t("pw")}</label>
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="••••••••"
@@ -82,17 +84,17 @@ async function handleLogin(e) {
                 required
                 onChange={handlePasswordChange}
               />
-              <a href="#"  className="link link-primary text-left">Olvidaste la contraseña?</a>
+              {/* <a href="#"  className="link link-primary text-left">Olvidaste la contraseña?</a> */}
               
             </div>
             <div className="form-control mt-6">
               <button className="btn btn-primary" type="submit">
-                Iniciar Sesión
+              {t("iniciar")}
               </button>
               <p className="mt-5 text-center text-sm">
-                ¿No eres miembro? {' '}
+                {t("member")} {' '}
                 <a className="link link-primary font-semibold" onClick={() => navigate("/register")}>
-                  Crea una cuenta
+                  {t("c_account")}
                 </a>
               </p>  
 

@@ -32,7 +32,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
     editingUsers, isInverted, alturaTd, setAlturaTd }) => {
-    const { t } = useTranslation();
+        const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
     var cellMaxWidth = 300;
@@ -148,7 +148,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 <div className="menu p-4 w-full text-base-content">
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("PDF.paper_format")}</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("paper_format")}</div>
                                         <div className="collapse-content">
                                             <select
                                                 value={pdfData.format}
@@ -175,7 +175,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                                 className="select select-bordered w-full mb-4"
                                             >
-                                                <option className="bg-base-100 text-base-content" value={''} disabled>{t("PDF.choose_paper")}</option>
+                                                <option className="bg-base-100 text-base-content" value={''} disabled>{t("choose_paper")}</option>
                                                 <option className="bg-base-100 text-base-content" value={'EXECUTIVE'}>Executive</option>
                                                 <option className="bg-base-100 text-base-content" value={'FOLIO'}>Folio</option>
                                                 <option className="bg-base-100 text-base-content" value={'LEGAL'}>Legal</option>
@@ -233,11 +233,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("PDF.header_info")}</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("header_info")}</div>
                                         <div className="collapse-content">
                                             <ul>
                                                 <li>
-                                                    <label >{t("PDF.o_est")}</label>
+                                                    <label >{t("o_est")}</label>
                                                     <p>
                                                         <input id="oEstrat" className="input input-bordered w-full" value={pdfData.oEstrat}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -267,7 +267,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     </p>
                                                 </li>
                                                 <li>
-                                                    <label >{t("PDF.o_lev")}</label>
+                                                    <label >{t("o_lev")}</label>
                                                     <p>
                                                         <input id="oLev" className="input input-bordered w-full" value={pdfData.oLev}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -294,11 +294,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                 );
                                                             }}
                                                         >
-                                                            <p >{t("PDF.apply")}</p></button>
+                                                            <p >{t("apply")}</p></button>
                                                     </p>
                                                 </li>
                                                 <li>
-                                                    <label >{t("PDF.section_etiq")}</label>
+                                                    <label >{t("section_etiq")}</label>
                                                     <p>
                                                         <input id="etSec" className="input input-bordered w-full" value={pdfData.etSec}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -324,11 +324,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     pdfData.date
                                                                 );
                                                             }}
-                                                        ><p >{t("PDF.apply")}</p></button>
+                                                        ><p >{t("apply")}</p></button>
                                                     </p>
                                                 </li>
                                                 <li>
-                                                    <label >{t("PDF.date")}</label>
+                                                    <label >{t("date")}</label>
                                                     <p>
                                                         <input id="date" className="input input-bordered w-full" value={pdfData.date}
                                                             onChange={(e) => setPdfData(prevState => ({
@@ -355,7 +355,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     val
                                                                 );
                                                             }}
-                                                        ><p >{t("PDF.apply")}</p></button>
+                                                        ><p >{t("apply")}</p></button>
                                                     </p>
                                                 </li>
                                             </ul>
@@ -364,7 +364,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("PDF.orientation")}</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("orientation")}</div>
                                         <div className="collapse-content">
                                             <div className="form-control w-full">
                                                 <label className="label-text">
@@ -404,7 +404,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("PDF.visibility")}</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("visibility")}</div>
                                         <div className="collapse-content">
                                             <ul className="menu p-2 w-full text-base-content">
                                                 {list.map((key) => {
@@ -420,7 +420,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                         onChange={(e) => handleColumns(e, key)}
                                                                         className="form-checkbox h-4 w-4 text-indigo-600"
                                                                     />
-                                                                    <span>{t("Editor."+key)}</span>
+                                                                    <span>{t(""+key)}</span>
                                                                 </label>
                                                             </li>
                                                         );
@@ -432,7 +432,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("PDF.w_lit")}
+                                        <div className="collapse-title text-xl font-medium" >{t("w_lit")}
                                         </div>
                                         <div className="collapse-content">
                                             <select
@@ -460,7 +460,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 }}
                                                 className="select select-bordered w-full mb-4"
                                             >
-                                                <option className="bg-base-100 text-base-content" value={""} disabled>{t("PDF.c_w_lit")}</option>
+                                                <option className="bg-base-100 text-base-content" value={""} disabled>{t("c_w_lit")}</option>
                                                 <option className="bg-base-100 text-base-content" value={'20%'}>20%</option>
                                                 <option className="bg-base-100 text-base-content" value={'25%'}>25%</option>
                                                 <option className="bg-base-100 text-base-content" value={'30%'}>30%</option>
@@ -471,9 +471,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("PDF.visibility_rows")}</div>
+                                        <div className="collapse-title text-xl font-medium" >{t("visibility_rows")}</div>
                                         <div className="collapse-content">
-                                            <p className="mb-2" >{t("PDF.delete_rows")}</p>
+                                            <p className="mb-2" >{t("delete_rows")}</p>
                                             <div className="flex items-center space-x-2">
                                                 <input
                                                     type="number"
@@ -488,7 +488,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     }}
                                                     className="btn btn-primary"
                                                 >
-                                                    <p >{t("PDF.apply")}</p>
+                                                    <p >{t("apply")}</p>
                                                 </button>
                                             </div>
                                         </div>
@@ -499,7 +499,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                                 <div className="modal-action mt-4">
                                     <form method="dialog">
-                                        <button className="btn"><p >{t("PDF.close")}</p></button>
+                                        <button className="btn"><p >{t("close")}</p></button>
                                     </form>
                                 </div>
                             </div>
@@ -511,8 +511,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             </>
 
             <div ref={tableref} className="pt-16">
-                <table style={{ height: '100px' }}>
-                    <thead className="sticky top-16 z-5">
+                <table style={{ height: '100px' }} >
+                    <thead className="relative sticky top-16 z-[1]">
                         <tr>
                             {header.map((columnName, number) => (
                                 <th
@@ -528,7 +528,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     }}>
 
                                     <div className="flex justify-between items-center font-semibold">
-                                        <p className="text text-accent-content w-1/2">{t("Editor."+columnName)}</p>
+                                        <p className="text text-accent-content w-1/2">{t(""+columnName)}</p>
 
                                         {columnName === "Litologia" ?
                                             <>
@@ -621,9 +621,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody >
                         {data.map((RowValue, rowIndex) => (
-                            <tr key={rowIndex} >
+                            <tr key={rowIndex} className="relative z-[0]">
                                 {header.map((columnName, columnIndex) => {
 
                                     if (columnName === 'Espesor' && rowIndex === 0) {

@@ -1,0 +1,20 @@
+{
+    "Create_button": "Create lithological project",
+    "projects": "Projects",
+    "public_project": "Public projects",
+    "all_p": "All projects",
+    "your_p": "Your projects",
+    "shared_wup": "Shared with you",
+    "search": "Search",
+    "invitations": "Invitations",
+    "p_user": "{{user}}'s projects",
+    "t_project" : "Project title",
+    "loc_project":"Location",
+    "u_change":"Last change",
+    "description":"Description",
+    "edit_project":"Edit",
+    "delete_project":"Delete",
+    "profile":"Profile",
+    "logout":"Log out",
+    "settings":"Settings"
+}

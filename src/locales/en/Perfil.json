@@ -1,0 +1,8 @@
+{
+    "settings":"Account settings",
+    "edit" :"Update account info",
+    "firstName" :"Your first name",
+    "lastName":"Your last name",
+    "email":"Your email",
+    "password":"Change Password"
+}

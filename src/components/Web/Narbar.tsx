@@ -2,11 +2,12 @@ import SelectTheme from "./SelectTheme";
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../provider/authProvider';
 import { useTranslation } from 'react-i18next';
+import LangSelector from './LanguageComponent';
 
 const Navbar = ({ logohidden }) => {
   const { setToken } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t } = useTranslation("Home");
 
   const logout = () => {
     try {
@@ -41,6 +42,11 @@ const Navbar = ({ logohidden }) => {
           <div className="dropdown dropdown-end">
             <SelectTheme />
           </div>
+          
+          <div className="dropdown dropdown-end">
+            <LangSelector />
+          </div>
+          
           <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" aria-label="User Navegation" className="btn btn-ghost btn-circle">
               <svg className="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
@@ -48,9 +54,9 @@ const Navbar = ({ logohidden }) => {
               </svg>
             </div>
             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-              <li><Link to="/myProfile"><p>{t("Home.profile")}</p></Link></li>
-              <li><p>{t("Home.settings")}</p></li>
-              <li><p onClick={logout}>{t("Home.logout")}</p></li>
+              <li><Link to="/myProfile"><p>{t("profile")}</p></Link></li>
+              <li><p>{t("settings")}</p></li>
+              <li><p onClick={logout}>{t("logout")}</p></li>
             </ul>
           </div>
         </div>

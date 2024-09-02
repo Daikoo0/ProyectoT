@@ -4,7 +4,6 @@ import sheetSize from '../../sheetSizes.json';
 import MySVG from "../MYSVG.tsx";
 import lithologic from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
-import contactsJson from '../../contacts.json';
 import { useTranslation } from 'react-i18next';
 
 // Estilos
@@ -17,7 +16,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   paragraph: {
-    marginTop: 1, 
+    marginTop: 1,
     marginBottom: 1,
   },
   tableRow: {
@@ -41,8 +40,8 @@ const styles = StyleSheet.create({
 });
 
 const TableHeader = ({ columnWidths, header }) => {
-  
-  const { t } = useTranslation();
+
+  const { t } = useTranslation(['PDF']);
   return (
     <View style={[styles.tableRow]}>
       {Object.keys(header).map((key, index) => (
@@ -50,7 +49,7 @@ const TableHeader = ({ columnWidths, header }) => {
           {header[key] === "Litologia" ? (
             <MySVG wdth={parseFloat(columnWidths["Litologia"])} />
           ) : (
-            <Text>{t("Editor."+header[key])}</Text>
+            <Text>{t("" + header[key])}</Text>
           )}
         </View>
       ))}
@@ -142,13 +141,13 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const MyDocument = ({oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, pageLengths }) => {
+const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, pageLengths }) => {
   var firstArray = []
   var secondArray = []
   var thirdArray = []
   var splitIndex = header.indexOf("Espesor");
   var endIndex = Math.max(header.indexOf("Facie"), header.indexOf("Estructura fosil"), header.indexOf("Litologia"));
-  const { t } = useTranslation();
+  const { t } = useTranslation(['PDF','Description','Patterns']);
 
   for (let i = 0; i < header.length; i++) {
     if (i < splitIndex) {
@@ -167,8 +166,8 @@ const MyDocument = ({oLev, date, etSec, oEstrat, infoProject, contacts, fossils,
           <View wrap={false}>
             <View style={[{ height: 40 }]}>
               <Text style={[{ fontSize: 14, fontFamily: "Times-Roman" }]}>
-              {t("PDF.oEst")} {oEstrat} {t("PDF.scale")} 1:{100 / scale} {t("PDF.oLev")} {oLev} {t("PDF.locality")} {infoProject.Location}
-              {t("PDF.etSec")} {etSec}  {t("PDF.coord")} {infoProject.Lat},{infoProject.Long} {t("PDF.page")} {pageIndex + 1}/{rowIndexesPerPage.length} {t("PDF.date")} {date}
+                {t("oEst")} {oEstrat} {t("scale")} 1:{100 / scale} {t("oLev")} {oLev} {t("locality")} {infoProject.Location}
+                {t("etSec")} {etSec}  {t("coord")} {infoProject.Lat},{infoProject.Long} {t("page")} {pageIndex + 1}/{rowIndexesPerPage.length} {t("date")} {date}
               </Text>
             </View>
             <TableHeader columnWidths={columnWidths} header={header} />
@@ -177,10 +176,13 @@ const MyDocument = ({oLev, date, etSec, oEstrat, infoProject, contacts, fossils,
                 {pageIndexes.map((item, index) => (
                   <View style={[styles.tableRow]} key={`first-${pageIndex}${index}${item}`}>
                     {Object.values(firstArray).map((key, i) => {
+                      const htmlContent = data[item]?.[firstArray[i]] || null;
+                      const match = htmlContent? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
+                      const fontSize = match ? match[1] : "8px";
                       return (
                         <View style={[styles.tableCol, styles.tableCell]} key={`first-${pageIndex}${index}${item}${key}`}>
                           <Html key={`first-${pageIndex}${index}${item}${key}${i}`}
-                            style={[{ width: columnWidths[firstArray[i]], height: data[item].Litologia.Height * scale }]}>
+                            style={[{ fontSize : fontSize, width: columnWidths[firstArray[i]], height: data[item].Litologia.Height * scale }]}>
                             {(data[item]?.[firstArray[i]] || "")}
                           </Html>
                         </View>
@@ -249,7 +251,7 @@ const MyDocument = ({oLev, date, etSec, oEstrat, infoProject, contacts, fossils,
                 <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={pattern[0]} style={{ height: 50, width: 50 }} />
                   <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
-                    {pattern[1]}
+                    {t(pattern[1],{ns:"Patterns"})}
                   </Text>
                 </View>
               ))}
@@ -275,7 +277,7 @@ const MyDocument = ({oLev, date, etSec, oEstrat, infoProject, contacts, fossils,
                 <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={contact[0]} style={{ height: 30, width: 150 }} />
                   <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
-                    {contactsJson[String(contact[1])].description}
+                    {t(contact[1],{ ns: 'Description' })}
                   </Text>
                 </View>
               ))}
@@ -371,7 +373,7 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   columnWidths["Litologia"] = String(((customWidthLit ? parseFloat(customWidthLit) : 20) * widthSheet * 0.0352778) / 100) + "cm";
 
   var remainingWidth = widthSheet * 0.0352778 - parseFloat(columnWidths["Litologia"]);
-  var otherColumnsCount = header.length - 2; 
+  var otherColumnsCount = header.length - 2;
   var otherColumnWidth = remainingWidth / (otherColumnsCount + 0.5);
   for (var i in header) {
     if (header[i] !== "Espesor" && header[i] !== "Litologia") {
