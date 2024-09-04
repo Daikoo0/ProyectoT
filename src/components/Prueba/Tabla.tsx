@@ -510,7 +510,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 </dialog>
             </>
 
-            <div ref={tableref} className="pt-16">
+            <div ref={tableref} className="py-16 pl-6">
                 <table style={{ height: '100px' }} >
                     <thead className="relative sticky top-16 z-[1]">
                         <tr>

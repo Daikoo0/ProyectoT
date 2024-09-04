@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import Navbar_Editor from './Navbar_Editor';
 import Tabla from './Tabla';
 import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
@@ -16,9 +16,9 @@ import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import { useTranslation } from 'react-i18next';
 import LangSelector from '../Web/LanguageComponent';
 
+
 const Grid = () => {
-  const { t } = useTranslation(['Editor', 'Description','Patterns']);
-  const navigate = useNavigate();
+  const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
@@ -114,19 +114,21 @@ const Grid = () => {
   }
 
   const handleClickRow = (index, column) => {
+    const { Litologia } = data[index]; // Extraer Litologia una vez
+
     setFormData({
       index: index,
       column: column,
-      File: data[index].Litologia.File,
-      ColorFill: data[index].Litologia.ColorFill,
-      ColorStroke: data[index].Litologia.ColorStroke,
-      Zoom: data[index].Litologia.Zoom,
-      Tension: data[index].Litologia.Tension,
-      Height: data[index].Litologia.Height,
-      initialHeight: data[index].Litologia.Height,
-      Rotation: data[index].Litologia.Rotation,
-      text: data[index][column],
-      Contact: data[index].Litologia.Contact,
+      File: Litologia.File,
+      ColorFill: Litologia.ColorFill,
+      ColorStroke: Litologia.ColorStroke,
+      Zoom: Litologia.Zoom,
+      Tension: Litologia.Tension,
+      Height: Litologia.Height,
+      initialHeight: Litologia.Height,
+      Rotation: Litologia.Rotation,
+      text: data[index][column], // Mantén esto porque depende de column
+      Contact: Litologia.Contact,
     });
   };
 
@@ -648,70 +650,17 @@ const Grid = () => {
         {/* Contenido */}
         <div className="drawer-content">
 
-          <div className="navbar bg-base-200 fixed top-0 z-[100]">
-            <div className="flex-none">
-
-
-              <div className="tooltip tooltip-bottom z-50 overflow-visible" onClick={() => navigate('/home')} data-tip={t("return")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle ">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
-                    <path fill="currentColor" strokeLinejoin="round" strokeLinecap="round" d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="tooltip tooltip-bottom" onClick={config} data-tip={t("config")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7.75 4H19M7.75 4a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 4h2.25m13.5 6H19m-2.25 0a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 10h11.25m-4.5 6H19M7.75 16a2.25 2.25 0 0 1-4.5 0m4.5 0a2.25 2.25 0 0 0-4.5 0M1 16h2.25" />
-                  </svg>
-                </div>
-
-              </div>
-
-
-              <div className="tooltip tooltip-bottom" onClick={openModal} data-tip={t("export")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3" />
-                  </svg>
-                </div>
-              </div>
-
-
-              <div onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} className="dropdown dropdown-end" >
-                <div className="tooltip tooltip-bottom" data-tip={t("add")}>
-                  <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                      <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'undo' }))} data-tip={t("undo")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9h13a5 5 0 0 1 0 10H7M3 9l4-4M3 9l4 4" />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="tooltip tooltip-bottom" onClick={() => socket.send(JSON.stringify({ action: 'redo' }))} data-tip={t("redo")}>
-                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                  <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4" />
-                  </svg>
-
-                </div>
-              </div>
-            </div>
-
-
-            <div className="text-3xl my-2 ml-4">
-              {infoProject ? infoProject['Name'] : ' '}
-            </div>
-          </div>
+          {/* Header */}
+          <Navbar_Editor
+            config={config}
+            openModal={openModal}
+            setSideBarState={setSideBarState}
+            setFormData={setFormData}
+            socket={socket}
+            t={t}
+            infoProject={infoProject}
+            initialFormData={initialFormData}
+          />
 
           <Tabla
             // Data
@@ -1156,7 +1105,7 @@ const Grid = () => {
                         <select name={"File"} value={formData.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
                           {Object.keys(lithoJson).map(option => (
                             <option className="bg-base-100 text-base-content" key={option} value={option}>
-                              {t(option,{ns:"Patterns"})}
+                              {t(option, { ns: "Patterns" })}
                             </option>
 
                           ))}
@@ -1240,16 +1189,20 @@ const Grid = () => {
                           }))}
                         />
 
-                        <button onClick={() => {
-                          socket.send(JSON.stringify({
-                            action: 'editText',
-                            data: {
-                              "key": formData.column,
-                              "value": formData.text,
-                              "rowIndex": Number(formData.index)
-                            }
-                          }));
-                        }}><p>{t("send")}</p></button>
+                        <button
+                          className='btn btn-primary w-full my-6'
+                          onClick={() => {
+                            socket.send(JSON.stringify({
+                              action: 'editText',
+                              data: {
+                                "key": formData.column,
+                                "value": formData.text,
+                                "rowIndex": Number(formData.index)
+                              }
+                            }));
+                          }}>
+                          {t("send")}
+                        </button>
                       </div>
                     </>
                   );
