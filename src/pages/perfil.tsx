@@ -11,7 +11,7 @@ const EditProfile: React.FC = () => {
         <div className="items-center mt-8 sm:mt-14 text-base-content">
           <div className="flex flex-col items-center w-full mb-2 space-x-0 space-y-2 sm:flex-row sm:space-x-4 sm:space-y-0 sm:mb-6">
             <div className="w-full">
-              <label className="block mb-2 text-sm font-medium text-base-content">Your first name</label>
+              <label className="block mb-2 text-sm font-medium text-base-content">{t("firstName")}</label>
               <input
                 type="text"
                 id="first_name"
@@ -23,7 +23,7 @@ const EditProfile: React.FC = () => {
             </div>
 
             <div className="w-full">
-              <label className="block mb-2 text-sm font-medium text-base-content">Your last name</label>
+              <label className="block mb-2 text-sm font-medium text-base-content">{t("lastName")}</label>
               <input
                 type="text"
                 id="last_name"
@@ -40,7 +40,7 @@ const EditProfile: React.FC = () => {
               type="submit"
               className="text-white bg-primary hover:bg-primary-focus focus:ring-4 focus:outline-none focus:ring-primary-focus font-medium rounded-lg text-sm w-full sm:w-full px-5 py-2.5 text-center"
             >
-              Guardar
+              {t("save")}
             </button>
             </div>
 
@@ -49,7 +49,7 @@ const EditProfile: React.FC = () => {
               type="button"
               className="bg-red-500 text-white text-sm rounded-lg focus:ring-red-600 focus:border-red-600 block w-full p-2.5 hover:bg-red-600"
             >
-              Delete account
+              {t("delete")}
             </button>
           </div>
           
@@ -59,13 +59,16 @@ const EditProfile: React.FC = () => {
   );
 };
 
-const ChangePassword: React.FC = () => (
+const ChangePassword: React.FC = () => 
+ { 
+  const {t} = useTranslation(["Perfil"])
+  return(
   <div className="w-full px-6 pb-8 mt-8 sm:max-w-xl sm:rounded-lg">
-    <h2 className="pl-6 text-2xl font-bold sm:text-xl">Change Password</h2>
+    <h2 className="pl-6 text-2xl font-bold sm:text-xl">{t("changeP")}</h2>
     {/* Cambiar contraseña */}
     <div className="grid max-w-2xl mx-auto mt-8">
       <div className="mb-2 sm:mb-6">
-        <label className="block mb-2 text-sm font-medium text-base-content">Current Password</label>
+        <label className="block mb-2 text-sm font-medium text-base-content">{t("currentP")}</label>
         <input
           type="password"
           id="current_password"
@@ -75,7 +78,7 @@ const ChangePassword: React.FC = () => (
         />
       </div>
       <div className="mb-2 sm:mb-6">
-        <label className="block mb-2 text-sm font-medium text-base-content">New Password</label>
+        <label className="block mb-2 text-sm font-medium text-base-content">{t("newP")}</label>
         <input
           type="password"
           id="new_password"
@@ -85,7 +88,7 @@ const ChangePassword: React.FC = () => (
         />
       </div>
       <div className="mb-2 sm:mb-6">
-        <label className="block mb-2 text-sm font-medium text-base-content">Confirm New Password</label>
+        <label className="block mb-2 text-sm font-medium text-base-content">{t("confirmP")}</label>
         <input
           type="password"
           id="confirm_new_password"
@@ -99,12 +102,12 @@ const ChangePassword: React.FC = () => (
           type="submit"
           className="text-white bg-primary hover:bg-primary-focus focus:ring-4 focus:outline-none focus:ring-primary-focus font-medium rounded-lg text-sm w-full sm:w-full px-5 py-2.5 text-center"
         >
-          Change Password
+          {t("changeP")}
         </button>
       </div>
     </div>
   </div>
-);
+)};
 
 const Profile: React.FC = () => {
   const [view, setView] = useState<string>('edit-profile');
@@ -125,7 +128,7 @@ const Profile: React.FC = () => {
             onClick={() => setView('change-password')}
             className={`flex items-center px-3 py-2.5 font-bold bg-base-100 ${view === 'change-password' ? 'text-primary border' : 'hover:text-primary hover:border'} rounded-full`}
           >
-            Change Password
+            {t("changeP")}
           </button>
         </div>
       </aside>

@@ -5,6 +5,7 @@ import MySVG from "../MYSVG.tsx";
 import lithologic from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
 import { useTranslation } from 'react-i18next';
+import ReactDOMServer from 'react-dom/server';
 
 // Estilos
 const styles = StyleSheet.create({
@@ -147,7 +148,7 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
   var thirdArray = []
   var splitIndex = header.indexOf("Espesor");
   var endIndex = Math.max(header.indexOf("Facie"), header.indexOf("Estructura fosil"), header.indexOf("Litologia"));
-  const { t } = useTranslation(['PDF','Description','Patterns']);
+  const { t } = useTranslation(['PDF', 'Description', 'Patterns']);
 
   for (let i = 0; i < header.length; i++) {
     if (i < splitIndex) {
@@ -177,12 +178,12 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
                   <View style={[styles.tableRow]} key={`first-${pageIndex}${index}${item}`}>
                     {Object.values(firstArray).map((key, i) => {
                       const htmlContent = data[item]?.[firstArray[i]] || null;
-                      const match = htmlContent? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
+                      const match = htmlContent ? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
                       const fontSize = match ? match[1] : "8px";
                       return (
                         <View style={[styles.tableCol, styles.tableCell]} key={`first-${pageIndex}${index}${item}${key}`}>
                           <Html key={`first-${pageIndex}${index}${item}${key}${i}`}
-                            style={[{ fontSize : fontSize, width: columnWidths[firstArray[i]], height: data[item].Litologia.Height * scale }]}>
+                            style={[{ fontSize: fontSize, width: columnWidths[firstArray[i]], height: data[item].Litologia.Height * scale }]}>
                             {(data[item]?.[firstArray[i]] || "")}
                           </Html>
                         </View>
@@ -204,10 +205,14 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
                         </View>
                       )}
                       {(secondArray[i] === "Estructura fosil" && imageFossils.length) && (
-                        <View key={`secondEST-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImgFosil-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
-                        </View>)}
+                      <View key={`secondEST-${pageIndex}${key}${i}`}
+
+
+                        style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
+                        <Img key={`secondImgFosil-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
+                 
+                      </View>
+                      )}
                       {(secondArray[i] === "Espesor" && imageEspesor.length) && (
                         <View key={`secondESP-${pageIndex}${key}${i}`}
                           style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
@@ -251,7 +256,7 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
                 <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={pattern[0]} style={{ height: 50, width: 50 }} />
                   <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
-                    {t(pattern[1],{ns:"Patterns"})}
+                    {t(pattern[1], { ns: "Patterns" })}
                   </Text>
                 </View>
               ))}
@@ -277,7 +282,7 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
                 <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={contact[0]} style={{ height: 30, width: 150 }} />
                   <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
-                    {t(contact[1],{ ns: 'Description' })}
+                    {t(contact[1], { ns: 'Description' })}
                   </Text>
                 </View>
               ))}
@@ -285,7 +290,6 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
           )}
         </View>
       </Page>
-
     </Document >
   )
 };
@@ -333,24 +337,26 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
   svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${originalHeight}`);
   svgCopy.style.transformOrigin = `0 0`;
   var combinedSVG = new XMLSerializer().serializeToString(svgCopy);
-  return new Promise((resolve, reject) => {
-    const canvas2 = document.createElement('canvas');
-    const ctx2 = canvas2.getContext('2d');
-    const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(svgBlob);
-    const img = new Image();
-    img.onload = () => {
-      canvas2.width = parseFloat(columnWidths[columnName]) * 96 / 2.54;
-      canvas2.height = height;
-      ctx2.drawImage(img, 0, 0);
-      const imgURL = canvas2.toDataURL('image/png', 1.0);
-      resolve(imgURL);
-    };
-    img.onerror = (e) => {
-      reject(e);
-    };
-    img.src = url;
-  })
+  
+    return new Promise((resolve, reject) => {
+      const canvas2 = document.createElement('canvas');
+      const ctx2 = canvas2.getContext('2d');
+      const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        canvas2.width = parseFloat(columnWidths[columnName]) * 96 / 2.54;
+        canvas2.height = height;
+        ctx2.drawImage(img, 0, 0);
+        const imgURL = canvas2.toDataURL('image/png', 1.0);
+        resolve(imgURL);
+      };
+      img.onerror = (e) => {
+        reject(e);
+      };
+      img.src = url;
+    })
+  
 }
 
 

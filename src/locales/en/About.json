@@ -1,0 +1,21 @@
+{
+    "create_column":"Crea tu propia columna estratigráfica",
+    "start":"Comenzar",
+    "uso":"When you register and log in, you will be directed to the main page where you can see your own projects and the projects to which you have been invited to collaborate. Additionally, on the left menu, there is a button for public projects. When clicked, it redirects to a map where all the projects designated as public by their creators can be viewed. Each of your own projects in the list has three options on the right to edit the project, delete the project, and invite a user (as a reader or editor). In the upper corner of the page, there is a 'create a new project' button. When you press the button, you will be redirected to a form where you must fill out information about the project to be created, such as the location of the column, the name of the editing room, and a brief description. There is also an option to decide whether the project's access will be public or private (in development).",
+    "add_layers":"Add layers",
+    "add_layers_text":"The above will create an empty room without any layers created and without any invited users. In the upper left corner, there is a button to add a layer. This opens a menu on the right side of the screen, where you can choose to add the layer above, below, or in a specific position.",
+    "edit_layer":"Edit layer",
+    "edit_layer_text":"Clicking on the created layer opens the menu on the right that allows you to edit its lower contact, the layer pattern, the layer size in cm, its colors, the pattern zoom, the pattern rotation, the tension of the lines that form the grain sizes, or simply delete the layer.",
+    "edit_points":"Edit points",
+    "edit_points_text" :"When selecting a point or creating a new one by selecting a right edge of the layer, a menu becomes visible where you can choose what grain size that point of the layer will have. You can also delete that point.",
+    "fossils":"Add and edit fossils",
+    "fossils_text":"By selecting the fossils column, a menu opens that allows you to add a new fossil, selecting the type of fossil, and the upper and lower limits where that fossil will be (in cm). The fossil is added at the position where the pointer was clicked. To edit a fossil, you just need to select it.",
+    "facies":"Add/Delete facies and facies sections",
+    "facies_text":"By selecting the facies column header, the right menu opens to add a new facies with the specified name. After the facies has been created, you must select the generated column of that facies to add a new section.",
+    "write_column":"Write in a column",
+    "write_column_text":"By selecting a cell in a column other than the lithology or fossil column, a menu opens on the right that allows you to write text in that cell. You can also write lists, add images, edit the text, etc. If another collaborator is editing the cell, a colored border will be shown, and hovering over it will reveal their identity.",
+    "exportPDF":"Export to PDF",
+    "exportPDF_text":"In the upper left corner of the editor, there is a PDF download button where you can edit PDF settings, such as the type of sheet or the layers that should not be visible.",
+    "room_and_table_settings":"Room and table settings",
+    "room_and_table_settings_text":"In the upper right corner of the room, there is also a settings button. Pressing it will show the menu on the right where you can adjust the scale of the layers of your column, the position of the ruler, and the visibility of the information columns. You can also select a visual theme that suits your preferences."
+}

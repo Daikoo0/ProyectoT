@@ -4,5 +4,11 @@
     "firstName" :"Your first name",
     "lastName":"Your last name",
     "email":"Your email",
-    "password":"Change Password"
+    "password":"Change Password",
+    "save":"Save",
+    "delete":"Delete account",
+    "changeP":"Change password",
+    "currentP":"Current password",
+    "newP":"New password",
+    "confirmP":"Confirm new password"
 }
