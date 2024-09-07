@@ -32,7 +32,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
     editingUsers, isInverted, alturaTd, setAlturaTd }) => {
-        const { t } = useTranslation(['PDF']);
+    const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
     var cellMaxWidth = 300;
@@ -420,7 +420,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                         onChange={(e) => handleColumns(e, key)}
                                                                         className="form-checkbox h-4 w-4 text-indigo-600"
                                                                     />
-                                                                    <span>{t(""+key)}</span>
+                                                                    <span>{t("" + key)}</span>
                                                                 </label>
                                                             </li>
                                                         );
@@ -528,7 +528,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     }}>
 
                                     <div className="flex justify-between items-center font-semibold">
-                                        <p className="text text-accent-content w-1/2">{t(""+columnName)}</p>
+                                        <p className="text text-accent-content w-1/2">{t("" + columnName)}</p>
 
                                         {columnName === "Litologia" ?
                                             <>
@@ -541,7 +541,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     style={{
                                                         background: "transparent",
                                                     }}>
-                                                    <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1={0.5 * (columnWidths["Litologia"] || 250)}x2={0.5 * (columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
+                                                    <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={0.5 * (columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
                                                     <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={(columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
 
                                                     <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"clay"} top={false} />
@@ -621,224 +621,263 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             ))}
                         </tr>
                     </thead>
-                    <tbody >
-                        {data.map((RowValue, rowIndex) => (
-                            <tr key={rowIndex} className="relative z-[0]">
-                                {header.map((columnName, columnIndex) => {
-
-                                    if (columnName === 'Espesor' && rowIndex === 0) {
-                                        return (
-                                            <td
-                                                ref={adfas}
-                                                key={`${rowIndex}-${columnIndex}`}
-                                                rowSpan={data.length}
-                                                className="border border-base-content"
-                                                style={{
-                                                    verticalAlign: "top",
-                                                }}
-                                            >
-                                                <div className="h-full max-h-full">
-                                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
-                                                </div>
-                                            </td>
-                                        );
-                                    } else if (columnName === 'Estructura fosil' && rowIndex === 0) {
-                                        return (
-                                            <td
-                                                id="fossils"
-                                                key={`${rowIndex}-${columnIndex}`}
-                                                rowSpan={data.length}
-                                                className="border border-base-content"
-                                                style={{
-                                                    verticalAlign: "top",
-                                                }}
-                                            >
-                                                <div className="h-full max-h-full"// tooltip" data-tip="hello"
-                                                    onClick={(e) => {
-                                                        if (e.target instanceof SVGSVGElement) {
-                                                            setSideBarState({
-                                                                sideBar: true,
-                                                                sideBarMode: "fosil"
-                                                            })
-                                                            setFormFosil({ id: '', upper: 0, lower: 0, fosilImg: '', x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cellWidth), fosilImgCopy: '' })
-                                                        }
+                    <tbody>
+                        {(isInverted ? data.slice().reverse() : data).map((RowValue, rowIndex) => {
+                            // Ajustar el índice para las filas invertidas
+                            const adjustedRowIndex = isInverted ? data.length - 1 - rowIndex : rowIndex;
+                            return (
+                                <tr key={adjustedRowIndex} className="relative z-[0]">
+                                    {header.map((columnName, columnIndex) => {
+                                        // Espesor: No se modifica el rowIndex ni el contenido
+                                        if (columnName === 'Espesor' && rowIndex === 0) {
+                                            return (
+                                                <td
+                                                    ref={adfas}
+                                                    key={`${adjustedRowIndex}-${columnIndex}`}
+                                                    rowSpan={data.length}
+                                                    className="border border-base-content"
+                                                    style={{
+                                                        verticalAlign: "top",
                                                     }}
-                                                    style={{ top: 0 }}>
-                                                    <svg id="fossilSvg" className="h-full max-h-full" width={columnWidths["Estructura fosil"] || cellWidth} height="0" overflow='visible'>
-                                                        {fossils ? (
-                                                            Object.keys(fossils).map((data, index) => (
+                                                >
+                                                    <div className="h-full max-h-full">
+                                                        <Ruler height={alturaTd} width={columnWidths["Espesor"] || 70} isInverted={isInverted} scale={scale} />
+                                                    </div>
+                                                </td>
+                                            );
+                                        }
 
-                                                                <Fosil
-                                                                    key={index}
-                                                                    keyID={data}
-                                                                    data={fossils[data]}
-                                                                    setSideBarState={setSideBarState}
-                                                                    setFormFosil={setFormFosil}
-                                                                    scale={scale}
-                                                                    litologiaX={columnWidths["Litologia"] || cellWidth}
-                                                                    columnW={columnWidths["Estructura fosil"] || cellWidth}
-                                                                />
+                                        // Estructura fosil: No se modifica el rowIndex ni el contenido
+                                        if (columnName === 'Estructura fosil' && rowIndex === 0) {
+                                            return (
+                                                <td
+                                                    id="fossils"
+                                                    key={`${adjustedRowIndex}-${columnIndex}`}
+                                                    rowSpan={data.length}
+                                                    className="border border-base-content"
+                                                    style={{
+                                                        verticalAlign: "top",
+                                                    }}
+                                                >
+                                                    <div
+                                                        className="h-full max-h-full"
+                                                        onClick={(e) => {
+                                                            if (e.target instanceof SVGSVGElement) {
+                                                                setSideBarState({
+                                                                    sideBar: true,
+                                                                    sideBarMode: "fosil",
+                                                                });
+                                                                setFormFosil({
+                                                                    id: '',
+                                                                    upper: 0,
+                                                                    lower: 0,
+                                                                    fosilImg: '',
+                                                                    x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cellWidth),
+                                                                    fosilImgCopy: '',
+                                                                });
+                                                            }
+                                                        }}
+                                                        style={{ top: 0 }}
+                                                    >
+                                                        <svg id="fossilSvg"
+                                                            className="h-full max-h-full"
+                                                            width={columnWidths["Estructura fosil"] || cellWidth}
+                                                            height="0" overflow="visible"
+                                                            // style={{
+                                                            //     transform: isInverted ? "scaleY(-1)" : "none",
+                                                            //     transformOrigin: "center",
+                                                            // }}
+                                                        >
+                                                            {fossils
+                                                                ? Object.keys(fossils).map((data, index) => (
+                                                                    <Fosil
+                                                                    isInverted={isInverted}
+                                                                        key={index}
+                                                                        keyID={data}
+                                                                        data={fossils[data]}
+                                                                        setSideBarState={setSideBarState}
+                                                                        setFormFosil={setFormFosil}
+                                                                        scale={scale}
+                                                                        litologiaX={columnWidths["Litologia"] || cellWidth}
+                                                                        columnW={columnWidths["Estructura fosil"] || cellWidth}
+                                                                    />
+                                                                ))
+                                                                : null}
+                                                        </svg>
+                                                    </div>
+                                                </td>
+                                            );
+                                        }
 
-                                                            ))
-                                                        ) : (null)}
-                                                    </svg>
-                                                </div>
-                                            </td>
-                                        );
-                                    }
-                                    else if (columnName === 'Facie' && rowIndex === 0) {
-                                        return (
-                                            <td
-                                                id="facies"
-                                                key={`${rowIndex}-${columnIndex}`}
-                                                rowSpan={data.length}
-                                                className="border border-base-content"
-                                                style={{
-                                                    verticalAlign: "top"
-                                                }}
-                                            >
-                                                <div className="h-full max-h-full"
-                                                    style={{ top: 0 }}>
-                                                    <svg id="svgFacies" className="h-full max-h-full" width={columnWidths["Facie"] || cellWidth} height="0" overflow='visible'>
-                                                        {facies ? (
-                                                            Object.keys(facies).map((key, index) => {
-                                                                const xPosp = "" + (((index + 1) / (Object.keys(facies).length + 1)) * 100) + "%";//(index + 1) * (w);
-                                                                const wp = "" + (((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1)) / (columnWidths["Facie"] || cellWidth) * 100) + "%";
-                                                                return (
-                                                                    <>
-
-                                                                        <rect x={xPosp} y="0" height="100%" width={wp} className="stroke stroke-base-content"
-                                                                            strokeWidth={"1"} fill="transparent"
-                                                                            data-value="value1"
-                                                                            onClick={() => {
-                                                                                setSideBarState({
-                                                                                    sideBar: true,
-                                                                                    sideBarMode: "facieSection"
-                                                                                })
-                                                                                setFormFacies({ facie: key })
-                                                                            }
-                                                                            }
-                                                                        />
-                                                                        {facies[key].map((value, i) => {
-                                                                            return (
+                                        // Facie: No se modifica el rowIndex ni el contenido
+                                        if (columnName === 'Facie' && rowIndex === 0) {
+                                            return (
+                                                <td
+                                                    id="facies"
+                                                    key={`${adjustedRowIndex}-${columnIndex}`}
+                                                    rowSpan={data.length}
+                                                    className="border border-base-content"
+                                                    style={{
+                                                        verticalAlign: "top",
+                                                    }}
+                                                >
+                                                    <div className="h-full max-h-full" style={{ top: 0 }}>
+                                                        <svg id="svgFacies"
+                                                            className="h-full max-h-full"
+                                                            width={columnWidths["Facie"] || cellWidth} height="0"
+                                                            overflow="visible"
+                                                            style={{
+                                                                transform: isInverted ? "scaleY(-1)" : "none",
+                                                                transformOrigin: "center",
+                                                            }}
+                                                        >
+                                                            {facies
+                                                                ? Object.keys(facies).map((key, index) => {
+                                                                    const xPosp = `${((index + 1) / (Object.keys(facies).length + 1)) * 100}%`;
+                                                                    const wp = `${(((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1)) / (columnWidths["Facie"] || cellWidth)) * 100}%`;
+                                                                    return (
+                                                                        <>
+                                                                            <rect
+                                                                                x={xPosp}
+                                                                                y="0"
+                                                                                height="100%"
+                                                                                width={wp}
+                                                                                className="stroke stroke-base-content"
+                                                                                strokeWidth={"1"}
+                                                                                fill="transparent"
+                                                                                data-value="value1"
+                                                                                onClick={() => {
+                                                                                    setSideBarState({
+                                                                                        sideBar: true,
+                                                                                        sideBarMode: "facieSection",
+                                                                                    });
+                                                                                    setFormFacies({ facie: key });
+                                                                                }}
+                                                                            />
+                                                                            {facies[key].map((value, i) => (
                                                                                 <>
-                                                                                    {/* strokeWidth={index<Object.keys(facies).length ? "1" : "0"} /> */}
                                                                                     <g key={i}>
                                                                                         <text
                                                                                             key={value}
                                                                                             fontSize={14}
                                                                                             className="fill fill-base-content"
-                                                                                            x={10}
-                                                                                            transform={`rotate(90, 5, ${parseFloat(value.y1) * scale})`}
-                                                                                            y={(parseFloat(value.y1) - 2) * scale}>{key}</text>
+                                                                                            x={isInverted ? -((parseFloat(value.y2) - parseFloat(value.y1)) * scale) : 10}
+                                                                                            transform={
+                                                                                                isInverted
+                                                                                                    ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+                                                                                                    : `rotate(90, 5, ${parseFloat(value.y1) * scale})`
+                                                                                            }
+                                                                                            y={(parseFloat(value.y1) - 2) * scale}
+
+                                                                                        >
+                                                                                            {key}
+                                                                                        </text>
                                                                                     </g>
-                                                                                    <rect data-custom="valor1"
+                                                                                    <rect
+                                                                                        data-custom="valor1"
                                                                                         key={value}
                                                                                         className="fill fill-base-content"
                                                                                         x={xPosp}
                                                                                         y={parseFloat(value.y1) * scale}
-                                                                                        width={wp}//width={(xPos - rectx) + 1}
-                                                                                        height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}  // Altura del rectángulo
+                                                                                        width={wp}
+                                                                                        height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}
                                                                                         onClick={() => {
                                                                                             setSideBarState({
                                                                                                 sideBar: true,
-                                                                                                sideBarMode: "facieSection"
-                                                                                            })
-                                                                                            setFormFacies({ facie: key })
-                                                                                        }
-                                                                                        }
+                                                                                                sideBarMode: "facieSection",
+                                                                                            });
+                                                                                            setFormFacies({ facie: key });
+                                                                                        }}
                                                                                     />
                                                                                 </>
-                                                                            )
-                                                                        })}
-                                                                    </>
-                                                                );
-                                                            })
-                                                        ) : null}
-                                                    </svg>
-                                                </div>
-                                            </td>
-                                        );
-                                    }
-                                    else if (columnName !== 'Estructura fosil' && columnName !== 'Espesor' && columnName !== 'Facie') {
-                                        return (
-                                            <td
-                                                key={`${rowIndex}-${columnIndex}`}
-                                                className={
-                                                    (editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia') ?
-                                                        (`border-2`) : (`border border-base-content`)
-                                                }
-                                                onClick={() => {
-                                                    if (columnName !== "Litologia") {
-                                                        setSideBarState({
-                                                            sideBar: true,
-                                                            sideBarMode: "text"
-                                                        });
-                                                        handleClickRow(rowIndex, columnName)
-                                                    }
-                                                    sendActionCell(rowIndex, columnIndex)
-                                                }}
-                                                style={{
-                                                    overflowY: (columnName === 'Litologia') ? 'visible' : 'auto',
-                                                    padding: '0',
-                                                    top: '0',
-                                                    borderTop: (columnName === 'Litologia') ? 'none' : '',   // Eliminar borde superior si es Litologia
-                                                    borderBottom: (columnName === 'Litologia') ? 'none' : '', // Eliminar borde inferior si es Litologia
-                                                    borderColor: (columnName !== 'Litologia') ? (editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color || '') : '',
-                                                    verticalAlign: "top",
-                                                }}
-                                                onMouseEnter={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseEnter : null}
-                                                onMouseLeave={(editingUsers?.[`[${rowIndex},${columnIndex}]`] && (columnName !== 'Litologia')) ? handleMouseLeave : null}
-                                            >
-                                                {(editingUsers?.[`[${rowIndex},${columnIndex}]`] && columnName !== 'Litologia' && hovered) ? <>
-                                                    <p style={{ fontSize: 12, backgroundColor: editingUsers?.[`[${rowIndex},${columnIndex}]`]?.color }} className="tooltip-text">{editingUsers?.[`[${rowIndex},${columnIndex}]`]?.name}</p>
-                                                </> : <></>
-                                                }
-                                                <div
-                                                    style={{
-                                                        maxHeight: `${RowValue.Litologia.Height * scale}px`,
-                                                        height: '100%',
-                                                    }}
-                                                >
-                                                    {columnName === 'Litologia' ?
-                                                        <>
-                                                            <Polygon
-                                                                rowIndex={rowIndex}
-                                                                Height={RowValue.Litologia.Height * scale}
-                                                                Width={columnWidths["Litologia"] || 250}
-                                                                File={lithoJson[RowValue.Litologia.File]}
-                                                                ColorFill={RowValue.Litologia.ColorFill}
-                                                                ColorStroke={RowValue.Litologia.ColorStroke}
-                                                                Zoom={RowValue.Litologia.Zoom}
-                                                                circles={RowValue.Litologia.Circles}
-                                                                addCircles={addCircles}
-                                                                openModalPoint={openModalPoint}
-                                                                setSideBarState={setSideBarState}
-                                                                handleClickRow={handleClickRow}
-                                                                tension={RowValue.Litologia.Tension}
-                                                                rotation={RowValue.Litologia.Rotation}
-                                                                contact={RowValue.Litologia.Contact}
-                                                                prevContact={RowValue.Litologia.PrevContact}
-                                                            />
-                                                        </>
-                                                        :
-                                                        <>
+                                                                            ))}
+                                                                        </>
+                                                                    );
+                                                                })
+                                                                : null}
+                                                        </svg>
+                                                    </div>
+                                                </td>
+                                            );
+                                        }
 
-                                                            <div
-                                                                className="ql-editor prose "
-                                                                dangerouslySetInnerHTML={{ __html: RowValue[columnName] }}
-                                                            />
-                                                        </>
+                                        // Para las demás columnas, usa el rowIndex ajustado si isInverted es true
+                                        if (columnName !== 'Estructura fosil' && columnName !== 'Espesor' && columnName !== 'Facie') {
+                                            return (
+                                                <td
+                                                    key={`${adjustedRowIndex}-${columnIndex}`}
+                                                    className={
+                                                        editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`] && columnName !== 'Litologia' ? 'border-2' : 'border border-base-content'
                                                     }
-                                                </div>
-                                            </td>
-                                        );
-                                    }
-                                    return null;
-                                })}
-                            </tr>
-                        ))}
+                                                    onClick={() => {
+                                                        if (columnName !== 'Litologia') {
+                                                            setSideBarState({
+                                                                sideBar: true,
+                                                                sideBarMode: 'text',
+                                                            });
+                                                            handleClickRow(adjustedRowIndex, columnName);
+                                                        }
+                                                        sendActionCell(adjustedRowIndex, columnIndex);
+                                                    }}
+                                                    style={{
+                                                        overflowY: columnName === 'Litologia' ? 'visible' : 'auto',
+                                                        padding: '0',
+                                                        top: '0',
+                                                        borderTop: columnName === 'Litologia' ? 'none' : '',
+                                                        borderBottom: columnName === 'Litologia' ? 'none' : '',
+                                                        borderColor: columnName !== 'Litologia' ? editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`]?.color || '' : '',
+                                                        verticalAlign: 'top',
+                                                    }}
+                                                    onMouseEnter={
+                                                        editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`] && columnName !== 'Litologia' ? handleMouseEnter : null
+                                                    }
+                                                    onMouseLeave={
+                                                        editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`] && columnName !== 'Litologia' ? handleMouseLeave : null
+                                                    }
+                                                >
+                                                    {editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`] && columnName !== 'Litologia' && hovered ? (
+                                                        <p style={{ fontSize: 12, backgroundColor: editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`]?.color }} className="tooltip-text">
+                                                            {editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`]?.name}
+                                                        </p>
+                                                    ) : null}
+                                                    <div style={{ maxHeight: `${RowValue.Litologia.Height * scale}px`, height: '100%' }}>
+                                                        {columnName === 'Litologia' ? (
+                                                            <>
+                                                                <Polygon
+                                                                    isInverted={isInverted}
+                                                                    rowIndex={adjustedRowIndex}
+                                                                    Height={RowValue.Litologia.Height * scale}
+                                                                    Width={columnWidths['Litologia'] || 250}
+                                                                    File={lithoJson[RowValue.Litologia.File]}
+                                                                    ColorFill={RowValue.Litologia.ColorFill}
+                                                                    ColorStroke={RowValue.Litologia.ColorStroke}
+                                                                    Zoom={RowValue.Litologia.Zoom}
+                                                                    circles={RowValue.Litologia.Circles}
+                                                                    addCircles={addCircles}
+                                                                    openModalPoint={openModalPoint}
+                                                                    setSideBarState={setSideBarState}
+                                                                    handleClickRow={handleClickRow}
+                                                                    tension={RowValue.Litologia.Tension}
+                                                                    rotation={RowValue.Litologia.Rotation}
+                                                                    contact={RowValue.Litologia.Contact}
+                                                                    prevContact={adjustedRowIndex > 0 ? (data[adjustedRowIndex - 1].Litologia.Contact) : "111"}
+                                                                />
+                                                            </>
+                                                        ) : (
+                                                            <div className="ql-editor prose" dangerouslySetInnerHTML={{ __html: RowValue[columnName] }} />
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            );
+                                        }
+
+                                        return null;
+                                    })}
+                                </tr>
+                            );
+                        })}
                     </tbody>
+
                 </table>
             </div>
         </>

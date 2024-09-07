@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import contacts from '../../contacts.json';
 
-const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact, prevContact }) => {
+const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact, prevContact }) => {
 
   const amplitude = 4;
   const resolution = 1;
-
+ 
   function generateWavePathData(
     startX,
     startY,
@@ -199,7 +199,12 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
 
   const patternId = `pattern-${rowIndex}`;
   return (
-    <svg width={Width} height={Height} overflow='visible'>
+    <svg width={Width} height={Height} overflow='visible'
+      style={{
+        transform: isInverted ? "scaleY(-1)" : "none",
+        transformOrigin: "center",
+      }}
+    >
 
       {/* Patrón SVG */}
       <defs>
@@ -239,7 +244,7 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
             y1={0}
             x2={points[points.length - 1].x}
             y2={points[points.length - 1].y}
-            className="stroke-current text-base-content"         
+            className="stroke-current text-base-content"
             strokeWidth={1}
             stroke="black"
           />
@@ -302,8 +307,12 @@ const PathComponent = ({ rowIndex, Height, Width, File, ColorFill, ColorStroke, 
         //pointerEvents='stroke' 
         onClick={(e) => handlePathClick(e)}
       />
+
       {contacts[contact].question ? <>
-        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height} fontSize="25" fontWeight={700} overflow={'visible'} fill="black">?</text>
+        <text x={(points[points.length - 2].x + points[points.length - 1].x) / 2} y={Height} fontSize="30" fontWeight={700} overflow={'visible'} fill="black"
+        // style={{transformOrigin: "center"}}
+        transform={isInverted? `scale(-1, 1) translate(-${Width/2},20)`:""}
+            >{isInverted? "¿" : "?"}  </text>
       </> : <></>
       }
 

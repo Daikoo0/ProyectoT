@@ -2,7 +2,7 @@ import { useState } from "react";
 import fosilJson from '../../fossil.json';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 
-const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW }) => {
+const Fosil = ({ isInverted, keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW }) => {
 
     const { loading, SvgIcon } = useDynamicSvgImport(fosilJson[data.fosilImg], 'fosiles');
 
@@ -43,30 +43,42 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className="fossilUnit"
-            style={{ cursor: 'pointer', margin: '10px' }}
+            style={{
+                transform: isInverted ? "scaleY(-1)" : "none",
+                transformOrigin: "center",
+            }}
         >
 
 
             {/* Lineas horizontal de arriba  */}
-            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={upper} x2={centerX} y2={upper} strokeWidth="1" strokeDasharray="5, 5" />
+            <line
+            className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={upper} x2={centerX} y2={upper} strokeWidth="1" strokeDasharray="5, 5" />
 
             {/* Linea vertical central  */}
-            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={lower} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
+            <line 
+            className={hovered ? "stroke-info" : "stroke-base-content"} x1={-litologiaX} y1={lower} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
 
             {/* Linea horizontal de abajo  */}
-            <line className={hovered ? "stroke-info" : "stroke-base-content"} x1={centerX} y1={upper} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
+            <line 
+            className={hovered ? "stroke-info" : "stroke-base-content"} x1={centerX} y1={upper} x2={centerX} y2={lower} strokeWidth="1" strokeDasharray="5, 5" />
 
             {/* Imagen del fosil  */}
-            <g id="iconFosil" className="stroke-base-content" transform={`translate(${gTranslateX},${gTranslateY}) `}>
+            <g 
+            id="iconFosil" className="stroke-base-content"
+            transform={isInverted? `translate(${gTranslateX},${gTranslateY+height}) rotate(180) scale(-1,1)`: `translate(${gTranslateX},${gTranslateY})`}
+            style={{ transformOrigin: `0 0` }}
+            >
 
                 {loading ?
-
-                    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 200 200"><circle className="stroke-primary" fill="none" strokeOpacity="1" strokeWidth=".5" cx="100" cy="100" r="0"><animate attributeName="r" calcMode="spline" dur="1.3" values="1;80" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-width" calcMode="spline" dur="1.3" values="0;25" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-opacity" calcMode="spline" dur="1.3" values="1;0" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate></circle></svg>
+                    <svg 
+                    xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 200 200"><circle className="stroke-primary" fill="none" strokeOpacity="1" strokeWidth=".5" cx="100" cy="100" r="0"><animate attributeName="r" calcMode="spline" dur="1.3" values="1;80" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-width" calcMode="spline" dur="1.3" values="0;25" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-opacity" calcMode="spline" dur="1.3" values="1;0" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate></circle></svg>
+                    
                     :
                     SvgIcon && (
-
-                        <SvgIcon {...{ width: width, height: height }} />
-
+                     
+                   
+                            <SvgIcon {...{ width: width, height: height }}/>
+            
                     )}
 
             </g>
