@@ -117,7 +117,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     useEffect(() => {
         const obtenerAlturaTd = () => {
             if (adfas.current) {
-                const altura = adfas.current.getBoundingClientRect().height;
+                const alturaBody = adfas.current.getBoundingClientRect().height;
+                const altura = alturaBody < 153
+                    ? data.reduce((total, item) => total + (item.Litologia?.Height || 0), 0)
+                    : alturaBody;
+
                 setAlturaTd(altura);
             }
         };
@@ -623,12 +627,10 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </thead>
                     <tbody>
                         {(isInverted ? data.slice().reverse() : data).map((RowValue, rowIndex) => {
-                            // Ajustar el índice para las filas invertidas
                             const adjustedRowIndex = isInverted ? data.length - 1 - rowIndex : rowIndex;
                             return (
                                 <tr key={adjustedRowIndex} className="relative z-[0]">
                                     {header.map((columnName, columnIndex) => {
-                                        // Espesor: No se modifica el rowIndex ni el contenido
                                         if (columnName === 'Espesor' && rowIndex === 0) {
                                             return (
                                                 <td
@@ -657,6 +659,10 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     className="border border-base-content"
                                                     style={{
                                                         verticalAlign: "top",
+                                                        'overflow': 'hidden',
+                                                        //'height': 5px; 
+                                                        'whiteSpace': 'nowrap',
+                                                        'textOverflow': 'ellipsis'
                                                     }}
                                                 >
                                                     <div
@@ -683,15 +689,15 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                             className="h-full max-h-full"
                                                             width={columnWidths["Estructura fosil"] || cellWidth}
                                                             height="0" overflow="visible"
-                                                            // style={{
-                                                            //     transform: isInverted ? "scaleY(-1)" : "none",
-                                                            //     transformOrigin: "center",
-                                                            // }}
+                                                        // style={{
+                                                        //     transform: isInverted ? "scaleY(-1)" : "none",
+                                                        //     transformOrigin: "center",
+                                                        // }}
                                                         >
                                                             {fossils
                                                                 ? Object.keys(fossils).map((data, index) => (
                                                                     <Fosil
-                                                                    isInverted={isInverted}
+                                                                        isInverted={isInverted}
                                                                         key={index}
                                                                         keyID={data}
                                                                         data={fossils[data]}
@@ -719,6 +725,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     className="border border-base-content"
                                                     style={{
                                                         verticalAlign: "top",
+                                                        'overflow': 'hidden',
+                                                        'whiteSpace': 'nowrap',
+                                                        'textOverflow': 'ellipsis'
                                                     }}
                                                 >
                                                     <div className="h-full max-h-full" style={{ top: 0 }}>
@@ -815,6 +824,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                 sideBar: true,
                                                                 sideBarMode: 'text',
                                                             });
+                                                            console.log(columnName)
                                                             handleClickRow(adjustedRowIndex, columnName);
                                                         }
                                                         sendActionCell(adjustedRowIndex, columnIndex);
@@ -824,9 +834,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         padding: '0',
                                                         top: '0',
                                                         borderTop: columnName === 'Litologia' ? 'none' : '',
-                                                        borderBottom: columnName === 'Litologia' ? 'none' : '',
+                                                        borderBottom: columnName === 'Litologia' ?
+                                                            (adjustedRowIndex === data.length ? '': 'none')
+                                                            : '',
                                                         borderColor: columnName !== 'Litologia' ? editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`]?.color || '' : '',
                                                         verticalAlign: 'top',
+                                                        overflow: 'hidden',
+                                                        whiteSpace: 'nowrap',
+                                                        textOverflow: 'ellipsis'
                                                     }}
                                                     onMouseEnter={
                                                         editingUsers?.[`[${adjustedRowIndex},${columnIndex}]`] && columnName !== 'Litologia' ? handleMouseEnter : null

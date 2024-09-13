@@ -753,7 +753,7 @@ const Grid = () => {
               switch (sideBarState.sideBarMode) {
                 case "config":
 
-                  const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
+                  const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "AmbienteDepositacional", "Descripcion"]
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className='pb-6 hidden lg:block'>{t("config")}</li>
@@ -901,14 +901,14 @@ const Grid = () => {
                       </li>
 
                       <li className='mb-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(0, formData.Height)}><p>{t("add_t")}</p></button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted? -1 : 0), formData.Height)}><p>{t("add_t")}</p></button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(formData.initialHeight, formData.Height)}><p>{t("add_index")}</p></button>
+                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted? data.length- formData.initialHeight :formData.initialHeight), formData.Height)}><p>{t("add_index")}</p></button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li className='mt-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(-1, formData.Height)}><p>{t("add_b")}</p></button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted? 0 : -1), formData.Height)}><p>{t("add_b")}</p></button>
                       </li>
                     </ul>
                   );

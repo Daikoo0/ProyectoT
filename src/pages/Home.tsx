@@ -71,7 +71,7 @@ const Home = () => {
         <div className="drawer-side">
           <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
           <ul className="menu px-4 w-80 min-h-full bg-base-200 text-base-content">
-            <li className='pb-6 hidden lg:block'><a className="btn btn-ghost text-xl">Proyecto T</a></li>
+            <li className='pb-6 hidden lg:block'><a className="btn btn-ghost text-xl">StrataScope</a></li>
             <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}><p>{t("Create_button")}</p></button>
             <li className="menu-title">{t("projects")}</li>
             <li onClick={() => setItem('tablaAll')}><a>{t("all_p")}</a></li>

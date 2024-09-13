@@ -199,10 +199,12 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
 
   const patternId = `pattern-${rowIndex}`;
   return (
-    <svg width={Width} height={Height} overflow='visible'
+    <svg width={Width} height={Height} 
+    overflow='visible'
       style={{
         transform: isInverted ? "scaleY(-1)" : "none",
         transformOrigin: "center",
+        opacity : "0.99"
       }}
     >
 

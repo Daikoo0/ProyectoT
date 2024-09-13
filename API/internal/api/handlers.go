@@ -163,7 +163,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 	datos := proyect.Config.Columns
 
-	orden := []string{"Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"}
+	orden := []string{"Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "AmbienteDepositacional", "Descripcion"}
 
 	var claves []string
 

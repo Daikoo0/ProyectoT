@@ -35,7 +35,7 @@ function LangSelector() {
     }, [i18n]);
 
     return (
-        <select value={lang} onChange={handleLangSelect}>
+        <select className="select select-primary w-full max-w-xs" value={lang} onChange={handleLangSelect}>
             <option value="en">EN</option>
             <option value="es">ES</option>
         </select>

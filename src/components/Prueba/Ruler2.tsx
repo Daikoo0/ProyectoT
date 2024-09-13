@@ -1,16 +1,21 @@
 const Ruler = ({ width, height, isInverted, scale }) => {
   const marks = [];
+  console.log(height)
 
   for (let i = 0; i <= height; i += 50 * scale) {
-    const position = i;
-    const text = isInverted ? `${Math.round((height - i) / (100 * scale))} m` : `${Math.round(i / (100 * scale))} m`;
+    // Ajusta la posición dependiendo de si es invertido o no
+    const position = isInverted ? height - i : i;
+
+    // Ajusta el texto para que sea correcto en ambas direcciones
+    const text = isInverted ? `${Math.round(i / (100 * scale))} m` : `${Math.round(i / (100 * scale))} m`;
 
     if (i % (100 * scale) === 0) {
       marks.push(
         <g key={`mark-${i}`}>
           <line className="stroke-base-content" x1={width - 20} y1={position} x2={width} y2={position} strokeWidth={2} />
           <text className="fill-base-content" x={width - 45} y={position - 5} fontSize={12} >
-            {i === 0 ? <tspan dy="15">{text}</tspan> : text}
+            {(i === 0) ?
+            (isInverted? <tspan dy="-5">{text}</tspan> : <tspan dy="15">{text}</tspan>) : text}
           </text>
         </g>
       );
@@ -22,10 +27,10 @@ const Ruler = ({ width, height, isInverted, scale }) => {
   }
 
   return (
-   
-      <svg id="rulerSvg" className="h-full max-h-full" width={width} overflow={'visible'}>
-        {marks}
-      </svg>
+    <svg id="rulerSvg" height={height<153? height:''} className="h-full max-h-full"
+     width={width} overflow={'hidden'}>
+      {marks}
+    </svg>
   );
 };
 

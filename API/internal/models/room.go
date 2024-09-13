@@ -56,7 +56,7 @@ type DataInfo struct {
 	Miembro                string         `json:"Miembro"`
 	Espesor                string         `json:"Espesor"`
 	Facie                  string         `json:"Facie"`
-	AmbienteDepositacional string         `json:"Ambiente Depositacional"`
+	AmbienteDepositacional string         `json:"AmbienteDepositacional"`
 	Descripcion            string         `json:"Descripcion"`
 	Litologia              LitologiaStruc `json:"Litologia"`
 }

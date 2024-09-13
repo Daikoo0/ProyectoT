@@ -255,6 +255,7 @@ const MyDocument = ({ oLev, date, etSec, oEstrat, infoProject, contacts, fossils
               {patterns.map((pattern) => (
                 <View style={[styles.tableRow, { marginTop: 10, flexDirection: "row", alignItems: 'center' }]}>
                   <Img src={pattern[0]} style={{ height: 50, width: 50 }} />
+                 
                   <Text style={{ marginLeft: 5, flexShrink: 1, fontSize: 12 }}>
                     {t(pattern[1], { ns: "Patterns" })}
                   </Text>

@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 
@@ -11,6 +12,7 @@ import (
 func UpdateFieldAll(litologia interface{}, field string, value interface{}) {
 	structValue := reflect.ValueOf(litologia).Elem()
 	structField := structValue.FieldByName(field)
+	log.Print(structField)
 
 	if !structField.IsValid() {
 		fmt.Println("Campo no reconocido:", field)
