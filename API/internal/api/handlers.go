@@ -80,7 +80,7 @@ func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.C
 
 		if len(rooms[roomID].Active) == 0 {
 			//guardar la sala
-			err := a.serv.SaveRoom(ctx, rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+			err := a.repo.SaveRoom(context.Background(), models.Project{ID: project.ID, ProjectInfo: project.ProjectInfo, Data: project.Data, Config: project.Config, Fosil: project.Fosil, Facies: project.Facies})
 			if err != nil {
 				return
 			}
@@ -226,7 +226,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							if roomActions[roomID] >= roomActionsThreshold {
 
 								// Función de guardado
-								err = a.serv.SaveRoom(context.Background(), rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+								err = a.repo.SaveRoom(context.Background(), models.Project{ID: proyect.ID, ProjectInfo: proyect.ProjectInfo, Data: proyect.Data, Config: proyect.Config, Fosil: proyect.Fosil, Facies: proyect.Facies})
 								if err != nil {
 									log.Println("Error guardando la sala automáticamente: ", err)
 								} else {
@@ -255,7 +255,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 								// Función de guardado
 								if rooms[roomID] != nil {
-									err = a.serv.SaveRoom(context.Background(), rooms[roomID].Data, rooms[roomID].Config, rooms[roomID].Fosil, roomID, rooms[roomID].Facies)
+									err = a.repo.SaveRoom(context.Background(), models.Project{ID: proyect.ID, ProjectInfo: proyect.ProjectInfo, Data: proyect.Data, Config: proyect.Config, Fosil: proyect.Fosil, Facies: proyect.Facies})
 									if err != nil {
 										log.Println("Error guardando la sala automáticamente: ", err)
 									} else {
@@ -278,6 +278,35 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "redo":
 					redo(proyect)
+
+				case "shareProyect":
+
+					editorToken, err := encryption.InviteToken(roomID, "editor")
+					if err != nil {
+						log.Println("Error generando token de editor: ", err)
+						break
+					}
+
+					readerToken, err := encryption.InviteToken(roomID, "reader")
+					if err != nil {
+						log.Println("Error generando token de lector: ", err)
+						break
+					}
+
+					msgData := map[string]interface{}{
+						"action":      "shareProyect",
+						"editorToken": editorToken,
+						"readerToken": readerToken,
+					}
+
+					shareproyect, err := json.Marshal(msgData)
+					if err != nil {
+						log.Println("Error al serializar mensaje:", err)
+					}
+
+					if user == proyect.ProjectInfo.Members.Owner {
+						conn.WriteMessage(websocket.TextMessage, shareproyect)
+					}
 
 				case "editingUser":
 
@@ -660,7 +689,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 				case "save":
 
-					a.save(proyect, roomID)
+					a.save(proyect)
 
 				case "columns":
 					var column dtos.Column
@@ -1078,9 +1107,9 @@ func isInverted(project *RoomData, dataMap GeneralMessage) {
 
 }
 
-func (a *API) save(project *RoomData, roomID string) {
+func (a *API) save(project *RoomData) {
 
-	err := a.serv.SaveRoom(context.Background(), project.Data, project.Config, project.Fosil, roomID, project.Facies)
+	err := a.repo.SaveRoom(context.Background(), models.Project{ID: project.ID, ProjectInfo: project.ProjectInfo, Data: project.Data, Config: project.Config, Fosil: project.Fosil, Facies: project.Facies})
 	if err != nil {
 		log.Println("No se guardo la data")
 	}
@@ -1138,4 +1167,69 @@ func contains(slice []string, value string) bool {
 		}
 	}
 	return false
+}
+
+func (a *API) ValidateInvitation(c echo.Context) error {
+
+	ctx := c.Request().Context()
+	log.Println("Validando invitación")
+
+	// Revisar Token de Invitación
+	var requestBody struct {
+		Token string `json:"token"`
+	}
+	if err := c.Bind(&requestBody); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+	}
+	claims, err := encryption.ParseInviteToken(requestBody.Token)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
+	}
+
+	// Revisar Token de autenticación
+	auth := c.Request().Header.Get("Authorization")
+	if auth == "" {
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+	claimsAuth, err := encryption.ParseLoginJWT(auth)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+
+	email := claimsAuth["email"].(string)
+
+	members, err := a.repo.GetMembers(ctx, claims.RoomID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, responseMessage{Message: err.Error()})
+	}
+
+	response := map[string]interface{}{
+		"status": "valid",
+		"roomID": claims.RoomID,
+		"role":   claims.Role,
+	}
+
+	//Revisar si el usuario ya es miembro
+	if members.Owner == email || contains(members.Editors, email) || contains(members.Readers, email) {
+		return c.JSON(http.StatusOK, response)
+	} else {
+
+		existingRoom, exists := rooms[claims.RoomID]
+		if exists {
+			switch claims.Role {
+			case "editor":
+				existingRoom.ProjectInfo.Members.Editors = append(existingRoom.ProjectInfo.Members.Editors, email)
+			case "reader":
+				existingRoom.ProjectInfo.Members.Readers = append(existingRoom.ProjectInfo.Members.Readers, email)
+			}
+		} else {
+			err := a.repo.AddUserToProject(ctx, claims.RoomID, email, claims.Role)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, responseMessage{Message: err.Error()})
+			}
+		}
+
+		return c.JSON(http.StatusOK, response)
+	}
 }

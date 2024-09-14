@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -80,9 +81,10 @@ func (a *API) AuthUser(c echo.Context) error {
 
 	_, err := c.Cookie("Authorization")
 	if err != nil {
+		log.Print("No cookie")
 		return c.NoContent(http.StatusUnauthorized) // HTTP 401 Unauthorized
 	}
-
+	log.Print("Cookie found")
 	return c.NoContent(http.StatusOK) // HTTP 200 OK
 }
 

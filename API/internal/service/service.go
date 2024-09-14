@@ -16,15 +16,10 @@ type Service interface {
 
 	// Room - room.service.go
 	GetRoom(ctx context.Context, roomName string) (*models.Project, error)
-	//GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectInfo, error)
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error
-	SaveRoom(ctx context.Context, data []models.DataInfo, config models.Config, fosil map[string]models.Fosil, roomName string, facies map[string][]models.FaciesSection) error
-	SaveProject(ctx context.Context, data string, name string) error
-	//GetPermission(ctx context.Context, correo string, proyectID string) (int, error)
 
 	// Profile - profile.service.go
 	GetProyects(ctx context.Context, user string) ([]models.InfoProject, error)
-	AddUser(ctx context.Context, user string, roomName string) error
 
 	// Auth - auth.service.go
 	RegisterUser(ctx context.Context, email, name, lastname, password string) error

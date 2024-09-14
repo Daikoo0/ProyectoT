@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Obtiene la info de todos los proyectos de un usuario
 func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.InfoProject, error) {
 	users := r.db.Collection("projects")
 
@@ -38,56 +39,7 @@ func (r *repo) GetProyects(ctx context.Context, correo string) ([]models.InfoPro
 	return projects, nil
 }
 
-// func (r *repo) GetPermission(ctx context.Context, correo string, proyectID string) (int, error) {
-// 	users := r.db.Collection("projects")
-
-// 	objectID, err := primitive.ObjectIDFromHex(proyectID)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	// Define el filtro usando bson.M en lugar de bson.D
-// 	filter := bson.M{
-// 		"_id": objectID,
-// 		"$or": []bson.M{
-// 			{"projectinfo.members.0": correo},
-// 			{"projectinfo.members.1": correo},
-// 			{"projectinfo.members.2": correo},
-// 		},
-// 	}
-
-// 	// Realiza la consulta
-// 	var room models.ProjectInfo
-// 	err = users.FindOne(ctx, filter).Decode(&room)
-// 	if err != nil {
-// 		// Manejar el error, por ejemplo, imprimirlo o devolverlo
-// 		if err == mongo.ErrNoDocuments {
-// 			// Si no se encuentra el proyecto, devolver un error específico o nil
-// 			return -1, errors.New("project not found")
-// 		}
-// 		return -1, err
-// 	}
-
-// 	for i := 0; i < 3; i++ {
-// 		// Verificar si el índice existe en la lista de miembros
-// 		if miembro, ok := room.Members[strconv.Itoa(i)]; ok {
-// 			switch v := miembro.(type) {
-// 			case string:
-// 				if v == correo {
-// 					return i, nil
-// 				}
-// 			case primitive.A:
-// 				for _, correoEnLista := range v {
-// 					if correoStr, ok := correoEnLista.(string); ok && correoStr == correo {
-// 						return i, nil
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return -1, nil // Correo no encontrado en ninguna lista
-// }
-
+// Obtiene la info de todos los proyectos publicos
 func (r *repo) HandleGetPublicProject(ctx context.Context) ([]models.InfoProject, error) {
 
 	db := r.db.Collection("projects")

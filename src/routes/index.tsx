@@ -10,6 +10,7 @@ const Home = lazy(() => import("../pages/Home"));
 const CreateProyect = lazy(() => import("../pages/create.proyect"));
 const Editor = lazy(() => import("../components/Prueba/Editor"));
 const Profile = lazy(() => import("../pages/perfil"));
+const Invite = lazy(() => import("../pages/Invite.user"));
 
 const Routes = () => {
   const { token } = useAuth();
@@ -54,6 +55,10 @@ const Routes = () => {
           path: "/myProfile",
           element: <Profile />,
         },
+        {
+          path: "/invite",
+          element: <Invite />,
+        }
       ],
     },
   ];

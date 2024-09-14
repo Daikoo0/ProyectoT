@@ -14,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Guarda un nuevo usuario
 func (r *repo) SaveUser(ctx context.Context, email, name, lastname, password string) error {
 	user := entity.User{
 		Email:    email,
@@ -33,6 +34,7 @@ func (r *repo) SaveUser(ctx context.Context, email, name, lastname, password str
 	return nil
 }
 
+// Obtiene un usuario por su email
 func (r *repo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	users := r.db.Collection("users")
 	filter := bson.M{"email": email}
@@ -56,20 +58,7 @@ func (r *repo) GetUserByEmail(ctx context.Context, email string) (*entity.User, 
 	return &user, nil
 }
 
-func (r *repo) AddUser(ctx context.Context, email string, roomName string) error {
-	users := r.db.Collection("users")
-	filter := bson.M{"email": email}
-	update := bson.M{"$push": bson.M{"proyects": roomName}}
-	opts := options.Update().SetUpsert(true)
-	_, err := users.UpdateOne(ctx, filter, update, opts)
-	if err != nil {
-		log.Println("Error updating room:", err)
-		return err
-	}
-
-	return nil
-}
-
+// Elimina un usuario de una sala
 func (r *repo) DeleteUserRoom(ctx context.Context, email string, roomID string) error {
 
 	projectID, err := primitive.ObjectIDFromHex(roomID)
@@ -100,6 +89,7 @@ func (r *repo) DeleteUserRoom(ctx context.Context, email string, roomID string) 
 	return nil
 }
 
+// Actualiza el perfil de un usuario
 func (r *repo) UpdateUserProfile(ctx context.Context, edit dtos.EditProfileRequest, email string) error {
 
 	users := r.db.Collection("users")

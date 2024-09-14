@@ -201,7 +201,7 @@ const Grid = () => {
             console.log(shapeN)
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
-            //setPolygons(Litologia)
+            
             setFacies(shapeN.facies)
             setHeader(shapeN.config.header)
             setFossils(shapeN.fosil)

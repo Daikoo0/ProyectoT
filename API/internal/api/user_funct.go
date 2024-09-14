@@ -43,7 +43,7 @@ func (a *API) projects(c echo.Context) error {
 	claims, err := encryption.ParseLoginJWT(auth)
 	if err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: err.Error()})
 	}
 
 	user := claims["email"].(string)

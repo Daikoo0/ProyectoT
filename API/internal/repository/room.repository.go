@@ -7,7 +7,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/ProyectoT/api/internal/entity"
 	"github.com/ProyectoT/api/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Obtiene todo el contenido de la sala
+// Obtiene todo el contenido de una sala
 func (r *repo) GetRoom(ctx context.Context, roomID string) (*models.Project, error) {
 
 	rooms := r.db.Collection("projects")
@@ -33,7 +32,7 @@ func (r *repo) GetRoom(ctx context.Context, roomID string) (*models.Project, err
 	return &room, nil
 }
 
-// Obtiene la informacion general de la sala (nombre, descripcion, etc)
+// Obtiene la info de una sala en específico
 func (r *repo) GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectInfo, error) {
 
 	rooms := r.db.Collection("projects")
@@ -56,6 +55,7 @@ func (r *repo) GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectI
 	return &projectInfo, nil
 }
 
+// Crea una nueva sala
 func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error {
 	rooms := r.db.Collection("projects")
 	anio, mes, dia := time.Now().Date()
@@ -116,6 +116,7 @@ func (r *repo) CreateRoom(ctx context.Context, roomName string, name string, cor
 	return nil
 }
 
+// Elimina una sala
 func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
 	dbProject := r.db.Collection("projects")
 
@@ -136,22 +137,22 @@ func (r *repo) DeleteProject(ctx context.Context, roomID string) error {
 	return nil
 }
 
-func (r *repo) SaveRoom(ctx context.Context, data []models.DataInfo, config models.Config, fosil map[string]models.Fosil, roomName string, facies map[string][]models.FaciesSection) error {
-	objectID, err := primitive.ObjectIDFromHex(roomName)
-	if err != nil {
-		return fmt.Errorf("invalid project ID: %w", err)
-	}
-	filter := bson.M{"_id": objectID}
+// Guarda una sala
+func (r *repo) SaveRoom(ctx context.Context, data models.Project) error {
+	rooms := r.db.Collection("projects")
+
+	filter := bson.M{"_id": data.ID}
 	update := bson.M{"$set": bson.M{
-		"data":   data,
-		"config": config,
-		"fosil":  fosil,
-		"facies": facies,
+		"projectinfo": data.ProjectInfo,
+		"data":        data.Data,
+		"config":      data.Config,
+		"fosil":       data.Fosil,
+		"facies":      data.Facies,
 	}}
 
-	rooms := r.db.Collection("projects")
 	opts := options.Update().SetUpsert(true)
-	_, err = rooms.UpdateOne(ctx, filter, update, opts)
+
+	_, err := rooms.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		log.Println("Error updating room:", err)
 		return err
@@ -160,6 +161,7 @@ func (r *repo) SaveRoom(ctx context.Context, data []models.DataInfo, config mode
 	return nil
 }
 
+// NO SE USA
 func (r *repo) AddUserToProject(ctx context.Context, email string, role string, roomID string) error {
 	// Obtener la colección "projects" de la base de datos
 	users := r.db.Collection("projects")
@@ -196,22 +198,8 @@ func (r *repo) AddUserToProject(ctx context.Context, email string, role string, 
 
 	return nil
 }
-func (r *repo) SaveProject(ctx context.Context, data string, name string) error {
-	project := entity.Project{
-		Name: name,
-		Data: data,
-	}
 
-	projects := r.db.Collection("projects")
-	_, err := projects.InsertOne(ctx, project)
-	if err != nil {
-		log.Println("Error saving project:", err)
-		return err
-	}
-
-	return nil
-}
-
+// Obtiene los miembros de una sala
 func (r *repo) GetMembers(ctx context.Context, roomID string) (*models.Members, error) {
 	rooms := r.db.Collection("projects")
 	var result struct {

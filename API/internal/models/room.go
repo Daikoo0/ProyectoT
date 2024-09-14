@@ -10,6 +10,12 @@ type Members struct {
 	Readers []string
 }
 
+// type LinkShare struct {
+// 	EditLink string `bson:"editLink"`
+// 	ReadLink string `bson:"readLink"`
+// 	Pswd     string `bson:"pswd"`
+// }
+
 type Config struct {
 	Columns    map[string]bool `bson:"columns" json:"Columns"`
 	IsInverted bool            `bson:"isInverted" json:"IsInverted"`

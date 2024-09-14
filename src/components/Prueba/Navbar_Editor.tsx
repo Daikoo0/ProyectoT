@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface NavbarProps {
@@ -12,6 +12,10 @@ interface NavbarProps {
     initialFormData: any;
 }
 
+interface InviteModalProps {
+    onInvite: () => void;
+}
+
 const Navbar: React.FC<NavbarProps> = ({
     config,
     openModal,
@@ -22,12 +26,17 @@ const Navbar: React.FC<NavbarProps> = ({
     infoProject,
     initialFormData
 }) => {
+
+    const handleInvite = () => {
+        socket.send(JSON.stringify({ action: 'shareProyect' }));
+    };
+
     return (
         <div className="navbar bg-base-200 fixed top-0 z-[100]">
             <div className="flex justify-between w-full">
                 {/* Contenedor para los elementos alineados a la izquierda */}
                 <div className="flex-none flex">
-                    <Link to="/home" className="tooltip tooltip-bottom pl-5"  data-tip={t("return")}>
+                    <Link to="/home" className="tooltip tooltip-bottom pl-5" data-tip={t("return")}>
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle ">
                             <svg className="w-6 h-6" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
                                 <path fill="currentColor" strokeLinejoin="round" strokeLinecap="round" d="M11.336 2.253a1 1 0 0 1 1.328 0l9 8a1 1 0 0 1-1.328 1.494L20 11.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7.55l-.336.297a1 1 0 0 1-1.328-1.494l9-8zM6 9.67V19h3v-5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5h3V9.671l-6-5.333-6 5.333zM13 19v-4h-2v4h2z" />
@@ -82,12 +91,46 @@ const Navbar: React.FC<NavbarProps> = ({
 
                 {/* Contenedor para los elementos alineados a la derecha */}
                 <div className="flex items-center space-x-4">
-                    <button className="btn">A</button>
-                    <button className="btn">B</button>
+                    <InviteModal
+                        onInvite={handleInvite}
+                    />
                 </div>
             </div>
+
         </div>
     );
 };
+
+const InviteModal: React.FC<InviteModalProps> = ({ onInvite }) => {
+
+    const [editorLink, setEditorLink] = useState('');
+    const [readerLink, setReaderLink] = useState('');
+
+
+    return (
+        <>
+            <button className="btn" onClick={() => (document.getElementById('modal_share') as HTMLDialogElement).showModal()}>open modal</button>
+
+            <dialog id="modal_share" className="modal">
+                <div className="modal-box border border-accent">
+                    <button onClick={onInvite}>Generar Enlaces de Invitación</button>
+                    {editorLink && (
+                        <p>Enlace de Editor: <a href={editorLink}>{editorLink}</a></p>
+                    )}
+                    {readerLink && (
+                        <p>Enlace de Lector: <a href={readerLink}>{readerLink}</a></p>
+                    )}
+
+                    <div className="flex justify-end">
+                        <form method="dialog">
+                            <button className="btn">Close</button>
+                        </form>
+                    </div>
+                </div>
+            </dialog>
+        </>
+    );
+};
+
 
 export default Navbar;

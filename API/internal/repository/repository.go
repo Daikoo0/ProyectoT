@@ -16,13 +16,12 @@ type Repository interface { //comunicaciones con la base de datos
 
 	// Room - room.repository.go
 	GetRoom(ctx context.Context, roomName string) (*models.Project, error)
-	GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectInfo, error)                                                                                            // Devuelve la entidad sala
-	GetMembers(ctx context.Context, roomID string) (*models.Members, error)                                                                                                 // Devuelve los miembros de una sala
-	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error               // Crea una sala
-	SaveProject(ctx context.Context, data string, name string) error                                                                                                        // Guarda un nuevo proyecto en la base de datos
-	SaveRoom(ctx context.Context, data []models.DataInfo, config models.Config, fosil map[string]models.Fosil, name string, facies map[string][]models.FaciesSection) error // Actualiza un proyecto en MongoDB
-	AddUserToProject(ctx context.Context, email string, role string, roomID string) error                                                                                   // Guarda los usuarios en una sala en la base de datos
-	DeleteProject(ctx context.Context, roomID string) error                                                                                                                 // Elimina un proyecto                                                                                                // Elimina un proyecto                                                                                                    // Elimina una sala de la base de datos
+	GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectInfo, error)                                                                              // Devuelve la entidad sala
+	GetMembers(ctx context.Context, roomID string) (*models.Members, error)                                                                                   // Devuelve los miembros de una sala
+	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error // Crea una sala                                                                                                       // Guarda un nuevo proyecto en la base de datos
+	SaveRoom(ctx context.Context, data models.Project) error                                                                                                  // Actualiza un proyecto en MongoDB
+	AddUserToProject(ctx context.Context, email string, role string, roomID string) error                                                                     // Guarda los usuarios en una sala en la base de datos
+	DeleteProject(ctx context.Context, roomID string) error                                                                                                   // Elimina un proyecto                                                                                                // Elimina un proyecto                                                                                                    // Elimina una sala de la base de datos
 
 	// Profile - profile.repository.go
 	GetProyects(ctx context.Context, email string) ([]models.InfoProject, error) // Devuelve los proyectos de un usuario
@@ -32,7 +31,6 @@ type Repository interface { //comunicaciones con la base de datos
 	// Users - user.repository.go
 	SaveUser(ctx context.Context, email, name, lastname, password string) error // Guarda un usuario en la base de datos
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)     // Devuelve la entidad usuario (OBJID, email, name, password, proyects)
-	AddUser(ctx context.Context, email string, roomName string) error           // Agrega un usuario a una sala
 	DeleteUserRoom(ctx context.Context, email string, roomName string) error    // Elimina un usuario de una sala
 	UpdateUserProfile(ctx context.Context, edit dtos.EditProfileRequest, email string) error
 

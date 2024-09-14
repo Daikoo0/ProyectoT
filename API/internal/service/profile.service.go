@@ -13,11 +13,3 @@ func (s *serv) GetProyects(ctx context.Context, user string) ([]models.InfoProje
 	}
 	return proyects, nil
 }
-
-func (s *serv) AddUser(ctx context.Context, user string, roomName string) error {
-	err := s.repo.AddUser(ctx, user, roomName)
-	if err != nil {
-		return err
-	}
-	return nil
-}

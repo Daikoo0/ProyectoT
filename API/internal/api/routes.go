@@ -17,7 +17,7 @@ func (a *API) RegisterRoutes(e *echo.Echo) {
 
 	e.GET("/search/public", a.HandleGetPublicProject) // search/public
 	e.GET("/ws/:room", a.HandleWebSocket)             //ws/sala
-	//e.POST("/project/:id/inviteUser", a.HandleInviteUser) //rooms/sala/usuario
+	e.POST("/validate-invitation", a.ValidateInvitation)
 	e.POST("/rooms/create", a.HandleCreateProyect) //rooms/sala/usuario
 	e.POST("/comment", a.AddComment)
 
