@@ -127,12 +127,12 @@ func UpdateFieldLit(litologia *models.LitologiaStruc, field string, value interf
 		} else {
 			fmt.Println("Valor inválido para Contact")
 		}
-	case "PrevContact":
-		if v, ok := value.(string); ok {
-			litologia.PrevContact = v
-		} else {
-			fmt.Println("Valor inválido para PrevContact")
-		}
+	// case "PrevContact":
+	// 	if v, ok := value.(string); ok {
+	// 		litologia.PrevContact = v
+	// 	} else {
+	// 		fmt.Println("Valor inválido para PrevContact")
+	// 	}
 	default:
 		fmt.Println("Campo no reconocido")
 	}

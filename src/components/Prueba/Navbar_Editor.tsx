@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
 interface NavbarProps {
@@ -10,10 +10,13 @@ interface NavbarProps {
     t: (key: string) => string;
     infoProject: { [key: string]: any } | null;
     initialFormData: any;
+    tokenLink: ({ editor: string; reader: string });
 }
 
 interface InviteModalProps {
-    onInvite: () => void;
+    tokenLink: ({ editor: string; reader: string });
+    getTokenLinks: () => void;
+    generateTokenLinks: () => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -24,12 +27,17 @@ const Navbar: React.FC<NavbarProps> = ({
     socket,
     t,
     infoProject,
-    initialFormData
+    initialFormData,
+    tokenLink
 }) => {
 
-    const handleInvite = () => {
-        socket.send(JSON.stringify({ action: 'shareProyect' }));
+    const getTokenLinks = () => {
+        socket.send(JSON.stringify({ action: 'tokenLink' }));
     };
+
+    const generateTokenLinks = () => {
+        socket.send(JSON.stringify({ action: 'generateTokenLink' }));
+    }
 
     return (
         <div className="navbar bg-base-200 fixed top-0 z-[100]">
@@ -92,7 +100,9 @@ const Navbar: React.FC<NavbarProps> = ({
                 {/* Contenedor para los elementos alineados a la derecha */}
                 <div className="flex items-center space-x-4">
                     <InviteModal
-                        onInvite={handleInvite}
+                        tokenLink={tokenLink}
+                        getTokenLinks={getTokenLinks}
+                        generateTokenLinks={generateTokenLinks}
                     />
                 </div>
             </div>
@@ -101,26 +111,56 @@ const Navbar: React.FC<NavbarProps> = ({
     );
 };
 
-const InviteModal: React.FC<InviteModalProps> = ({ onInvite }) => {
+const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, getTokenLinks, generateTokenLinks }) => {
 
-    const [editorLink, setEditorLink] = useState('');
-    const [readerLink, setReaderLink] = useState('');
 
 
     return (
         <>
-            <button className="btn" onClick={() => (document.getElementById('modal_share') as HTMLDialogElement).showModal()}>open modal</button>
+            <button className="btn" onClick={() => (document.getElementById('modal_share') as HTMLDialogElement).showModal()}>Share</button>
 
             <dialog id="modal_share" className="modal">
                 <div className="modal-box border border-accent">
-                    <button onClick={onInvite}>Generar Enlaces de Invitación</button>
-                    {editorLink && (
-                        <p>Enlace de Editor: <a href={editorLink}>{editorLink}</a></p>
+                    <button onClick={generateTokenLinks} className="btn btn-primary mb-4">Generar Enlaces de Invitación</button>
+                    <p className="mb-4">Utiliza los siguientes enlaces para invitar a otros usuarios. Haz clic en "Copy" para copiar el enlace al portapapeles.</p>
+                    {tokenLink.editor && (
+                        <div className="mb-4">
+                            <p className="font-bold mb-2">Enlace de Editor:</p>
+                            <div className="flex items-center">
+                                <input
+                                    type="text"
+                                    value={`${window.location.origin}/invite?token=${tokenLink.editor}`}
+                                    readOnly
+                                    className="input input-bordered w-full max-w-xs mr-2"
+                                />
+                                <button
+                                    onClick={() => navigator.clipboard.writeText(`${window.location.origin}/invite?token=${tokenLink.editor}`)}
+                                    className="btn btn-secondary"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
                     )}
-                    {readerLink && (
-                        <p>Enlace de Lector: <a href={readerLink}>{readerLink}</a></p>
+                    {tokenLink.reader && (
+                        <div className="mb-4">
+                            <p className="font-bold mb-2">Enlace de Lector:</p>
+                            <div className="flex items-center">
+                                <input
+                                    type="text"
+                                    value={`${window.location.origin}/invite?token=${tokenLink.reader}`}
+                                    readOnly
+                                    className="input input-bordered w-full max-w-xs mr-2"
+                                />
+                                <button
+                                    onClick={() => navigator.clipboard.writeText(`${window.location.origin}/invite?token=${tokenLink.reader}`)}
+                                    className="btn btn-secondary"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
                     )}
-
                     <div className="flex justify-end">
                         <form method="dialog">
                             <button className="btn">Close</button>

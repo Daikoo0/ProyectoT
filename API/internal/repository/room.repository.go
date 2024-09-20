@@ -148,6 +148,7 @@ func (r *repo) SaveRoom(ctx context.Context, data models.Project) error {
 		"config":      data.Config,
 		"fosil":       data.Fosil,
 		"facies":      data.Facies,
+		"shared":      data.Shared,
 	}}
 
 	opts := options.Update().SetUpsert(true)
@@ -176,7 +177,7 @@ func (r *repo) AddUserToProject(ctx context.Context, email string, role string, 
 	// Definir una actualización para agregar el correo electrónico a la lista correspondiente
 	update := bson.M{
 		"$push": bson.M{
-			"members." + role: email,
+			"projectinfo.members." + role: email,
 		},
 	}
 
@@ -194,6 +195,29 @@ func (r *repo) AddUserToProject(ctx context.Context, email string, role string, 
 		log.Printf("Room with id %s not found", roomID)
 	} else {
 		log.Printf("Successfully added user %s to role %s in room %s", email, role, roomID)
+	}
+
+	return nil
+}
+
+func (r *repo) UpdateMembers(ctx context.Context, roomID string, members models.Members) error {
+	rooms := r.db.Collection("projects")
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	filter := bson.M{"_id": objectID}
+	update := bson.M{"$set": bson.M{
+		"projectinfo.members": members,
+	}}
+
+	opts := options.Update().SetUpsert(true)
+
+	_, err = rooms.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		log.Println("Error updating room:", err)
+		return err
 	}
 
 	return nil
@@ -223,4 +247,35 @@ func (r *repo) GetMembers(ctx context.Context, roomID string) (*models.Members, 
 	}
 
 	return &result.ProjectInfo.Members, nil
+}
+
+func (r *repo) GetMembersAndPass(ctx context.Context, roomID string) (*models.Members, string, error) {
+
+	rooms := r.db.Collection("projects")
+	var result struct {
+		ProjectInfo struct {
+			Members models.Members `bson:"members"`
+		} `bson:"projectinfo"`
+		Shared struct {
+			Pass string `bson:"pass"`
+		} `bson:"shared"`
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(roomID)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	projection := bson.M{
+		"projectinfo.members": 1,
+		"shared.pass":         1,
+	}
+
+	err = rooms.FindOne(ctx, bson.M{"_id": objectID}, options.FindOne().SetProjection(projection)).Decode(&result)
+	if err != nil {
+		log.Print("aaaaa")
+		return nil, "", err
+	}
+
+	return &result.ProjectInfo.Members, result.Shared.Pass, nil
 }

@@ -10,15 +10,13 @@ type Members struct {
 	Readers []string
 }
 
-// type LinkShare struct {
-// 	EditLink string `bson:"editLink"`
-// 	ReadLink string `bson:"readLink"`
-// 	Pswd     string `bson:"pswd"`
-// }
-
 type Config struct {
 	Columns    map[string]bool `bson:"columns" json:"Columns"`
 	IsInverted bool            `bson:"isInverted" json:"IsInverted"`
+}
+
+type Shared struct {
+	Pass string `json:"pass"`
 }
 
 type Project struct {
@@ -28,6 +26,7 @@ type Project struct {
 	Config      Config                     `bson:"config"`
 	Fosil       map[string]Fosil           `bson:"fosil"`
 	Facies      map[string][]FaciesSection `bson:"facies"`
+	Shared      Shared                     `bson:"shared"`
 }
 
 type InfoProject struct {
@@ -68,16 +67,16 @@ type DataInfo struct {
 }
 
 type LitologiaStruc struct {
-	ColorFill   string        `json:"ColorFill"`
-	ColorStroke string        `json:"ColorStroke"`
-	File        string        `json:"File"`
-	Contact     string        `json:"Contact"`
-	PrevContact string        `json:"PrevContact"`
-	Zoom        int           `json:"Zoom"`
-	Rotation    int           `json:"Rotation"`
-	Height      int           `json:"Height"`
-	Tension     float32       `json:"Tension"`
-	Circles     []CircleStruc `json:"Circles"`
+	ColorFill   string `json:"ColorFill"`
+	ColorStroke string `json:"ColorStroke"`
+	File        string `json:"File"`
+	Contact     string `json:"Contact"`
+	//PrevContact string        `json:"PrevContact"`
+	Zoom     int           `json:"Zoom"`
+	Rotation int           `json:"Rotation"`
+	Height   int           `json:"Height"`
+	Tension  float32       `json:"Tension"`
+	Circles  []CircleStruc `json:"Circles"`
 }
 
 type CircleStruc struct {
@@ -143,8 +142,8 @@ func NewShape() DataInfo {
 				{X: 0.5, Y: 1, Radius: 5, Movable: true, Name: "none"},
 				{X: 0, Y: 1, Radius: 5, Movable: false},
 			},
-			Contact:     "111",
-			PrevContact: "111",
+			Contact: "111",
+			//PrevContact: "111",
 		},
 	}
 }

@@ -12,6 +12,7 @@ import (
 type InviteClaims struct {
 	RoomID string `json:"roomID"`
 	Role   string `json:"role"`
+	Pass   string `json:"pass"`
 	jwt.RegisteredClaims
 }
 
@@ -40,15 +41,19 @@ func ParseLoginJWT(value string) (jwt.MapClaims, error) {
 	return token.Claims.(jwt.MapClaims), nil
 }
 
-func InviteToken(roomID string, role string) (string, error) {
+func InviteToken(roomID string, role string, pass string) (string, error) {
 	key := os.Getenv("KEYPWD")
 	if key == "" {
 		return "", fmt.Errorf("clave secreta no configurada")
+	}
+	if pass == "" {
+		return "", fmt.Errorf("el campo pass es obligatorio")
 	}
 
 	claims := InviteClaims{
 		RoomID: roomID,
 		Role:   role,
+		Pass:   pass,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)), // Expiración en 7 días
 		},

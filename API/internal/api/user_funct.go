@@ -111,11 +111,11 @@ func (a *API) DeleteProject(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	auth := c.Request().Header.Get("Authorization")
-
 	if auth == "" {
 		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
 	}
 
+	// Parsear el token de autenticación
 	claims, err := encryption.ParseLoginJWT(auth)
 	if err != nil {
 		log.Println(err)
@@ -123,28 +123,65 @@ func (a *API) DeleteProject(c echo.Context) error {
 	}
 
 	user := claims["email"].(string)
-
 	id := c.Param("id")
-	proyect, err := a.repo.GetMembers(ctx, id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
-	}
 
-	if proyect.Owner != user {
-		err = a.repo.DeleteUserRoom(ctx, user, id)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete user"})
+	// Revisar si la sala ya está en memoria
+	existingRoom, exists := rooms[id]
+	if exists {
+		// Si la sala está en memoria, acceder a los miembros directamente
+		if existingRoom.ProjectInfo.Members.Owner != user {
+
+			existingRoom.ProjectInfo.Members.Editors = removeUser(existingRoom.ProjectInfo.Members.Editors, user)
+			existingRoom.ProjectInfo.Members.Readers = removeUser(existingRoom.ProjectInfo.Members.Readers, user)
+
+			// Actualizar la sala en base de datos
+			err = a.repo.UpdateMembers(ctx, id, existingRoom.ProjectInfo.Members)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete user from room"})
+			}
+
+		} else {
+			// Si el usuario es el dueño de la sala, eliminar el proyecto
+			err = a.repo.DeleteProject(ctx, id)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete room"})
+			}
+			// También puedes eliminar la sala de la memoria
+			delete(rooms, id)
 		}
-
 	} else {
-		err = a.repo.DeleteProject(ctx, id)
+		// Si la sala no está en memoria, consultarla desde la base de datos
+		proyect, err := a.repo.GetMembers(ctx, id)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete room"})
+			return c.JSON(http.StatusNotFound, responseMessage{Message: "Room not found"})
 		}
 
+		// Verificar si el usuario es dueño o no
+		if proyect.Owner != user {
+			// Eliminar al usuario de la sala en la base de datos
+			err = a.repo.DeleteUserRoom(ctx, user, id)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete user from room"})
+			}
+		} else {
+			// Eliminar el proyecto completo si el usuario es el dueño
+			err = a.repo.DeleteProject(ctx, id)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, responseMessage{Message: "Failed to delete room"})
+			}
+		}
 	}
 
 	return c.JSON(http.StatusOK, responseMessage{Message: "Room deleted successfully"})
+}
+
+func removeUser(users []string, userToRemove string) []string {
+	for i, u := range users {
+		if u == userToRemove {
+			return append(users[:i], users[i+1:]...)
+		}
+	}
+	return users
 }
 
 func (a *API) HandleGetPublicProject(c echo.Context) error {

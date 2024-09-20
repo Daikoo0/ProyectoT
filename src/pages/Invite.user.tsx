@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api/ApiClient'; // Asegúrate de que la ruta sea correcta
+import api from '../api/ApiClient'; 
 
 const InvitationHandler: React.FC = () => {
   const [status, setStatus] = useState<string | null>(null);

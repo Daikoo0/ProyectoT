@@ -18,9 +18,11 @@ type Repository interface { //comunicaciones con la base de datos
 	GetRoom(ctx context.Context, roomName string) (*models.Project, error)
 	GetRoomInfo(ctx context.Context, roomID string) (*models.ProjectInfo, error)                                                                              // Devuelve la entidad sala
 	GetMembers(ctx context.Context, roomID string) (*models.Members, error)                                                                                   // Devuelve los miembros de una sala
+	GetMembersAndPass(ctx context.Context, roomID string) (*models.Members, string, error)                                                                    // Devuelve los miembros y la contraseña de una sala
 	CreateRoom(ctx context.Context, roomName string, name string, correo string, desc string, location string, lat float64, long float64, visible bool) error // Crea una sala                                                                                                       // Guarda un nuevo proyecto en la base de datos
 	SaveRoom(ctx context.Context, data models.Project) error                                                                                                  // Actualiza un proyecto en MongoDB
 	AddUserToProject(ctx context.Context, email string, role string, roomID string) error                                                                     // Guarda los usuarios en una sala en la base de datos
+	UpdateMembers(ctx context.Context, roomID string, members models.Members) error                                                                           // Actualiza los miembros de una sala en la base de datos
 	DeleteProject(ctx context.Context, roomID string) error                                                                                                   // Elimina un proyecto                                                                                                // Elimina un proyecto                                                                                                    // Elimina una sala de la base de datos
 
 	// Profile - profile.repository.go

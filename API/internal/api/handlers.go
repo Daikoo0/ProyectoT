@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"crypto/rand"
 	"encoding/hex"
@@ -19,6 +20,11 @@ import (
 	"github.com/lithammer/shortuuid/v4"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type ErrorMessage struct {
+	Action  string `json:"action"`
+	Message string `json:"message"`
+}
 
 type responseMessage struct {
 	Message string `json:"message"`
@@ -40,6 +46,7 @@ type RoomData struct {
 	Config          models.Config
 	Fosil           map[string]models.Fosil
 	Facies          map[string][]models.FaciesSection
+	Shared          models.Shared
 	Active          []*websocket.Conn
 	SectionsEditing map[string]interface{}
 	UserColors      map[string]string
@@ -80,7 +87,7 @@ func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.C
 
 		if len(rooms[roomID].Active) == 0 {
 			//guardar la sala
-			err := a.repo.SaveRoom(context.Background(), models.Project{ID: project.ID, ProjectInfo: project.ProjectInfo, Data: project.Data, Config: project.Config, Fosil: project.Fosil, Facies: project.Facies})
+			err := a.repo.SaveRoom(context.Background(), models.Project{ID: project.ID, ProjectInfo: project.ProjectInfo, Data: project.Data, Config: project.Config, Fosil: project.Fosil, Facies: project.Facies, Shared: project.Shared})
 			if err != nil {
 				return
 			}
@@ -101,6 +108,13 @@ func RemoveElement(a *API, ctx context.Context, roomID string, conn *websocket.C
 }
 
 func (a *API) HandleWebSocket(c echo.Context) error {
+
+	// defer func() {
+	// 	if r := recover(); r != nil {
+	// 		log.Println("Recuperado de un error/panic:", r)
+	// 	}
+	// }()
+
 	ctx := c.Request().Context()
 	roomID := c.Param("room")
 
@@ -153,8 +167,20 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	} else if proyect.ProjectInfo.Visible {
 		permission = 2
 	} else {
-		errMessage := "Error: Access denied"
-		conn.WriteMessage(websocket.TextMessage, []byte(errMessage))
+		errMessage := ErrorMessage{
+			Action:  "error",
+			Message: "Access denied",
+		}
+
+		message, err := json.Marshal(errMessage)
+		if err != nil {
+			return err
+		}
+
+		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
+			return err
+		}
+
 		conn.Close()
 		return nil
 	}
@@ -226,7 +252,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 							if roomActions[roomID] >= roomActionsThreshold {
 
 								// Función de guardado
-								err = a.repo.SaveRoom(context.Background(), models.Project{ID: proyect.ID, ProjectInfo: proyect.ProjectInfo, Data: proyect.Data, Config: proyect.Config, Fosil: proyect.Fosil, Facies: proyect.Facies})
+								err = a.repo.SaveRoom(context.Background(), models.Project{ID: proyect.ID, ProjectInfo: proyect.ProjectInfo, Data: proyect.Data, Config: proyect.Config, Fosil: proyect.Fosil, Facies: proyect.Facies, Shared: proyect.Shared})
 								if err != nil {
 									log.Println("Error guardando la sala automáticamente: ", err)
 								} else {
@@ -255,7 +281,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 
 								// Función de guardado
 								if rooms[roomID] != nil {
-									err = a.repo.SaveRoom(context.Background(), models.Project{ID: proyect.ID, ProjectInfo: proyect.ProjectInfo, Data: proyect.Data, Config: proyect.Config, Fosil: proyect.Fosil, Facies: proyect.Facies})
+									err = a.repo.SaveRoom(context.Background(), models.Project{ID: proyect.ID, ProjectInfo: proyect.ProjectInfo, Data: proyect.Data, Config: proyect.Config, Fosil: proyect.Fosil, Facies: proyect.Facies, Shared: proyect.Shared})
 									if err != nil {
 										log.Println("Error guardando la sala automáticamente: ", err)
 									} else {
@@ -279,34 +305,13 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 				case "redo":
 					redo(proyect)
 
-				case "shareProyect":
+				case "tokenLink":
 
-					editorToken, err := encryption.InviteToken(roomID, "editor")
-					if err != nil {
-						log.Println("Error generando token de editor: ", err)
-						break
-					}
+					tokenLink(conn, roomID, user, proyect)
 
-					readerToken, err := encryption.InviteToken(roomID, "reader")
-					if err != nil {
-						log.Println("Error generando token de lector: ", err)
-						break
-					}
+				case "generateTokenLink":
 
-					msgData := map[string]interface{}{
-						"action":      "shareProyect",
-						"editorToken": editorToken,
-						"readerToken": readerToken,
-					}
-
-					shareproyect, err := json.Marshal(msgData)
-					if err != nil {
-						log.Println("Error al serializar mensaje:", err)
-					}
-
-					if user == proyect.ProjectInfo.Members.Owner {
-						conn.WriteMessage(websocket.TextMessage, shareproyect)
-					}
+					generateTokenLink(conn, roomID, user, proyect)
 
 				case "editingUser":
 
@@ -731,7 +736,7 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 	}
 
 	conn.Close()
-
+	log.Print("Me pitie la sala") //Mandar aviso para que no trate de reconectar
 	RemoveElement(a, ctx, roomID, conn, claims["email"].(string), proyect)
 	return nil
 }
@@ -772,6 +777,7 @@ func (a *API) instanceRoom(ctx context.Context, roomID string) *RoomData {
 		Config:          room.Config,
 		Fosil:           room.Fosil,
 		Facies:          room.Facies,
+		Shared:          room.Shared,
 		Active:          make([]*websocket.Conn, 0),
 		SectionsEditing: make(map[string]interface{}),
 		UserColors:      make(map[string]string),
@@ -794,8 +800,8 @@ func (a *API) HandleGetActiveProject(c echo.Context) error {
 	return c.JSON(http.StatusOK, keys)
 }
 
+// Generar un color aleatorio en formato hexadecimal
 func generateRandomColor() string {
-	// Generar un color aleatorio en formato hexadecimal
 	color := make([]byte, 3)
 	_, err := rand.Read(color)
 	if err != nil {
@@ -804,31 +810,20 @@ func generateRandomColor() string {
 	return "#" + hex.EncodeToString(color)
 }
 
-func añadir(project *RoomData, addData dtos.Add, newShape models.DataInfo) {
+// Generar una contraseña aleatoria de n bytes
+func generateRandomPass(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", fmt.Errorf("error generando pass aleatorio: %w", err)
+	}
+	return hex.EncodeToString(bytes), nil
+}
 
+func añadir(project *RoomData, addData dtos.Add, newShape models.DataInfo) {
 	rowIndex := addData.RowIndex
 	height := addData.Height
 
-	index := len(project.Data)
-	if rowIndex != -1 {
-		index = rowIndex
-	}
-
-	if index > 0 && index-1 < len(project.Data) {
-		newShape.Litologia.PrevContact = project.Data[index-1].Litologia.Contact
-	}
-
-	if index < len(project.Data) {
-		project.Data[index].Litologia.PrevContact = newShape.Litologia.Contact
-		msgData := map[string]interface{}{
-			"action":   "editPolygon",
-			"rowIndex": index,
-			"key":      "PrevContact",
-			"value":    newShape.Litologia.Contact,
-		}
-		sendSocketMessage(msgData, project, "editPolygon")
-	}
-
+	// Actualiza la altura si se proporciona
 	if height != 0 {
 		newShape.Litologia.Height = height
 	}
@@ -837,14 +832,17 @@ func añadir(project *RoomData, addData dtos.Add, newShape models.DataInfo) {
 		"action": "añadir",
 		"value":  newShape,
 	}
+
+	// Agrega el nuevo shape en la posición correspondiente
 	if rowIndex == -1 { // Agrega al final
 		project.Data = append(project.Data, newShape)
 		msgData["action"] = "añadirEnd"
-	} else { // Agrega en el índice encontrado
+	} else { // Agrega en la posición indicada
 		project.Data = append(project.Data[:rowIndex], append([]models.DataInfo{newShape}, project.Data[rowIndex:]...)...)
 		msgData["rowIndex"] = rowIndex
 	}
 
+	// Envía el mensaje al socket
 	sendSocketMessage(msgData, project, msgData["action"].(string))
 }
 
@@ -861,24 +859,10 @@ func deleteRow(project *RoomData, deleteData dtos.Delete) {
 		return
 	}
 
-	if rowIndex+1 < len(project.Data) {
-		if rowIndex-1 >= 0 {
-			project.Data[rowIndex+1].Litologia.PrevContact = project.Data[rowIndex-1].Litologia.Contact
-		} else {
-			project.Data[rowIndex+1].Litologia.PrevContact = "111"
-		}
-
-		msgData2 := map[string]interface{}{
-			"action":   "editPolygon",
-			"rowIndex": rowIndex + 1,
-			"key":      "PrevContact",
-			"value":    project.Data[rowIndex+1].Litologia.PrevContact,
-		}
-		sendSocketMessage(msgData2, project, "editPolygon")
-	}
-
+	// Eliminar la fila especificada
 	project.Data = append(project.Data[:rowIndex], project.Data[rowIndex+1:]...)
 
+	// Preparar y enviar el mensaje de eliminación
 	msgData := map[string]interface{}{
 		"action":   "delete",
 		"rowIndex": rowIndex,
@@ -915,6 +899,7 @@ func editPolygon(project *RoomData, polygon dtos.EditPolygon) {
 
 	roomData := &project.Data[rowIndex].Litologia
 
+	// Actualiza el campo correspondiente en Litologia
 	UpdateFieldLit(roomData, column, value)
 
 	msgData := map[string]interface{}{
@@ -924,21 +909,7 @@ func editPolygon(project *RoomData, polygon dtos.EditPolygon) {
 		"value":    value,
 	}
 
-	if column == "Contact" && rowIndex+1 < len(project.Data) {
-
-		project.Data[rowIndex+1].Litologia.PrevContact = value.(string)
-
-		msgData2 := map[string]interface{}{
-			"action":   "editPolygon",
-			"rowIndex": rowIndex + 1,
-			"key":      "PrevContact",
-			"value":    value,
-		}
-		sendSocketMessage(msgData2, project, "editPolygon")
-	}
-
 	sendSocketMessage(msgData, project, "editPolygon")
-
 }
 
 func addCircle(project *RoomData, addCircleData dtos.AddCircle, newCircle models.CircleStruc) {
@@ -1109,7 +1080,7 @@ func isInverted(project *RoomData, dataMap GeneralMessage) {
 
 func (a *API) save(project *RoomData) {
 
-	err := a.repo.SaveRoom(context.Background(), models.Project{ID: project.ID, ProjectInfo: project.ProjectInfo, Data: project.Data, Config: project.Config, Fosil: project.Fosil, Facies: project.Facies})
+	err := a.repo.SaveRoom(context.Background(), models.Project{ID: project.ID, ProjectInfo: project.ProjectInfo, Data: project.Data, Config: project.Config, Fosil: project.Fosil, Facies: project.Facies, Shared: project.Shared})
 	if err != nil {
 		log.Println("No se guardo la data")
 	}
@@ -1169,10 +1140,96 @@ func contains(slice []string, value string) bool {
 	return false
 }
 
+func generateTokenLink(conn *websocket.Conn, roomID string, user string, proyect *RoomData) {
+
+	storedpass, err := generateRandomPass(8)
+	if err != nil {
+		log.Println("Error generando contraseña aleatoria: ", err)
+		return
+	}
+
+	editorToken, err := encryption.InviteToken(roomID, "editors", storedpass)
+	if err != nil {
+		log.Println("Error generando token de editor: ", err)
+		return
+	}
+
+	readerToken, err := encryption.InviteToken(roomID, "readers", storedpass)
+	if err != nil {
+		log.Println("Error generando token de lector: ", err)
+		return
+	}
+
+	proyect.Shared.Pass = storedpass
+
+	msgData := map[string]interface{}{
+		"action": "tokenLink",
+		"editor": editorToken,
+		"reader": readerToken,
+	}
+
+	shareproyect, err := json.Marshal(msgData)
+	if err != nil {
+		log.Println("Error al serializar mensaje:", err)
+	}
+
+	if user == proyect.ProjectInfo.Members.Owner {
+		conn.WriteMessage(websocket.TextMessage, shareproyect)
+	}
+
+}
+
+func tokenLink(conn *websocket.Conn, roomID string, user string, proyect *RoomData) {
+	if user == proyect.ProjectInfo.Members.Owner {
+
+		storedpass := proyect.Shared.Pass
+		if storedpass == "" {
+			return
+		}
+
+		editorToken, err := encryption.InviteToken(roomID, "editors", storedpass)
+		if err != nil {
+			log.Println("Error generando token de editor: ", err)
+			return
+		}
+
+		readerToken, err := encryption.InviteToken(roomID, "readers", storedpass)
+		if err != nil {
+			log.Println("Error generando token de lector: ", err)
+			return
+		}
+
+		msgData := map[string]interface{}{
+			"action": "tokenLink",
+			"editor": editorToken,
+			"reader": readerToken,
+		}
+
+		shareproyect, err := json.Marshal(msgData)
+		if err != nil {
+			log.Println("Error al serializar mensaje:", err)
+		}
+
+		conn.WriteMessage(websocket.TextMessage, shareproyect)
+	}
+
+}
+
 func (a *API) ValidateInvitation(c echo.Context) error {
 
 	ctx := c.Request().Context()
 	log.Println("Validando invitación")
+
+	// Revisar Token de autenticación
+	auth := c.Request().Header.Get("Authorization")
+	if auth == "" {
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
+	claimsAuth, err := encryption.ParseLoginJWT(auth)
+	if err != nil {
+		log.Println(err)
+		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
+	}
 
 	// Revisar Token de Invitación
 	var requestBody struct {
@@ -1186,22 +1243,27 @@ func (a *API) ValidateInvitation(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
 	}
 
-	// Revisar Token de autenticación
-	auth := c.Request().Header.Get("Authorization")
-	if auth == "" {
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-	claimsAuth, err := encryption.ParseLoginJWT(auth)
-	if err != nil {
-		log.Println(err)
-		return c.JSON(http.StatusUnauthorized, responseMessage{Message: "Unauthorized"})
-	}
-
 	email := claimsAuth["email"].(string)
+	storedPass := claims.Pass
 
-	members, err := a.repo.GetMembers(ctx, claims.RoomID)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, responseMessage{Message: err.Error()})
+	// Verificar si la sala está en memoria
+	existingRoom, exists := rooms[claims.RoomID]
+	var members *models.Members
+	var pass string
+	if exists {
+		members = &existingRoom.ProjectInfo.Members
+		pass = existingRoom.Shared.Pass
+	} else {
+		var err error
+		members, pass, err = a.repo.GetMembersAndPass(ctx, claims.RoomID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, responseMessage{Message: err.Error()})
+		}
+	}
+
+	if pass != storedPass {
+		log.Println("Contraseña incorrecta")
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid or expired token"})
 	}
 
 	response := map[string]interface{}{
@@ -1210,26 +1272,26 @@ func (a *API) ValidateInvitation(c echo.Context) error {
 		"role":   claims.Role,
 	}
 
-	//Revisar si el usuario ya es miembro
+	// Usuario ya es miembro
 	if members.Owner == email || contains(members.Editors, email) || contains(members.Readers, email) {
 		return c.JSON(http.StatusOK, response)
-	} else {
-
-		existingRoom, exists := rooms[claims.RoomID]
-		if exists {
-			switch claims.Role {
-			case "editor":
-				existingRoom.ProjectInfo.Members.Editors = append(existingRoom.ProjectInfo.Members.Editors, email)
-			case "reader":
-				existingRoom.ProjectInfo.Members.Readers = append(existingRoom.ProjectInfo.Members.Readers, email)
-			}
-		} else {
-			err := a.repo.AddUserToProject(ctx, claims.RoomID, email, claims.Role)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, responseMessage{Message: err.Error()})
-			}
-		}
-
-		return c.JSON(http.StatusOK, response)
 	}
+
+	// Si el usuario no es miembro, añadirlo
+	if exists {
+		switch claims.Role {
+		case "editors":
+			existingRoom.ProjectInfo.Members.Editors = append(existingRoom.ProjectInfo.Members.Editors, email)
+		case "readers":
+			existingRoom.ProjectInfo.Members.Readers = append(existingRoom.ProjectInfo.Members.Readers, email)
+		}
+	} else {
+		err := a.repo.AddUserToProject(context.Background(), email, claims.Role, claims.RoomID)
+		if err != nil {
+			log.Print("Error añadiendo usuario a la sala: ")
+			return c.JSON(http.StatusInternalServerError, responseMessage{Message: err.Error()})
+		}
+	}
+
+	return c.JSON(http.StatusOK, response)
 }

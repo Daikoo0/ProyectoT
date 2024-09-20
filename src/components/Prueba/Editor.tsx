@@ -31,7 +31,8 @@ const Grid = () => {
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
   const [messageFacie, setMessageFacie] = useState('');
-  const [infoProject, setInfoProject] = useState()
+  const [infoProject, setInfoProject] = useState();
+  const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
   var contactsSvg = []
   {
     Object.keys(contacts).map((contact) => {
@@ -201,7 +202,7 @@ const Grid = () => {
             console.log(shapeN)
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
-            
+
             setFacies(shapeN.facies)
             setHeader(shapeN.config.header)
             setFossils(shapeN.fosil)
@@ -351,6 +352,20 @@ const Grid = () => {
               }));
             }
             break;
+          case 'tokenLink':
+            console.log(shapeN)
+            setTokenLink({
+              editor: shapeN.editor,
+              reader: shapeN.reader
+            })
+            break
+          case 'error':
+            if (shapeN.message === 'Access denied') {
+              console.error('Acceso denegado');
+              socket.close();  // Cerrar el socket
+              isPageActive.current = false;  // Desactivar reconexión
+            }
+            return
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
             break;
@@ -660,6 +675,7 @@ const Grid = () => {
             t={t}
             infoProject={infoProject}
             initialFormData={initialFormData}
+            tokenLink={tokenLink}
           />
 
           <Tabla
@@ -901,14 +917,14 @@ const Grid = () => {
                       </li>
 
                       <li className='mb-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted? -1 : 0), formData.Height)}><p>{t("add_t")}</p></button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? -1 : 0), formData.Height)}><p>{t("add_t")}</p></button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted? data.length- formData.initialHeight :formData.initialHeight), formData.Height)}><p>{t("add_index")}</p></button>
+                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? data.length - formData.initialHeight : formData.initialHeight), formData.Height)}><p>{t("add_index")}</p></button>
                         <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
                       </li>
                       <li className='mt-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted? 0 : -1), formData.Height)}><p>{t("add_b")}</p></button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? 0 : -1), formData.Height)}><p>{t("add_b")}</p></button>
                       </li>
                     </ul>
                   );
