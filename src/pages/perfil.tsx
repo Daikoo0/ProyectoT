@@ -117,7 +117,7 @@ const Profile: React.FC = () => {
     <div className="bg-base-100 w-full flex flex-col gap-5 px-3 md:px-16 lg:px-28 md:flex-row text-base-content">
       <aside className="hidden py-4 md:w-1/3 lg:w-1/4 md:block min-h-screen border-r border-base-300 my-8">
         <div className="sticky flex flex-col gap-2 p-4 text-sm top-12">
-          <h2 className="pl-3 mb-4 text-2xl font-semibold">Account Settings</h2>
+          <h2 className="pl-3 mb-4 text-2xl font-semibold">{t("settings")}</h2>
           <button
             onClick={() => setView('edit-profile')}
             className={`flex items-center px-3 py-2.5 font-bold bg-base-100 ${view === 'edit-profile' ? 'text-primary border' : 'hover:text-primary hover:border'} rounded-full`}

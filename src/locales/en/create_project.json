@@ -1,0 +1,15 @@
+{
+    "complete":"Please complete all fields.",
+    "error_create":"Error creating room",
+    "unknown_error":"Unknown error",
+    "success": "Room successfully created",
+    "create":"Create a new project",
+    "name":"Room name",
+    "location":"Location",
+    "latitude":"Latitude",
+    "longitude":"Longitude",
+    "description":"Description",
+    "public":"Public",
+    "private":"Private",
+    "create_room":"Create room"
+}

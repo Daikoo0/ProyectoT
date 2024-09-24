@@ -20,6 +20,8 @@ import PerfilES from './locales/es/Perfil.json';
 import PerfilEN from './locales/en/Perfil.json';
 import AboutES from './locales/es/About.json';
 import AboutEN from './locales/en/About.json';
+import createProjectES from './locales/es/create_project.json';
+import createProjectEN from './locales/en/create_project.json';
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -32,6 +34,7 @@ i18n.use(initReactI18next).init({
       Patterns : PatternsEN,
       Perfil: PerfilEN,
       About: AboutEN,
+      CProject : createProjectEN,
     },
     es: {
         Editor: editorES,
@@ -42,10 +45,11 @@ i18n.use(initReactI18next).init({
         Patterns : PatternsES,
         Perfil: PerfilES,
         About: AboutES,
+        CProject : createProjectES,
     },
   },
     fallbackLng: "es",
-    ns: ['PDF', 'Home','Editor','Login','Description','Patterns','Perfil','About'],
+    ns: ['PDF', 'Home','Editor','Login','Description','Patterns','Perfil','About','CProject'],
     interpolation: {
         escapeValue: false
     },

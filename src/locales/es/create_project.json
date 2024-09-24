@@ -1,0 +1,15 @@
+{
+    "complete":"Por favor, completa todos los campos.",
+    "error_create":"Error al crear la sala",
+    "unknown_error":"Error desconocido",
+    "success": "Sala creada con éxito",
+    "create":"Crea un nuevo proyecto",
+    "name":"Nombre de la sala",
+    "location":"Localización",
+    "latitude":"Latitud",
+    "longitude":"Longitud",
+    "description":"Descripción",
+    "public":"Público",
+    "private":"Privado",
+    "create_room":"Crea una sala"
+}

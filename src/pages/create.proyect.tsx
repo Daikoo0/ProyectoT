@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Marker, useMapEvents } from 'react-leaflet'
 import Map from '../components/Web/Map';
 import api from '../api/ApiClient';
-
 import Navbar from '../components/Web/Narbar';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../provider/authProvider';
 
 const ParticipantForm = () => {
 
@@ -13,7 +14,8 @@ const ParticipantForm = () => {
   const [desc, setDesc] = useState('');
   const [lat, setLat] = useState(null);
   const [long, setLong] = useState(null);
-  const [message, setMessage] = useState('')
+  const [message, setMessage] = useState('');
+  const { t } = useTranslation("CProject");
 
   function LocationMarker() {
     const map = useMapEvents({
@@ -33,7 +35,7 @@ const ParticipantForm = () => {
         animate: true,
       })
     }
-    if(lat === '' || long === ''){
+    if (lat === '' || long === '') {
       map.setView([-38.7027177, -72.5338521], map.getZoom(), {
         animate: true,
       })
@@ -55,10 +57,10 @@ const ParticipantForm = () => {
   async function handleSubmit() {
     // Comprobar que todos los campos estén llenos
     if (!roomName || !location || !lat || !long || !desc) {
-      setMessage("Por favor, completa todos los campos.");
+     setMessage("complete");
       return;
     }
-  
+
     var Data = {
       roomName: roomName,
       location: location,
@@ -67,45 +69,44 @@ const ParticipantForm = () => {
       desc: desc,
       visible: visible
     };
-  
+
     try {
       const response = await api.post(`/rooms/create`, Data);
-  
+
       console.log(response.status);
-  
+
       if (response.status === 200) {
-        setMessage("Sala " + roomName + " creada con éxito");
-        // Redireccionar al home
+        setMessage("success");
         window.location.href = "/home";
       } else if (response.status === 500) {
-        setMessage("Error al crear la sala");
+        setMessage("error_create");
       } else {
-        setMessage("Error desconocido");
+        setMessage("unknown_error");
       }
     } catch (error) {
       console.error("Error:", error);
-      setMessage("Ha ocurrido un error al procesar tu solicitud.");
+      setMessage("unknown_error");
     }
   }
-  
+
 
   return (
     <div className='flex-1'>
-      
+
       <Navbar logohidden={true} />
 
       <div className="flex w-full">
         <div className="grid h-full w-1/2 flex-grow card bg-base-300 rounded-box place-items-center p-4 ">
 
-          <h1 className="text-5xl font-bold">Crea un nuevo proyecto</h1>
+          <h1 className="text-5xl font-bold">{t("create")}</h1>
 
           <div className="flex p-6 w-full">
             <div className="form-control w-full max-w-xs mr-2">
 
-              <label className="label-text">Nombre de la sala:</label>
+              <label className="label-text">{t("name")}</label>
               <input
                 className="input input-bordered w-full max-w-xs"
-                placeholder="Nombre Sala"
+                placeholder={t("name")}
                 type="text"
                 id="roomName"
                 value={roomName}
@@ -114,7 +115,7 @@ const ParticipantForm = () => {
             </div>
 
             <div className="form-control w-full max-w-xs">
-              <label className="label-text">Localización:</label>
+              <label className="label-text">{t("location")}</label>
               <input
                 className="input input-bordered w-full max-w-xs"
                 placeholder="Chile, Temuco"
@@ -128,10 +129,10 @@ const ParticipantForm = () => {
 
           <div className="flex px-6 w-full">
             <div className="form-control w-full max-w-xs mr-2">
-              <label className="label-text">Latitude:</label>
+              <label className="label-text">{t("latitude")}</label>
               <input
                 className="input input-bordered w-full max-w-xs"
-                placeholder="Ingrese Latitud"
+                placeholder={t("latitude")}
                 type="number"
                 id="latitude"
                 value={lat === null ? '' : lat}
@@ -140,10 +141,10 @@ const ParticipantForm = () => {
             </div>
 
             <div className="form-control w-full max-w-xs">
-              <label className="label-text"> longitude:</label>
+              <label className="label-text"> {t("longitude")}</label>
               <input
                 className="input input-bordered w-full max-w-xs"
-                placeholder="Ingrese Longitud"
+                placeholder={t("longitude")}
                 type='number'
                 id="longitude"
                 value={long === null ? '' : long}
@@ -153,10 +154,10 @@ const ParticipantForm = () => {
           </div>
 
           <div className="form-control w-full max-w-xs">
-            <label className="label-text"> Descripción:</label>
+            <label className="label-text">{t("description")}:</label>
             <input
               className="input input-bordered w-full max-w-xs"
-              placeholder="Ingrese Descripcion "
+              placeholder={t("description")}
               type='text'
               id="desc"
               value={desc}
@@ -166,17 +167,17 @@ const ParticipantForm = () => {
           <div className="form-control w-full max-w-xs">
 
             {visible ? <>
-              <label className="label-text "> Público </label>
+              <label className="label-text "> {t("public")} </label>
             </> : <>
-              <label className="label-text"> Privado</label>
+              <label className="label-text"> {t("private")}</label>
             </>}
             <input type="checkbox" className="toggle toggle-success" checked={visible} onChange={() => setVisible(!visible)} />
           </div>
           <div className="form-control mt-6">
-            <button className="btn btn-neutral" onClick={handleSubmit}>Crear Sala</button>
+            <button className="btn btn-neutral" onClick={handleSubmit}>{t("create_room")}</button>
           </div>
 
-          <p>{message}</p>
+          <p>{t(message)}</p>
 
         </div>
         {/* Mapa */}
@@ -185,7 +186,7 @@ const ParticipantForm = () => {
           <Map>
 
             <LocationMarker />
-          
+
           </Map>
 
         </div>

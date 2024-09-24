@@ -219,6 +219,7 @@ const Grid = () => {
             break;
           }
           case 'deleteEditingUser': {
+            console.log(shapeN.value)
             setEditingUsers(prevState => {
               const newState = { ...prevState };
               if (newState.hasOwnProperty(shapeN.value)) {
@@ -635,10 +636,10 @@ const Grid = () => {
       fossils: fossils,
       infoProject: infoProject,
       indexesM: indexes,
-      oEstrat: '_____________',
-      oLev: '_____________',
-      etSec: '_____________',
-      date: '_____________'
+      oEstrat: '             ',
+      oLev: '             ',
+      etSec: '             ',
+      date: '             '
     };
     setPdfData(initialPdfData)
 
@@ -698,6 +699,7 @@ const Grid = () => {
             setAlturaTd={setAlturaTd}
             setFormFacies={setFormFacies}
             facies={facies}
+            setData={setData}
           />
         </div>
 
@@ -757,7 +759,7 @@ const Grid = () => {
                 socket.send(JSON.stringify({
                   action: 'deleteEditingUser',
                   data: {
-                    section: `[${formData.index},${header.indexOf(formData.column)}]`,
+                    section: `[${formData.index},${header.indexOf(formData.column)+1}]`,
                     name: editingUsers[`[${formData.index},${header.indexOf(formData.column)}]`]?.name,
                   }
                 }));

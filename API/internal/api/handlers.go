@@ -362,6 +362,8 @@ func (a *API) HandleWebSocket(c echo.Context) error {
 					roomData := rooms[roomID]
 					name := editing.Name
 
+					log.Println(roomData.SectionsEditing)
+
 					if roomData.SectionsEditing != nil {
 						if _, ok := roomData.SectionsEditing[section]; ok {
 							delete(roomData.SectionsEditing, section)

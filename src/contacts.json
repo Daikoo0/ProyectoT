@@ -1,7 +1,14 @@
 {
+    "110": {
+        "dash": [],
+        "lineWidth": 0,
+        "arcs": true,
+         "question": false
+         
+    },
     "111": {
         "dash": [],
-        "lineWidth": 3,
+        "lineWidth": 1,
         "arcs": false,
          "question": false
          
