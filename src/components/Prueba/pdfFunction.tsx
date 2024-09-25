@@ -5,7 +5,6 @@ import MySVG from "../MYSVG.tsx";
 import lithologic from '../../lithologic.json';
 import fosilJson from '../../fossil.json';
 import { useTranslation } from 'react-i18next';
-import ReactDOMServer from 'react-dom/server';
 
 // Estilos
 const styles = StyleSheet.create({

@@ -122,6 +122,7 @@ const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, getTokenLinks, gen
             <dialog id="modal_share" className="modal">
                 <div className="modal-box border border-accent">
                     <button onClick={generateTokenLinks} className="btn btn-primary mb-4">Generar Enlaces de Invitación</button>
+                    <button onClick={getTokenLinks} className="btn btn-primary mb-4">Obten Enlaces de Invitación</button>
                     <p className="mb-4">Utiliza los siguientes enlaces para invitar a otros usuarios. Haz clic en "Copy" para copiar el enlace al portapapeles.</p>
                     {tokenLink.editor && (
                         <div className="mb-4">

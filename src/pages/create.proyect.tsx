@@ -4,7 +4,6 @@ import Map from '../components/Web/Map';
 import api from '../api/ApiClient';
 import Navbar from '../components/Web/Narbar';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../provider/authProvider';
 
 const ParticipantForm = () => {
 

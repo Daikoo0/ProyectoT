@@ -6,10 +6,10 @@ import Ruler from "./Ruler2";
 import Ab from "./pdfFunction";
 import ResizeObserver from "resize-observer-polyfill";
 import { useTranslation } from 'react-i18next';
-import { DndContext, closestCenter,rectIntersection, MouseSensor, useSensor, useSensors, TouchSensor, type UniqueIdentifier, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy,rectSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
+import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, TouchSensor, type UniqueIdentifier, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender, type Cell, type ColumnDef } from "@tanstack/react-table";
+import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 
 interface Layer {
     userId: string;
