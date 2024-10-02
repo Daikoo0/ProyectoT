@@ -167,14 +167,14 @@ const Grid = () => {
 
       newSocket.onclose = () => {
         console.log('Socket closed.');
-        if (isPageActive.current) {
+     //   if (isPageActive.current) {
           console.log('Attempting to reconnect in 3 second...');
           setTimeout(() => {
-            if (isPageActive.current) {
+          //  if (isPageActive.current) {
               connectWebSocket();
-            }
+           // }
           }, 3000);
-        }
+    //    }
       };
     };
 
@@ -484,11 +484,11 @@ const Grid = () => {
       const intervalArray = faciesCopy[key];
       for (let i = 0; i < intervalArray.length; i++) {
         const interval = intervalArray[i];
-        if ((formFacies.y1 >= interval.y1 && formFacies.y1 <= interval.y2) || (formFacies.y2 >= interval.y1 && formFacies.y2 <= interval.y2)) {
+        if ((formFacies.y1 > interval.y1 && formFacies.y1 < interval.y2) || (formFacies.y2 > interval.y1 && formFacies.y2 < interval.y2)) {
           isInsideInterval = true;
           coincidences.push(key)
         }
-        if ((interval.y1 >= formFacies.y1 && interval.y1 <= formFacies.y2) || (interval.y2 >= formFacies.y1 && interval.y2 <= formFacies.y2)) {
+        if ((interval.y1 > formFacies.y1 && interval.y1 < formFacies.y2) || (interval.y2 > formFacies.y1 && interval.y2 < formFacies.y2)) {
           isInsideInterval = true;
           coincidences.push(key)
         }
@@ -958,7 +958,7 @@ const Grid = () => {
 
                           </li>
                           <li>
-                            <label>{t("lim_sup")}</label>
+                            <label>{t("lim_inf")}</label>
                             <input
                               type="number"
                               name='upper'
@@ -1031,7 +1031,7 @@ const Grid = () => {
 
                       </li>
                       <li>
-                        <label>{t("lim_sup")}</label>
+                        <label>{isInverted? t("lim_inf") : t("lim_sup")}</label>
                         <input
                           type="number"
                           name='upper'
@@ -1040,7 +1040,7 @@ const Grid = () => {
                         />
                       </li>
                       <li>
-                        <label>{t("lim_inf")}</label>
+                        <label>{isInverted? t("lim_sup") : t("lim_inf")}</label>
                         <input
                           type="number"
                           name='lower'
@@ -1272,7 +1272,7 @@ const Grid = () => {
                           <p className="text-lg font-semibold mt-4 mb-2">{t("add_tramo_facie")}</p>
                           <ul className="list-disc list-inside space-y-2">
                             <li className="flex items-center">
-                              <span>{t("lim_sup")}</span>
+                              <span>{t("lim_inf")}</span>
                               <input
                                 type="number"
                                 name="y1"
@@ -1282,7 +1282,7 @@ const Grid = () => {
                               />
                             </li>
                             <li className="flex items-center">
-                              <span>{t("lim_inf")}</span>
+                              <span>{t("lim_sup")}</span>
                               <input
                                 type="number"
                                 name="y2"

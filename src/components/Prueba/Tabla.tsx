@@ -458,10 +458,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         debugColumns: true,
     } as TableOptions<Layer>);
 
-    //     const dataIds = useMemo<UniqueIdentifier[]>(
-    //     () => data?.map((_, index) => index.toString()), // Utiliza el índice como id
-    //     [data]
-    // );
 
     const dataIds = useMemo<UniqueIdentifier[]>(
         () => table.getRowModel().rows.map((row) => row.id), // Utiliza el índice como id
@@ -1075,7 +1071,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </thead>
                     <DndContext
                         collisionDetection={rectIntersection}
-                        onDragEnd={handleDragEnd}
+                         onDragEnd={handleDragEnd}
                         sensors={sensors}
                     >
                         <SortableContext
