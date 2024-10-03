@@ -11,12 +11,14 @@ interface NavbarProps {
     infoProject: { [key: string]: any } | null;
     initialFormData: any;
     tokenLink: ({ editor: string; reader: string });
+    setTokenLink: (state: { editor: string; reader: string }) => void;
 }
 
 interface InviteModalProps {
     tokenLink: ({ editor: string; reader: string });
-    getTokenLinks: () => void;
-    generateTokenLinks: () => void;
+    setTokenLink: (state: { editor: string; reader: string }) => void;
+    socket: WebSocket;
+
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -28,16 +30,10 @@ const Navbar: React.FC<NavbarProps> = ({
     t,
     infoProject,
     initialFormData,
-    tokenLink
+    tokenLink,
+    setTokenLink
 }) => {
 
-    const getTokenLinks = () => {
-        socket.send(JSON.stringify({ action: 'tokenLink' }));
-    };
-
-    const generateTokenLinks = () => {
-        socket.send(JSON.stringify({ action: 'generateTokenLink' }));
-    }
 
     return (
         <div className="navbar bg-base-200 fixed top-0 z-[100]">
@@ -101,8 +97,8 @@ const Navbar: React.FC<NavbarProps> = ({
                 <div className="flex items-center space-x-4">
                     <InviteModal
                         tokenLink={tokenLink}
-                        getTokenLinks={getTokenLinks}
-                        generateTokenLinks={generateTokenLinks}
+                        setTokenLink={setTokenLink}
+                        socket={socket}
                     />
                 </div>
             </div>
@@ -111,8 +107,17 @@ const Navbar: React.FC<NavbarProps> = ({
     );
 };
 
-const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, getTokenLinks, generateTokenLinks }) => {
+const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, setTokenLink, socket }) => {
 
+    const delTokenLinks = () => {
+        socket.send(JSON.stringify({ action: 'tokenLink' }));
+        setTokenLink({ editor: '', reader: '' });
+
+    };
+
+    const generateTokenLinks = () => {
+        socket.send(JSON.stringify({ action: 'generateTokenLink' }));
+    }
 
 
     return (
@@ -121,27 +126,34 @@ const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, getTokenLinks, gen
 
             <dialog id="modal_share" className="modal">
                 <div className="modal-box border border-accent">
-                    <button onClick={generateTokenLinks} className="btn btn-primary mb-4">Generar Enlaces de Invitación</button>
-                    <button onClick={getTokenLinks} className="btn btn-primary mb-4">Obten Enlaces de Invitación</button>
-                    <p className="mb-4">Utiliza los siguientes enlaces para invitar a otros usuarios. Haz clic en "Copy" para copiar el enlace al portapapeles.</p>
+
+                    <h2 className="text-2xl font-bold mb-4">Invitar Usuarios</h2>
+                    <div className="flex justify-between mb-4 space-x-2">
+                        <button onClick={generateTokenLinks} className="btn btn-primary flex-1">Generar Enlaces de Invitación</button>
+                        <button onClick={delTokenLinks} className="btn flex-1 bg-error">Invalidar Enlaces de Invitación</button>
+                    </div>
+
                     {tokenLink.editor && (
-                        <div className="mb-4">
-                            <p className="font-bold mb-2">Enlace de Editor:</p>
-                            <div className="flex items-center">
-                                <input
-                                    type="text"
-                                    value={`${window.location.origin}/invite?token=${tokenLink.editor}`}
-                                    readOnly
-                                    className="input input-bordered w-full max-w-xs mr-2"
-                                />
-                                <button
-                                    onClick={() => navigator.clipboard.writeText(`${window.location.origin}/invite?token=${tokenLink.editor}`)}
-                                    className="btn btn-secondary"
-                                >
-                                    Copy
-                                </button>
+                        <>
+                            <p className="mb-4">Utiliza los siguientes enlaces para invitar a otros usuarios. Haz clic en "Copy" para copiar el enlace al portapapeles.</p>
+                            <div className="mb-4">
+                                <p className="font-bold mb-2">Enlace de Editor:</p>
+                                <div className="flex items-center">
+                                    <input
+                                        type="text"
+                                        value={`${window.location.origin}/invite?token=${tokenLink.editor}`}
+                                        readOnly
+                                        className="input input-bordered w-full max-w-xs mr-2"
+                                    />
+                                    <button
+                                        onClick={() => navigator.clipboard.writeText(`${window.location.origin}/invite?token=${tokenLink.editor}`)}
+                                        className="btn btn-secondary"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        </>
                     )}
                     {tokenLink.reader && (
                         <div className="mb-4">

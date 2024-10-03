@@ -15,7 +15,7 @@ import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import { useTranslation } from 'react-i18next';
 import LangSelector from '../Web/LanguageComponent';
-
+import { arrayMove } from '@dnd-kit/sortable';
 
 const Grid = () => {
   const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
@@ -167,14 +167,14 @@ const Grid = () => {
 
       newSocket.onclose = () => {
         console.log('Socket closed.');
-     //   if (isPageActive.current) {
+        if (isPageActive.current) {
           console.log('Attempting to reconnect in 3 second...');
           setTimeout(() => {
-          //  if (isPageActive.current) {
+            if (isPageActive.current) {
               connectWebSocket();
-           // }
+            }
           }, 3000);
-    //    }
+        }
       };
     };
 
@@ -202,7 +202,6 @@ const Grid = () => {
             console.log(shapeN)
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
-
             setFacies(shapeN.facies)
             setHeader(shapeN.config.header)
             setFossils(shapeN.fosil)
@@ -301,9 +300,7 @@ const Grid = () => {
               const newFossils = { ...prev };
               newFossils[shapeN.idFosil] = shapeN.value;
               return newFossils;
-            }
-
-            );
+            });
             setSideBarState({
               sideBar: false,
               sideBarMode: ""
@@ -359,7 +356,13 @@ const Grid = () => {
               editor: shapeN.editor,
               reader: shapeN.reader
             })
-            break
+            break;
+          case 'drop':
+            console.log(shapeN.activeId,shapeN.overId)
+            setData((data) => {
+              return arrayMove(data, shapeN.activeId, shapeN.overId);
+            });
+            break;
           case 'error':
             if (shapeN.message === 'Access denied') {
               console.error('Acceso denegado');
@@ -624,7 +627,7 @@ const Grid = () => {
     var copyData = data
     var copyHeader = [...header]
     var indexes = Array.from({ length: data.length }, (_, index) => index);
-    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________')
+    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________',isInverted)
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
@@ -677,6 +680,7 @@ const Grid = () => {
             infoProject={infoProject}
             initialFormData={initialFormData}
             tokenLink={tokenLink}
+            setTokenLink={setTokenLink}
           />
 
           <Tabla
@@ -699,7 +703,7 @@ const Grid = () => {
             setAlturaTd={setAlturaTd}
             setFormFacies={setFormFacies}
             facies={facies}
-            setData={setData}
+            socket={socket}
           />
         </div>
 
@@ -759,7 +763,7 @@ const Grid = () => {
                 socket.send(JSON.stringify({
                   action: 'deleteEditingUser',
                   data: {
-                    section: `[${formData.index},${header.indexOf(formData.column)+1}]`,
+                    section: `[${formData.index},${header.indexOf(formData.column) + 1}]`,
                     name: editingUsers[`[${formData.index},${header.indexOf(formData.column)}]`]?.name,
                   }
                 }));
@@ -1031,7 +1035,7 @@ const Grid = () => {
 
                       </li>
                       <li>
-                        <label>{isInverted? t("lim_inf") : t("lim_sup")}</label>
+                        <label>{isInverted ? t("lim_inf") : t("lim_sup")}</label>
                         <input
                           type="number"
                           name='upper'
@@ -1040,7 +1044,7 @@ const Grid = () => {
                         />
                       </li>
                       <li>
-                        <label>{isInverted? t("lim_sup") : t("lim_inf")}</label>
+                        <label>{isInverted ? t("lim_sup") : t("lim_inf")}</label>
                         <input
                           type="number"
                           name='lower'

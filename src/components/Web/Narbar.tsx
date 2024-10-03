@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import LangSelector from './LanguageComponent';
 
 const Navbar = ({ logohidden }) => {
-  const { setToken } = useAuth();
+  const { token, setToken } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation("Home");
 
@@ -13,7 +13,7 @@ const Navbar = ({ logohidden }) => {
     try {
       setToken();
       navigate("/", { replace: true });
-      
+
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
@@ -42,23 +42,25 @@ const Navbar = ({ logohidden }) => {
           <div className="dropdown dropdown-end">
             <SelectTheme />
           </div>
-          
+
           <div className="dropdown dropdown-end">
             <LangSelector />
           </div>
-          
-          <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" aria-label="User Navegation" className="btn btn-ghost btn-circle">
-              <svg className="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 11 14H9a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 10 19Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
+          {token &&
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" aria-label="User Navegation" className="btn btn-ghost btn-circle">
+                <svg className="h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0a8.949 8.949 0 0 0 4.951-1.488A3.987 3.987 0 0 0 11 14H9a3.987 3.987 0 0 0-3.951 3.512A8.948 8.948 0 0 0 10 19Zm3-11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+              </div>
+
+              <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                <li><Link to="/myProfile"><p>{t("profile")}</p></Link></li>
+                <li><p>{t("settings")}</p></li>
+                <li><p onClick={logout}>{t("logout")}</p></li>
+              </ul>
             </div>
-            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-              <li><Link to="/myProfile"><p>{t("profile")}</p></Link></li>
-              <li><p>{t("settings")}</p></li>
-              <li><p onClick={logout}>{t("logout")}</p></li>
-            </ul>
-          </div>
+          }
         </div>
       </div>
     </>

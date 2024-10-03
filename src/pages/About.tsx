@@ -62,7 +62,7 @@ const About = () => {
             <Navbar logohidden={true} />
             {/* Contenido dentro de la imagen */}
             <div className="hero min-h-screen bg-fixed" style={{
-                backgroundImage: `url("src/assets/rainbow-vortex.svg")`,
+                backgroundImage: `url("/rainbow-vortex.svg")`,
 
             }}>
                 <div className="hero-overlay bg-opacity-60" ></div>

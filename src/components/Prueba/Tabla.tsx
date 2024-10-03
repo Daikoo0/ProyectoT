@@ -7,7 +7,7 @@ import Ab from "./pdfFunction";
 import ResizeObserver from "resize-observer-polyfill";
 import { useTranslation } from 'react-i18next';
 import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, TouchSensor, type UniqueIdentifier, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, rectSortingStrategy, arrayMove, useSortable } from '@dnd-kit/sortable';
+import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 
@@ -30,7 +30,10 @@ const RowDragHandleCell = ({ rowId }: { rowId: string }) => {
     });
     return (
         <button {...attributes} {...listeners}>
-            🟰
+            <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8 10 4-6 4 6H8Zm8 4-4 6-4-6h8Z" />
+            </svg>
+
         </button>
     );
 };
@@ -69,14 +72,16 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 1 : 0,
         position: 'relative',
+        padding: 0,
     };
+    console.log(row)
 
     return (
         <tr ref={setNodeRef} style={style} id={row.id}>
             {row.getVisibleCells().map((cell, cellIndex) => {
                 const cdef = cell.column.columnDef;
                 if (cellIndex === header.indexOf("Espesor") + 1) {
-                    if (index === 0) {
+                    if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
                             <td
                                 key={cell.id}
@@ -120,14 +125,14 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     );
                 }
                 if ((cellIndex === header.indexOf("Estructura fosil") + 1) && header.includes("Estructura fosil")) {
-                    if (index === 0) {
+                    if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
                             <td
                                 id="fossils"
                                 key={cell.id}
                                 rowSpan={rowspan}
                                 className="border border-base-content"
-                          
+
                             >
                                 <div
                                     className="h-full max-h-full"
@@ -179,7 +184,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
 
                 }
                 if ((cellIndex === header.indexOf("Facie") + 1) && header.includes("Facie")) {
-                    if (index === 0) {
+                    if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
                             <td
                                 id="facies"
@@ -197,11 +202,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 <div className="h-full max-h-full" style={{ top: 0 }}>
                                     <svg id="svgFacies"
                                         className="h-full max-h-full"
-                                        width={columnWidths["Facie"] || cell.column.getSize()} height="0"
+                                        width={columnWidths["Facie"] || cell.column.getSize()} 
+                                        height="0"
                                         overflow="visible"
+                                        transform={isInverted? "scale(1,-1)" : "scale(1,1)"}
                                         style={{
-                                            transform: isInverted ? "scaleY(-1)" : "none",
-                                            transformOrigin: "center",
+                                          //  transform: isInverted ? "scaleY(-1)" : "none",
+                                            //transformOrigin: "center",
                                         }}
                                     >
                                         {facies
@@ -281,10 +288,10 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         </td>
                     );
                 }
-
                 return (
                     <td key={cell.id} style={{
                         width: cell.column.getSize(),
+                        maxHeight: cell.row.original.Litologia.Height * scale,
                         overflowY: 'hidden',
                         padding: '0',
                         top: '0',
@@ -309,7 +316,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                             <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
                             : <></>
                         }
-                        <div style={{ margin: 0, padding: 0, top: 0, overflowY: hovered ? "auto" : "hidden", maxHeight: cell.row.original.Litologia.Height, height: "100%" }}>
+                        <div style={{ margin: 0, padding: 0, top: 0, overflow: hovered ? "auto" : "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: cell.row.original.Litologia.Height * scale }}>
 
                             <div
                                 className="ql-editor prose"
@@ -350,7 +357,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd, setData }) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd, socket }) => {
     const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
@@ -367,12 +374,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         useSensor(TouchSensor, {})
     );
 
-
     const columns = useMemo(
         () => [
             {
                 id: 'drag-handle',
-                header: " ",//header[0],
+                header: " ",
                 cell: ({ row }: { row: Row<Layer> }) => (
                     <RowDragHandleCell rowId={row.id} />
                 ),
@@ -461,19 +467,26 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
     const dataIds = useMemo<UniqueIdentifier[]>(
         () => table.getRowModel().rows.map((row) => row.id), // Utiliza el índice como id
-        [table.getRowModel().rows,header]
+        [table.getRowModel().rows, header, isInverted]
     );
 
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
-        console.log('Active ID:', active.id, 'Over ID:', over?.id || 'null');
+        // console.log('Active ID:', active.id, 'Over ID:', over?.id || 'null');
         if (active && over && active.id !== over.id) {
-            setData((data) => {
-                const oldIndex = dataIds.indexOf(active.id);
-                const newIndex = dataIds.indexOf(over.id);
-                return arrayMove(data, oldIndex, newIndex);
-            });
+            // setData((data) => {
+            //     const oldIndex = dataIds.indexOf(active.id);
+            //     const newIndex = dataIds.indexOf(over.id);
+            //     return arrayMove(data, oldIndex, newIndex);
+            // });
+            socket.send(JSON.stringify({
+                action: 'drop',
+                data: {
+                    "activeId": Number(active.id),
+                    "overId": Number(over.id)
+                }
+            }));
         }
     }
 
@@ -537,7 +550,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, pdfData.indexesM, pdfData.oEstrat,
             pdfData.oLev,
             pdfData.etSec,
-            pdfData.date)
+            pdfData.date, isInverted)
     }
 
     const handleRows = (number) => {
@@ -548,7 +561,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, indexes, pdfData.oEstrat,
             pdfData.oLev,
             pdfData.etSec,
-            pdfData.date);
+            pdfData.date, isInverted);
     }
 
     var adfas = useRef<HTMLTableSectionElement>(null);
@@ -613,7 +626,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         pdfData.oEstrat,
                                                         pdfData.oLev,
                                                         pdfData.etSec,
-                                                        pdfData.date
+                                                        pdfData.date, isInverted
                                                     );
                                                 }}
                                                 className="select select-bordered w-full mb-4"
@@ -703,7 +716,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     val,
                                                                     pdfData.oLev,
                                                                     pdfData.etSec,
-                                                                    pdfData.date
+                                                                    pdfData.date, isInverted
                                                                 );
                                                             }}
                                                         >Aplicar</button>
@@ -734,6 +747,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     val,
                                                                     pdfData.etSec,
                                                                     pdfData.date
+                                                                    , isInverted
                                                                 );
                                                             }}
                                                         >
@@ -764,7 +778,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     pdfData.oEstrat,
                                                                     pdfData.oLev,
                                                                     val,
-                                                                    pdfData.date
+                                                                    pdfData.date, isInverted
                                                                 );
                                                             }}
                                                         ><p >{t("apply")}</p></button>
@@ -795,7 +809,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                                     pdfData.oEstrat,
                                                                     pdfData.oLev,
                                                                     pdfData.etSec,
-                                                                    val
+                                                                    val, isInverted
                                                                 );
                                                             }}
                                                         ><p >{t("apply")}</p></button>
@@ -837,7 +851,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                             pdfData.oEstrat,
                                                             pdfData.oLev,
                                                             pdfData.etSec,
-                                                            pdfData.date
+                                                            pdfData.date, isInverted
                                                         );
                                                     }}
                                                 />
@@ -898,7 +912,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                         pdfData.oEstrat,
                                                         pdfData.oLev,
                                                         pdfData.etSec,
-                                                        pdfData.date
+                                                        pdfData.date, isInverted
                                                     );
                                                 }}
                                                 className="select select-bordered w-full mb-4"
@@ -957,10 +971,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 <table style={{ height: '100px' }} >
                     <thead className="relative sticky top-16 z-[1]">
                         <tr>
-                            <th>
-                                <div className="flex justify-between items-center font-semibold">
-                                    <p className="text text-accent-content w-1/2"> </p>
-                                </div>
+                            <th className="bg-base-100">
+
+                                {/* <p className="text-3xl font-bold text-accent-content w-1/2">↓↑</p> */}
                             </th>
                             {header.map((columnName, number) => (
                                 <th
@@ -973,7 +986,17 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 ? (columnWidths[columnName] || 250)
                                                 : (columnWidths[columnName] || cellWidth)}px`,
                                         height: '120px',
-                                    }}>
+                                    }}
+
+                                    onClick={() => {
+                                        if (columnName === "Facie") {
+                                            setSideBarState({
+                                                sideBar: true,
+                                                sideBarMode: "addFacie"
+                                            })
+                                        }
+                                    }}
+                                >
 
                                     <div className="flex justify-between items-center font-semibold">
                                         <p className="text text-accent-content w-1/2">{t("" + columnName)}</p>
@@ -1025,14 +1048,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                     style={{
                                                         background: "transparent",
                                                     }}
-                                                    onClick={() => {
-                                                        setSideBarState({
-                                                            sideBar: true,
-                                                            sideBarMode: "addFacie"
-                                                        })
-                                                    }}
                                                 >
-
                                                     {facies && (
                                                         Object.keys(facies).map((key, index) => {
                                                             const xPos = (index + 1) * ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1));
@@ -1071,7 +1087,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </thead>
                     <DndContext
                         collisionDetection={rectIntersection}
-                         onDragEnd={handleDragEnd}
+                        onDragEnd={handleDragEnd}
                         sensors={sensors}
                     >
                         <SortableContext
@@ -1083,38 +1099,37 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 {(
                                     isInverted
                                         ? table.getRowModel().rows.slice().reverse()
-                                        : table.getRowModel().rows 
-                                ).map((row, index) => (
-                                    <DraggableRow
-                                        rowspan={data.length}
-                                        key={row.id}
-                                        row={row}
-                                        index={index}
-                                        header={header}
-                                        isInverted={isInverted}
-                                        setSideBarState={setSideBarState}
-                                        columnWidths={columnWidths}
-                                        openModalPoint={openModalPoint}
-                                        handleClickRow={handleClickRow}
-                                        addCircles={addCircles}
-                                        prevContact={
-                                            (index > 0 && index < table.getRowModel().rows.length - 1) ?
-                                                isInverted
-                                                    ? table.getRowModel().rows.slice().reverse()[index + 1].original.Litologia.Contact
-                                                    :
-                                                    table.getRowModel().rows[index - 1].original.Litologia.Contact
-                                                : "111"
-                                        }
-                                        alturaTd={alturaTd}
-                                        editingUsers={editingUsers}
-                                        sendActionCell={sendActionCell}
-                                        hovered={hovered}
-                                        setFormFosil={setFormFosil}
-                                        scale={scale}
-                                        facies={facies}
-                                        setFormFacies={setFormFacies}
-                                    />
-                                ))}
+                                        : table.getRowModel().rows
+                                ).map((row) => {
+                                    return (
+                                        <DraggableRow
+                                            rowspan={data.length}
+                                            key={row.id}
+                                            row={row}
+                                            index={row.index}
+                                            header={header}
+                                            isInverted={isInverted}
+                                            setSideBarState={setSideBarState}
+                                            columnWidths={columnWidths}
+                                            openModalPoint={openModalPoint}
+                                            handleClickRow={handleClickRow}
+                                            addCircles={addCircles}
+                                            prevContact={
+                                                row.index > 0 ? (table.getRowModel().rows[row.index - 1].original.Litologia.Contact) : "111"
+                                            }
+                                            alturaTd={alturaTd}
+                                            editingUsers={editingUsers}
+                                            sendActionCell={sendActionCell}
+                                            hovered={hovered}
+                                            setFormFosil={setFormFosil}
+                                            scale={scale}
+                                            facies={facies}
+                                            setFormFacies={setFormFacies}
+                                        />
+
+                                    )
+                                }
+                                )}
                             </tbody>
 
                         </SortableContext>

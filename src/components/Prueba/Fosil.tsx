@@ -43,8 +43,9 @@ const Fosil = ({ isInverted, keyID, data, setSideBarState, setFormFosil, scale, 
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             className="fossilUnit"
+            transform={isInverted ? "scaleY(-1)" : "none"}
             style={{
-                transform: isInverted ? "scaleY(-1)" : "none",
+              //  transform: isInverted ? "scaleY(-1)" : "none",
                 transformOrigin: "center",
             }}
         >

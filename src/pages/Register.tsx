@@ -5,7 +5,7 @@ import api from '../api/ApiClient';
 
 function Register() {
 
-  const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [registerForm, setRegisterForm] = useState({ name: '', lastname: '', email: '', password: '', passwordConfirm: '' });
 
@@ -28,24 +28,39 @@ function Register() {
       const response = await api.post('/users/register', registerForm);
 
       if (response.status === 201) {
-        setMessage("Usuario creado")
+        setErrorMessage("Usuario creado")
         navigate('/login');
-      } else
-        if (response.status === 409) {
-          setMessage("Este usuario ya existe")
-        } else
-          if (response.status === 400 && response.data.message === "Key: 'RegisterUser.Email' Error:Field validation for 'Email' failed on the 'email' tag") {
-            setMessage("Email inválido")
-          } else
-            if (response.status === 400 && response.data.message === "Key: 'RegisterUser.Password' Error:Field validation for 'Password' failed on the 'min' tag") {
-              setMessage("Contraseña muy corta")
-            } else
-              if (response.status === 400) {
-                setMessage("Email y contraseña incorrectos")
-              }
+      }
     } catch (error) {
-      console.error("Error en la solicitud:", error);
-      setMessage("Error al registrar usuario. Por favor, inténtelo de nuevo.");
+      
+      switch (error.response.status) {
+        case 400:
+
+          switch (error.response.data.message) {
+            case "Email already exists":
+              setErrorMessage("El correo ya existe");
+              break;
+            case "Password must be at least 8 characters long":
+              setErrorMessage("La contraseña debe tener al menos 8 caracteres");
+              break;
+            case "Password does not match":
+              setErrorMessage("Las contraseñas no coinciden");
+              break;
+            default:
+              console.log("a")
+              setErrorMessage("Error en la solicitud");
+              break;
+          }
+          break;
+
+        case 500:
+          setErrorMessage("Error en el servidor");
+          break;
+        default:
+          console.log("a")
+          setErrorMessage("Error en la solicitud");
+          break;
+      }
     }
   };
 
@@ -63,10 +78,16 @@ function Register() {
         <div className="card shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
           <form className="card-body" onSubmit={handleLogin} >
 
-            <div className="form-control w-4/5 max-w-xs">
+            {errorMessage &&
+              <div className="form-control max-w-sm">
+                <p className="text-center text-red-500">{errorMessage}</p>
+              </div>
+            }
+
+            <div className="form-control max-w-sm">
               <label className="label-text">Nombres:</label>
               <input
-                className="input input-bordered w-full max-w-xs"
+                className="input input-bordered w-full"
                 placeholder="Enter your name"
                 name="name"
                 value={registerForm.name}
@@ -75,10 +96,10 @@ function Register() {
               />
             </div>
 
-            <div className="form-control w-4/5 max-w-xs">
+            <div className="form-control max-w-sm">
               <label className="label-text">Apellidos:</label>
               <input
-                className="input input-bordered w-full max-w-xs"
+                className="input input-bordered w-full"
                 placeholder="Enter your lastname"
                 name="lastname"
                 value={registerForm.lastname}
@@ -87,10 +108,10 @@ function Register() {
               />
             </div>
 
-            <div className="form-control w-4/5 max-w-xs">
+            <div className="form-control max-w-sm">
               <label className="label-text">Correo Electronico:</label>
               <input
-                className="input input-bordered w-full max-w-xs"
+                className="input input-bordered w-full"
                 placeholder="name@uct.cl"
                 type="email"
                 name="email"
@@ -100,11 +121,11 @@ function Register() {
               />
             </div>
 
-            <div className="form-control w-4/5 max-w-xs">
+            <div className="form-control max-w-sm">
               <label className="label-text">Contraseña:</label>
 
               <input
-                className="input input-bordered w-full max-w-xs"
+                className="input input-bordered w-full"
                 placeholder="••••••••"
                 type="password"
                 name="password"
@@ -113,7 +134,7 @@ function Register() {
                 onChange={handleRegister}
               />
               <input
-                className="input input-bordered w-full max-w-xs"
+                className="input input-bordered w-full"
                 placeholder="Confirmar contraseña"
                 type="password"
                 name="passwordConfirm"
@@ -134,7 +155,6 @@ function Register() {
                 Inicia sesión
               </a>
             </p>
-            <p>{message}</p>
           </form>
         </div>
       </div>
