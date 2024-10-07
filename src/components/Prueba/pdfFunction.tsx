@@ -71,8 +71,8 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
       const circles = svgCopy.querySelectorAll('circle');
       circles.forEach(circle => circle.remove());
       const alturaActual = parseFloat(svgCopy.getAttribute('height'));
-      const currentWidth = svg.clientWidth * 2.54 / 96//svg.clientWidth
-      let scaleFactor = parseFloat(columnWidths["Litologia"]) / currentWidth //(((widthSheet - 20) / 100) * parseFloat(maxWidth)) / (currentWidth);
+      const currentWidth = svg.clientWidth * 2.54 / 96
+      let scaleFactor = parseFloat(columnWidths["Litologia"]) / currentWidth
       var path = svgCopy.getElementsByClassName("stroke-current text-base-content");
       var pa = svgCopy.getElementsByClassName("pa");
       path[0].setAttribute('transform', `scale(${scaleFactor},1)`);
@@ -83,26 +83,20 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
       if (limited) {
         svgCopy.setAttribute("transform", `scale(1,${scaleH})`);
       }
-      // svgCopy.style.transformOrigin = `0 0`;
-      //svgCopy.setAttribute('transform', `${svgCopy.getAttribute('transform') || ''} scaleY(-1)`);
 
-      // Ajusta la posición vertical para que no se salga del canvas
-
-      console.log(svgCopy.outerHTML)
-      totalHeight += (limited ? alturaActual * scaleH : alturaActual);
-
-      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.setAttribute('transform', 'scale(1,-1)');
-      while (svgCopy.firstChild) {
-        g.appendChild(svgCopy.firstChild);
+      if (isInverted) {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute('transform', 'scale(1,-1)');
+        while (svgCopy.firstChild) {
+          g.appendChild(svgCopy.firstChild);
+        }
+        svgCopy.appendChild(g);
       }
-      svgCopy.appendChild(g);
-      svgCopy.setAttribute('y', totalHeight);
-
+      totalHeight += (limited ? alturaActual * scaleH : alturaActual);
+      svgCopy.setAttribute('y', (isInverted ? totalHeight : totalHeight - (isInverted ? alturaActual * scaleH : alturaActual)));
       combinedSVG += new XMLSerializer().serializeToString(svgCopy);
     });
     combinedSVG += `</svg>`;
-    console.log(combinedSVG)
     const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
@@ -118,13 +112,10 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
       const imgURL = canvas.toDataURL('image/png', 1.0);
       resolve({ imgURL, totalHeight });
     };
-
     img.onerror = (e) => {
       reject(e);
     };
-
     img.src = url;
-    console.log(url)
   });
 }
 
@@ -133,21 +124,25 @@ const svgDivision = async (measures, columnWidths, isInverted) => {
   let arrayEspesor = []
   let arrayFacies = []
   var y = 0
-  const svgFossil = document.querySelector('svg#fossilSvg');
-  const svgEspesor = document.querySelector('svg#rulerSvg');
-  const svgFacies = document.querySelector('svg#svgFacies');
+  const svgFossil = document.querySelector('svg#fossilSvg') as SVGElement | null;
+  const svgEspesor = document.querySelector('svg#rulerSvg') as SVGElement | null;
+  const svgFacies = document.querySelector('svg#svgFacies') as SVGElement | null;
+
+  console.log(svgFacies.getBoundingClientRect().height)
+
   for (const measure of measures) {
     const { height, originalHeight } = measure;
-    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height, originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths, isInverted) : "";
-    const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, originalHeight, svgEspesor.clientWidth, y, "Espesor", columnWidths, isInverted) : "";
-    const imgPageFacies = svgFacies ? await svgToImg(svgFacies, height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths, isInverted) : "";
+    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height, originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
+    const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, originalHeight, svgEspesor.clientWidth, y, "Espesor", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
+    const imgPageFacies = svgFacies ? await svgToImg(svgFacies, height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
     y += originalHeight;
     imgPageFossils ? arrayFossils.push(imgPageFossils) : arrayFossils = [];
     imgPageEspesor ? arrayEspesor.push(imgPageEspesor) : arrayEspesor = [];
     imgPageFacies ? arrayFacies.push(imgPageFacies) : arrayFacies = [];
   }
-  return [arrayFossils, arrayEspesor, (isInverted ? arrayFacies.reverse() : arrayFacies)];
+  return [arrayFossils, arrayEspesor, arrayFacies];
 };
+
 
 async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSvg, columnWidths, indexLimited, pageLengths, isInverted) {
   const indexes = rowIndexesPerPage[pageIndex]; // todos los índices de pageIndex
@@ -161,7 +156,7 @@ async function generateSVGDataURLForPage(pageIndex, rowIndexesPerPage, tdsWithSv
   }
 }
 
-const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage, pageLengths }) => {
+const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, infoProject, contacts, fossils, patterns, scale, imageFossils, imageEspesor, imageFacies, orientation, format, imgPage, columnWidths, data, header, rowIndexesPerPage }) => {
   var firstArray = []
   var secondArray = []
   var thirdArray = []
@@ -179,7 +174,6 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
     }
   }
 
-
   const allIndexes = rowIndexesPerPage.flat();
   const invertedIndexes = allIndexes.reverse();
   let index = 0;
@@ -188,8 +182,6 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
     index += page.length;
     return result;
   });
-
-  console.log(rowIndexesPerPage,invertedRowIndexesPerPage)
 
   return (
     <Document>
@@ -204,12 +196,11 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
             </View>
             <TableHeader columnWidths={columnWidths} header={header} />
 
-            <View style={[{ flexDirection: 'row', height: imgPage[pageIndex].totalHeight }]} >
+            <View style={[{ flexDirection: 'row', height: imgPage[pageIndex].totalHeight * 72 / 96 }]} >
 
               <View style={[{ flexDirection: 'column' }]}>
                 {(pageIndexes).map((item, index) => (
-
-                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight : data[rowIndexesPerPage[pageIndex][index]].Litologia.Height * scale) }]} key={index}>
+                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight * 72 / 96 : data[(isInverted ? invertedRowIndexesPerPage : rowIndexesPerPage)[pageIndex][index]].Litologia.Height * scale * 72 / 96) }]} key={index}>
                     {Object.values(firstArray).map((_, i) => {
                       const htmlContent = data[item]?.[firstArray[i]] || null;
                       const match = htmlContent ? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
@@ -217,7 +208,7 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
                       return (
                         <View style={[styles.tableCol, styles.tableCell]}>
                           <Html key={`first-${pageIndex}${index}${item}${i}`}
-                            style={[{ fontSize: fontSize, width: columnWidths[firstArray[i]], height: data[rowIndexesPerPage[pageIndex][index]].Litologia.Height * scale }]}>
+                            style={[{ fontSize: fontSize, width: columnWidths[firstArray[i]] }]}>
                             {(data[item]?.[firstArray[i]] || "")}
                           </Html>
                         </View>
@@ -228,35 +219,31 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
                 ))}
               </View>
 
-              <View key={`second-${pageIndex}`} style={[styles.tableRow, { borderBottomWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
+              <View key={`second-${pageIndex}`} style={[styles.tableRow, { borderBottomWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
                 {Object.values(secondArray).map((key, i) => {
                   return (
                     <>
                       {key === "Litologia" && (
                         <View key={`secondLIT-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + 10 }]}>
-                          <Img key={`secondImgLitologia-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + 10, width: columnWidths["Litologia"] }]} />
-
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
+                          <Img key={`secondImgLitologia-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight * 72 / 96, width: columnWidths["Litologia"] }]} />
                         </View>
                       )}
                       {(secondArray[i] === "Estructura fosil" && imageFossils.length) && (
                         <View key={`secondEST-${pageIndex}${key}${i}`}
-
-
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImgFosil-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Estructura fosil"] }]} />
-
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
+                          <Img key={`secondImgFosil-${pageIndex}${key}${i}`} src={imageFossils[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight * 72 / 96, width: columnWidths["Estructura fosil"] }]} />
                         </View>
                       )}
                       {(secondArray[i] === "Espesor" && imageEspesor.length) && (
                         <View key={`secondESP-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImgEspesor-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Espesor"] }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
+                          <Img key={`secondImgEspesor-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight * 72 / 96, width: columnWidths["Espesor"] }]} />
                         </View>)}
                       {(secondArray[i] === "Facie" && imageFacies.length) && (
                         <View key={`secondFAC-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: pageLengths[pageIndex].height + (pageIndexes.length) }]}>
-                          <Img key={`secondImgFacies-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: pageLengths[pageIndex].height + (pageIndexes.length), width: columnWidths["Facie"], left: "-0.1cm" }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
+                          <Img key={`secondImgFacies-${pageIndex}${key}${i}`} src={imageFacies[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight * 72 / 96, width: columnWidths["Facie"], left: "-0.1cm" }]} />
                         </View>)}
                     </>
                   )
@@ -264,28 +251,23 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
               </View>
 
               <View style={[{ flexDirection: 'column' }]}>
-                {(pageIndexes).map((item, index) => {
-                  console.log(rowIndexesPerPage[pageIndex],pageIndexes,index)
-                  return(
-
-                    <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight : data[rowIndexesPerPage[pageIndex][index]].Litologia.Height * scale) }]} key={index}>
-                      {Object.values(thirdArray).map((_, i) => {
-                        const htmlContent = data[item]?.[thirdArray[i]] || null;
-                        const match = htmlContent ? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
-                        const fontSize = match ? match[1] : "8px";
-                        return (
-                          <View style={[styles.tableCol, styles.tableCell]}>
-                            <Html key={`first-${pageIndex}${index}${item}${i}`}
-                              style={[{ fontSize: fontSize, width: columnWidths[thirdArray[i]],height: data[rowIndexesPerPage[pageIndex][index]].Litologia.Height * scale}]}>
-                              {(data[item]?.[thirdArray[i]] || "")}
-                            </Html>
-                          </View>
-                        )
-                      })}
-                    </View>
-
-                  )}
-                
+                {(pageIndexes).map((item, index) => (
+                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight * 72 / 96 : data[(isInverted ? invertedRowIndexesPerPage : rowIndexesPerPage)[pageIndex][index]].Litologia.Height * scale * 72 / 96) }]} key={index}>
+                    {Object.values(thirdArray).map((_, i) => {
+                      const htmlContent = data[item]?.[thirdArray[i]] || null;
+                      const match = htmlContent ? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
+                      const fontSize = match ? match[1] : "8px";
+                      return (
+                        <View style={[styles.tableCol, styles.tableCell]}>
+                          <Html key={`first-${pageIndex}${index}${item}${i}`}
+                            style={[{ fontSize: fontSize, width: columnWidths[thirdArray[i]] }]}>
+                            {(data[item]?.[thirdArray[i]] || "")}
+                          </Html>
+                        </View>
+                      )
+                    })}
+                  </View>
+                )
                 )}
               </View>
 
@@ -341,13 +323,9 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
   )
 };
 
-
-function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWidths, isInverted) {
+function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWidths, isInverted, hsvg) {
   var svgCopy = elsvg.cloneNode(true);
   let scaleFactor = parseFloat(columnWidths[columnName]) / (width * 2.54 / 96)
-  const scaleY = height / originalHeight
-  console.log(scaleY, height, originalHeight)
-  console.log(height, originalHeight)
   svgCopy.setAttribute("width", columnWidths[columnName]);
   svgCopy.setAttribute("height", originalHeight);
   if (columnName === "Estructura fosil") {
@@ -360,34 +338,49 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
     fossilUnits.forEach(fossilUnit => {
       fossilUnit.setAttribute('transform', `scale(${scaleFactorF},1)`);
     });
-    //if (scaleY) { 
-    svgCopy.setAttribute('transform', `scale(1,${scaleY})`);
-    //}
   } else if (columnName === "Espesor") {
     var lines = svgCopy.querySelectorAll('line');
     lines.forEach(line => {
-      line.style.stroke = "black";
+      line.setAttribute("stroke", "black")
+      // line.style.stroke = "black";
     });
-    // if (scaleY) { 
-    svgCopy.setAttribute('transform', `scale(${scaleFactor},${scaleY})`); //}
+    svgCopy.setAttribute('transform', `scale(${scaleFactor},1)`);
   }
   else if (columnName === "Facie") {
     var texts = svgCopy.querySelectorAll('text');
-    var rects = svgCopy.querySelectorAll('rect');
-    var rLength = svgCopy.querySelectorAll('rect[data-value="value1"]').length + 5;
+    var rects = svgCopy.querySelectorAll('rect[data-value="value1"]')
+    var rLength = rects.length + 5;
     texts.forEach(text => {
       text.setAttribute("font-size", (parseFloat(columnWidths[columnName]) * 96 / 2.54) / rLength);
     });
     rects.forEach(rect => {
-      rect.setAttribute("stroke", "black");
-      rect.setAttribute("stroke-width", 1);
+      //rect.setAttribute("stroke", "black");
+      //rect.setAttribute("stroke-width", 1);
+      const newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      newLine.setAttribute("x1", rect.x.animVal.valueAsString);
+      newLine.setAttribute("y1", "0");
+      newLine.setAttribute("x2", rect.x.animVal.valueAsString);
+      newLine.setAttribute("y2", hsvg);
+      newLine.setAttribute("stroke", "black");
+      newLine.setAttribute("stroke-width", "1");
+      svgCopy.appendChild(newLine);
+
+      const newLine2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      newLine2.setAttribute("x1", rect.width.animVal.valueAsString);
+      newLine2.setAttribute("y1", "0");
+      newLine2.setAttribute("x2", rect.width.animVal.valueAsString);
+      newLine2.setAttribute("y2", hsvg);
+      newLine2.setAttribute("stroke", "black");
+      newLine2.setAttribute("stroke-width", "1");
+      svgCopy.appendChild(newLine2);
     });
-
-    //svgCopy.setAttribute('transform', `scaleY(${scaleY})`); 
-
   }
-  svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${originalHeight}`);
-  //svgCopy.style.transformOrigin = `0 0`;
+  if (columnName === "Facie" && isInverted) {
+    svgCopy.setAttribute("viewBox", `0 ${Number(hsvg - originalHeight - y)} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${originalHeight}`);
+  } else {
+    svgCopy.setAttribute("viewBox", `0 ${y} ${parseFloat(columnWidths[columnName]) * 96 / 2.54} ${originalHeight}`);
+  }
+
   var combinedSVG = new XMLSerializer().serializeToString(svgCopy);
 
   return new Promise((resolve, reject) => {
@@ -395,42 +388,49 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
     const ctx2 = canvas2.getContext('2d');
     const svgBlob = new Blob([combinedSVG], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
+    console.log(url)
     const img = new Image();
-
     const scaleFactor = 3; // Escala para mejorar la calidad
-
     img.onload = () => {
       const originalWidth = parseFloat(columnWidths[columnName]) * 96 / 2.54;
       const originalHeight = height;
-
       canvas2.width = originalWidth * scaleFactor;
       canvas2.height = originalHeight * scaleFactor;
-
       ctx2.scale(scaleFactor, scaleFactor);
-
       ctx2.drawImage(img, 0, 0, originalWidth, originalHeight);
-
       const imgURL = canvas2.toDataURL('image/png', 1.0);
       resolve(imgURL);
     };
-
     img.onerror = (e) => {
       reject(e);
     };
-
     img.src = url;
   });
-
-
-
 }
-
 
 const Ab = async (info, headerParam, format, orientation, customWidthLit, scale, fossils, infoProject, indexesM, oEstrat,
   oLev,
   etSec,
   date, isInverted) => {
-  //  const data = Array.from(info).filter((_, index) => indexesM.includes(index));
+  const iframe = document.getElementById('main-iframe');
+  iframe.setAttribute("src", "");
+  const loadingIndicator = document.createElement('div');
+  loadingIndicator.id = 'loading-indicator';
+  loadingIndicator.innerText = 'Loading...';
+  loadingIndicator.style.position = 'absolute';
+  loadingIndicator.style.top = '50%';
+  loadingIndicator.style.left = '50%';
+  loadingIndicator.style.transform = 'translate(-50%, -50%)';
+  loadingIndicator.style.zIndex = '1000';
+  iframe.parentElement.style.position = 'relative';
+  iframe.parentElement.appendChild(loadingIndicator);
+
+  loadingIndicator.innerHTML = `
+  <span class="loading loading-spinner text-primary w-16 h-16"></span>
+  `;
+
+  iframe.parentElement.style.position = 'relative';
+  iframe.parentElement.appendChild(loadingIndicator);
   const clonedInfo = JSON.parse(JSON.stringify(info)); // Clon profundo
   const data = clonedInfo.filter((_, index) => indexesM.includes(index));
   let widthSheet = (orientation == "portrait") ? sheetSize[format][0] : sheetSize[format][1];
@@ -457,7 +457,7 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   const indexLimited = []
   const maxLitHeight = heightSheet - topHeaders - 10;
 
-  Object.values(data).forEach((key, index) => {
+  (isInverted ? Object.values(data).reverse() : Object.values(data)).forEach((key, index) => {
     var rowHeight = key['Litologia'].Height * scale
     if (rowHeight > maxLitHeight) {
       indexLimited.push(index);
@@ -497,7 +497,6 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
     return page.height !== 0 || page.originalHeight !== 0;
   });
 
-  console.log(pageLengths)
 
   var patterns = []
   var contacts = []
@@ -644,7 +643,6 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   var cImages = await createContactImages(contacts);
 
   const filteredSvgs = document.querySelectorAll('table tbody tr td svg'); // todos los svg
-  //const indices = Object.keys(data); // data [0,1,2,3,4,5...n]
 
   // Filtrar los svg que son capas
   var tdsWithSvg = Array.from(filteredSvgs).filter(svg => {
@@ -662,10 +660,17 @@ const Ab = async (info, headerParam, format, orientation, customWidthLit, scale,
   }
 
   const images = await svgDivision(pageLengths, columnWidths, isInverted);
-  const blob = await pdf(<MyDocument indexLimited={indexLimited} isInverted={isInverted} oLev={oLev} date={date} etSec={etSec} oEstrat={oEstrat} pageLengths={pageLengths} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} />).toBlob();
+
+
+  const blob = await pdf(<MyDocument indexLimited={indexLimited} isInverted={isInverted} oLev={oLev} date={date} etSec={etSec} oEstrat={oEstrat} infoProject={infoProject} contacts={cImages} fossils={fImages} patterns={pImages} scale={scale} imageFossils={images[0]} imageEspesor={images[1]} imageFacies={images[2]} orientation={orientation} format={format} imgPage={imgPage} columnWidths={columnWidths} data={data} header={header} rowIndexesPerPage={rowIndexesPerPage} />).toBlob();
   const url = URL.createObjectURL(blob);
-  const iframe = document.getElementById('main-iframe');
+  // const iframe = document.getElementById('main-iframe');
   iframe.setAttribute("src", url);
+
+  const loadingElement = document.getElementById('loading-indicator');
+  if (loadingElement) {
+    loadingElement.remove();
+  }
 };
 
 export default Ab;

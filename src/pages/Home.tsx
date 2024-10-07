@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/ApiClient';
 import Navbar from '../components/Web/Narbar';
@@ -12,24 +12,29 @@ const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [proyectos, setProyectos] = useState([]);
-  const [proyectosPropios, setProyectosPropios] = useState([]);
-  const [proyectosCompartidos, setProyectosCompartidos] = useState([]);
   const [proyectMap, setProyectMap] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { t } = useTranslation("Home");
 
-  async function fetchData() {
+  async function fetchData(page = 1) {
     try {
-      const response = await api.get("/users/projects");
+      const response = await api.get(`/users/projects?page=${page}`);
       const allProjects = response.data.projects;
 
-      // Filtrar proyectos propios y compartidos
-      console.log(response.data.projects)
-      const propios = allProjects.filter(proyecto => proyecto.ProjectInfo.Members.Owner === user.email);
-      const compartidos = allProjects.filter(proyecto => proyecto.ProjectInfo.Members.Owner  !== user.email);
+      const propios = [];
+      const compartidos = [];
+      allProjects.forEach(proyecto => {
+        if (proyecto.ProjectInfo.Members.Owner === user.email) {
+          propios.push(proyecto);
+        } else {
+          compartidos.push(proyecto);
+        }
+      });
 
       setProyectos(allProjects);
-      setProyectosPropios(propios);
-      setProyectosCompartidos(compartidos);
+      setCurrentPage(response.data.currentPage);
+      setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error('Error al obtener datos:', error);
     }
@@ -49,6 +54,9 @@ const Home = () => {
     fetchData();
   }, []);
 
+  const proyectosPropios = useMemo(() => proyectos.filter(proyecto => proyecto.ProjectInfo.Members.Owner === user.email), [proyectos, user.email]);
+  const proyectosCompartidos = useMemo(() => proyectos.filter(proyecto => proyecto.ProjectInfo.Members.Owner !== user.email), [proyectos, user.email]);
+
   return (
     <>
       <div className="drawer lg:drawer-open">
@@ -57,9 +65,9 @@ const Home = () => {
           <Navbar logohidden={false} />
           <main className="flex-1 p-4">
             <div className="overflow-x-auto bg-base-200 rounded-box p-4 h-full">
-              {item === 'tablaAll' && <TableData Data={proyectos} refresh={fetchData} />}
-              {item === "tabla_your_p" && <TableData Data={proyectosPropios} refresh={fetchData} />}
-              {item === "tabla_shared" && <TableData Data={proyectosCompartidos} refresh={fetchData} />}
+              {item === 'tablaAll' && <TableData Data={proyectos} refresh={fetchData} currentPage={currentPage} totalPages={totalPages} />}
+              {item === "tabla_your_p" && <TableData Data={proyectosPropios} refresh={fetchData} currentPage={currentPage} totalPages={totalPages} />}
+              {item === "tabla_shared" && <TableData Data={proyectosCompartidos} refresh={fetchData} currentPage={currentPage} totalPages={totalPages} />}
               {item === 'mapa' &&
                 <div className='h-full'>
                   <MapProject Data={proyectMap} />

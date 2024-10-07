@@ -21,7 +21,7 @@ const Routes = () => {
       element: <div>Service Page</div>,
     },
     {
-      path: "/about",
+      path: "/",
       element: <About />,
     },
   ];
@@ -47,10 +47,10 @@ const Routes = () => {
           path: "*",
           element: <Navigate to="/home" />,
         },
-        {
-          path: "/",
-          element: <Navigate to="/home"  />,
-        },
+        // {
+        //   path: "/",
+        //   element: <Navigate to="/home"  />,
+        // },
         {
           path: "/myProfile",
           element: <Profile />,

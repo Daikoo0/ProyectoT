@@ -203,7 +203,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     <svg id="svgFacies"
                                         className="h-full max-h-full"
                                         width={columnWidths["Facie"] || cell.column.getSize()} 
-                                        height="0"
+                                        //height="0"
                                         overflow="visible"
                                         transform={isInverted? "scale(1,-1)" : "scale(1,1)"}
                                         style={{
@@ -224,7 +224,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                             width={wp}
                                                             className="stroke stroke-base-content"
                                                             strokeWidth={"1"}
-                                                            fill="transparent"
+                                                            fill="none"
                                                             data-value="value1"
                                                             onClick={() => {
                                                                 setSideBarState({

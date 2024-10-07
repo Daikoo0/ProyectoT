@@ -53,7 +53,7 @@ const About = () => {
     };
 
     const badgeClass = (badge) => {
-        return selectedBadges.includes(badge) ? 'badge badge-accent mr-1' : 'badge badge-neutral mr-1';
+        return selectedBadges.includes(badge) ? 'badge badge-accent mr-1 cursor-pointer' : 'badge badge-neutral mr-1 cursor-pointer';
     };
 
     return (
@@ -76,12 +76,25 @@ const About = () => {
 
             {/* Contenido de la pagina */}
 
+
             <div className="hero bg-base-100 mt-1">
+                <iframe
+                    className="my-5 h-screen w-full max-w-6xl  rounded-box place-items-center"
+                    src="https://docs.google.com/forms/d/e/1FAIpQLSc1kz78ROCa8zFdnG7KRy7rJcVd0gPKDgT-L0hwwko4XZP9CQ/viewform?embedded=true"
+                >Cargando…
+                </iframe>
+
+            </div>
+
+            <div className="divider"></div>
+
+            <div className="hero bg-base-100">
                 <div className="my-5 w-full max-w-6xl card bg-base-300 rounded-box place-items-center">
-                    <h3 className="p-1 text-5xl font-bold">Uso</h3>
+                    <h3 className="text-5xl font-bold pt-4">Uso</h3>
+                    
                     <div className="divider w-4/5 mx-auto text-center"></div>
                     <div className="ml-8 mr-8 mx-auto text-justify">
-                    {t("uso")}
+                        {t("uso")}
                     </div>
 
                     <div className="ml-8 mr-8 mx-auto text-justify">
@@ -103,14 +116,14 @@ const About = () => {
                         <h3 className="p-1 text-3xl font-bold">{t("edit_points")}</h3>
                         <br></br>
                         {t("edit_points_text")}
-                       </div>
+                    </div>
 
                     <div className="ml-8 mr-8 mx-auto text-justify">
                         <div className="divider w-4/5 mx-auto text-center"></div>
                         <h3 className="p-1 text-3xl font-bold">{t("fossils")}</h3>
                         <br></br>
                         {t("fossils_text")}
-                     </div>
+                    </div>
 
                     <div className="ml-8 mr-8 mx-auto text-justify">
                         <div className="divider w-4/5 mx-auto text-center"></div>
@@ -137,29 +150,21 @@ const About = () => {
                         <div className="divider w-4/5 mx-auto text-center"></div>
                         <h3 className="p-1 text-3xl font-bold">{t("room_and_table_settings")}</h3>
                         <br></br>
-                      {t("room_and_table_settings_text")}
+                        {t("room_and_table_settings_text")}
                     </div>
                 </div>
             </div>
 
             <div className="divider"></div>
 
-            <div className="hero bg-base-100 mt-1">
-                <div className="bg-base-300 p-4 rounded-md flex items-center mb-4">
-                    {/* <div className="avatar">
-                        <div className="w-64 rounded-full">
-                            <svg className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-3 5h3m-6 0h.01M12 16h3m-6 0h.01M10 3v4h4V3h-4Z" />
-                            </svg>
-                        </div>
-                    </div> */}
-                    <div className="ml-4">
-                        <div className="flex items-center">
-                            <h2 className="text-4xl font-bold">Ayúdanos a mejorar</h2>
-                        </div>
+            <div className="hero bg-base-100">
+            <div className="my-5 w-full max-w-6xl card bg-base-300 rounded-box place-items-center">
+                    <div className="p-6">
+                       
+                        <h3 className="p-1 text-3xl font-bold">Tuviste algun problema?</h3>
 
-                        <p className="text-2xl py-6">
-                            Este proyecto está en desarrollo, déjanos saber si encontraste algún problema o tienes alguna sugerencia
+                        <p className="text-2xl py-4 text-justify">
+                            Este proyecto está en desarrollo, déjanos saber si encontraste algún problema o tienes alguna sugerencia. Da click en los botones para seleccionar las etiquetas que correspondan y escribe tu comentario.
                         </p>
 
 
@@ -172,7 +177,7 @@ const About = () => {
                             <div className={badgeClass('Accesibilidad')} onClick={() => toggleBadge('Accesibilidad')}>Accesibilidad</div>
                             <div className={badgeClass('Documentación')} onClick={() => toggleBadge('Documentación')}>Documentación</div>
                             <div className={badgeClass('Registro')} onClick={() => toggleBadge('Registro')}>Registro</div>
-                            <div className={badgeClass('Tecnicismos')} onClick={() => toggleBadge('Tecnicismos')}>Otros</div>
+                            <div className={badgeClass('Tecnicismos')} onClick={() => toggleBadge('Tecnicismos')}>Tecnicismos</div>
                             <div className={badgeClass('Otros')} onClick={() => toggleBadge('Otros')}>Otros</div>
                         </div>
 
@@ -188,8 +193,6 @@ const About = () => {
                                 className="btn btn-primary" aria-label="Enviar">Enviar</button>
                             {message}
                         </div>
-
-                        {message}
                     </div>
                 </div>
             </div>
