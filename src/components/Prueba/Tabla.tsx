@@ -157,7 +157,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     <svg id="fossilSvg"
                                         className="h-full max-h-full"
                                         width={columnWidths["Estructura fosil"] || cell.column.getSize()}
-                                        height="0" overflow="visible"
+                                        height={alturaTd<153? alturaTd: ''} overflow="visible"
                                     >
                                         {cdef["fossils"]
                                             ? Object.keys(cdef["fossils"]).map((data, index) => (
@@ -203,13 +203,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     <svg id="svgFacies"
                                         className="h-full max-h-full"
                                         width={columnWidths["Facie"] || cell.column.getSize()} 
-                                        //height="0"
                                         overflow="visible"
                                         transform={isInverted? "scale(1,-1)" : "scale(1,1)"}
-                                        style={{
-                                          //  transform: isInverted ? "scaleY(-1)" : "none",
-                                            //transformOrigin: "center",
-                                        }}
+                                        height={alturaTd<153? alturaTd: ''}
                                     >
                                         {facies
                                             ? Object.keys(facies).map((key, index) => {
@@ -292,15 +288,16 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     <td key={cell.id} style={{
                         width: cell.column.getSize(),
                         maxHeight: cell.row.original.Litologia.Height * scale,
-                        overflowY: 'hidden',
+                        overflow: 'hidden',
                         padding: '0',
                         top: '0',
                         verticalAlign: "top",
                         borderColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color || '',
+                        boxSizing: 'border-box'
                     }}
-                        className={
-                            editingUsers?.[`[${row.id},${cellIndex}]`] ? 'border-2' : 'border border-base-content'
-                        }
+                    className={
+                        editingUsers?.[`[${row.id},${cellIndex}]`] ? 'border-2' : 'border border-base-content'
+                    }
                         onClick={() => {
                             setSideBarState({
                                 sideBar: true,
@@ -312,13 +309,14 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         onMouseEnter={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseEnter"] : null)}
                         onMouseLeave={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseLeave"] : null)}
                     >
+                       
+                        <div style={{ boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: "100%" }}>
                         {(editingUsers?.[`[${row.id},${cellIndex}]`] && hovered) ?
                             <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
                             : <></>
                         }
-                        <div style={{ margin: 0, padding: 0, top: 0, overflow: hovered ? "auto" : "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: cell.row.original.Litologia.Height * scale }}>
-
                             <div
+                            style={{overflow: hovered ? "auto" : "hidden"}}
                                 className="ql-editor prose"
                                 dangerouslySetInnerHTML={{ __html: cell.getValue() }} />
                         </div>
