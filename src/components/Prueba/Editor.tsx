@@ -358,17 +358,20 @@ const Grid = () => {
             })
             break;
           case 'drop':
-            console.log(shapeN.activeId,shapeN.overId)
+            console.log(shapeN.activeId, shapeN.overId)
             setData((data) => {
               return arrayMove(data, shapeN.activeId, shapeN.overId);
             });
             break;
           case 'error':
-            if (shapeN.message === 'Access denied') {
-              console.error('Acceso denegado');
-              socket.close();  // Cerrar el socket
-              isPageActive.current = false;  // Desactivar reconexión
-            }
+            console.error(shapeN.message);
+            socket.close();  // Cerrar el socket
+            isPageActive.current = false;  // Desactivar reconexión
+            return
+          case "close":
+            console.info(shapeN.message);
+            socket.close();
+            isPageActive.current = false; // Desactivar reconexión
             return
           default:
             console.error(`Acción no reconocida: ${shapeN.action}`);
@@ -627,7 +630,7 @@ const Grid = () => {
     var copyData = data
     var copyHeader = [...header]
     var indexes = Array.from({ length: data.length }, (_, index) => index);
-    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________',isInverted)
+    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________', isInverted)
     const initialPdfData = {
       columnWidths: {},
       data: copyData,
@@ -917,20 +920,20 @@ const Grid = () => {
 
                       <li className='mb-2' >
                         <p>
-                          <input type="number" name='Height' onChange={handleChangeLocal} value={formData.Height} />
+                          <input type="number" name='Height' onChange={handleChangeLocal} value={Number(formData.Height)} />
                           cm
                         </p>
                       </li>
 
                       <li className='mb-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? -1 : 0), formData.Height)}><p>{t("add_t")}</p></button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? -1 : 0), Number(formData.Height))}><p>{t("add_t")}</p></button>
                       </li>
                       <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? data.length - formData.initialHeight : formData.initialHeight), formData.Height)}><p>{t("add_index")}</p></button>
-                        <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={formData.initialHeight} />
+                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? data.length - Number(formData.initialHeight) : Number(formData.initialHeight)), Number(formData.Height))}><p>{t("add_index")}</p></button>
+                        <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={Number(formData.initialHeight)} />
                       </li>
                       <li className='mt-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? 0 : -1), formData.Height)}><p>{t("add_b")}</p></button>
+                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? 0 : -1), Number(formData.Height))}><p>{t("add_b")}</p></button>
                       </li>
                     </ul>
                   );
@@ -966,7 +969,7 @@ const Grid = () => {
                             <input
                               type="number"
                               name='upper'
-                              value={formFosil.upper}
+                              value={Number(formFosil.upper)}
                               min={0}
                               max={formFosil.lower}
                               required
@@ -978,7 +981,7 @@ const Grid = () => {
                             <input
                               type="number"
                               name='lower'
-                              value={formFosil.lower}
+                              value={Number(formFosil.lower)}
                               min={0}
                               max={alturaTd}
                               required
@@ -987,7 +990,7 @@ const Grid = () => {
                           </li>
 
                           <button type='submit' className="btn btn-primary"
-                            disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
+                            disabled={Number(formFosil.lower) > alturaTd || Number(formFosil.upper) > alturaTd}>
                             <p>{t("confirm")}</p>
                           </button>
                         </form>
@@ -1280,7 +1283,7 @@ const Grid = () => {
                               <input
                                 type="number"
                                 name="y1"
-                                value={formFacies.y1}
+                                value={Number(formFacies.y1)}
                                 onChange={changeformFacie}
                                 className="form-input ml-2"
                               />
@@ -1290,7 +1293,7 @@ const Grid = () => {
                               <input
                                 type="number"
                                 name="y2"
-                                value={formFacies.y2}
+                                value={Number(formFacies.y2)}
                                 onChange={changeformFacie}
                                 className="form-input ml-2"
                               />

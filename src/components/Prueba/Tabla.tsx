@@ -74,7 +74,6 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         position: 'relative',
         padding: 0,
     };
-    console.log(row)
 
     return (
         <tr ref={setNodeRef} style={style} id={row.id}>
@@ -86,14 +85,14 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                             <td
                                 key={cell.id}
                                 rowSpan={rowspan}
-                                className="border border-base-content"
+                                className="border border-base-content h-full max-h-full"
                                 style={{
                                     verticalAlign: "top",
                                 }}
                             >
-                                <div className="h-full max-h-full">
+                                {/* <div className="h-full max-h-full"> */}
                                     <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
-                                </div>
+                                {/* </div> */}
                             </td>
                         );
                     } else {
@@ -132,27 +131,25 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 key={cell.id}
                                 rowSpan={rowspan}
                                 className="border border-base-content"
-
                             >
                                 <div
-                                    className="h-full max-h-full"
-                                    onClick={(e) => {
-                                        if (e.target instanceof SVGSVGElement) {
-                                            setSideBarState({
-                                                sideBar: true,
-                                                sideBarMode: "fosil",
-                                            });
-                                            setFormFosil({
-                                                id: '',
-                                                upper: 0,
-                                                lower: 0,
-                                                fosilImg: '',
-                                                x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cell.column.getSize()),
-                                                fosilImgCopy: '',
-                                            });
-                                        }
-                                    }}
-                                    style={{ top: 0 }}
+                                className="h-full max-h-full"
+                                  onClick={(e) => {
+                                    if (e.target instanceof SVGSVGElement) {
+                                        setSideBarState({
+                                            sideBar: true,
+                                            sideBarMode: "fosil",
+                                        });
+                                        setFormFosil({
+                                            id: '',
+                                            upper: 0,
+                                            lower: 0,
+                                            fosilImg: '',
+                                            x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cell.column.getSize()),
+                                            fosilImgCopy: '',
+                                        });
+                                    }
+                                }}
                                 >
                                     <svg id="fossilSvg"
                                         className="h-full max-h-full"
@@ -199,7 +196,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     padding: 0,
                                 }}
                             >
-                                <div className="h-full max-h-full" style={{ top: 0 }}>
+                                {/* <div className="h-full max-h-full" style={{ top: 0 }}> */}
                                     <svg id="svgFacies"
                                         className="h-full max-h-full"
                                         width={columnWidths["Facie"] || cell.column.getSize()} 
@@ -216,11 +213,12 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                         <rect
                                                             x={xPosp}
                                                             y="0"
+                                                            key={"facie-"+key+index}
                                                             height="100%"
                                                             width={wp}
                                                             className="stroke stroke-base-content"
                                                             strokeWidth={"1"}
-                                                            fill="none"
+                                                            fill="transparent"
                                                             data-value="value1"
                                                             onClick={() => {
                                                                 setSideBarState({
@@ -232,9 +230,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                         />
                                                         {facies[key].map((value, i) => (
                                                             <>
-                                                                <g key={i}>
+                                                                <g key={"g-"+key+value+i}>
                                                                     <text
-                                                                        key={value}
+                                                                        key={"value-"+key+value+i}
                                                                         fontSize={14}
                                                                         className="fill fill-base-content"
                                                                         x={isInverted ? -((parseFloat(value.y2) - parseFloat(value.y1)) * scale) : 10}
@@ -251,7 +249,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                 </g>
                                                                 <rect
                                                                     data-custom="valor1"
-                                                                    key={value}
+                                                                    key={"rect-"+key+value+i}
                                                                     className="fill fill-base-content"
                                                                     x={xPosp}
                                                                     y={parseFloat(value.y1) * scale}
@@ -272,7 +270,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                             })
                                             : null}
                                     </svg>
-                                </div>
+                                {/* </div> */}
                             </td>
                         );
                     } else { return null; }
@@ -310,13 +308,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         onMouseLeave={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseLeave"] : null)}
                     >
                        
-                        <div style={{ boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: "100%" }}>
+                        <div style={{display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: "100%" }}>
                         {(editingUsers?.[`[${row.id},${cellIndex}]`] && hovered) ?
                             <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
                             : <></>
                         }
                             <div
-                            style={{overflow: hovered ? "auto" : "hidden"}}
+                            style={{overflow: hovered ? "auto" : "hidden" , display: 'block'}}
                                 className="ql-editor prose"
                                 dangerouslySetInnerHTML={{ __html: cell.getValue() }} />
                         </div>
@@ -451,7 +449,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         [header, fossils]
     );
 
-    console.log(header)
     const table = useReactTable({
         data,
         columns,
@@ -471,13 +468,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
-        // console.log('Active ID:', active.id, 'Over ID:', over?.id || 'null');
         if (active && over && active.id !== over.id) {
-            // setData((data) => {
-            //     const oldIndex = dataIds.indexOf(active.id);
-            //     const newIndex = dataIds.indexOf(over.id);
-            //     return arrayMove(data, oldIndex, newIndex);
-            // });
             socket.send(JSON.stringify({
                 action: 'drop',
                 data: {
@@ -552,7 +543,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     }
 
     const handleRows = (number) => {
-        console.log(number)
         var rowsBefore = [...pdfData.data];
         var indexes = rowsBefore.map((row, index) => Number(row.Litologia.Height) > Number(number) ? index : -1)
             .filter(index => index !== -1);
@@ -1098,11 +1088,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     isInverted
                                         ? table.getRowModel().rows.slice().reverse()
                                         : table.getRowModel().rows
-                                ).map((row) => {
+                                ).map((row,index) => {
                                     return (
                                         <DraggableRow
                                             rowspan={data.length}
-                                            key={row.id}
+                                            key={row.id+""+index}
                                             row={row}
                                             index={row.index}
                                             header={header}

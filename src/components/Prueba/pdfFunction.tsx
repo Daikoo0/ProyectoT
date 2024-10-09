@@ -59,6 +59,7 @@ const TableHeader = ({ columnWidths, header }) => {
 };
 
 function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths, isInverted) {
+
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -68,6 +69,7 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
 
     svgList.forEach((svg, _) => {
       const svgCopy = svg.cloneNode(true);
+      const scaleH = pageLengths[pageIndex].height / parseFloat(svgCopy.getAttribute("height"))
       const circles = svgCopy.querySelectorAll('circle');
       circles.forEach(circle => circle.remove());
       const alturaActual = parseFloat(svgCopy.getAttribute('height'));
@@ -77,12 +79,26 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
       var pa = svgCopy.getElementsByClassName("pa");
       path[0].setAttribute('transform', `scale(${scaleFactor},1)`);
       for (var i = 0; i < pa.length; i++) {
-        pa[i].setAttribute('transform', `scale(${scaleFactor},1)`);
+        pa[i].setAttribute('transform', `scale(${scaleFactor},1})`);
       }
-      const scaleH = pageLengths[pageIndex].height / parseFloat(svgCopy.getAttribute("height"))
+
+
       if (limited) {
-        svgCopy.setAttribute("transform", `scale(1,${scaleH})`);
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute('transform', `scale(1, ${scaleH})`);
+
+        while (svgCopy.firstChild) {
+          g.appendChild(svgCopy.firstChild);
+        }
+        svgCopy.appendChild(g);
+
+        totalHeight += alturaActual * scaleH;
+        svgCopy.setAttribute('y', (isInverted ? totalHeight : totalHeight - alturaActual * scaleH));
+      } else {
+        totalHeight += alturaActual;
+        svgCopy.setAttribute('y', (isInverted ? totalHeight : totalHeight - alturaActual));
       }
+
 
       if (isInverted) {
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -92,8 +108,8 @@ function svgListToDataURL(svgList, columnWidths, limited, pageIndex, pageLengths
         }
         svgCopy.appendChild(g);
       }
-      totalHeight += (limited ? alturaActual * scaleH : alturaActual);
-      svgCopy.setAttribute('y', (isInverted ? totalHeight : totalHeight - (isInverted ? alturaActual * scaleH : alturaActual)));
+      //totalHeight += (limited ? alturaActual * scaleH : alturaActual);
+      //svgCopy.setAttribute('y', (isInverted ? totalHeight : totalHeight - (isInverted ? alturaActual * scaleH : alturaActual)));
       combinedSVG += new XMLSerializer().serializeToString(svgCopy);
     });
     combinedSVG += `</svg>`;
@@ -225,8 +241,8 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
                     <>
                       {key === "Litologia" && (
                         <View key={`secondLIT-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
-                          <Img key={`secondImgLitologia-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight * 72 / 96, width: columnWidths["Litologia"] }]} />
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: (imgPage[pageIndex].totalHeight+10) * 72 / 96 }]}>
+                          <Img key={`secondImgLitologia-${pageIndex}${key}${i}`} src={imgPage[pageIndex].imgURL} style={[{ backgroundColor: "transparent", height: (imgPage[pageIndex].totalHeight+10) * 72 / 96, width: columnWidths["Litologia"] }]} />
                         </View>
                       )}
                       {(secondArray[i] === "Estructura fosil" && imageFossils.length) && (
@@ -336,13 +352,12 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
     const fossilUnits = svgCopy.querySelectorAll('g.fossilUnit');
     var scaleFactorF = (parseFloat(columnWidths[columnName]) - (15 * 2.54 / 96)) / (width * 2.54 / 96)
     fossilUnits.forEach(fossilUnit => {
-      fossilUnit.setAttribute('transform', `scale(${scaleFactorF},1)`);
+      fossilUnit.setAttribute('transform', `scale(${scaleFactorF},${isInverted? -1 : 1})`);
     });
   } else if (columnName === "Espesor") {
     var lines = svgCopy.querySelectorAll('line');
     lines.forEach(line => {
       line.setAttribute("stroke", "black")
-      // line.style.stroke = "black";
     });
     svgCopy.setAttribute('transform', `scale(${scaleFactor},1)`);
   }
@@ -354,8 +369,6 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
       text.setAttribute("font-size", (parseFloat(columnWidths[columnName]) * 96 / 2.54) / rLength);
     });
     rects.forEach(rect => {
-      //rect.setAttribute("stroke", "black");
-      //rect.setAttribute("stroke-width", 1);
       const newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
       newLine.setAttribute("x1", rect.x.animVal.valueAsString);
       newLine.setAttribute("y1", "0");
