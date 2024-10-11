@@ -29,6 +29,8 @@ const Ruler = ({ width, height, isInverted, scale }) => {
     }
   }
 
+  console.log(height)
+
   return (
     <svg id="rulerSvg" height={height<153? height: ''} className="h-full max-h-full"
      width={width} overflow={'hidden'}>

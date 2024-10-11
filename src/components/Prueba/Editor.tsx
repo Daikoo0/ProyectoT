@@ -79,7 +79,7 @@ const Grid = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log(name, value)
+    console.log(name, value, e.target)
 
     setFormData(prevState => ({
       ...prevState,
@@ -102,6 +102,7 @@ const Grid = () => {
 
   const handleChangeLocal = (e) => {
     const { name, value } = e.target;
+    console.log(name,value)
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
@@ -1121,8 +1122,9 @@ const Grid = () => {
 
                       <li className='flex flex-row'>
                         <p>{t("tam_cap")}</p>
-                        <input type="number" name='Height' value={formData.Height} onChange={handleChangeLocal} />
-                        <button className="btn" name='Height' value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000} onClick={handleChange}><p>{t("change")}</p></button>
+                        <input type="number" name="Height" value={formData.Height} onChange={handleChangeLocal} />
+                        <button className="btn" name="Height" value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000} 
+                        onClick={handleChange}>{t("change")}</button>
                       </li>
 
                       <li>

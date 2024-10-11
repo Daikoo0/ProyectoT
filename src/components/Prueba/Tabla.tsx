@@ -573,7 +573,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 resizeObserver.disconnect();
             };
         }
-    }, [adfas.current, data.length]);
+    }, [adfas.current, data]);
 
     return (
         <>
