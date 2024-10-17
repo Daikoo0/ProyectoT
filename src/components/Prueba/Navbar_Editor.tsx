@@ -12,6 +12,7 @@ interface NavbarProps {
     initialFormData: any;
     tokenLink: ({ editor: string; reader: string });
     setTokenLink: (state: { editor: string; reader: string }) => void;
+    users: { [key: string]: { name: string; color: string } };
 }
 
 interface InviteModalProps {
@@ -31,9 +32,9 @@ const Navbar: React.FC<NavbarProps> = ({
     infoProject,
     initialFormData,
     tokenLink,
-    setTokenLink
+    setTokenLink, 
+    users
 }) => {
-
 
     return (
         <div className="navbar bg-base-200 fixed top-0 z-[100]">
@@ -93,8 +94,12 @@ const Navbar: React.FC<NavbarProps> = ({
                     </div>
                 </div>
 
+
                 {/* Contenedor para los elementos alineados a la derecha */}
                 <div className="flex items-center space-x-4">
+
+                    <Users users={users} />
+
                     <InviteModal
                         tokenLink={tokenLink}
                         setTokenLink={setTokenLink}
@@ -106,6 +111,37 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
     );
 };
+
+const Users: React.FC<{ users: { [key: string]: { name: string; color: string } } }> = ({ users }) => {
+    const usersArray = Object.values(users);
+    const maxVisibleUsers = 3;
+    const visibleUsers = usersArray.slice(0, maxVisibleUsers);
+    const remainingUsers = usersArray.slice(maxVisibleUsers);
+    const remainingUsersCount = remainingUsers.length;
+
+    return (
+        <div className="-space-x-3 rtl:space-x-reverse">
+            {visibleUsers.map((user, index) => (
+                <div key={index} className="tooltip tooltip-bottom" data-tip={user.name}>
+                    <div className="avatar placeholder">
+                        <div className="bg-neutral-content text-primary w-8 rounded-full border" style={{ borderColor: user.color }}>
+                            <span className="text-xs">{user.name.substring(0, 2).toUpperCase()}</span>
+                        </div>
+                    </div>
+                </div>
+            ))}
+            {remainingUsersCount > 0 && (
+                <div className="tooltip tooltip-bottom" data-tip={remainingUsers.map((user) => user.name).join(', ')}>
+                    <div className="avatar placeholder">
+                        <div className="bg-neutral-content text-primary w-8 rounded-full border border-primary">
+                            <span className="text-xs">+{remainingUsersCount}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 
 const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, setTokenLink, socket }) => {
 

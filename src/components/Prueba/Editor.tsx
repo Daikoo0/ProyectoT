@@ -189,7 +189,8 @@ const Grid = () => {
     };
   }, [project]);
 
-  const [editingUsers, setEditingUsers] = useState({});
+  const [editingUsers, setEditingUsers] = useState<{ [key: string]: { id: string; name: string; color: string } }>({});
+  const [users, setUsers] = useState<{ [key: string]: { name: string; color: string } }>({});
 
   // Escucha de mensajes del socket
   useEffect(() => {
@@ -207,14 +208,39 @@ const Grid = () => {
             setHeader(shapeN.config.header)
             setFossils(shapeN.fosil)
             setIsInverted(shapeN.config.isInverted)
-            setEditingUsers(shapeN.sectionsEditing)
+            setEditingUsers(shapeN.userEditing)
+            setUsers(shapeN.users)
             setInfoProject(shapeN.projectInfo)
+            break;
+          }
+          case 'userConnected': {
+            setUsers(prevState => ({
+              ...prevState,
+              [shapeN.id]: { name: shapeN.mail, color: shapeN.color }
+            }));
+            
+            break;
+          }
+          case 'userDisconnected': {
+            const userID = shapeN.id;
+          
+            setEditingUsers(prevState => {
+              return Object.fromEntries(
+                Object.entries(prevState).filter(([_, value]) => value.id !== userID)
+              );
+            });
+            
+            setUsers(prevState => {
+              const { [userID]: _, ...newState } = prevState;
+              return newState;
+            });
+          
             break;
           }
           case 'editingUser': {
             setEditingUsers(prevState => ({
               ...prevState,
-              [shapeN.value]: { "name": shapeN.userName, "color": shapeN.color }
+              [shapeN.value]: shapeN.data
             }));
             break;
           }
@@ -225,7 +251,7 @@ const Grid = () => {
               if (newState.hasOwnProperty(shapeN.value)) {
                 delete newState[shapeN.value];
               } else {
-                console.log("El elemento a eliminar no existe en el estado");
+                return;
               }
               return newState;
             });
@@ -685,6 +711,7 @@ const Grid = () => {
             initialFormData={initialFormData}
             tokenLink={tokenLink}
             setTokenLink={setTokenLink}
+            users={users}
           />
 
           <Tabla

@@ -28,11 +28,11 @@ api.interceptors.response.use(
         // Aqui se manejan los errores de la solicitud
         // Error Unauthorized
         if (error.response.status === 401) {
-            console.log("Error 401: No autorizado. Por favor, inicia sesión nuevamente.");
-           
-            if (error.response.data.message === "Token is expired") {
+            const err = error.response.data.message;
+            if (err === 'invalid or expired token') {
                 localStorage.removeItem('token');
-            }
+                window.location.href = '/login';
+            } 
         }
         if (error.message === 'Network Error') {
             throw new Error(error);
