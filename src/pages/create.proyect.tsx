@@ -72,8 +72,6 @@ const ParticipantForm = () => {
     try {
       const response = await api.post(`/rooms/create`, Data);
 
-      console.log(response.status);
-
       if (response.status === 200) {
         setMessage("success");
         window.location.href = "/home";

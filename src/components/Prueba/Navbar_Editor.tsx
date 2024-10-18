@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({
     infoProject,
     initialFormData,
     tokenLink,
-    setTokenLink, 
+    setTokenLink,
     users
 }) => {
 
@@ -146,7 +146,7 @@ const Users: React.FC<{ users: { [key: string]: { name: string; color: string } 
 const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, setTokenLink, socket }) => {
 
     const delTokenLinks = () => {
-        socket.send(JSON.stringify({ action: 'tokenLink' }));
+        socket.send(JSON.stringify({ action: 'deletetokenLink' }));
         setTokenLink({ editor: '', reader: '' });
 
     };
@@ -158,7 +158,14 @@ const InviteModal: React.FC<InviteModalProps> = ({ tokenLink, setTokenLink, sock
 
     return (
         <>
-            <button className="btn" onClick={() => (document.getElementById('modal_share') as HTMLDialogElement).showModal()}>Share</button>
+
+            <div className="tooltip tooltip-bottom" onClick={() => (document.getElementById('modal_share') as HTMLDialogElement).showModal()} data-tip={"Shared"}>
+                <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
+                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12h4m-2 2v-4M4 18v-1a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v1a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Zm8-10a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                </div>
+            </div>
 
             <dialog id="modal_share" className="modal">
                 <div className="modal-box border border-accent">

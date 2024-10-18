@@ -96,8 +96,6 @@ const Grid = () => {
       },
     }));
 
-    console.log(formData)
-
   };
 
   const handleChangeLocal = (e) => {
@@ -679,8 +677,6 @@ const Grid = () => {
   };
 
   const [isInverted, setIsInverted] = useState(false)
-
-
   return (
     <>
       <div className="drawer drawer-end auto-cols-max">
@@ -773,10 +769,14 @@ const Grid = () => {
 
               <div className="flex justify-center space-x-4">
 
+             
                 <form method="dialog" onSubmit={() => deleteCirclePoint(modalData.index, modalData.insertIndex)}>
-                  <button className="btn btn-error">Eliminar punto</button>
+                  <button 
+                    className="btn btn-error"
+                    disabled={modalData.insertIndex <= 1 || modalData.insertIndex >= data[modalData.index]?.Litologia?.Circles?.length - 1 }>
+                    Eliminar punto
+                  </button>
                 </form>
-
                 <form method="dialog" onSubmit={() => setModalData({ index: null, insertIndex: null, x: 0.51, name: 'none' })}>
                   <button className="btn">Cerrar</button>
                 </form>

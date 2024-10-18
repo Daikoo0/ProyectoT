@@ -22,6 +22,8 @@ import AboutES from './locales/es/About.json';
 import AboutEN from './locales/en/About.json';
 import createProjectES from './locales/es/create_project.json';
 import createProjectEN from './locales/en/create_project.json';
+import InvitationES from './locales/es/Invitation.json';
+import InvitationEN from './locales/en/Invitation.json';
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -35,6 +37,7 @@ i18n.use(initReactI18next).init({
       Perfil: PerfilEN,
       About: AboutEN,
       CProject : createProjectEN,
+      Invitation: InvitationEN,
     },
     es: {
         Editor: editorES,
@@ -46,10 +49,11 @@ i18n.use(initReactI18next).init({
         Perfil: PerfilES,
         About: AboutES,
         CProject : createProjectES,
+        Invitation : InvitationES,
     },
   },
     fallbackLng: "es",
-    ns: ['PDF', 'Home','Editor','Login','Description','Patterns','Perfil','About','CProject'],
+    ns: ['PDF', 'Home','Editor','Login','Description','Patterns','Perfil','About','CProject','Invitation'],
     interpolation: {
         escapeValue: false
     },

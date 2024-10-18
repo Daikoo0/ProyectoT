@@ -47,7 +47,6 @@ function Register() {
               setErrorMessage("Las contraseñas no coinciden");
               break;
             default:
-              console.log("a")
               setErrorMessage("Error en la solicitud");
               break;
           }

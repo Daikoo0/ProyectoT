@@ -1,0 +1,8 @@
+{
+    "Invalid or expired token link":"La invitación ya no es válida",
+    "Invalid request body":"Parámetros faltantes o no válidos",
+    "Server error":"Error del servidor",
+    "No se proporciono un token de invitacion":"No se proporcionó un token de invitación",
+    "El enlace de invitación no es válido o ha expirado":"El enlace de invitación no es válido o ha expirado",
+    "Validando el enlace de invitación": "Validando el enlace de invitación"
+}
