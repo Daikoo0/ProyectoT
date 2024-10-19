@@ -144,13 +144,12 @@ const svgDivision = async (measures, columnWidths, isInverted) => {
   const svgEspesor = document.querySelector('svg#rulerSvg') as SVGElement | null;
   const svgFacies = document.querySelector('svg#svgFacies') as SVGElement | null;
 
-  console.log(svgFacies.getBoundingClientRect().height)
 
   for (const measure of measures) {
     const { height, originalHeight } = measure;
-    const imgPageFossils = svgFossil ? await svgToImg(svgFossil, height, originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
-    const imgPageEspesor = svgEspesor ? await svgToImg(svgEspesor, height, originalHeight, svgEspesor.clientWidth, y, "Espesor", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
-    const imgPageFacies = svgFacies ? await svgToImg(svgFacies, height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
+    const imgPageFossils = (svgFossil !== null) ? await svgToImg(svgFossil, height, originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths, isInverted, svgFossil.getBoundingClientRect().height) : "";
+    const imgPageEspesor = (svgEspesor !== null) ? await svgToImg(svgEspesor, height, originalHeight, svgEspesor.clientWidth, y, "Espesor", columnWidths, isInverted, svgEspesor.getBoundingClientRect().height) : "";
+    const imgPageFacies = (svgFacies !== null) ? await svgToImg(svgFacies, height, originalHeight, svgFacies.clientWidth, y, "Facie", columnWidths, isInverted, svgFacies.getBoundingClientRect().height) : "";
     y += originalHeight;
     imgPageFossils ? arrayFossils.push(imgPageFossils) : arrayFossils = [];
     imgPageEspesor ? arrayEspesor.push(imgPageEspesor) : arrayEspesor = [];
@@ -360,6 +359,9 @@ function svgToImg(elsvg, height, originalHeight, width, y, columnName, columnWid
       line.setAttribute("stroke", "black")
     });
     svgCopy.setAttribute('transform', `scale(${scaleFactor},1)`);
+    var w = parseFloat(svgCopy.getAttribute("width"))
+    svgCopy.setAttribute("width", `${w*scaleFactor}cm`)
+    console.log(svgCopy.outerHTML)
   }
   else if (columnName === "Facie") {
     var texts = svgCopy.querySelectorAll('text');

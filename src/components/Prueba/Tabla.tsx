@@ -24,16 +24,17 @@ interface Layer {
     Miembro: string;
 }
 
-const RowDragHandleCell = ({ rowId }: { rowId: string }) => {
+const RowDragHandleCell = ({ row }: { row : Row<Layer> }) => {
     const { attributes, listeners } = useSortable({
-        id: rowId,
+        id: row.id,
     });
     return (
-        <button {...attributes} {...listeners}>
-            <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8 10 4-6 4 6H8Zm8 4-4 6-4-6h8Z" />
-            </svg>
-
+        <button {...attributes} {...listeners} style={{ maxHeight : row.original.Litologia.Height, padding : 0,
+            display: 'flex', 
+            justifyContent: 'center',
+            alignItems: 'center' 
+        }}>
+          =
         </button>
     );
 };
@@ -73,10 +74,12 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         zIndex: isDragging ? 1 : 0,
         position: 'relative',
         padding: 0,
+        height : row.original.Litologia.Height * scale
     };
 
+
     return (
-        <tr ref={setNodeRef} style={style} id={row.id}>
+        <tr ref={setNodeRef} style={style} id={row.id} >
             {row.getVisibleCells().map((cell, cellIndex) => {
                 const cdef = cell.column.columnDef;
                 if (cellIndex === header.indexOf("Espesor") + 1) {
@@ -100,7 +103,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     }
                 }
                 if (cellIndex === header.indexOf("Litologia") + 1) {
-                    return (<td key={cell.id} style={{ padding: 0 }}>
+                    return (
+                    <td key={cell.id} style={{ padding: 0, height : cell.row.original.Litologia.Height * scale }}>
                         <Polygon
                             isInverted={isInverted}
                             rowIndex={index}//rowIndex={adjustedRowIndex}
@@ -278,20 +282,22 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 if (cellIndex === 0) {
                     return (
                         <td key={cell.id} style={{ width: cell.column.getSize() }}>
+                            <div style={{ height : row.original.Litologia.Height * scale}}>
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </div>
                         </td>
                     );
                 }
                 return (
                     <td key={cell.id} style={{
                         width: cell.column.getSize(),
-                        maxHeight: cell.row.original.Litologia.Height * scale,
+                        height : row.original.Litologia.Height * scale,
                         overflow: 'hidden',
                         padding: '0',
                         top: '0',
                         verticalAlign: "top",
                         borderColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color || '',
-                        boxSizing: 'border-box'
+                     //   boxSizing: 'border-box'
                     }}
                     className={
                         editingUsers?.[`[${row.id},${cellIndex}]`] ? 'border-2' : 'border border-base-content'
@@ -314,7 +320,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                             : <></>
                         }
                             <div
-                            style={{overflow: hovered ? "auto" : "hidden" , display: 'block'}}
+                            style={{overflow: hovered ? "auto" : "hidden" , height : row.original.Litologia.Height * scale}}
                                 className="ql-editor prose"
                                 dangerouslySetInnerHTML={{ __html: cell.getValue() }} />
                         </div>
@@ -376,7 +382,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 id: 'drag-handle',
                 header: " ",
                 cell: ({ row }: { row: Row<Layer> }) => (
-                    <RowDragHandleCell rowId={row.id} />
+                    <RowDragHandleCell row={row} />
                 ),
                 size: 60,
             },
@@ -489,7 +495,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
         const handleMouseMove = (moveEvent) => {
             let newWidth = startWidth + moveEvent.clientX - startX;
-            if (columnName === "Litologia") { cellMinWidth = 250; cellMaxWidth = 400 }
+            if (columnName === "Litologia") { cellMinWidth = 250; cellMaxWidth = 600 }
             newWidth = Math.max(cellMinWidth, Math.min(newWidth, cellMaxWidth));
             if (columnName !== "Espesor") {
                 setColumnWidths((prevWidths) => ({
@@ -847,7 +853,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         </div>
                                     </div>
 
-                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
+                                    {/* <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
                                         <div className="collapse-title text-xl font-medium" >{t("visibility")}</div>
                                         <div className="collapse-content">
@@ -873,7 +879,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 })}
                                             </ul>
                                         </div>
-                                    </div>
+                                    </div> */}
 
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />

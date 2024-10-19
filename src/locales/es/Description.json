@@ -1,4 +1,5 @@
 {
+    "109":"Perforado",
     "110":"",
     "111": "Contacto-Identidad y existencia ciertas, ubicación precisa",
     "112": "Contacto-Identidad o existencia cuestionables, ubicación precisa",
@@ -31,5 +32,9 @@
     "1129": "Contacto inconforme-Identidad y existencia ciertas, ubicación inferida",
     "1130": "Contacto inconforme-Identidad o existencia cuestionables, ubicación inferida",
     "1131": "Contacto inconforme-Identidad y existencia ciertas, ubicación oculta",
-    "1132": "Contacto inconforme-Identidad o existencia cuestionables, ubicación oculta"
+    "1132": "Contacto inconforme-Identidad o existencia cuestionables, ubicación oculta",
+    "1133": "Contacto sedimentario inciso-escarpa: identidad y existencia cierta, ubicación precisa",
+    "1134": "Contacto sedimentario inciso-escarpa: identidad o existencia cuestionable, ubicación precisa",
+    "1135": "Contacto sedimentario inciso-escarpa: identidad y existencia cierta, ubicación aproximada",
+    "1136": "Contacto sedimentario inciso-escarpa: identidad o existencia cuestionable, ubicación aproximada"
 }

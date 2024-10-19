@@ -1,4 +1,7 @@
 {
+    "109":{
+        "burrowed":"true"
+    },
     "110": {
         "dash": [],
         "lineWidth": 0,
@@ -381,7 +384,41 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-         "question": true
+        "question": true
          
+    },
+
+    "1133": {
+        "dash": [1,10],
+        "dash2": [],
+        "lineWidth": 10,
+        "lineWidth2": 2,
+        "arcs": false,
+        "question": false
+    },
+    "1134": {
+        "dash": [1,10],
+        "dash2": [] ,
+        "lineWidth": 10,
+        "lineWidth2": 2,
+        "arcs": false,
+        "question": true
+    },
+    "1135": {
+        "dash": [0,1,1,10],
+        "dash2": [14,10],
+        "lineWidth": 10,
+        "lineWidth2": 2,
+        "arcs": false,
+        "question": false
+    },
+    "1136": {
+        "dash": [0,1,1,10],
+        "dash2": [14,10],
+        "lineWidth": 10,
+        "lineWidth2": 2,
+        "arcs": false,
+        "question": true
     }
+
 }

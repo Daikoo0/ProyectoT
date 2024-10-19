@@ -1,4 +1,5 @@
 {
+    "109":"Burrowed",
     "110":"",
     "111": "Contact-Identity and existence certain, location accurate",
     "112": "Contact-Identity or existence questionable, location accurate",
@@ -31,5 +32,9 @@
     "1129": "Unconformable contact-Identity and existence certain, location inferred",
     "1130": "Unconformable contact-Identity or existence questionable, location inferred",
     "1131": "Unconformable contact-Identity and existence certain, location concealed",
-    "1132": "Unconformable contact-Identity or existence questionable, location concealed"
+    "1132": "Unconformable contact-Identity or existence questionable, location concealed",
+    "1133": "Incised-scarp sedimentary contact—Identity and existence certain, location accurate. Hachures point downscarp",
+    "1134": "Incised-scarp sedimentary contact—Identity or existence questionable, location accurate. Hachures point downscarp",
+    "1135": "Incised-scarp sedimentary contact—Identity and existence certain, location approximate",
+    "1136": "Incised-scarp sedimentary contact—Identity or existence questionable, location approximate"
 }
