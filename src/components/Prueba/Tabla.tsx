@@ -10,6 +10,7 @@ import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, Touch
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
+import Print from "./Print";
 
 interface Layer {
     userId: string;
@@ -33,7 +34,8 @@ const RowDragHandleCell = ({ row }: { row : Row<Layer> }) => {
             display: 'flex', 
             justifyContent: 'center',
             alignItems: 'center' 
-        }}>
+        }}
+        >
           =
         </button>
     );
@@ -74,7 +76,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         zIndex: isDragging ? 1 : 0,
         position: 'relative',
         padding: 0,
-        height : row.original.Litologia.Height * scale
+        height : row.original.Litologia.Height * scale,
+        margin : 0,
     };
 
 
@@ -108,7 +111,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         <Polygon
                             isInverted={isInverted}
                             rowIndex={index}//rowIndex={adjustedRowIndex}
-                            Height={cell.row.original.Litologia.Height * scale}// * scale}
+                            Height={(cell.row.original.Litologia.Height * scale)+2}// * scale}
                             Width={columnWidths['Litologia'] || 250}
                             File={lithoJson[cell.row.original.Litologia.File]}
                             ColorFill={cell.row.original.Litologia.ColorFill}
@@ -281,7 +284,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 }
                 if (cellIndex === 0) {
                     return (
-                        <td key={cell.id} style={{ width: cell.column.getSize() }}>
+                        <td key={cell.id} style={{ width: cell.column.getSize() }} className="no-print">
                             <div style={{ height : row.original.Litologia.Height * scale}}>
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </div>
@@ -359,12 +362,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd, socket }) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref }) => {
     const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
     var cellMaxWidth = 300;
-    const tableref = useRef(null);
     const [columnWidths, setColumnWidths] = useState({});
 
     const sensors = useSensors(
@@ -526,27 +528,27 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     // };
 
 
-    const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
+    // const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
 
-    const handleColumns = (e, key) => {
-        var newHeaders = pdfData.header
-        if (e.target.checked) {
-            newHeaders.push(key)
-        } else {
-            const index = newHeaders.indexOf(key);
-            if (index !== -1) {
-                newHeaders.splice(index, 1);
-            }
-        }
-        setPdfData(prevState => ({
-            ...prevState,
-            header: newHeaders,
-        }));
-        Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, pdfData.indexesM, pdfData.oEstrat,
-            pdfData.oLev,
-            pdfData.etSec,
-            pdfData.date, isInverted)
-    }
+    // const handleColumns = (e, key) => {
+    //     var newHeaders = pdfData.header
+    //     if (e.target.checked) {
+    //         newHeaders.push(key)
+    //     } else {
+    //         const index = newHeaders.indexOf(key);
+    //         if (index !== -1) {
+    //             newHeaders.splice(index, 1);
+    //         }
+    //     }
+    //     setPdfData(prevState => ({
+    //         ...prevState,
+    //         header: newHeaders,
+    //     }));
+    //     Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, pdfData.indexesM, pdfData.oEstrat,
+    //         pdfData.oLev,
+    //         pdfData.etSec,
+    //         pdfData.date, isInverted)
+    // }
 
     const handleRows = (number) => {
         var rowsBefore = [...pdfData.data];
@@ -580,6 +582,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             };
         }
     }, [adfas.current, data]);
+
 
     return (
         <>
@@ -960,13 +963,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </div>
                 </dialog>
             </>
-
+            
             <div ref={tableref} className="py-16 pl-6">
-                <table style={{ height: '100px' }} >
+                <table id="aaaa" style={{ height: '100px' }} >
                     <thead className="relative sticky top-16 z-[1]">
                         <tr>
-                            <th className="bg-base-100">
-
+                            <th className="bg-base-100 no-print">
                                 {/* <p className="text-3xl font-bold text-accent-content w-1/2">↓↑</p> */}
                             </th>
                             {header.map((columnName, number) => (
@@ -1131,6 +1133,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                 </table>
             </div>
+
         </>
     );
 };

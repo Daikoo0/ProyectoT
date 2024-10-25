@@ -34,6 +34,7 @@
     "react-pdf-html": "^2.0.4",
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.15.0",
+    "react-to-print": "^3.0.2",
     "resize-observer-polyfill": "^1.5.1"
   },
   "devDependencies": {

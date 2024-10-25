@@ -32,7 +32,8 @@ const Grid = () => {
   const [alturaTd, setAlturaTd] = useState(null);
   const [messageFacie, setMessageFacie] = useState('');
   const [infoProject, setInfoProject] = useState();
-  const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
+  const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });    
+  const tableref = useRef(null);
   var contactsSvg = []
   {
     Object.keys(contacts).map((contact) => {
@@ -105,12 +106,6 @@ const Grid = () => {
       ...prevState,
       [name]: value,
     }));
-
-    // setPolygons(prev => {
-    //   const newData = { ...prev };
-    //   newData[formData.index][name] = value;
-    //   return newData;
-    // });
   }
 
   const handleClickRow = (index, column) => {
@@ -223,8 +218,9 @@ const Grid = () => {
             const userID = shapeN.id;
           
             setEditingUsers(prevState => {
+              const safePrevState = prevState || {};
               return Object.fromEntries(
-                Object.entries(prevState).filter(([_, value]) => value.id !== userID)
+                Object.entries(safePrevState).filter(([_, value]) => value.id !== userID)
               );
             });
             
@@ -708,6 +704,7 @@ const Grid = () => {
             tokenLink={tokenLink}
             setTokenLink={setTokenLink}
             users={users}
+            tableref={tableref}
           />
 
           <Tabla
@@ -731,6 +728,7 @@ const Grid = () => {
             setFormFacies={setFormFacies}
             facies={facies}
             socket={socket}
+            tableref={tableref}
           />
         </div>
 

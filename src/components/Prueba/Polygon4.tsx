@@ -6,6 +6,39 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   const amplitude = 4;
   const resolution = 1;
 
+
+  const functionContact = (startYY,startXX,endXX,endYY) =>
+  {
+      var maxWidth = startXX - endXX; // ancho disponible
+      var curveWidth = 20 // ancho que ocupa cada curva
+      var numCurves = Math.floor(maxWidth / curveWidth); // número de curvas que caben
+
+      var totalCurvesWidth = numCurves * curveWidth;
+      var spaceLeft = maxWidth - totalCurvesWidth;
+
+      const numbersToRepeat = [5, 10]; // Números a repetir
+      var resultArray = [];
+
+      for (let i = 0; i < numCurves; i++) {
+        resultArray.push(numbersToRepeat[i % numbersToRepeat.length]);
+      }
+
+      var newPathData = `L ${startXX - spaceLeft} ${startYY} `;
+
+      resultArray = resultArray.reverse()
+
+      for (let i = 0; i < numCurves; i++) {
+        const curveStartX = (startXX - spaceLeft) - (i * curveWidth);
+        newPathData += `
+              L ${curveStartX} ${startYY}
+              C ${(curveStartX - 9)} ${startYY} ${curveStartX} ${startYY + resultArray[i]} ${(curveStartX - 9)} ${startYY + resultArray[i]}
+              C ${(curveStartX - 20)} ${startYY + resultArray[i]} ${(curveStartX - 9)} ${startYY} ${(curveStartX - 20)} ${startYY}
+          `;
+      }
+      newPathData += ` L ${endXX} ${endYY} `;
+      return newPathData;
+  }
+
   function generateWavePathData(
     startX,
     startY,
@@ -45,40 +78,39 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       const startXX = points[0].x; // coordenada X del primer punto
       const endXX = points[1].x; // coordenada X del último punto
       const endYY = points[1].y; // coordenada Y del último punto
-      
+
       var maxWidth = endXX - startXX; // ancho disponible
       var curveWidth = 20; // ancho que ocupa cada curva
       var numCurves = Math.floor(maxWidth / curveWidth); // número de curvas que caben
-      
+
       var totalCurvesWidth = numCurves * curveWidth;
       var spaceLeft = maxWidth - totalCurvesWidth;
-      
-      const numbersToRepeat = [15, 17, 8, 18]; // Números a repetir
+
+      const numbersToRepeat = [5, 10, 2, 20]; // Números a repetir
       var resultArray = [];
-      
-      // Generar el array con los valores repetidos
+
       for (let i = 0; i < numCurves; i++) {
-          resultArray.push(numbersToRepeat[i % numbersToRepeat.length]);
+        resultArray.push(numbersToRepeat[i % numbersToRepeat.length]);
       }
-      
+
       // Iniciar el pathData desde startXX y startYY
       pathData += `M ${startXX} ${startYY} `;
 
       // Dibujar las curvas hacia la derecha
       for (let i = 0; i < numCurves; i++) {
-          const curveStartX = (startXX+1) + (i * curveWidth); // Posición de inicio de cada curva
-      
-          pathData += `
+        const curveStartX = (startXX + 1) + (i * curveWidth); // Posición de inicio de cada curva
+
+        pathData += `
               L ${curveStartX} ${startYY}
               C ${curveStartX + 9} ${startYY} ${curveStartX} ${startYY + resultArray[i]} ${curveStartX + 9} ${startYY + resultArray[i]}
               C ${curveStartX + 20} ${startYY + resultArray[i]} ${curveStartX + 9} ${startYY} ${curveStartX + 20} ${startYY}
           `;
       }
-      
+
       // Asegurar que el último punto se conecta a endXX y endYY
       pathData += ` L ${endXX} ${endYY}`;
-      
-      
+
+
 
       // // Comenzar el path
       // pathData += `
@@ -146,58 +178,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       const startXX = points[len - 2].x; // coordenada X del primer punto
       const endXX = points[len - 1].x; // coordenada X del último punto
       const endYY = points[len - 1].y; // coordenada Y del último punto
-
-      var maxWidth = startXX - endXX; // ancho disponible
-      var curveWidth = 20; // ancho que ocupa cada curva
-      var numCurves = Math.floor(maxWidth / curveWidth); // número de curvas que caben
-
-      var totalCurvesWidth = numCurves * curveWidth;
-      var spaceLeft = maxWidth - totalCurvesWidth;
-
-      const numbersToRepeat = [15, 17, 8, 18]; // Números a repetir
-      var resultArray = [];
-
-      for (let i = 0; i < numCurves; i++) {
-        resultArray.push(numbersToRepeat[i % numbersToRepeat.length]);
-      }
-
-      pathData += `L ${startXX - spaceLeft} ${startYY} `;
-
-      resultArray = resultArray.reverse()
-
-
-      for (let i = 0; i < numCurves; i++) {
-        const curveStartX = (startXX - spaceLeft) - (i * curveWidth);
-        pathData += `
-              L ${curveStartX} ${startYY}
-              C ${(curveStartX - 9)} ${startYY} ${curveStartX} ${startYY + resultArray[i]} ${(curveStartX - 9)} ${startYY + resultArray[i]}
-              C ${(curveStartX - 20)} ${startYY + resultArray[i]} ${(curveStartX - 9)} ${startYY} ${(curveStartX - 20)} ${startYY}
-          `;
-      }
-
-      pathData += ` L ${endXX} ${endYY} `;
-
-      // // Comenzar el path
-      // pathData += `
-
-      // L 118 ${startYY} 
-      // C 109 ${startYY} 118 ${startYY+25} 109 ${startYY+25} 
-      // C 98 ${startYY+25} 109 ${startYY} 98 ${startYY} 
-
-      // L 88 ${startYY} 
-      // C 79 ${startYY} 88 ${startYY+25} 79 ${startYY+25} 
-      // C 68 ${startYY+25} 79 ${startYY} 68 ${startYY} 
-
-      // L 58 ${startYY} 
-      // C 49 ${startYY} 58 ${startYY+25} 49 ${startYY+25} 
-      // C 38 ${startYY+25} 49 ${startYY} 38 ${startYY} 
-
-      // L 28 ${startYY} 
-      // C 19 ${startYY} 28 ${startYY+25} 19 ${startYY+25} 
-      // C 8 ${startYY+25} 19 ${startYY} 8 ${startYY} 
-
-      // L ${endXX} ${endYY} `;
-
+      pathData += functionContact(startYY,startXX,endXX,endYY);
 
     } else {
       pathData += `L ${points[len - 1].x},${points[len - 1].y} `;
@@ -311,13 +292,14 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       const originalY = (My) / Height;
       //const point = { x: 0.5, y: originalY, radius: 5, movable: true };
       addCircles(rowIndex, insertIndex, originalY)
-
     }
-
   };
 
 
   const patternId = `pattern-${rowIndex}`;
+
+  console.log(svgContent)
+
   return (
     <svg width={Width} height={Height} opacity={0.99}
       overflow='visible'
@@ -326,16 +308,15 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       }}
     >
 
-      {/* Patrón SVG */}
-      <defs>
-        <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom} patternTransform={`rotate(${rotation})`} >
+      <defs> 
+         <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom} patternTransform={`rotate(${rotation})`}  >
           <g dangerouslySetInnerHTML={{ __html: svgContent }} />
-        </pattern>
-      </defs>
+        </pattern> 
+       </defs> 
 
-      {/* Polygon Path */}
       <path d={pathData}
-        fill={`url(#${patternId})`}
+         fill={`url(#${patternId})`}
+      //  fill="transparent"
         className="stroke-current text-base-content"
         strokeWidth="0.8"
         onClick={() => {
@@ -451,6 +432,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
               openModalPoint(rowIndex, index, circles[index].X, circles[index].Name);
             }
           }}
+          className="no-print"
         />
       ))}
     </svg>

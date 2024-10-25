@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { MutableRefObject, Ref } from 'react';
 import { Link } from 'react-router-dom';
+import Print from './Print';
 
 interface NavbarProps {
     config: () => void;
@@ -13,6 +14,7 @@ interface NavbarProps {
     tokenLink: ({ editor: string; reader: string });
     setTokenLink: (state: { editor: string; reader: string }) => void;
     users: { [key: string]: { name: string; color: string } };
+    tableref : { tableref : MutableRefObject<HTMLDivElement>}; 
 }
 
 interface InviteModalProps {
@@ -33,7 +35,8 @@ const Navbar: React.FC<NavbarProps> = ({
     initialFormData,
     tokenLink,
     setTokenLink,
-    users
+    users,
+    tableref
 }) => {
 
     return (
@@ -57,13 +60,7 @@ const Navbar: React.FC<NavbarProps> = ({
                         </div>
                     </div>
 
-                    <div className="tooltip tooltip-bottom" onClick={openModal} data-tip={t("export")}>
-                        <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">
-                            <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 17v-5h1.5a1.5 1.5 0 1 1 0 3H5m12 2v-5h2m-2 3h2M5 10V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1v6M5 19v1a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1M10 3v4a1 1 0 0 1-1 1H5m6 4v5h1.375A1.627 1.627 0 0 0 14 15.375v-1.75A1.627 1.627 0 0 0 12.375 12H11Z" />
-                            </svg>
-                        </div>
-                    </div>
+                  <Print tableref={tableref}/>
 
                     <div className="tooltip tooltip-bottom" onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} data-tip={t("add")}>
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle">

@@ -144,7 +144,6 @@ const svgDivision = async (measures, columnWidths, isInverted) => {
   const svgEspesor = document.querySelector('svg#rulerSvg') as SVGElement | null;
   const svgFacies = document.querySelector('svg#svgFacies') as SVGElement | null;
 
-
   for (const measure of measures) {
     const { height, originalHeight } = measure;
     const imgPageFossils = (svgFossil !== null) ? await svgToImg(svgFossil, height, originalHeight, svgFossil.clientWidth, y, "Estructura fosil", columnWidths, isInverted, svgFossil.getBoundingClientRect().height) : "";
@@ -215,7 +214,7 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
 
               <View style={[{ flexDirection: 'column' }]}>
                 {(pageIndexes).map((item, index) => (
-                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight * 72 / 96 : data[(isInverted ? invertedRowIndexesPerPage : rowIndexesPerPage)[pageIndex][index]].Litologia.Height * scale * 72 / 96) }]} key={index}>
+                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight * 72 / 96 : ((data[(isInverted ? invertedRowIndexesPerPage : rowIndexesPerPage)[pageIndex][index]].Litologia.Height * scale)+2) * 72 / 96) }]} key={index}>
                     {Object.values(firstArray).map((_, i) => {
                       const htmlContent = data[item]?.[firstArray[i]] || null;
                       const match = htmlContent ? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
@@ -252,7 +251,7 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
                       )}
                       {(secondArray[i] === "Espesor" && imageEspesor.length) && (
                         <View key={`secondESP-${pageIndex}${key}${i}`}
-                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96 }]}>
+                          style={[{ borderLeftWidth: 0.5, borderRightWidth: 0.5, height: imgPage[pageIndex].totalHeight * 72 / 96, justifyContent : "flex-end" }]}>
                           <Img key={`secondImgEspesor-${pageIndex}${key}${i}`} src={imageEspesor[pageIndex]} style={[{ backgroundColor: "transparent", height: imgPage[pageIndex].totalHeight * 72 / 96, width: columnWidths["Espesor"] }]} />
                         </View>)}
                       {(secondArray[i] === "Facie" && imageFacies.length) && (
@@ -267,7 +266,7 @@ const MyDocument = ({ indexLimited, isInverted, oLev, date, etSec, oEstrat, info
 
               <View style={[{ flexDirection: 'column' }]}>
                 {(pageIndexes).map((item, index) => (
-                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight * 72 / 96 : data[(isInverted ? invertedRowIndexesPerPage : rowIndexesPerPage)[pageIndex][index]].Litologia.Height * scale * 72 / 96) }]} key={index}>
+                  <View style={[styles.tableRow, { height: (indexLimited.includes(index) ? imgPage[pageIndex].totalHeight * 72 / 96 : ((data[(isInverted ? invertedRowIndexesPerPage : rowIndexesPerPage)[pageIndex][index]].Litologia.Height * scale)+2) * 72 / 96) }]} key={index}>
                     {Object.values(thirdArray).map((_, i) => {
                       const htmlContent = data[item]?.[thirdArray[i]] || null;
                       const match = htmlContent ? htmlContent.match(/font-size:\s*(\d+px)/i) : null;
