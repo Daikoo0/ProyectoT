@@ -40,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
 
     return (
-        <div className="navbar bg-base-200 fixed top-0 z-[100]">
+        <div className="navbar bg-base-200 fixed top-0 z-[1001]">
             <div className="flex justify-between w-full">
                 {/* Contenedor para los elementos alineados a la izquierda */}
                 <div className="flex-none flex">

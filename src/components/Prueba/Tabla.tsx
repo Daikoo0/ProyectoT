@@ -10,7 +10,6 @@ import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, Touch
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
-import Print from "./Print";
 
 interface Layer {
     userId: string;
@@ -25,18 +24,19 @@ interface Layer {
     Miembro: string;
 }
 
-const RowDragHandleCell = ({ row }: { row : Row<Layer> }) => {
+const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
     const { attributes, listeners } = useSortable({
         id: row.id,
     });
     return (
-        <button {...attributes} {...listeners} style={{ maxHeight : row.original.Litologia.Height, padding : 0,
-            display: 'flex', 
+        <button {...attributes} {...listeners} style={{
+            maxHeight: row.original.Litologia.Height, padding: 0,
+            display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center' 
+            alignItems: 'center'
         }}
         >
-          =
+            =
         </button>
     );
 };
@@ -73,11 +73,11 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         transform: CSS.Transform.toString(transform),
         transition: transition,
         opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging ? 1 : 0,
+        zIndex: isDragging? 1000 : row.getVisibleCells().length - Number(row.id),
         position: 'relative',
         padding: 0,
-        height : row.original.Litologia.Height * scale,
-        margin : 0,
+        height: row.original.Litologia.Height * scale,
+        margin: 0,
     };
 
 
@@ -97,7 +97,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 }}
                             >
                                 {/* <div className="h-full max-h-full"> */}
-                                    <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
+                                <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
                                 {/* </div> */}
                             </td>
                         );
@@ -107,27 +107,28 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 }
                 if (cellIndex === header.indexOf("Litologia") + 1) {
                     return (
-                    <td key={cell.id} style={{ padding: 0, height : cell.row.original.Litologia.Height * scale }}>
-                        <Polygon
-                            isInverted={isInverted}
-                            rowIndex={index}//rowIndex={adjustedRowIndex}
-                            Height={(cell.row.original.Litologia.Height * scale)+2}// * scale}
-                            Width={columnWidths['Litologia'] || 250}
-                            File={lithoJson[cell.row.original.Litologia.File]}
-                            ColorFill={cell.row.original.Litologia.ColorFill}
-                            ColorStroke={cell.row.original.Litologia.ColorStroke}
-                            Zoom={cell.row.original.Litologia.Zoom}
-                            circles={cell.row.original.Litologia.Circles}
-                            addCircles={addCircles}
-                            openModalPoint={openModalPoint}
-                            setSideBarState={setSideBarState}
-                            handleClickRow={handleClickRow}
-                            tension={cell.row.original.Litologia.Tension}
-                            rotation={cell.row.original.Litologia.Rotation}
-                            contact={cell.row.original.Litologia.Contact}
-                            prevContact={prevContact}
-                        />
-                    </td>
+                        <td key={cell.id} style={{ padding: 0, height: cell.row.original.Litologia.Height * scale }}>
+                            <Polygon
+                                zindex={row.getVisibleCells().length - index}
+                                isInverted={isInverted}
+                                rowIndex={index}//rowIndex={adjustedRowIndex}
+                                Height={(cell.row.original.Litologia.Height * scale) + 2}// * scale}
+                                Width={columnWidths['Litologia'] || 250}
+                                File={lithoJson[cell.row.original.Litologia.File]}
+                                ColorFill={cell.row.original.Litologia.ColorFill}
+                                ColorStroke={cell.row.original.Litologia.ColorStroke}
+                                Zoom={cell.row.original.Litologia.Zoom}
+                                circles={cell.row.original.Litologia.Circles}
+                                addCircles={addCircles}
+                                openModalPoint={openModalPoint}
+                                setSideBarState={setSideBarState}
+                                handleClickRow={handleClickRow}
+                                tension={cell.row.original.Litologia.Tension}
+                                rotation={cell.row.original.Litologia.Rotation}
+                                contact={cell.row.original.Litologia.Contact}
+                                prevContact={prevContact}
+                            />
+                        </td>
                     );
                 }
                 if ((cellIndex === header.indexOf("Estructura fosil") + 1) && header.includes("Estructura fosil")) {
@@ -140,28 +141,28 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 className="border border-base-content"
                             >
                                 <div
-                                className="h-full max-h-full"
-                                  onClick={(e) => {
-                                    if (e.target instanceof SVGSVGElement) {
-                                        setSideBarState({
-                                            sideBar: true,
-                                            sideBarMode: "fosil",
-                                        });
-                                        setFormFosil({
-                                            id: '',
-                                            upper: 0,
-                                            lower: 0,
-                                            fosilImg: '',
-                                            x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cell.column.getSize()),
-                                            fosilImgCopy: '',
-                                        });
-                                    }
-                                }}
+                                    className="h-full max-h-full"
+                                    onClick={(e) => {
+                                        if (e.target instanceof SVGSVGElement) {
+                                            setSideBarState({
+                                                sideBar: true,
+                                                sideBarMode: "fosil",
+                                            });
+                                            setFormFosil({
+                                                id: '',
+                                                upper: 0,
+                                                lower: 0,
+                                                fosilImg: '',
+                                                x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cell.column.getSize()),
+                                                fosilImgCopy: '',
+                                            });
+                                        }
+                                    }}
                                 >
                                     <svg id="fossilSvg"
                                         className="h-full max-h-full"
                                         width={columnWidths["Estructura fosil"] || cell.column.getSize()}
-                                        height={alturaTd<153? alturaTd: ''} overflow="visible"
+                                        height={alturaTd < 153 ? alturaTd : ''} overflow="visible"
                                     >
                                         {cdef["fossils"]
                                             ? Object.keys(cdef["fossils"]).map((data, index) => (
@@ -204,79 +205,79 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 }}
                             >
                                 {/* <div className="h-full max-h-full" style={{ top: 0 }}> */}
-                                    <svg id="svgFacies"
-                                        className="h-full max-h-full"
-                                        width={columnWidths["Facie"] || cell.column.getSize()} 
-                                        overflow="visible"
-                                        transform={isInverted? "scale(1,-1)" : "scale(1,1)"}
-                                        height={alturaTd<153? alturaTd: ''}
-                                    >
-                                        {facies
-                                            ? Object.keys(facies).map((key, index) => {
-                                                const xPosp = `${((index + 1) / (Object.keys(facies).length + 1)) * 100}%`;
-                                                const wp = `${(((columnWidths["Facie"] || cell.column.getSize()) / (Object.keys(facies).length + 1)) / (columnWidths["Facie"] || cell.column.getSize())) * 100}%`;
-                                                return (
-                                                    <>
-                                                        <rect
-                                                            x={xPosp}
-                                                            y="0"
-                                                            key={"facie-"+key+index}
-                                                            height="100%"
-                                                            width={wp}
-                                                            className="stroke stroke-base-content"
-                                                            strokeWidth={"1"}
-                                                            fill="transparent"
-                                                            data-value="value1"
-                                                            onClick={() => {
-                                                                setSideBarState({
-                                                                    sideBar: true,
-                                                                    sideBarMode: "facieSection",
-                                                                });
-                                                                setFormFacies({ facie: key });
-                                                            }}
-                                                        />
-                                                        {facies[key].map((value, i) => (
-                                                            <>
-                                                                <g key={"g-"+key+value+i}>
-                                                                    <text
-                                                                        key={"value-"+key+value+i}
-                                                                        fontSize={14}
-                                                                        className="fill fill-base-content"
-                                                                        x={isInverted ? -((parseFloat(value.y2) - parseFloat(value.y1)) * scale) : 10}
-                                                                        transform={
-                                                                            isInverted
-                                                                                ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
-                                                                                : `rotate(90, 5, ${parseFloat(value.y1) * scale})`
-                                                                        }
-                                                                        y={(parseFloat(value.y1) - 2) * scale}
-
-                                                                    >
-                                                                        {key}
-                                                                    </text>
-                                                                </g>
-                                                                <rect
-                                                                    data-custom="valor1"
-                                                                    key={"rect-"+key+value+i}
+                                <svg id="svgFacies"
+                                    className="h-full max-h-full"
+                                    width={columnWidths["Facie"] || cell.column.getSize()}
+                                    overflow="visible"
+                                    transform={isInverted ? "scale(1,-1)" : "scale(1,1)"}
+                                    height={alturaTd < 153 ? alturaTd : ''}
+                                >
+                                    {facies
+                                        ? Object.keys(facies).map((key, index) => {
+                                            const xPosp = `${((index + 1) / (Object.keys(facies).length + 1)) * 100}%`;
+                                            const wp = `${(((columnWidths["Facie"] || cell.column.getSize()) / (Object.keys(facies).length + 1)) / (columnWidths["Facie"] || cell.column.getSize())) * 100}%`;
+                                            return (
+                                                <>
+                                                    <rect
+                                                        x={xPosp}
+                                                        y="0"
+                                                        key={"facie-" + key + index}
+                                                        height="100%"
+                                                        width={wp}
+                                                        className="stroke stroke-base-content"
+                                                        strokeWidth={"1"}
+                                                        fill="transparent"
+                                                        data-value="value1"
+                                                        onClick={() => {
+                                                            setSideBarState({
+                                                                sideBar: true,
+                                                                sideBarMode: "facieSection",
+                                                            });
+                                                            setFormFacies({ facie: key });
+                                                        }}
+                                                    />
+                                                    {facies[key].map((value, i) => (
+                                                        <>
+                                                            <g key={"g-" + key + value + i}>
+                                                                <text
+                                                                    key={"value-" + key + value + i}
+                                                                    fontSize={14}
                                                                     className="fill fill-base-content"
-                                                                    x={xPosp}
-                                                                    y={parseFloat(value.y1) * scale}
-                                                                    width={wp}
-                                                                    height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}
-                                                                    onClick={() => {
-                                                                        setSideBarState({
-                                                                            sideBar: true,
-                                                                            sideBarMode: "facieSection",
-                                                                        });
-                                                                        setFormFacies({ facie: key });
-                                                                    }}
-                                                                />
-                                                            </>
-                                                        ))}
-                                                    </>
-                                                );
-                                            })
-                                            : null}
-                                    </svg>
+                                                                    x={isInverted ? -((parseFloat(value.y2) - parseFloat(value.y1)) * scale) : 10}
+                                                                    transform={
+                                                                        isInverted
+                                                                            ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+                                                                            : `rotate(90, 5, ${parseFloat(value.y1) * scale})`
+                                                                    }
+                                                                    y={(parseFloat(value.y1) - 2) * scale}
+
+                                                                >
+                                                                    {key}
+                                                                </text>
+                                                            </g>
+                                                            <rect
+                                                                data-custom="valor1"
+                                                                key={"rect-" + key + value + i}
+                                                                className="fill fill-base-content"
+                                                                x={xPosp}
+                                                                y={parseFloat(value.y1) * scale}
+                                                                width={wp}
+                                                                height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}
+                                                                onClick={() => {
+                                                                    setSideBarState({
+                                                                        sideBar: true,
+                                                                        sideBarMode: "facieSection",
+                                                                    });
+                                                                    setFormFacies({ facie: key });
+                                                                }}
+                                                            />
+                                                        </>
+                                                    ))}
+                                                </>
+                                            );
+                                        })
+                                        : null}
+                                </svg>
                                 {/* </div> */}
                             </td>
                         );
@@ -285,8 +286,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 if (cellIndex === 0) {
                     return (
                         <td key={cell.id} style={{ width: cell.column.getSize() }} className="no-print">
-                            <div style={{ height : row.original.Litologia.Height * scale}}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            <div style={{ height: row.original.Litologia.Height * scale }}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </div>
                         </td>
                     );
@@ -294,17 +295,17 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 return (
                     <td key={cell.id} style={{
                         width: cell.column.getSize(),
-                        height : row.original.Litologia.Height * scale,
+                        height: row.original.Litologia.Height * scale,
                         overflow: 'hidden',
                         padding: '0',
                         top: '0',
                         verticalAlign: "top",
                         borderColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color || '',
-                     //   boxSizing: 'border-box'
+                        //   boxSizing: 'border-box'
                     }}
-                    className={
-                        editingUsers?.[`[${row.id},${cellIndex}]`] ? 'border-2' : 'border border-base-content'
-                    }
+                        className={
+                            editingUsers?.[`[${row.id},${cellIndex}]`] ? 'border-2' : 'border border-base-content'
+                        }
                         onClick={() => {
                             setSideBarState({
                                 sideBar: true,
@@ -316,14 +317,14 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         onMouseEnter={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseEnter"] : null)}
                         onMouseLeave={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseLeave"] : null)}
                     >
-                       
-                        <div style={{display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: "100%" }}>
-                        {(editingUsers?.[`[${row.id},${cellIndex}]`] && hovered) ?
-                            <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
-                            : <></>
-                        }
+
+                        <div style={{ display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: "100%" }}>
+                            {(editingUsers?.[`[${row.id},${cellIndex}]`] && hovered) ?
+                                <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
+                                : <></>
+                            }
                             <div
-                            style={{overflow: hovered ? "auto" : "hidden" , height : row.original.Litologia.Height * scale}}
+                                style={{ overflow: hovered ? "auto" : "hidden", height: row.original.Litologia.Height * scale }}
                                 className="ql-editor prose"
                                 dangerouslySetInnerHTML={{ __html: cell.getValue() }} />
                         </div>
@@ -963,10 +964,10 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </div>
                 </dialog>
             </>
-            
+
             <div ref={tableref} className="py-16 pl-6">
                 <table id="aaaa" style={{ height: '100px' }} >
-                    <thead className="relative sticky top-16 z-[1]">
+                    <thead className={`relative sticky top-16 z-[${1000}]`}>
                         <tr>
                             <th className="bg-base-100 no-print">
                                 {/* <p className="text-3xl font-bold text-accent-content w-1/2">↓↑</p> */}
@@ -1096,11 +1097,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     isInverted
                                         ? table.getRowModel().rows.slice().reverse()
                                         : table.getRowModel().rows
-                                ).map((row,index) => {
+                                ).map((row, index) => {
                                     return (
                                         <DraggableRow
                                             rowspan={data.length}
-                                            key={row.id+""+index}
+                                            key={row.id + "" + index}
                                             row={row}
                                             index={row.index}
                                             header={header}

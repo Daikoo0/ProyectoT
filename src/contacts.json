@@ -1,27 +1,308 @@
 {
-    "109":{
-        "burrowed":"true"
+    "90": {
+        "new": true,
+        "width": 58,
+        "path": [
+            "C 2 -2 6 0 6 0",
+            "L 6 8",
+            "C 2 8 2 10 6 10",
+            "C 8 10 8 10 8 6",
+            "L 8 0",
+            "C 12 -2 14 0 16 0",
+            "C 16 20 18 18 18 8",
+            "C 20 8 20 8 20 10",
+            "C 20 14 23 6 20 6",
+            "C 18 6 18 6 18 4",
+            "L 18 0",
+            "C 22 -4 28 4 32 -2",
+            "L 32 6",
+            "C 28 12 28 14 30 12",
+            "C 34 6 34 8 36 10",
+            "C 40 16 40 14 40 14",
+            "C 40 8 32 6 34 4",
+            "L 34 0",
+            "C 40 2 40 -4 50 2",
+            "L 50 12",
+            "C 50 16 50 16 52 16",
+            "L 56 16",
+            "C 60 16 60 14 56 14",
+            "C 52 16 52 12 52 8",
+            "L 52 2",
+            "C 54 2 54 2 58 0"
+        ],
+        "invertedPath": [
+            "C 54 2 54 2 52 2",
+            "L 52 8",
+            "C 52 12 52 16 56 14",
+            "C 60 14 60 16 56 16",
+            "L 52 16",
+            "C 50 16 50 16 50 12",
+            "L 50 2",
+            "C 40 -4 40 2 34 0",
+            "L 34 4",
+            "C 32 6 40 8 40 14",
+            "C 40 14 40 16 36 10",
+            "C 34 8 34 6 30 12",
+            "C 28 14 28 12 32 6",
+            "L 32 -2",
+            "C 28 4 22 -4 18 0",
+            "L 18 4",
+            "C 18 6 18 6 20 6",
+            "C 23 6 20 14 20 10",
+            "C 20 8 20 8 18 8",
+            "C 18 18 16 20 16 0",
+            "C 14 0 12 -2 8 0",
+            "L 8 6",
+            "C 8 10 8 10 6 10",
+            "C 2 10 2 8 6 8",
+            "L 6 0",
+            "C 6 0 2 -2 0 0"
+        ]
+    },
+    "91": {
+        "new": true,
+        "width": 63,
+        "path": [
+            "C 10 0 18 -8 22 -8",
+            "C 28 -8 26 -6 26 -6",
+            "C 22 -2 26 0 30 0",
+            "L 30 22",
+            "C 30 24 33 24 33 22",
+            "L 33 0",
+            "C 43 0 50 -8 54 -8",
+            "C 60 -8 60 -6 58 -6",
+            "C 54 -2 60 0 60 0",
+            "L 60 14",
+            "C 60 16 63 16 63 14",
+            "L 63 0"
+        ],
+        "invertedPath": [
+            "L 63 14",
+            "C 63 16 60 16 60 14",
+            "L 60 0",
+            "C 60 0 54 -2 58 -6",
+            "C 60 -6 60 -8 54 -8",
+            "C 50 -8 43 0 33 0",
+            "L 33 22",
+            "C 33 24 30 24 30 22",
+            "L 30 0",
+            "C 26 0 22 -2 26 -6",
+            "C 26 -6 28 -8 22 -8",
+            "C 18 -8 10 0 0 0"
+        ]
+    },
+    "92": {
+        "new": true,
+        "width": 80,
+        "path": [
+            "C 6 -1 7 -2 10 -3",
+            "L 10 8",
+            "C 10 11 13 11 13 8",
+            "L 13 -4",
+            "C 13 -4 19 -8 35 -6",
+            "C 35 -4 29 4 39 0",
+            "C 45 -1 46 -2 49 -3",
+            "L 49 16",
+            "C 49 19 52 19 52 16",
+            "L 52 -4",
+            "C 52 -4 58 -8 76 -6",
+            "C 76 -4 70 4 80 0"
+        ],
+        "invertedPath": [
+            "C 70 4 76 -4 76 -6",
+            "C 58 -8 52 -4 52 -4",
+            "L 52 16",
+            "C 52 19 49 19 49 16",
+            "L 49 -3",
+            "C 46 -2 45 -1 39 0",
+            "C 29 4 35 -4 35 -6",
+            "C 19 -8 13 -4 13 -4",
+            "L 13 8",
+            "C 13 11 10 11 10 8",
+            "L 10 -3",
+            "C 7 -2 6 -1 0 0"
+        ]
+    },
+    "93": {
+        "new": true,
+        "width": 67,
+        "path": [
+            "C 8 -4 0 0 15 -8",
+            "L 15 14",
+            "C 15 17 18 17 18 14",
+            "L 18 -9",
+            "C 28 -10 25 0 33 0",
+            "L 41 -4",
+            "L 41 24",
+            "C 41 27 44 27 44 24",
+            "L 44 -6",
+            "C 62 -15 59 0 67 0"
+        ],
+        "invertedPath": [
+            "C 59 0 62 -15 44 -6",
+            "L 44 24",
+            "C 44 27 41 27 41 24",
+            "L 41 -4",
+            "L 33 0",
+            "C 25 0 28 -10 18 -9",
+            "L 18 14",
+            "C 18 17 15 17 15 14",
+            "L 15 -8",
+            "C 0 0 8 -4 0 0"
+        ]
+    },
+    "94": {
+        "new": true,
+        "width": 54,
+        "path": [
+            "C 3 -3 9 -6 12 -6",
+            "L 12 9",
+            "C 12 12 15 12 15 9",
+            "L 15 -6",
+            "C 18 -6 24 -3 27 0",
+            "L 30 3",
+            "L 30 21",
+            "C 30 24 33 24 33 21",
+            "L 33 6",
+            "C 39 9 45 9 54 0"
+        ],
+        "invertedPath": [
+            "C 45 9 39 9 33 6",
+            "L 33 21",
+            "C 33 24 30 24 30 21",
+            "L 30 3",
+            "L 27 0",
+            "C 24 -3 18 -6 15 -6",
+            "L 15 9",
+            "C 15 12 12 12 12 9",
+            "L 12 -6",
+            "C 9 -6 3 -3 0 0"
+        ]
+    },
+    "95": {
+        "new": true,
+        "width": 124,
+        "path": [
+            "C 0 0 8 -2 8 -2",
+            "L 8 16",
+            "C 8 19 11 19 11 16",
+            "L 11 -2",
+            "C 15 2 15 2.5 27 0",
+            "L 27 29",
+            "C 27 32 30 32 30 29",
+            "L 30 0",
+            "C 38 2 43 4 47 0",
+            "C 50 -4 56 5 56 11",
+            "C 56 21 57 21 59 23",
+            "L 59 45",
+            "C 59 48 62 48 62 45",
+            "L 62 25",
+            "C 66 36 70 36 78 39",
+            "C 86 41 95 40 99 30",
+            "C 106 23 100 16 115 4",
+            "L 115 18",
+            "C 115 21 118 21 118 18",
+            "L 118 4",
+            "C 121 1 121 3 125 0"
+        ],
+        "invertedPath": [
+            "C 121 3 121 1 118 4",
+            "L 118 18",
+            "C 118 21 115 21 115 18",
+            "L 115 4",
+            "C 100 16 106 23 99 30",
+            "C 95 40 86 41 78 39",
+            "C 70 36 66 36 62 25",
+            "L 62 45",
+            "C 62 48 59 48 59 45",
+            "L 59 23",
+            "C 57 21 56 21 56 11",
+            "C 56 5 53 0 47 0",
+            "C 43 4 38 2 30 0",
+            "L 30 29",
+            "C 30 32 27 32 27 29",
+            "L 27 0",
+            "C 15 3 15 3 11 0",
+            "L 11 16",
+            "C 11 19 8 19 8 16",
+            "L 8 0",
+            "C 8 0 0 1 0 1"
+        ]
+    },
+    "96": {
+        "new": true
+    },
+    "97": {
+        "new": true
+    },
+    "98": {
+        "new": true
+    },
+    "99": {
+        "new": true
+    },
+    "100": {
+        "new": true
+    },
+    "101": {
+        "new": true
+    },
+    "102": {
+        "new": true,
+        "width": 34,
+        "path": [
+            "C 10 0 18 -8 22 -8",
+            "C 28 -8 26 -6 26 -6",
+            "C 22 -2 26 0 30 0",
+            "L 34 0"
+        ],
+        "invertedPath": [
+            "L 30 0",
+            "C 26 0 22 -2 26 -6",
+            "C 26 -6 28 -8 22 -8",
+            "C 18 -8 10 0 0 0"
+        ]
+    },
+    "103": {
+        "new": true
+    },
+    "104": {
+        "new": true
+    },
+    "105": {
+        "new": true
+    },
+    "106": {
+        "new": true
+    },
+    "107": {
+        "new": true
+    },
+    "108": {
+        "new": true
+    },
+    "109": {
+        "new": true,
+        "width": 20,
+        "burrowed": "true"
     },
     "110": {
         "dash": [],
         "lineWidth": 0,
         "arcs": true,
-         "question": false
-         
+        "question": false
     },
     "111": {
         "dash": [],
         "lineWidth": 1,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "112": {
         "dash": [],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "113": {
         "dash": [
@@ -30,8 +311,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "114": {
         "dash": [
@@ -40,8 +320,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "115": {
         "dash": [
@@ -50,8 +329,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "116": {
         "dash": [
@@ -60,8 +338,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "117": {
         "dash": [
@@ -70,8 +347,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "118": {
         "dash": [
@@ -80,22 +356,19 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "119": {
         "dash": "[((points[points.length-2].x + points[points.length-1].x)/2)-8, 3, 3,4,3,3]",
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1110": {
         "dash": "[((points[points.length-2].x + points[points.length-1].x)/2)-8, 3, 3,4,3,3]",
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1111": {
         "dash": [
@@ -108,8 +381,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1112": {
         "dash": [
@@ -122,8 +394,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1113": {
         "dash": [
@@ -136,8 +407,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1114": {
         "dash": [
@@ -150,8 +420,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1115": {
         "dash": [
@@ -164,8 +433,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1116": {
         "dash": [
@@ -178,8 +446,7 @@
         ],
         "lineWidth": 3,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1117": {
         "dash": [
@@ -188,8 +455,7 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1118": {
         "dash": [
@@ -198,8 +464,7 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1119": {
         "dash": [
@@ -222,8 +487,7 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1120": {
         "dash": [
@@ -246,11 +510,10 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1121": {
-        "dash":  [
+        "dash": [
             2,
             3,
             2,
@@ -264,8 +527,7 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1122": {
         "dash": [
@@ -282,8 +544,7 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1123": {
         "dash": [
@@ -296,8 +557,7 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": false
-         
+        "question": false
     },
     "1124": {
         "dash": [
@@ -310,22 +570,19 @@
         ],
         "lineWidth": 10,
         "arcs": false,
-         "question": true
-         
+        "question": true
     },
     "1125": {
         "dash": [],
         "lineWidth": 1,
         "arcs": true,
-         "question": false
-         
+        "question": false
     },
     "1126": {
         "dash": [],
         "lineWidth": 1,
         "arcs": true,
-         "question": true
-         
+        "question": true
     },
     "1127": {
         "dash": [
@@ -334,8 +591,7 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-         "question": false
-         
+        "question": false
     },
     "1128": {
         "dash": [
@@ -344,8 +600,7 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-         "question": true
-         
+        "question": true
     },
     "1129": {
         "dash": [
@@ -354,8 +609,7 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-         "question": false
-         
+        "question": false
     },
     "1130": {
         "dash": [
@@ -364,8 +618,7 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-         "question": true
-         
+        "question": true
     },
     "1131": {
         "dash": [
@@ -374,8 +627,7 @@
         ],
         "lineWidth": 1,
         "arcs": true,
-         "question": false
-         
+        "question": false
     },
     "1132": {
         "dash": [
@@ -385,11 +637,12 @@
         "lineWidth": 1,
         "arcs": true,
         "question": true
-         
     },
-
     "1133": {
-        "dash": [1,10],
+        "dash": [
+            1,
+            10
+        ],
         "dash2": [],
         "lineWidth": 10,
         "lineWidth2": 2,
@@ -397,28 +650,46 @@
         "question": false
     },
     "1134": {
-        "dash": [1,10],
-        "dash2": [] ,
+        "dash": [
+            1,
+            10
+        ],
+        "dash2": [],
         "lineWidth": 10,
         "lineWidth2": 2,
         "arcs": false,
         "question": true
     },
     "1135": {
-        "dash": [0,1,1,10],
-        "dash2": [14,10],
+        "dash": [
+            0,
+            1,
+            1,
+            10
+        ],
+        "dash2": [
+            14,
+            10
+        ],
         "lineWidth": 10,
         "lineWidth2": 2,
         "arcs": false,
         "question": false
     },
     "1136": {
-        "dash": [0,1,1,10],
-        "dash2": [14,10],
+        "dash": [
+            0,
+            1,
+            1,
+            10
+        ],
+        "dash2": [
+            14,
+            10
+        ],
         "lineWidth": 10,
         "lineWidth2": 2,
         "arcs": false,
         "question": true
     }
-
 }
