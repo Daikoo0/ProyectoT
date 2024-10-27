@@ -14,7 +14,7 @@ interface NavbarProps {
     tokenLink: ({ editor: string; reader: string });
     setTokenLink: (state: { editor: string; reader: string }) => void;
     users: { [key: string]: { name: string; color: string } };
-    tableref : { tableref : MutableRefObject<HTMLDivElement>}; 
+    tableref : MutableRefObject<HTMLTableElement | null>;
 }
 
 interface InviteModalProps {

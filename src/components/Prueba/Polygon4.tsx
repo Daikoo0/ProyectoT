@@ -6,19 +6,19 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   const amplitude = 4;
   const resolution = 1;
 
-  const functionContact = (startYY, startXX, endXX, endYY, contact) => {
-    var maxWidth = startXX - endXX; // ancho disponible
+  const functionContact = (startYY, startXX, endXX, endYY, contact, poc) => {
+    var maxWidth = poc ? (startXX - endXX) : (endXX - startXX); // ancho disponible
     var patternWidth = contacts[contact].width;
     var numCurves = Math.floor(maxWidth / patternWidth); // número de curvas que caben
     var totalCurvesWidth = numCurves * patternWidth;
     var spaceLeft = maxWidth - totalCurvesWidth;
-    const path = contacts[contact]?.invertedPath
+    const path = poc ? contacts[contact]?.invertedPath : contacts[contact].path
     var newPathData = ""
     let maxValidValue = 0;
     var startIndex = 0;
 
-    if (contact === "95") {
-      let scaledPath = "";
+    if (contact === "95" || contact === "106") {
+      if(poc){let scaledPath = "";
       let scaleFactor = maxWidth / patternWidth; // factor para ajustar el ancho del patrón
 
       for (let j = 0; j < path?.length; j++) {
@@ -27,16 +27,16 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
         let newSegment = "";
         if (tipo === "L") {
           // Sumamos curveStartX al primer número de "L"
-          const numero1 = (parseFloat(partes[1]) *scaleFactor);
+          const numero1 = (parseFloat(partes[1]) * scaleFactor);
           const numero2 = parseFloat(partes[2]) + Height;
           newSegment = `L ${numero1} ${numero2}`;
         } else if (tipo === "C") {
           // Sumamos curveStartX al primer, tercer y sexto número de "C"
-          const numero1 = (parseFloat(partes[1]) *scaleFactor);
+          const numero1 = (parseFloat(partes[1]) * scaleFactor);
           const numero2 = parseInt(partes[2]) + Height;
-          const numero3 = (parseFloat(partes[3]) *scaleFactor);
+          const numero3 = (parseFloat(partes[3]) * scaleFactor);
           const numero4 = parseFloat(partes[4]) + Height;
-          const numero5 = (parseFloat(partes[5])  *scaleFactor);
+          const numero5 = (parseFloat(partes[5]) * scaleFactor);
           const numero6 = parseFloat(partes[6]) + Height;
           newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
         } else {
@@ -47,54 +47,58 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
         newPathData += `${newSegment} `;
       }
       // Devolver el path escalado
-      newPathData += scaledPath;
+      newPathData += scaledPath;}
 
     } else {
-      for (let i = 0; i < path?.length; i++) {
-        const partes = path[i].match(/[LC]|\-?\d+/g);
-        const tipo = partes[0];
-        var value = 0;
-        if (tipo === "L") {
-          value = parseFloat(partes[1]); // tomar la parte [1] de "L"
-        } else if (tipo === "C") {
-          value = parseFloat(partes[5]); // tomar la parte [5] de "C"
+      if (poc) {
+        for (let i = 0; i < path?.length; i++) {
+          const partes = path[i].match(/[LC]|\-?\d+/g);
+          const tipo = partes[0];
+          var value = 0;
+          if (tipo === "L") {
+            value = parseFloat(partes[1]); // tomar la parte [1] de "L"
+          } else if (tipo === "C") {
+            value = parseFloat(partes[5]); // tomar la parte [5] de "C"
+          }
+          console.log(value, spaceLeft, i, startIndex)
+          if (value <= spaceLeft && value >= maxValidValue) {
+            maxValidValue = value;
+            startIndex = i;
+            break;
+          }
         }
-        console.log(value, spaceLeft, i, startIndex)
-        if (value <= spaceLeft && value >= maxValidValue) {
-          maxValidValue = value;
-          startIndex = i;
-          break;
+
+        for (let i = (startIndex); i < path?.length - (contact === "104" ? 2 : 0); i++) {
+          //  newPathData += path[i]; // Concatenamos cada string
+          const partes = path[i].match(/[LC]|\-?\d+/g);
+          const tipo = partes[0]; // "L" o "C"
+          let newSegment = "";
+          if (tipo === "L") {
+            // Sumamos curveStartX al primer número de "L"
+            const numero1 = (parseFloat(partes[1]) + (startXX - maxValidValue));
+            const numero2 = parseFloat(partes[2]) + Height;
+            newSegment = `L ${numero1} ${numero2}`;
+          } else if (tipo === "C") {
+            // Sumamos curveStartX al primer, tercer y sexto número de "C"
+            const numero1 = (parseFloat(partes[1]) + (startXX - maxValidValue));
+            const numero2 = parseInt(partes[2]) + Height;
+            const numero3 = (parseFloat(partes[3]) + (startXX - maxValidValue));
+            const numero4 = parseFloat(partes[4]) + Height;
+            const numero5 = (parseFloat(partes[5]) + (startXX - maxValidValue));
+            const numero6 = parseFloat(partes[6]) + Height;
+            newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
+          } else {
+            // Si no coincide, devolvemos el segmento sin modificaciones.
+            newSegment = path[i];
+          }
+          // Añadimos el segmento modificado a newPathData
+          newPathData += `${newSegment} `;
         }
-      }
-      for (let i = (startIndex); i < path?.length; i++) {
-        //  newPathData += path[i]; // Concatenamos cada string
-        const partes = path[i].match(/[LC]|\-?\d+/g);
-        const tipo = partes[0]; // "L" o "C"
-        let newSegment = "";
-        if (tipo === "L") {
-          // Sumamos curveStartX al primer número de "L"
-          const numero1 = (parseFloat(partes[1]) + (startXX - maxValidValue));
-          const numero2 = parseFloat(partes[2]) + Height;
-          newSegment = `L ${numero1} ${numero2}`;
-        } else if (tipo === "C") {
-          // Sumamos curveStartX al primer, tercer y sexto número de "C"
-          const numero1 = (parseFloat(partes[1]) + (startXX - maxValidValue));
-          const numero2 = parseInt(partes[2]) + Height;
-          const numero3 = (parseFloat(partes[3]) + (startXX - maxValidValue));
-          const numero4 = parseFloat(partes[4]) + Height;
-          const numero5 = (parseFloat(partes[5]) + (startXX - maxValidValue));
-          const numero6 = parseFloat(partes[6]) + Height;
-          newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
-        } else {
-          // Si no coincide, devolvemos el segmento sin modificaciones.
-          newSegment = path[i];
-        }
-        // Añadimos el segmento modificado a newPathData
-        newPathData += `${newSegment} `;
       }
 
+
       for (let i = 0; i < numCurves; i++) {
-        const curveStartX = (startXX - spaceLeft) - ((i + 1) * patternWidth);
+        const curveStartX = poc ? ((startXX - spaceLeft) - ((i + 1) * patternWidth)) : (startXX + ((i) * patternWidth));
         // newPathData += `L ${curveStartX} ${startYY} `
         for (let j = 0; j < path?.length; j++) {
           const partes = path[j].match(/[LC]|\-?\d+/g);
@@ -103,16 +107,16 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           if (tipo === "L") {
             // Sumamos curveStartX al primer número de "L"
             const numero1 = (parseFloat(partes[1]) + curveStartX);
-            const numero2 = parseFloat(partes[2]) + Height;
+            const numero2 = parseFloat(partes[2]) + (poc ? Height : 0);
             newSegment = `L ${numero1} ${numero2}`;
           } else if (tipo === "C") {
             // Sumamos curveStartX al primer, tercer y sexto número de "C"
             const numero1 = (parseFloat(partes[1]) + curveStartX);
-            const numero2 = parseInt(partes[2]) + Height;
+            const numero2 = parseInt(partes[2]) + (poc ? Height : 0);
             const numero3 = (parseFloat(partes[3]) + curveStartX);
-            const numero4 = parseFloat(partes[4]) + Height;
+            const numero4 = parseFloat(partes[4]) + (poc ? Height : 0);
             const numero5 = (parseFloat(partes[5]) + curveStartX);
-            const numero6 = parseFloat(partes[6]) + Height;
+            const numero6 = parseFloat(partes[6]) + (poc ? Height : 0);
             newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
           } else {
             // Si no coincide, devolvemos el segmento sin modificaciones.
@@ -122,6 +126,48 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           newPathData += `${newSegment} `;
         }
 
+      }
+
+     if(!poc) {
+        for (let i = 0; i < path?.length; i++) {
+          const partes = path[i].match(/[LC]|\-?\d+/g);
+          const tipo = partes[0];
+          var value = 0;
+          if (tipo === "L") {
+            value = parseFloat(partes[1]); // tomar la parte [1] de "L"
+          } else if (tipo === "C") {
+            value = parseFloat(partes[5]); // tomar la parte [5] de "C"
+          }
+          if (value <= spaceLeft && value >= maxValidValue) {
+         //   maxValidValue = value;
+            startIndex = i;
+            break;
+          }
+        }
+
+        for (let i = 0; i < (startIndex+1); i++) {
+          //  newPathData += path[i]; // Concatenamos cada string
+          const partes = path[i].match(/[LC]|\-?\d+/g);
+          const tipo = partes[0]; // "L" o "C"
+          let newSegment = "";
+          if (tipo === "L") {
+            // Sumamos curveStartX al primer número de "L"
+            const numero1 = (parseFloat(partes[1]) + (totalCurvesWidth));
+            const numero2 = parseFloat(partes[2]);
+            newSegment = `L ${numero1} ${numero2}`;
+          } else if (tipo === "C") {
+            // Sumamos curveStartX al primer, tercer y sexto número de "C"
+            const numero1 = (parseFloat(partes[1]) + (totalCurvesWidth));
+            const numero3 = (parseFloat(partes[3]) + (totalCurvesWidth));
+            const numero5 = (parseFloat(partes[5]) + (totalCurvesWidth));
+            newSegment = `C ${numero1} ${partes[2]} ${numero3} ${partes[4]} ${numero5} ${partes[6]}`;
+          } else {
+            // Si no coincide, devolvemos el segmento sin modificaciones.
+            newSegment = path[i];
+          }
+          // Añadimos el segmento modificado a newPathData
+          newPathData +=  `${newSegment} `;
+        }
       }
     }
     newPathData += ` L ${endXX} ${endYY} `;
@@ -161,67 +207,48 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
         pathData += `L ${x},${y} `;
         pathUpperCurve += `L ${x},${y} `;
       }
-    } else if (contacts[prevContact]?.burrowed) {
+    } else if (contacts[prevContact]?.new) {
 
       const startYY = points[0].y; // coordenada Y del primer punto
       const startXX = points[0].x; // coordenada X del primer punto
       const endXX = points[1].x; // coordenada X del último punto
       const endYY = points[1].y; // coordenada Y del último punto
+      pathData += functionContact(startYY, startXX, endXX, endYY, prevContact, false);
 
-      var maxWidth = endXX - startXX; // ancho disponible
-      var curveWidth = 20; // ancho que ocupa cada curva
-      var numCurves = Math.floor(maxWidth / curveWidth); // número de curvas que caben
+      // const startYY = points[0].y; // coordenada Y del primer punto
+      // const startXX = points[0].x; // coordenada X del primer punto
+      // const endXX = points[1].x; // coordenada X del último punto
+      // const endYY = points[1].y; // coordenada Y del último punto
 
-      var totalCurvesWidth = numCurves * curveWidth;
-      var spaceLeft = maxWidth - totalCurvesWidth;
+      // var maxWidth = endXX - startXX; // ancho disponible
+      // var curveWidth = 20; // ancho que ocupa cada curva
+      // var numCurves = Math.floor(maxWidth / curveWidth); // número de curvas que caben
 
-      const numbersToRepeat = [5, 20]; // Números a repetir
-      var resultArray = [];
+      // var totalCurvesWidth = numCurves * curveWidth;
+      // var spaceLeft = maxWidth - totalCurvesWidth;
 
-      for (let i = 0; i < numCurves; i++) {
-        resultArray.push(numbersToRepeat[i % numbersToRepeat.length]);
-      }
+      // const numbersToRepeat = [5, 20]; // Números a repetir
+      // var resultArray = [];
 
-      // Iniciar el pathData desde startXX y startYY
-      pathData += `M ${startXX} ${startYY} `;
+      // for (let i = 0; i < numCurves; i++) {
+      //   resultArray.push(numbersToRepeat[i % numbersToRepeat.length]);
+      // }
 
-      // Dibujar las curvas hacia la derecha
-      for (let i = 0; i < numCurves; i++) {
-        const curveStartX = (startXX + 1) + (i * curveWidth); // Posición de inicio de cada curva
+      // // Iniciar el pathData desde startXX y startYY
+      // pathData += `M ${startXX} ${startYY} `;
 
-        pathData += `
-              L ${curveStartX} ${startYY}
-              C ${curveStartX + 9} ${startYY} ${curveStartX} ${startYY + resultArray[i]} ${curveStartX + 9} ${startYY + resultArray[i]}
-              C ${curveStartX + 20} ${startYY + resultArray[i]} ${curveStartX + 9} ${startYY} ${curveStartX + 20} ${startYY}
-          `;
-      }
+      // // Dibujar las curvas hacia la derecha
+      // for (let i = 0; i < numCurves; i++) {
+      //   const curveStartX = (startXX + 1) + (i * curveWidth); // Posición de inicio de cada curva
 
-      // Asegurar que el último punto se conecta a endXX y endYY
-      pathData += ` L ${endXX} ${endYY}`;
+      //   pathData += `
+      //         L ${curveStartX} ${startYY}
+      //         C ${curveStartX + 9} ${startYY} ${curveStartX} ${startYY + resultArray[i]} ${curveStartX + 9} ${startYY + resultArray[i]}
+      //         C ${curveStartX + 20} ${startYY + resultArray[i]} ${curveStartX + 9} ${startYY} ${curveStartX + 20} ${startYY}
+      //     `;
+      // }
 
-
-
-      // // Comenzar el path
-      // pathData += `
-
-      // L 118 ${startYY} 
-      // C 109 ${startYY} 118 ${startYY+25} 109 ${startYY+25} 
-      // C 98 ${startYY+25} 109 ${startYY} 98 ${startYY} 
-
-      // L 88 ${startYY} 
-      // C 79 ${startYY} 88 ${startYY+25} 79 ${startYY+25} 
-      // C 68 ${startYY+25} 79 ${startYY} 68 ${startYY} 
-
-      // L 58 ${startYY} 
-      // C 49 ${startYY} 58 ${startYY+25} 49 ${startYY+25} 
-      // C 38 ${startYY+25} 49 ${startYY} 38 ${startYY} 
-
-      // L 28 ${startYY} 
-      // C 19 ${startYY} 28 ${startYY+25} 19 ${startYY+25} 
-      // C 8 ${startYY+25} 19 ${startYY} 8 ${startYY} 
-
-      // L ${endXX} ${endYY} `;
-
+      // pathData += ` L ${endXX} ${endYY}`;
 
     } else {
       pathData += `L ${points[1].x},${points[1].y} `;
@@ -267,7 +294,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       const startXX = points[len - 2].x; // coordenada X del primer punto
       const endXX = points[len - 1].x; // coordenada X del último punto
       const endYY = points[len - 1].y; // coordenada Y del último punto
-      pathData += functionContact(startYY, startXX, endXX, endYY, contact);
+      pathData += functionContact(startYY, startXX, endXX, endYY, contact, true);
 
     } else {
       pathData += `L ${points[len - 1].x},${points[len - 1].y} `;
