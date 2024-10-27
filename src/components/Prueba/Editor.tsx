@@ -2,7 +2,6 @@ import { useRef, useState, useEffect } from 'react';
 import { useParams } from "react-router-dom";
 import Navbar_Editor from './Navbar_Editor';
 import Tabla from './Tabla';
-import SelectTheme from '../Web/SelectTheme';
 import fosilJson from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import contacts from '../../contacts.json';
@@ -14,25 +13,9 @@ import EditorQuill from './EditorQuill';
 import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import { useTranslation } from 'react-i18next';
-import LangSelector from '../Web/LanguageComponent';
 import { arrayMove } from '@dnd-kit/sortable';
-
-interface DataInfo {
-  Columns: { [key: string]: any };
-  Litologia: LitologiaStruc;
-}
-
-interface LitologiaStruc {
-  ColorFill: string;
-  ColorStroke: string;
-  File: string;
-  Contact: string;
-  Zoom: number;
-  Rotation: number;
-  Height: number;
-  Tension: number;
-  Circles: any[];
-}
+import { DataInfo } from './types';
+import Config from './sidebar/Config';
 
 const Grid = () => {
   const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
@@ -398,6 +381,9 @@ const Grid = () => {
             break;
           case 'addColumn':
             setHeader(prev => [...prev, shapeN.column]);
+            break;
+          case 'delColumn':
+            setHeader(prev => prev.filter((column) => column !== shapeN.column));
             break;
           case 'tokenLink':
             console.log(shapeN)
@@ -831,139 +817,9 @@ const Grid = () => {
               switch (sideBarState.sideBarMode) {
                 case "config":
 
-                  const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "AmbienteDepositacional", "Descripcion"]
                   return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className='pb-6 hidden lg:block'>{t("config")}</li>
-
-                      <li>
-                        <details open>
-                          <summary>{t("config_t")}</summary>
-                          <ul>
-                            <li>
-                              <details open={false}>
-                                <summary>{t("scale")}</summary>
-                                <ul>
-                                  <li>
-                                    <label className="inline-flex items-center">
-                                      <input type="checkbox" value="10" checked={scale === 10}
-                                        onChange={(e) => setScale(Number(e.target.value))}
-                                        className="form-checkbox h-5 w-5 text-indigo-600" />
-                                      <span className="ml-2">1:10</span>
-                                    </label>
-                                  </li>
-                                  <li>
-                                    <label className="inline-flex items-center">
-                                      <input type="checkbox" value="5" checked={scale === 5}
-                                        onChange={(e) => setScale(Number(e.target.value))}
-                                        className="form-checkbox h-5 w-5 text-indigo-600"
-                                      />
-                                      <span className="ml-2">1:20</span>
-                                    </label>
-                                  </li>
-                                  <li>
-                                    <label className="inline-flex items-center">
-                                      <input type="checkbox" value="4" checked={scale === 4}
-                                        onChange={(e) => setScale(Number(e.target.value))}
-                                        className="form-checkbox h-5 w-5 text-indigo-600"
-                                      />
-                                      <span className="ml-2">1:25</span>
-                                    </label>
-                                  </li>
-                                  <li>
-                                    <label className="inline-flex items-center">
-                                      <input type="checkbox" value="2" checked={scale === 2}
-                                        onChange={(e) => setScale(Number(e.target.value))}
-                                        className="form-checkbox h-5 w-5 text-indigo-600"
-                                      />
-                                      <span className="ml-2">1:50</span>
-                                    </label>
-                                  </li>
-                                  <li>
-                                    <label className="inline-flex items-center">
-                                      <input type="checkbox" value="1" checked={scale === 1}
-                                        onChange={(e) => setScale(Number(e.target.value))}
-                                        className="form-checkbox h-5 w-5 text-indigo-600"
-                                      />
-                                      <span className="ml-2">1:100</span>
-                                    </label>
-                                  </li>
-                                  <li>
-                                    <label className="inline-flex items-center">
-                                      <input type="checkbox" value="0.5" checked={scale === 0.5}
-                                        onChange={(e) => setScale(Number(e.target.value))}
-                                        className="form-checkbox h-5 w-5 text-indigo-600"
-                                      />
-                                      <span className="ml-2">1:200</span>
-                                    </label>
-                                  </li>
-                                </ul>
-                              </details>
-                            </li>
-                            <li>
-                              <details open={false}>
-                                <summary>{t("position_r")}</summary>
-                                <ul>
-                                  <li>
-
-                                    <input type="checkbox" className="toggle toggle-success"
-                                      checked={isInverted}
-                                      onChange={(e) => {
-                                        if (socket) {
-                                          //  setIsInverted(!isInverted)
-                                          socket.send(JSON.stringify({
-                                            action: 'isInverted',
-                                            data: {
-                                              "isInverted": e.target.checked
-                                            }
-                                          }));
-                                        }
-                                      }} />{isInverted ? <p>{t("inverted")}</p> : <p>{t("notinverted")}</p>}
-
-                                  </li>
-                                </ul>
-                              </details>
-                            </li>
-                            <li>
-                              <details open={false}>
-                                <summary>{t("visibility")}</summary>
-                                <ul>
-                                  {list.map((key) => {
-                                    if (key !== "Espesor" && key !== "Litologia") {
-                                      return (
-                                        <li key={key} >
-                                          <label className="inline-flex items-center">
-                                            <input
-                                              type="checkbox"
-                                              id={key}
-                                              name={key}
-                                              checked={header.includes(key) ? true : false}
-                                              onChange={(e) => handleColumns(e, key)}
-                                              className="form-checkbox h-5 w-5 text-indigo-600"
-                                            />
-                                            <span className="ml-2">{t("" + key)}</span>
-                                          </label>
-                                        </li>
-                                      );
-                                    }
-                                  })}
-                                </ul>
-                              </details>
-                            </li>
-                          </ul>
-                        </details>
-                      </li>
-
-                      <li>
-                        <details open>
-                          <summary>{t("sala")}</summary>
-                          <ul>
-                            <li><SelectTheme /></li>
-                            <li><LangSelector /></li>
-                          </ul>
-                        </details>
-                      </li>
-                    </ul>)
+                    <Config socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale} setHeader={setHeader} />
+                  )
 
                 case "añadirCapa":
                   return (
