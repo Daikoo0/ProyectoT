@@ -17,13 +17,30 @@ import { useTranslation } from 'react-i18next';
 import LangSelector from '../Web/LanguageComponent';
 import { arrayMove } from '@dnd-kit/sortable';
 
+interface DataInfo {
+  Columns: { [key: string]: any };
+  Litologia: LitologiaStruc;
+}
+
+interface LitologiaStruc {
+  ColorFill: string;
+  ColorStroke: string;
+  File: string;
+  Contact: string;
+  Zoom: number;
+  Rotation: number;
+  Height: number;
+  Tension: number;
+  Circles: any[];
+}
+
 const Grid = () => {
   const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<DataInfo[]>([]);
   const [header, setHeader] = useState([]);
   const [fossils, setFossils] = useState([]);
   const [facies, setFacies] = useState({});
@@ -32,7 +49,7 @@ const Grid = () => {
   const [alturaTd, setAlturaTd] = useState(null);
   const [messageFacie, setMessageFacie] = useState('');
   const [infoProject, setInfoProject] = useState();
-  const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });    
+  const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
   const tableref = useRef(null);
   var contactsSvg = []
   {
@@ -101,7 +118,7 @@ const Grid = () => {
 
   const handleChangeLocal = (e) => {
     const { name, value } = e.target;
-    console.log(name,value)
+    console.log(name, value)
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
@@ -122,7 +139,7 @@ const Grid = () => {
       Height: Litologia.Height,
       initialHeight: Litologia.Height,
       Rotation: Litologia.Rotation,
-      text: data[index][column], // Mantén esto porque depende de column
+      text: data[index].Columns[column], // Mantén esto porque depende de column
       Contact: Litologia.Contact,
     });
   };
@@ -211,24 +228,24 @@ const Grid = () => {
               ...prevState,
               [shapeN.id]: { name: shapeN.mail, color: shapeN.color }
             }));
-            
+
             break;
           }
           case 'userDisconnected': {
             const userID = shapeN.id;
-          
+
             setEditingUsers(prevState => {
               const safePrevState = prevState || {};
               return Object.fromEntries(
                 Object.entries(safePrevState).filter(([_, value]) => value.id !== userID)
               );
             });
-            
+
             setUsers(prevState => {
               const { [userID]: _, ...newState } = prevState;
               return newState;
             });
-          
+
             break;
           }
           case 'editingUser': {
@@ -310,12 +327,20 @@ const Grid = () => {
             });
             break;
           case 'editText':
-            setData(prev => {
-              const newData = [...prev];
-              newData[shapeN.rowIndex] = { ...newData[shapeN.rowIndex], [shapeN.key]: shapeN.value };
-              return newData;
-            });
-            break
+            setData(prev =>
+              prev.map((item, index) =>
+                index === shapeN.rowIndex
+                  ? {
+                    ...item,
+                    Columns: {
+                      ...item.Columns,
+                      [shapeN.key]: shapeN.value
+                    }
+                  }
+                  : item
+              )
+            );
+            break;
           case 'editFosil':
             setFossils(prev => {
               const newFossils = { ...prev };
@@ -370,6 +395,9 @@ const Grid = () => {
                 [`${shapeN.facie}`]: shapeN.sections || [],
               }));
             }
+            break;
+          case 'addColumn':
+            setHeader(prev => [...prev, shapeN.column]);
             break;
           case 'tokenLink':
             console.log(shapeN)
@@ -767,11 +795,10 @@ const Grid = () => {
 
               <div className="flex justify-center space-x-4">
 
-             
                 <form method="dialog" onSubmit={() => deleteCirclePoint(modalData.index, modalData.insertIndex)}>
-                  <button 
+                  <button
                     className="btn btn-error"
-                    disabled={modalData.insertIndex <= 1 || modalData.insertIndex >= data[modalData.index]?.Litologia?.Circles?.length - 1 }>
+                    disabled={modalData.insertIndex <= 1 || modalData.insertIndex >= data[modalData.index]?.Litologia?.Circles?.length - 1}>
                     Eliminar punto
                   </button>
                 </form>
@@ -785,7 +812,7 @@ const Grid = () => {
         </>
 
         {/* SideBar */}
-        <div className="drawer-side z-[200]">
+        <div className="drawer-side z-[1002]">
           <label htmlFor="my-drawer"
             onClick={() => {
               if (socket && formData.index !== null) {
@@ -940,28 +967,43 @@ const Grid = () => {
 
                 case "añadirCapa":
                   return (
-
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">{t("add")}</li>
-
-                      <li className='mb-2' >
-                        <p>
-                          <input type="number" name='Height' onChange={handleChangeLocal} value={Number(formData.Height)} />
-                          cm
-                        </p>
-                      </li>
-
-                      <li className='mb-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? -1 : 0), Number(formData.Height))}><p>{t("add_t")}</p></button>
-                      </li>
-                      <li className="flex flex-row">
-                        <button className='btn w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? data.length - Number(formData.initialHeight) : Number(formData.initialHeight)), Number(formData.Height))}><p>{t("add_index")}</p></button>
-                        <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={Number(formData.initialHeight)} />
-                      </li>
-                      <li className='mt-2'>
-                        <button className='btn' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? 0 : -1), Number(formData.Height))}><p>{t("add_b")}</p></button>
-                      </li>
-                    </ul>
+                    <>
+                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content shadow-xl rounded-lg">
+                        <p className="menu-title text-lg font-bold mb-4">{t("add")}</p>
+                        <ul className="menu w-80 min-h-full bg-base-200 text-base-content">
+                          <li className='mb-2'>
+                            <p>
+                              <input type="number" name='Height' onChange={handleChangeLocal} value={Number(formData.Height)} />
+                              cm
+                            </p>
+                          </li>
+                          <li className='mb-2'>
+                            <button className='btn btn-primary' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? -1 : 0), Number(formData.Height))}>
+                              <p>{t("add_t")}</p>
+                            </button>
+                          </li>
+                          <li className="flex flex-row">
+                            <button className='btn btn-primary  w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? data.length - Number(formData.initialHeight) : Number(formData.initialHeight)), Number(formData.Height))}>
+                              <p>{t("add_index")}</p>
+                            </button>
+                            <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={Number(formData.initialHeight)} />
+                          </li>
+                          <li className='mt-2'>
+                            <button className='btn btn-primary ' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? 0 : -1), Number(formData.Height))}>
+                              <p>{t("add_b")}</p>
+                            </button>
+                          </li>
+                        </ul>
+                        <p className="menu-title text-lg font-bold mb-4">Añadir Columna</p>
+                        <div className="mb-4">
+                          <label htmlFor="nombre" className="block text-sm font-medium">Nombre de la Columna</label>
+                          <input type='text' name='column' onChange={handleChangeLocal} className="input input-bordered w-full mt-1" />
+                        </div>
+                        <button className="btn btn-primary w-full" onClick={() => { socket.send(JSON.stringify({ action: 'addColumn', data: { name: formData.column } })) }}>
+                          <p>Confirmar nueva Columna</p>
+                        </button>
+                      </div>
+                    </>
                   );
                 case "fosil":
                   return (
@@ -1148,8 +1190,8 @@ const Grid = () => {
                       <li className='flex flex-row'>
                         <p>{t("tam_cap")}</p>
                         <input type="number" name="Height" value={formData.Height} onChange={handleChangeLocal} />
-                        <button className="btn" name="Height" value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000} 
-                        onClick={handleChange}>{t("change")}</button>
+                        <button className="btn" name="Height" value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000}
+                          onClick={handleChange}>{t("change")}</button>
                       </li>
 
                       <li>

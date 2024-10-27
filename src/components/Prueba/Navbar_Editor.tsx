@@ -1,4 +1,4 @@
-import React, { MutableRefObject, Ref } from 'react';
+import React, { MutableRefObject } from 'react';
 import { Link } from 'react-router-dom';
 import Print from './Print';
 

@@ -84,7 +84,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         <tr ref={setNodeRef} style={style} id={row.id} >
             {row.getVisibleCells().map((cell, cellIndex) => {
                 const cdef = cell.column.columnDef;
-                console.log(cell)
+                
                 if (cell.column.id === "Espesor") {
                     if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
@@ -424,7 +424,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         return [fixedColumns["drag-handle"], ...orderedColumns];
     }, [header, fossils]);
     
-    console.log(columns)
+    // console.log(columns)
 
     const table = useReactTable({
         data,
@@ -1066,8 +1066,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         ? table.getRowModel().rows.slice().reverse()
                                         : table.getRowModel().rows
                                 ).map((row, index) => {
-                                    console.log(row)
-                                    console.log("aa")
+                                    
                                     return (
                                         <DraggableRow
                                             rowspan={data.length}

@@ -60,7 +60,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           } else if (tipo === "C") {
             value = parseFloat(partes[5]); // tomar la parte [5] de "C"
           }
-          console.log(value, spaceLeft, i, startIndex)
+          
           if (value <= spaceLeft && value >= maxValidValue) {
             maxValidValue = value;
             startIndex = i;
