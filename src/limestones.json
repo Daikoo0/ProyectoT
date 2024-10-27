@@ -1,10 +1,16 @@
 {
-    "none": 0.51,
+    "none": 0.50,
     "mud": 0.55,
+    "mud-wacke": 0.59,
     "wacke": 0.63,
+    "wacke-pack": 0.67,
     "pack": 0.71,
+    "pack-grain": 0.75,
     "grain": 0.79,
+    "grain-redstone": 0.81,
     "redstone": 0.83,
+    "redstone-rud": 0.85,
     "rud & bound": 0.87,
+    "rud-rudstone": 0.89,
     "rudstone": 0.91
 }

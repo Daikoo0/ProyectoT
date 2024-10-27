@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useTranslation } from 'react-i18next';
 

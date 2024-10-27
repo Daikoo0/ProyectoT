@@ -198,7 +198,7 @@ const Grid = () => {
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
             setFacies(shapeN.facies)
-            setHeader(shapeN.config.header)
+            setHeader(shapeN.config.Columns)
             setFossils(shapeN.fosil)
             setIsInverted(shapeN.config.isInverted)
             setEditingUsers(shapeN.userEditing)

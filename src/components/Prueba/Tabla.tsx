@@ -13,15 +13,14 @@ import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@
 
 interface Layer {
     userId: string;
-    Sistema: string;
-    Descripcion: string;
+    Columns: any;
     Litologia: any;
-    Edad: string;
-    Facie: string;
-    AmbienteDepositacional: string;
-    Estructurafosil: string;
-    Formacion: string;
-    Miembro: string;
+    
+}
+
+interface col {
+    Name: string;
+    Visible: boolean;
 }
 
 const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
@@ -47,7 +46,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
 }: {
     row: Row<Layer>;
     index: number;
-    header: Array<string>;
+    header: Array<col>;
     isInverted: boolean;
     setSideBarState: (state: { sideBar: boolean, sideBarMode: string }) => void,
     columnWidths: any;
@@ -85,7 +84,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         <tr ref={setNodeRef} style={style} id={row.id} >
             {row.getVisibleCells().map((cell, cellIndex) => {
                 const cdef = cell.column.columnDef;
-                if (cellIndex === header.indexOf("Espesor") + 1) {
+                console.log(cell)
+                if (cell.column.id === "Espesor") {
                     if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
                             <td
@@ -105,7 +105,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         return null;
                     }
                 }
-                if (cellIndex === header.indexOf("Litologia") + 1) {
+                if (cell.column.id === "Litologia") {
                     return (
                         <td key={cell.id} style={{ padding: 0, height: cell.row.original.Litologia.Height * scale }}>
                             <Polygon
@@ -131,7 +131,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         </td>
                     );
                 }
-                if ((cellIndex === header.indexOf("Estructura fosil") + 1) && header.includes("Estructura fosil")) {
+                if (cell.column.id === "Estructura fosil") {
                     if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
                             <td
@@ -188,7 +188,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     }
 
                 }
-                if ((cellIndex === header.indexOf("Facie") + 1) && header.includes("Facie")) {
+                if (cell.column.id === "Facie" ) {
                     if (index === (isInverted ? rowspan - 1 : 0)) {
                         return (
                             <td
@@ -283,7 +283,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         );
                     } else { return null; }
                 }
-                if (cellIndex === 0) {
+                if (cell.column.id === "drag-handle") {
                     return (
                         <td key={cell.id} style={{ width: cell.column.getSize() }} className="no-print">
                             <div style={{ height: row.original.Litologia.Height * scale }}>
@@ -326,7 +326,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                             <div
                                 style={{ overflow: hovered ? "auto" : "hidden", height: row.original.Litologia.Height * scale }}
                                 className="ql-editor prose"
-                                dangerouslySetInnerHTML={{ __html: cell.getValue() }} />
+                                dangerouslySetInnerHTML={{ __html: row.original.Columns[cell.column.id] }} />
                         </div>
                     </td>
                 );
@@ -379,84 +379,52 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         useSensor(TouchSensor, {})
     );
 
-    const columns = useMemo(
-        () => [
-            {
+    const columns = useMemo(() => {
+        const fixedColumns = {
+            "drag-handle": {
                 id: 'drag-handle',
-                header: " ",
-                cell: ({ row }: { row: Row<Layer> }) => (
-                    <RowDragHandleCell row={row} />
-                ),
+                cell: ({ row }) => <RowDragHandleCell row={row} />,
                 size: 60,
             },
-            {
-                accessorKey: 'Sistema',
-                header: header[header.indexOf("Sistema")],
-                cell: (info: any) => info.getValue(),
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            },
-            {
-                accessorKey: 'Edad',
-                header: header[header.indexOf("Edad")],
-                cell: (info: any) => info.getValue(),
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            },
-            {
-                accessorKey: 'Formacion',
-                header: header[header.indexOf("Formacion")],
-                cell: (info: any) => info.getValue(),
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            },
-            {
-                accessorKey: 'Miembro',
-                header: header[header.indexOf("Miembro")],
-                cell: (info: any) => info.getValue(),
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            },
-            {
+            "Espesor": {
                 accessorKey: 'Espesor',
-                header: header[header.indexOf("Espesor")],
-                cell: (info: any) => info.getValue(),
+                header: "Espesor",
             },
-            {
+            "Litologia": {
                 accessorKey: 'Litologia',
-                header: header[header.indexOf("Litologia")],
-                cell: (info: any) => info.getValue(),
+                cell: (info) => info.getValue(),
+                header: "Litologia",
             },
-            {
+            "Estructura fosil": {
                 accessorKey: 'Estructura fosil',
-                header: header[header.indexOf("Estructura fosil")],
-                cell: (info: any) => info.getValue(),
                 fossils: fossils,
+                header: "Estructura fosil",
             },
-            {
+            "Facie": {
                 accessorKey: 'Facie',
-                header: header[header.indexOf("Facie")],
-                cell: (info: any) => info.getValue(),
+                header: "Facie",
             },
-            {
-                accessorKey: 'AmbienteDepositacional',
-                header: header[header.indexOf("AmbienteDepositacional")],
-                cell: (info: any) => info.getValue(),
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            },
-            {
-                accessorKey: 'Descripcion',
-                header: header[header.indexOf("Descripcion")],
-                cell: (info: any) => info.getValue(),
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            },
+        };
+    
+        const orderedColumns = header.map(item => {
+            if (fixedColumns[item.Name]) {
+                return fixedColumns[item.Name];
+            }
 
-        ].filter((column) =>
-            column.id === 'drag-handle' || header.includes(column.accessorKey)),
-        [header, fossils]
-    );
+            return {
+                accessorKey: item.Name,
+                cell: (info) => info.row.original.Columns[item.Name],
+                header: item.Name,
+                handleMouseEnter: () => setHovered(true),
+                handleMouseLeave: () => setHovered(false),
+            };
+        });
+    
+        // Agregamos la columna de arrastre como la primera
+        return [fixedColumns["drag-handle"], ...orderedColumns];
+    }, [header, fossils]);
+    
+    console.log(columns)
 
     const table = useReactTable({
         data,
@@ -974,19 +942,19 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             </th>
                             {header.map((columnName, number) => (
                                 <th
-                                    key={columnName}
+                                    key={columnName.Name}
                                     className="border border-base-content bg-primary"
                                     style={{
-                                        width: `${columnName === "Espesor"
+                                        width: `${columnName.Name === "Espesor"
                                             ? 70
-                                            : columnName === "Litologia"
-                                                ? (columnWidths[columnName] || 250)
-                                                : (columnWidths[columnName] || cellWidth)}px`,
+                                            : columnName.Name === "Litologia"
+                                                ? (columnWidths[columnName.Name] || 250)
+                                                : (columnWidths[columnName.Name] || cellWidth)}px`,
                                         height: '120px',
                                     }}
 
                                     onClick={() => {
-                                        if (columnName === "Facie") {
+                                        if (columnName.Name === "Facie") {
                                             setSideBarState({
                                                 sideBar: true,
                                                 sideBarMode: "addFacie"
@@ -996,14 +964,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 >
 
                                     <div className="flex justify-between items-center font-semibold">
-                                        <p className="text text-accent-content w-1/2">{t("" + columnName)}</p>
+                                        <p className="text text-accent-content w-1/2">{t("" + columnName.Name)}</p>
 
-                                        {columnName === "Litologia" ?
+                                        {columnName.Name === "Litologia" ?
                                             <>
                                                 <svg
                                                     id="headerLit"
                                                     className="absolute"
-                                                    width={(columnWidths[columnName] || 250) / 2}
+                                                    width={(columnWidths[columnName.Name] || 250) / 2}
                                                     height="120"
                                                     overflow={'visible'}
                                                     style={{
@@ -1034,12 +1002,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             </> : <></>
                                         }
 
-                                        {columnName === "Facie" ?
+                                        {columnName.Name === "Facie" ?
                                             <>
                                                 <svg
-                                                    key={`facieSvg-${columnName}${number}`}
+                                                    key={`facieSvg-${columnName.Name}${number}`}
                                                     className="absolute"
-                                                    width={(columnWidths[columnName] || cellWidth) / 2}
+                                                    width={(columnWidths[columnName.Name] || cellWidth) / 2}
                                                     height="120"
                                                     overflow={'visible'}
                                                     style={{
@@ -1069,7 +1037,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             onMouseOut={(e) => {
                                                 e.currentTarget.style.backgroundColor = "transparent";
                                             }}
-                                            onMouseDown={(e) => handleMouseDown(columnName, e)}
+                                            onMouseDown={(e) => handleMouseDown(columnName.Name, e)}
                                             style={{
                                                 width: '5px',
                                                 cursor: 'col-resize',
@@ -1098,10 +1066,13 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         ? table.getRowModel().rows.slice().reverse()
                                         : table.getRowModel().rows
                                 ).map((row, index) => {
+                                    console.log(row)
+                                    console.log("aa")
                                     return (
                                         <DraggableRow
                                             rowspan={data.length}
                                             key={row.id + "" + index}
+
                                             row={row}
                                             index={row.index}
                                             header={header}
