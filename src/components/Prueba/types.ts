@@ -6,6 +6,7 @@ export interface DataInfo {
 export interface Col {
     Name: string;
     Visible: boolean;
+    Removable: boolean;
 }
 
 export interface LitologiaStruc {

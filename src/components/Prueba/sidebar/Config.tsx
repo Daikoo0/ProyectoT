@@ -41,6 +41,16 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
         );
     };
 
+    const deleteColumn = (name: string) => {
+        socket?.send(JSON.stringify({
+            action: 'deleteColumn',
+            data: {
+                "name": name
+            }
+        }));
+    };
+
+
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
             <li className='pb-6 hidden lg:block'>{t("config")}</li>
@@ -140,9 +150,9 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
                                     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
                                         <SortableContext items={header.map((col) => col.Name)} strategy={verticalListSortingStrategy}>
                                             <div>
-                                                {header.map((col) => (
-                                                    <SortableItem key={col.Name} col={col} toggleVisibility={toggleVisibility} />
-                                                ))}
+                                                {header.map((col) =>
+                                                    <SortableItem key={col.Name} col={col} toggleVisibility={toggleVisibility} deleteColumn={deleteColumn} />
+                                                )}
                                             </div>
                                         </SortableContext>
                                     </DndContext>
@@ -169,7 +179,7 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
 
 
 
-const SortableItem = ({ col, toggleVisibility }) => {
+const SortableItem = ({ col, toggleVisibility, deleteColumn }) => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: col.Name });
 
     const style = {
@@ -178,23 +188,41 @@ const SortableItem = ({ col, toggleVisibility }) => {
         padding: '8px',
         border: '1px solid #ddd',
         marginBottom: '4px',
-       // backgroundColor: 'purple',
+        // backgroundColor: 'purple',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
     };
 
     return (
-        <div ref={setNodeRef} className='' style={style} {...attributes} {...listeners}>
-            <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8 10 4-6 4 6H8Zm8 4-4 6-4-6h8Z"/>
-</svg>
+        <div ref={setNodeRef} className="menu-dropdown bg-100" style={style} {...attributes} {...listeners}>
+            <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8 10 4-6 4 6H8Zm8 4-4 6-4-6h8Z" />
+            </svg>
+
+            {col.Removable ? <>
+
+                <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => deleteColumn(col.Name)}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    aria-label={`Toggle visibility of ${col.Name}`}
+
+                >
+
+                    <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button></> : null}
 
             <span>{col.Name}</span>
+
+
+
             <input
                 type="checkbox"
                 checked={col.Visible}
-                onPointerDown={(e) => e.stopPropagation()} 
+                onPointerDown={(e) => e.stopPropagation()}
                 onChange={() => toggleVisibility(col.Name)}
                 aria-label={`Toggle visibility of ${col.Name}`}
             />

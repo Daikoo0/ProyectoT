@@ -382,9 +382,10 @@ const Grid = () => {
           case 'addColumn':
             setHeader(prev => [...prev, shapeN.column]);
             break;
-          case 'delColumn':
-            setHeader(prev => prev.filter((column) => column !== shapeN.column));
+          case 'deleteColumn':
+            setHeader(prev => prev.filter(col => col.Name !== shapeN.column));
             break;
+
           case 'tokenLink':
             console.log(shapeN)
             setTokenLink({
@@ -686,7 +687,12 @@ const Grid = () => {
 
   };
 
-  const [isInverted, setIsInverted] = useState(false)
+  const [isInverted, setIsInverted] = useState(false);
+
+
+  const handleAddColumn = (columnName) => {
+    socket.send(JSON.stringify({ action: 'addColumn', data: { name: columnName } }))
+  }
 
   return (
     <>
@@ -856,7 +862,7 @@ const Grid = () => {
                           <label htmlFor="nombre" className="block text-sm font-medium">Nombre de la Columna</label>
                           <input type='text' name='column' onChange={handleChangeLocal} className="input input-bordered w-full mt-1" />
                         </div>
-                        <button className="btn btn-primary w-full" onClick={() => { socket.send(JSON.stringify({ action: 'addColumn', data: { name: formData.column } })) }}>
+                        <button className="btn btn-primary w-full" onClick={() => { handleAddColumn(formData.column) }}>
                           <p>Confirmar nueva Columna</p>
                         </button>
                       </div>

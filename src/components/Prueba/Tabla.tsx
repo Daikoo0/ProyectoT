@@ -87,10 +87,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         <tr ref={setNodeRef} style={style} id={row.id} >
             {row.getVisibleCells().map((cell, cellIndex) => {
                 const cdef = cell.column.columnDef;
-                console.log(cell)
 
                 if (cell.column.id === "Espesor") {
-                    if (index ===  0) {
+                    if (index === 0) {
                         return (
                             <td
                                 key={cell.id}
@@ -167,12 +166,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     <svg id="fossilSvg"
                                         className="h-full max-h-full"
                                         width={columnWidths["Estructura fosil"] || cell.column.getSize()}
-                                        height={alturaTd < 153 ? alturaTd : ''} overflow="visible"
+                                        height={alturaTd < 153 ? alturaTd : ''}
+                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible": "hidden" }
                                     >
                                         {cdef["fossils"]
                                             ? Object.keys(cdef["fossils"]).map((data, index) => (
                                                 <Fosil
-                                                  //  isInverted={isInverted}
+                                                    //  isInverted={isInverted}
                                                     key={index}
                                                     keyID={data}
                                                     data={cdef["fossils"][data]}
@@ -214,7 +214,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     className="h-full max-h-full"
                                     width={columnWidths["Facie"] || cell.column.getSize()}
                                     overflow="visible"
-                                   // transform={isInverted ? "scale(1,-1)" : "scale(1,1)"}
+                                    // transform={isInverted ? "scale(1,-1)" : "scale(1,1)"}
                                     height={alturaTd < 153 ? alturaTd : ''}
                                 >
                                     {facies
@@ -253,7 +253,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                         // isInverted
                                                                         //     ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
                                                                         //     : 
-                                                                            `rotate(90, 5, ${parseFloat(value.y1) * scale})`
+                                                                        `rotate(90, 5, ${parseFloat(value.y1) * scale})`
                                                                     }
                                                                     y={(parseFloat(value.y1) - 2) * scale}
 
@@ -542,7 +542,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 const alturaBody = adfas.current.getBoundingClientRect().height;
                 console.log(alturaBody)
                 const altura = alturaBody < 170
-                    ? data.reduce((total, item) => total + (item.Litologia?.Height*scale || 0), 0)
+                    ? data.reduce((total, item) => total + (item.Litologia?.Height * scale || 0), 0)
                     : alturaBody;
 
                 setAlturaTd(altura);
@@ -1055,12 +1055,12 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                             strategy={rectSortingStrategy}
                             key={columns.map(column => column.accessorKey).join("")}
                         >
-                            <tbody style={{ maxHeight :  data.reduce((acc, item) => acc + (item.Litologia?.Height*scale || 0), 0)}}>
+                            <tbody style={{ maxHeight: data.reduce((acc, item) => acc + (item.Litologia?.Height * scale || 0), 0) }}>
                                 {(
                                     // isInverted
                                     //     ? table.getRowModel().rows.slice().reverse()
                                     //     : 
-                                        table.getRowModel().rows
+                                    table.getRowModel().rows
                                 ).map((row, index) => {
 
                                     return (
