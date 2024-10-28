@@ -14,7 +14,7 @@ import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import { useTranslation } from 'react-i18next';
 import { arrayMove } from '@dnd-kit/sortable';
-import { DataInfo } from './types';
+import { DataInfo, Col } from './types';
 import Config from './sidebar/Config';
 
 const Grid = () => {
@@ -24,7 +24,7 @@ const Grid = () => {
   const [socket, setSocket] = useState(null);
   const isPageActive = useRef(true);
   const [data, setData] = useState<DataInfo[]>([]);
-  const [header, setHeader] = useState([]);
+  const [header, setHeader] = useState<Col[]>([]);
   const [fossils, setFossils] = useState([]);
   const [facies, setFacies] = useState({});
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: 'none' });
@@ -687,6 +687,7 @@ const Grid = () => {
   };
 
   const [isInverted, setIsInverted] = useState(false)
+
   return (
     <>
       <div className="drawer drawer-end auto-cols-max">
@@ -798,7 +799,7 @@ const Grid = () => {
         </>
 
         {/* SideBar */}
-        <div className="drawer-side z-[1002]">
+        <div className="drawer-side z-[1003]">
           <label htmlFor="my-drawer"
             onClick={() => {
               if (socket && formData.index !== null) {
@@ -834,18 +835,18 @@ const Grid = () => {
                             </p>
                           </li>
                           <li className='mb-2'>
-                            <button className='btn btn-primary' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? -1 : 0), Number(formData.Height))}>
+                            <button className='btn btn-primary' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(0, Number(formData.Height))}>
                               <p>{t("add_t")}</p>
                             </button>
                           </li>
                           <li className="flex flex-row">
-                            <button className='btn btn-primary  w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? data.length - Number(formData.initialHeight) : Number(formData.initialHeight)), Number(formData.Height))}>
+                            <button className='btn btn-primary  w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(Number(formData.initialHeight), Number(formData.Height))}>
                               <p>{t("add_index")}</p>
                             </button>
                             <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={Number(formData.initialHeight)} />
                           </li>
                           <li className='mt-2'>
-                            <button className='btn btn-primary ' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape((isInverted ? 0 : -1), Number(formData.Height))}>
+                            <button className='btn btn-primary ' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(-1, Number(formData.Height))}>
                               <p>{t("add_b")}</p>
                             </button>
                           </li>
@@ -962,7 +963,7 @@ const Grid = () => {
 
                       </li>
                       <li>
-                        <label>{isInverted ? t("lim_inf") : t("lim_sup")}</label>
+                        <label>{t("lim_sup")}</label>
                         <input
                           type="number"
                           name='upper'
@@ -971,7 +972,7 @@ const Grid = () => {
                         />
                       </li>
                       <li>
-                        <label>{isInverted ? t("lim_sup") : t("lim_inf")}</label>
+                        <label>{t("lim_inf")}</label>
                         <input
                           type="number"
                           name='lower'
@@ -1015,7 +1016,7 @@ const Grid = () => {
                                       :
                                       items.SvgIcon && (
 
-                                        <items.SvgIcon {...{ width: "150", height: "20" }} />
+                                        <items.SvgIcon {...{ width: "150", height: "50" }} />
 
                                       )}
 

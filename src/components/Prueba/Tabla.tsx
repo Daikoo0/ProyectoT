@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, CSSProperties, useMemo } from "react";
 import Polygon from "./Polygon4";
 import Fosil from "./Fosil";
+import fosiles from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
 import Ab from "./pdfFunction";
@@ -15,7 +16,7 @@ interface Layer {
     userId: string;
     Columns: any;
     Litologia: any;
-    
+
 }
 
 interface col {
@@ -27,6 +28,7 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
     const { attributes, listeners } = useSortable({
         id: row.id,
     });
+
     return (
         <button {...attributes} {...listeners} style={{
             maxHeight: row.original.Litologia.Height, padding: 0,
@@ -42,7 +44,7 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
 
 const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies
+    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas
 }: {
     row: Row<Layer>;
     index: number;
@@ -62,7 +64,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
     hovered: boolean;
     scale: number;
     facies: any;
-    setFormFacies(state: { facie: string })
+    setFormFacies(state: { facie: string });
+    adfas: any;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.id,
@@ -72,7 +75,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         transform: CSS.Transform.toString(transform),
         transition: transition,
         opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging? 1000 : row.getVisibleCells().length - Number(row.id),
+        zIndex: isDragging ? 1000 : row.getVisibleCells().length - Number(row.id),
         position: 'relative',
         padding: 0,
         height: row.original.Litologia.Height * scale,
@@ -84,21 +87,23 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         <tr ref={setNodeRef} style={style} id={row.id} >
             {row.getVisibleCells().map((cell, cellIndex) => {
                 const cdef = cell.column.columnDef;
-                
+                console.log(cell)
+
                 if (cell.column.id === "Espesor") {
-                    if (index === (isInverted ? rowspan - 1 : 0)) {
+                    if (index ===  0) {
                         return (
                             <td
                                 key={cell.id}
                                 rowSpan={rowspan}
-                                className="border border-base-content h-full max-h-full"
+                                //  className="border border-base-content h-full max-h-full"
+                                ref={adfas}
                                 style={{
                                     verticalAlign: "top",
                                 }}
                             >
-                                {/* <div className="h-full max-h-full"> */}
+
                                 <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
-                                {/* </div> */}
+
                             </td>
                         );
                     } else {
@@ -132,7 +137,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     );
                 }
                 if (cell.column.id === "Estructura fosil") {
-                    if (index === (isInverted ? rowspan - 1 : 0)) {
+                    if (index === 0) {
                         return (
                             <td
                                 id="fossils"
@@ -167,7 +172,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                         {cdef["fossils"]
                                             ? Object.keys(cdef["fossils"]).map((data, index) => (
                                                 <Fosil
-                                                    isInverted={isInverted}
+                                                  //  isInverted={isInverted}
                                                     key={index}
                                                     keyID={data}
                                                     data={cdef["fossils"][data]}
@@ -188,8 +193,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     }
 
                 }
-                if (cell.column.id === "Facie" ) {
-                    if (index === (isInverted ? rowspan - 1 : 0)) {
+                if (cell.column.id === "Facie") {
+                    if (index === 0) {
                         return (
                             <td
                                 id="facies"
@@ -209,7 +214,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     className="h-full max-h-full"
                                     width={columnWidths["Facie"] || cell.column.getSize()}
                                     overflow="visible"
-                                    transform={isInverted ? "scale(1,-1)" : "scale(1,1)"}
+                                   // transform={isInverted ? "scale(1,-1)" : "scale(1,1)"}
                                     height={alturaTd < 153 ? alturaTd : ''}
                                 >
                                     {facies
@@ -243,11 +248,12 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                     key={"value-" + key + value + i}
                                                                     fontSize={14}
                                                                     className="fill fill-base-content"
-                                                                    x={isInverted ? -((parseFloat(value.y2) - parseFloat(value.y1)) * scale) : 10}
+                                                                    x={10}
                                                                     transform={
-                                                                        isInverted
-                                                                            ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
-                                                                            : `rotate(90, 5, ${parseFloat(value.y1) * scale})`
+                                                                        // isInverted
+                                                                        //     ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+                                                                        //     : 
+                                                                            `rotate(90, 5, ${parseFloat(value.y1) * scale})`
                                                                     }
                                                                     y={(parseFloat(value.y1) - 2) * scale}
 
@@ -405,26 +411,25 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 header: "Facie",
             },
         };
-    
-        const orderedColumns = header.map(item => {
-            if (fixedColumns[item.Name]) {
-                return fixedColumns[item.Name];
-            }
 
-            return {
-                accessorKey: item.Name,
-                cell: (info) => info.row.original.Columns[item.Name],
-                header: item.Name,
-                handleMouseEnter: () => setHovered(true),
-                handleMouseLeave: () => setHovered(false),
-            };
-        });
-    
-        // Agregamos la columna de arrastre como la primera
+        const orderedColumns = header
+            .filter(item => item.Visible)
+            .map(item => {
+                if (fixedColumns[item.Name]) {
+                    return fixedColumns[item.Name];
+                }
+
+                return {
+                    accessorKey: item.Name,
+                    cell: (info) => info.row.original.Columns[item.Name],
+                    header: item.Name,
+                    handleMouseEnter: () => setHovered(true),
+                    handleMouseLeave: () => setHovered(false),
+                };
+            });
+
         return [fixedColumns["drag-handle"], ...orderedColumns];
     }, [header, fossils]);
-    
-    // console.log(columns)
 
     const table = useReactTable({
         data,
@@ -439,7 +444,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
     const dataIds = useMemo<UniqueIdentifier[]>(
         () => table.getRowModel().rows.map((row) => row.id), // Utiliza el índice como id
-        [table.getRowModel().rows, header, isInverted]
+        [table.getRowModel().rows, header, isInverted, columns]
     );
 
 
@@ -535,8 +540,9 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         const obtenerAlturaTd = () => {
             if (adfas.current) {
                 const alturaBody = adfas.current.getBoundingClientRect().height;
-                const altura = alturaBody < 153
-                    ? data.reduce((total, item) => total + (item.Litologia?.Height || 0), 0)
+                console.log(alturaBody)
+                const altura = alturaBody < 170
+                    ? data.reduce((total, item) => total + (item.Litologia?.Height*scale || 0), 0)
                     : alturaBody;
 
                 setAlturaTd(altura);
@@ -550,8 +556,24 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 resizeObserver.disconnect();
             };
         }
-    }, [adfas.current, data]);
+    }, [adfas.current, data, scale]);
 
+    var patterns = []
+    var contacts = []
+    var fossilsName = []
+
+    data.forEach(row => {
+        if (!patterns.includes(row["Litologia"].File) && lithoJson[row["Litologia"].File] > 1) {
+            patterns.push(row["Litologia"].File);
+        }
+        if (!contacts.includes(row["Litologia"].Contact)) {
+            contacts.push(row["Litologia"].Contact)
+        }
+    });
+
+    const name = Object.values(fossils).map(fossil => Object.values(fossil)[2]);
+    fossilsName.push(name[0])
+    fossilsName = fossilsName.filter(item => item !== undefined)
 
     return (
         <>
@@ -825,34 +847,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         </div>
                                     </div>
 
-                                    {/* <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
-                                        <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("visibility")}</div>
-                                        <div className="collapse-content">
-                                            <ul className="menu p-2 w-full text-base-content">
-                                                {list.map((key) => {
-                                                    if (key !== "Espesor" && key !== "Litologia") {
-                                                        return (
-                                                            <li key={key} className="py-0 h-6">
-                                                                <label className="inline-flex items-center">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        id={key}
-                                                                        name={key}
-                                                                        checked={pdfData.header?.includes(key) ? true : false}
-                                                                        onChange={(e) => handleColumns(e, key)}
-                                                                        className="form-checkbox h-4 w-4 text-indigo-600"
-                                                                    />
-                                                                    <span>{t("" + key)}</span>
-                                                                </label>
-                                                            </li>
-                                                        );
-                                                    }
-                                                })}
-                                            </ul>
-                                        </div>
-                                    </div> */}
-
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                                         <input type="checkbox" className="peer" />
                                         <div className="collapse-title text-xl font-medium" >{t("w_lit")}
@@ -934,120 +928,121 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             </>
 
             <div ref={tableref} className="py-16 pl-6">
-                <table id="aaaa" style={{ height: '100px' }} >
-                    <thead className={`relative sticky top-16 z-[${1000}]`}>
+                <table style={{ height: '100px' }} >
+                    <thead className={`relative sticky top-16 z-[1001]`}>
                         <tr>
                             <th className="bg-base-100 no-print">
                                 {/* <p className="text-3xl font-bold text-accent-content w-1/2">↓↑</p> */}
                             </th>
-                            {header.map((columnName, number) => (
-                                <th
-                                    key={columnName.Name}
-                                    className="border border-base-content bg-primary"
-                                    style={{
-                                        width: `${columnName.Name === "Espesor"
-                                            ? 70
-                                            : columnName.Name === "Litologia"
-                                                ? (columnWidths[columnName.Name] || 250)
-                                                : (columnWidths[columnName.Name] || cellWidth)}px`,
-                                        height: '120px',
-                                    }}
+                            {columns.map((col, number) => (
+                                number > 0 && (  // Este condicional omite el primer elemento
+                                    <th
+                                        key={col.header}
+                                        className="border border-base-content bg-primary"
+                                        style={{
+                                            width: `${col.header === "Espesor"
+                                                ? 70
+                                                : col.header === "Litologia"
+                                                    ? (columnWidths[col.header] || 250)
+                                                    : (columnWidths[col.header] || cellWidth)}px`,
+                                            height: '120px',
+                                        }}
 
-                                    onClick={() => {
-                                        if (columnName.Name === "Facie") {
-                                            setSideBarState({
-                                                sideBar: true,
-                                                sideBarMode: "addFacie"
-                                            })
-                                        }
-                                    }}
-                                >
-
-                                    <div className="flex justify-between items-center font-semibold">
-                                        <p className="text text-accent-content w-1/2">{t("" + columnName.Name)}</p>
-
-                                        {columnName.Name === "Litologia" ?
-                                            <>
-                                                <svg
-                                                    id="headerLit"
-                                                    className="absolute"
-                                                    width={(columnWidths[columnName.Name] || 250) / 2}
-                                                    height="120"
-                                                    overflow={'visible'}
-                                                    style={{
-                                                        background: "transparent",
-                                                    }}>
-                                                    <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={0.5 * (columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
-                                                    <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={(columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
-
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"clay"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"mud"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.59} name={"silt"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"vf"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"wacke"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.67} name={"f"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"m"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"pack"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.75} name={"c"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"vc"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"grain"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"gran"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"redstone"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"pebb"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"rud & bound"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"cobb"} top={false} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"rudstone"} top={true} />
-                                                    <HeaderVal columnWidths={columnWidths} percentage={0.95} name={"boul"} top={false} />
-                                                </svg>
-                                            </> : <></>
-                                        }
-
-                                        {columnName.Name === "Facie" ?
-                                            <>
-                                                <svg
-                                                    key={`facieSvg-${columnName.Name}${number}`}
-                                                    className="absolute"
-                                                    width={(columnWidths[columnName.Name] || cellWidth) / 2}
-                                                    height="120"
-                                                    overflow={'visible'}
-                                                    style={{
-                                                        background: "transparent",
-                                                    }}
-                                                >
-                                                    {facies && (
-                                                        Object.keys(facies).map((key, index) => {
-                                                            const xPos = (index + 1) * ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1));
-                                                            return (
-                                                                <>
-                                                                    <text
-                                                                        key={`textFacie-${key}${index}${number}`}
-                                                                        className="fill fill-accent-content"
-                                                                        x={xPos}
-                                                                        y={112}>{index}</text>
-                                                                </>)
-                                                        })
-                                                    )}
-                                                </svg></> : <></>
-                                        }
-                                        <div
-                                            className="inset-y-0 right-0 h-full"
-                                            onMouseOver={(e) =>
-                                                e.currentTarget.style.backgroundColor = "transparent"
+                                        onClick={() => {
+                                            if (col.header === "Facie") {
+                                                setSideBarState({
+                                                    sideBar: true,
+                                                    sideBarMode: "addFacie"
+                                                })
                                             }
-                                            onMouseOut={(e) => {
-                                                e.currentTarget.style.backgroundColor = "transparent";
-                                            }}
-                                            onMouseDown={(e) => handleMouseDown(columnName.Name, e)}
-                                            style={{
-                                                width: '5px',
-                                                cursor: 'col-resize',
-                                                height: '100px',
-                                                backgroundColor: 'transparent',
-                                            }}
-                                        />
-                                    </div>
-                                </th>
-                            ))}
+                                        }}
+                                    >
+
+                                        <div className="flex justify-between items-center font-semibold">
+                                            <p className="text text-accent-content w-1/2">{t("" + col.header)}</p>
+
+                                            {col.header === "Litologia" ?
+                                                <>
+                                                    <svg
+                                                        id="headerLit"
+                                                        className="absolute"
+                                                        width={(columnWidths[col.header] || 250) / 2}
+                                                        height="120"
+                                                        overflow={'visible'}
+                                                        style={{
+                                                            background: "transparent",
+                                                        }}>
+                                                        <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={0.5 * (columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
+                                                        <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={(columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
+
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"clay"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"mud"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.59} name={"silt"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"vf"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"wacke"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.67} name={"f"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"m"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"pack"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.75} name={"c"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"vc"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"grain"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"gran"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"redstone"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"pebb"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"rud & bound"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"cobb"} top={false} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"rudstone"} top={true} />
+                                                        <HeaderVal columnWidths={columnWidths} percentage={0.95} name={"boul"} top={false} />
+                                                    </svg>
+                                                </> : <></>
+                                            }
+
+                                            {col.header === "Facie" ?
+                                                <>
+                                                    <svg
+                                                        key={`facieSvg-${col.header}${number}`}
+                                                        className="absolute"
+                                                        width={(columnWidths[col.header] || cellWidth) / 2}
+                                                        height="120"
+                                                        overflow={'visible'}
+                                                        style={{
+                                                            background: "transparent",
+                                                        }}
+                                                    >
+                                                        {facies && (
+                                                            Object.keys(facies).map((key, index) => {
+                                                                const xPos = (index + 1) * ((columnWidths["Facie"] || cellWidth) / (Object.keys(facies).length + 1));
+                                                                return (
+                                                                    <>
+                                                                        <text
+                                                                            key={`textFacie-${key}${index}${number}`}
+                                                                            className="fill fill-accent-content"
+                                                                            x={xPos}
+                                                                            y={112}>{index}</text>
+                                                                    </>)
+                                                            })
+                                                        )}
+                                                    </svg></> : <></>
+                                            }
+                                            <div
+                                                className="inset-y-0 right-0 h-full"
+                                                onMouseOver={(e) =>
+                                                    e.currentTarget.style.backgroundColor = "transparent"
+                                                }
+                                                onMouseOut={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "transparent";
+                                                }}
+                                                onMouseDown={(e) => handleMouseDown(col.header, e)}
+                                                style={{
+                                                    width: '5px',
+                                                    cursor: 'col-resize',
+                                                    height: '100px',
+                                                    backgroundColor: 'transparent',
+                                                }}
+                                            />
+                                        </div>
+                                    </th>
+                                )))}
                         </tr>
                     </thead>
                     <DndContext
@@ -1058,15 +1053,16 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                         <SortableContext
                             items={dataIds}
                             strategy={rectSortingStrategy}
-                            key={header.length}
+                            key={columns.map(column => column.accessorKey).join("")}
                         >
-                            <tbody ref={adfas}>
+                            <tbody style={{ maxHeight :  data.reduce((acc, item) => acc + (item.Litologia?.Height*scale || 0), 0)}}>
                                 {(
-                                    isInverted
-                                        ? table.getRowModel().rows.slice().reverse()
-                                        : table.getRowModel().rows
+                                    // isInverted
+                                    //     ? table.getRowModel().rows.slice().reverse()
+                                    //     : 
+                                        table.getRowModel().rows
                                 ).map((row, index) => {
-                                    
+
                                     return (
                                         <DraggableRow
                                             rowspan={data.length}
@@ -1092,6 +1088,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             scale={scale}
                                             facies={facies}
                                             setFormFacies={setFormFacies}
+                                            adfas={adfas}
                                         />
 
                                     )
@@ -1103,7 +1100,78 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                     </DndContext>
 
                 </table>
-            </div>
+
+                <div style={{ pageBreakBefore: 'always' }} className=" mt-20">
+                    <h1 className="text-2xl font-bold">Simbología</h1>
+
+                    {patterns.length > 0 && (
+                        <div className="flex flex-col mt-4">
+                            <h2 className="text-xl font-semibold">Patrones</h2>
+                            {patterns.map((pattern) => (
+                                <div
+                                    key={pattern}
+                                    className="flex items-center mt-2"
+                                >
+                                    <div
+                                        className="bg-cover bg-center w-12 h-12 border border-black mr-2"
+                                        style={{ backgroundImage: `url('/src/assets/patrones/${lithoJson[pattern]}.svg')`, zoom: 1.5 }}
+                                    />
+                                    <p className="text-sm m-0">
+                                        {t(pattern, { ns: 'Patterns' })}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {contacts && (
+                        <div className="flex flex-col mt-4">
+                            <h2 className="text-xl font-semibold">Contactos</h2>
+                            {contacts.map((contact) => (
+                                <div
+                                    key={contact}
+                                    className="flex items-center mt-2"
+                                >
+                                    <div className="flex w-36 h-24 relative">
+                                        <img
+                                            src={`/src/assets/contacts/${contact}.svg`}
+                                            alt="Contact Icon"
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                    <p className="text-sm m-0">
+                                        {t(contact, { ns: 'Description' })}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {fossilsName && fossilsName.length > 0 && (
+                        <div className="flex flex-col mt-4">
+                            <h2 className="text-xl font-semibold">Fósiles</h2>
+                            {fossilsName.map((fossil) => (
+                                <div
+                                    key={fossil}
+                                    className="flex items-center mt-2"
+                                >
+                                    <div className="flex w-20 h-20 relative">
+                                        <img
+                                            src={`/src/assets/fosiles/${fosiles[fossil]}.svg`}
+                                            alt="Fossil Icon"
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                    <p className="text-sm m-0">
+                                        {fossil}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+            </div >
 
         </>
     );

@@ -415,12 +415,12 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   const patternId = `pattern-${rowIndex}`;
 
   return (
-    <svg width={Width} height={Height} opacity={0.99} id={`svg-${rowIndex}`}
+    <svg width={Width} height={Height} opacity={0.99} id={File} //id={`svg-${rowIndex}`}
       overflow='visible'
       className={`relative z-[${zindex}]`}
-      style={{
-        transform: isInverted ? "scaleY(-1)" : "none",
-      }}
+      // style={{
+      //   transform: isInverted ? "scaleY(-1)" : "none",
+      // }}
     >
 
       <defs>
@@ -430,7 +430,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       </defs>
 
       <path d={pathData}
-        fill={`url(#${patternId})`}
+        fill={ File>1 ? `url(#${patternId})` : "white"}
         //  fill="transparent"
         className="stroke-current text-base-content"
         strokeWidth="0.8"
@@ -443,7 +443,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
         }}
       />
 
-      {File === 0 && (
+      {File === 1 && (
         <>
           <line
             x1={0}

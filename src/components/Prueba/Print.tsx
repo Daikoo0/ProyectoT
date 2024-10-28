@@ -10,7 +10,7 @@ const Print = ({ tableref }) => {
     contentRef: tableref,
     pageStyle: `
       @page {
-        size: ${tableref.current?.clientWidth * 2}px ${tableref.current?.clientHeight * 2}px;
+        size: ${tableref.current?.clientWidth*1.5}px ${tableref.current?.clientHeight*1.5}px;
       }
         body {
               margin: 0;

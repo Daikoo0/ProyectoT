@@ -1,11 +1,12 @@
 import React from 'react';
-import { DndContext, closestCenter } from '@dnd-kit/core';
+import { DndContext, closestCorners } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTranslation } from 'react-i18next';
 import SelectTheme from '../../Web/SelectTheme';
 import LangSelector from '../../Web/LanguageComponent';
 import { Col } from '../types';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 interface ConfigProps {
     socket: WebSocket | null;
@@ -33,9 +34,9 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
     };
 
     const toggleVisibility = (name: string) => {
-        setHeader((items) =>
-            items.map((item) =>
-                item.Name === name ? { ...item, Visible: !item.Visible } : item
+        setHeader((prevHeader) =>
+            prevHeader.map((col) =>
+                col.Name === name ? { ...col, Visible: !col.Visible } : col
             )
         );
     };
@@ -136,7 +137,7 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
                             <details open={false}>
                                 <summary>{t("visibility")}</summary>
                                 <ul>
-                                    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                    <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
                                         <SortableContext items={header.map((col) => col.Name)} strategy={verticalListSortingStrategy}>
                                             <div>
                                                 {header.map((col) => (
@@ -166,12 +167,9 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
     )
 }
 
-interface SortableItemProps {
-    col: Col;
-    toggleVisibility: (name: string) => void;
-}
 
-const SortableItem = ({ col, toggleVisibility }: SortableItemProps) => {
+
+const SortableItem = ({ col, toggleVisibility }) => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: col.Name });
 
     const style = {
@@ -180,24 +178,27 @@ const SortableItem = ({ col, toggleVisibility }: SortableItemProps) => {
         padding: '8px',
         border: '1px solid #ddd',
         marginBottom: '4px',
-        backgroundColor: 'purple',
+       // backgroundColor: 'purple',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
     };
 
-
     return (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+        <div ref={setNodeRef} className='' style={style} {...attributes} {...listeners}>
+            <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m8 10 4-6 4 6H8Zm8 4-4 6-4-6h8Z"/>
+</svg>
+
             <span>{col.Name}</span>
             <input
                 type="checkbox"
                 checked={col.Visible}
+                onPointerDown={(e) => e.stopPropagation()} 
                 onChange={() => toggleVisibility(col.Name)}
                 aria-label={`Toggle visibility of ${col.Name}`}
             />
         </div>
     );
 };
-
 export default Config;
