@@ -6,7 +6,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   const amplitude = 4;
   const resolution = 1;
 
-  const functionContact = (startYY, startXX, endXX, endYY, contact, poc) => {
+  const functionContact = (startXX, endXX, endYY, contact, poc) => {
     var maxWidth = poc ? (startXX - endXX) : (endXX - startXX); // ancho disponible
     var patternWidth = contacts[contact].width;
     var numCurves = Math.floor(maxWidth / patternWidth); // número de curvas que caben
@@ -209,11 +209,10 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       }
     } else if (contacts[prevContact]?.new) {
 
-      const startYY = points[0].y; // coordenada Y del primer punto
       const startXX = points[0].x; // coordenada X del primer punto
       const endXX = points[1].x; // coordenada X del último punto
       const endYY = points[1].y; // coordenada Y del último punto
-      pathData += functionContact(startYY, startXX, endXX, endYY, prevContact, false);
+      pathData += functionContact(startXX, endXX, endYY, prevContact, false);
 
       // const startYY = points[0].y; // coordenada Y del primer punto
       // const startXX = points[0].x; // coordenada X del primer punto
@@ -290,11 +289,10 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       }
     } else if (contacts[contact]?.new) {
 
-      const startYY = points[len - 2].y; // coordenada Y del primer punto
       const startXX = points[len - 2].x; // coordenada X del primer punto
       const endXX = points[len - 1].x; // coordenada X del último punto
       const endYY = points[len - 1].y; // coordenada Y del último punto
-      pathData += functionContact(startYY, startXX, endXX, endYY, contact, true);
+      pathData += functionContact(startXX, endXX, endYY, contact, true);
 
     } else {
       pathData += `L ${points[len - 1].x},${points[len - 1].y} `;

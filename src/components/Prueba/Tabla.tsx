@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, CSSProperties, useMemo } from "react";
 import Polygon from "./Polygon4";
 import Fosil from "./Fosil";
+import Muestra from "./Muestra";
 import fosiles from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
@@ -44,7 +45,7 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
 
 const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas
+    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas,setFormMuestra
 }: {
     row: Row<Layer>;
     index: number;
@@ -66,6 +67,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
     facies: any;
     setFormFacies(state: { facie: string });
     adfas: any;
+    setFormMuestra : (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.id,
@@ -181,6 +183,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                     scale={scale}
                                                     litologiaX={columnWidths["Litologia"] || 200}
                                                     columnW={columnWidths["Estructura fosil"] || cell.column.getSize()}
+                                                    isInverted={isInverted}
                                                 />
                                             ))
                                             : null}
@@ -191,7 +194,63 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                     } else {
                         return null;
                     }
-
+                }
+                if(cell.column.id ==="Muestras"){
+                    if (index === 0) {
+                        return (
+                            <td
+                                id="muestras"
+                                key={cell.id}
+                                rowSpan={rowspan}
+                                className="border border-base-content"
+                            >
+                                <div
+                                    className="h-full max-h-full"
+                                    onClick={(e) => {
+                                        if (e.target instanceof SVGSVGElement) {
+                                            setSideBarState({
+                                                sideBar: true,
+                                                sideBarMode: "muestra",
+                                            });
+                                            setFormMuestra({
+                                                id: '',
+                                                upper: 0,
+                                                lower: 0,
+                                                muestraText: '',
+                                                x: e.nativeEvent.offsetX / (columnWidths["Muestra"] || cell.column.getSize()),
+                                                muestraTextCopy: '',
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <svg id="muestraSvg"
+                                        className="h-full max-h-full"
+                                        width={columnWidths["Muestras"] || cell.column.getSize()}
+                                        height={alturaTd < 153 ? alturaTd : ''}
+                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible": "hidden" }
+                                    >
+                                        {cdef["muestras"]
+                                            ? Object.keys(cdef["muestras"]).map((data, index) => (
+                                                <Muestra
+                                                    key={index}
+                                                    keyID={data}
+                                                    data={cdef["muestras"][data]}
+                                                    setSideBarState={setSideBarState}
+                                                    setFormMuestra={setFormMuestra}
+                                                    scale={scale}
+                                                    litologiaX={columnWidths["Litologia"] || 200}
+                                                    columnW={columnWidths["Muestra"] || cell.column.getSize()}
+                                                    isInverted={isInverted}
+                                                />
+                                            ))
+                                            : null}
+                                    </svg>
+                                </div>
+                            </td>
+                        )
+                    } else {
+                        return null;
+                    }
                 }
                 if (cell.column.id === "Facie") {
                     if (index === 0) {
@@ -214,7 +273,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     className="h-full max-h-full"
                                     width={columnWidths["Facie"] || cell.column.getSize()}
                                     overflow="visible"
-                                    // transform={isInverted ? "scale(1,-1)" : "scale(1,1)"}
+                                    transform={isInverted ? "none" : "scale(1,-1)"}
                                     height={alturaTd < 153 ? alturaTd : ''}
                                 >
                                     {facies
@@ -251,7 +310,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                     x={10}
                                                                     transform={
                                                                         // isInverted
-                                                                        //     ? `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+                                                                        //     ?
+                                                                        // `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
                                                                         //     : 
                                                                         `rotate(90, 5, ${parseFloat(value.y1) * scale})`
                                                                     }
@@ -349,10 +409,19 @@ const HeaderVal = ({ percentage, name, top, columnWidths }) => {
     return (
         <>
             <path id={name} d={`M${x},${pos} L${x},0`} />
-            <text className="stroke stroke-accent-content" fontWeight="1" fontSize="10"><textPath href={`#${name}`}>
+            {/* <text className="stroke stroke-accent-content" fontWeight="1" fontSize="10"><textPath href={`#${name}`}>
                 {name}
             </textPath>
-            </text>
+            </text> */}
+              <foreignObject 
+                x={x - 10} 
+                y={pos -10} 
+                width="50" 
+                height="20" 
+                transform={`rotate(${270}, ${x}, ${pos})`}
+            > <p style={{ fontFamily: "Times New Roman, Times, serif", fontSize: "12px", fontWeight: "bold", color: "currentColor" }}>
+            {name}
+        </p></foreignObject>
             {top ? <>
                 <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={x} x2={x} strokeWidth="1"></line>
             </> : <>
@@ -369,7 +438,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref }) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref ,setFormMuestra, muestras}) => {
     const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
@@ -410,6 +479,11 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                 accessorKey: 'Facie',
                 header: "Facie",
             },
+            "Muestras": {
+                accessorKey: 'Muestras',
+                muestras:muestras,
+                header: "Muestras",
+            },
         };
 
         const orderedColumns = header
@@ -429,7 +503,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             });
 
         return [fixedColumns["drag-handle"], ...orderedColumns];
-    }, [header, fossils]);
+    }, [header, fossils,muestras]);
 
     const table = useReactTable({
         data,
@@ -959,7 +1033,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     >
 
                                         <div className="flex justify-between items-center font-semibold">
-                                            <p className="text text-accent-content w-1/2">{t("" + col.header)}</p>
+                                            <p style={{fontFamily: "Times New Roman, Times, serif"}} className="text text-accent-content w-1/2">{t("" + col.header)}</p>
 
                                             {col.header === "Litologia" ?
                                                 <>
@@ -1067,7 +1141,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                         <DraggableRow
                                             rowspan={data.length}
                                             key={row.id + "" + index}
-
                                             row={row}
                                             index={row.index}
                                             header={header}
@@ -1089,6 +1162,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             facies={facies}
                                             setFormFacies={setFormFacies}
                                             adfas={adfas}
+                                            setFormMuestra={setFormMuestra}
                                         />
 
                                     )
@@ -1101,7 +1175,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                 </table>
 
-                <div style={{ pageBreakBefore: 'always' }} className=" mt-20">
+                <div className=" mt-20">
                     <h1 className="text-2xl font-bold">Simbología</h1>
 
                     {patterns.length > 0 && (
@@ -1114,7 +1188,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 >
                                     <div
                                         className="bg-cover bg-center w-12 h-12 border border-black mr-2"
-                                        style={{ backgroundImage: `url('/src/assets/patrones/${lithoJson[pattern]}.svg')`, zoom: 1.5 }}
+                                        style={{ backgroundImage: `url('/src/assets/patrones/${lithoJson[pattern]}.svg')`, zoom: 2 }}
                                     />
                                     <p className="text-sm m-0">
                                         {t(pattern, { ns: 'Patterns' })}
@@ -1131,6 +1205,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                 <div
                                     key={contact}
                                     className="flex items-center mt-2"
+                                    style={{zoom:1.5}}
                                 >
                                     <div className="flex w-36 h-24 relative">
                                         <img

@@ -2,7 +2,7 @@ import { useState } from "react";
 import fosilJson from '../../fossil.json';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 
-const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW }) => {
+const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW, isInverted }) => {
 
     const { loading, SvgIcon } = useDynamicSvgImport(fosilJson[data.fosilImg], 'fosiles');
 
@@ -44,6 +44,7 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             onMouseLeave={handleMouseLeave}
             className="fossilUnit"
          //   transform={isInverted ? "scale(1,-1)" : "none"}
+         transform={isInverted ? "none" : "scale(1,-1)"}
             style={{
               //  transform: isInverted ? "scaleY(-1)" : "none",
                 transformOrigin: "center",
@@ -66,7 +67,7 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             {/* Imagen del fosil  */}
             <g 
             id="iconFosil" className="stroke-base-content"
-            transform={`translate(${gTranslateX},${gTranslateY})`}
+            transform={isInverted? `translate(${gTranslateX},${gTranslateY})`: `translate(${gTranslateX},${gTranslateY+height}) rotate(180) scale(-1,1)`}
             style={{ transformOrigin: `0 0` }}
             >
 

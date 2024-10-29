@@ -10,7 +10,6 @@ import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
 import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
-import Ab from './pdfFunction';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import { useTranslation } from 'react-i18next';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -26,6 +25,7 @@ const Grid = () => {
   const [data, setData] = useState<DataInfo[]>([]);
   const [header, setHeader] = useState<Col[]>([]);
   const [fossils, setFossils] = useState([]);
+  const [muestras, setMuestras] = useState([]);
   const [facies, setFacies] = useState({});
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: 'none' });
   const [scale, setScale] = useState(1);
@@ -60,11 +60,20 @@ const Grid = () => {
 
   const [formData, setFormData] = useState(initialFormData);
   const [formFosil, setFormFosil] = useState({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
+  const [formMuestra, setFormMuestra] = useState({ id: '', upper: 0, lower: 0, muestraText: '', x: 0, muestraTextCopy: '' });
   const [formFacies, setFormFacies] = useState({ facie: '', y1: 0, y2: 0, y1prev: 0, y2prev: 0 });
 
   const changeformFosil = (e) => {
     const { name, value } = e.target;
     setFormFosil(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+  }
+
+  const changeFormMuestra = (e) => {
+    const { name, value } = e.target;
+    setFormMuestra(prevState => ({
       ...prevState,
       [name]: value,
     }));
@@ -127,26 +136,6 @@ const Grid = () => {
     });
   };
 
-  const handleColumns = (e, key) => {
-    if (e.target.checked) {
-      socket.send(JSON.stringify({
-        action: 'columns',
-        data: {
-          'column': key,
-          'isVisible': true,
-        },
-      }));
-    } else {
-      socket.send(JSON.stringify({
-        action: 'columns',
-        data: {
-          'column': key,
-          'isVisible': false,
-        },
-      }));
-    }
-  }
-
 
   useEffect(() => {
 
@@ -200,6 +189,7 @@ const Grid = () => {
             setFacies(shapeN.facies)
             setHeader(shapeN.config.Columns)
             setFossils(shapeN.fosil)
+            setMuestras(shapeN.muestras)
             setIsInverted(shapeN.config.isInverted)
             setEditingUsers(shapeN.userEditing)
             setUsers(shapeN.users)
@@ -274,6 +264,10 @@ const Grid = () => {
             break
           case 'addFosil':
             setFossils(prev => ({ ...prev, [shapeN.idFosil]: shapeN.value }));
+            break
+          case 'addMuestra':
+            setMuestras(prev => ({ ...prev, [shapeN.idMuestra]: shapeN.value }));
+            console.log(muestras,shapeN)
             break
           case 'addCircle':
             setData(prev => {
@@ -445,6 +439,19 @@ const Grid = () => {
         "lower": Number(formFosil.lower),
         "fosilImg": formFosil.fosilImg,
         "x": formFosil.x
+      }
+    }));
+  };
+
+  const handleAddMuestra = (event) => {
+    event.preventDefault();
+    socket.send(JSON.stringify({
+      action: 'addMuestra',
+      data: {
+        "upper": Number(formMuestra.upper),
+        "lower": Number(formMuestra.lower),
+        "muestraText": formMuestra.muestraText,
+        "x": formMuestra.x
       }
     }));
   };
@@ -660,32 +667,32 @@ const Grid = () => {
 
   const [pdfData, setPdfData] = useState({});
 
-  const openModal = () => {
+  // const openModal = () => {
 
-    (document.getElementById('modal') as HTMLDialogElement).showModal();
-    var copyData = data
-    var copyHeader = [...header]
-    var indexes = Array.from({ length: data.length }, (_, index) => index);
-    Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________', isInverted)
-    const initialPdfData = {
-      columnWidths: {},
-      data: copyData,
-      header: copyHeader,
-      format: 'C3',
-      orientation: 'portrait',
-      customWidthLit: "",
-      scale: scale,
-      fossils: fossils,
-      infoProject: infoProject,
-      indexesM: indexes,
-      oEstrat: '             ',
-      oLev: '             ',
-      etSec: '             ',
-      date: '             '
-    };
-    setPdfData(initialPdfData)
+  //   (document.getElementById('modal') as HTMLDialogElement).showModal();
+  //   var copyData = data
+  //   var copyHeader = [...header]
+  //   var indexes = Array.from({ length: data.length }, (_, index) => index);
+  //   Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________', isInverted)
+  //   const initialPdfData = {
+  //     columnWidths: {},
+  //     data: copyData,
+  //     header: copyHeader,
+  //     format: 'C3',
+  //     orientation: 'portrait',
+  //     customWidthLit: "",
+  //     scale: scale,
+  //     fossils: fossils,
+  //     infoProject: infoProject,
+  //     indexesM: indexes,
+  //     oEstrat: '             ',
+  //     oLev: '             ',
+  //     etSec: '             ',
+  //     date: '             '
+  //   };
+  //   setPdfData(initialPdfData)
 
-  };
+  // };
 
   const [isInverted, setIsInverted] = useState(false);
 
@@ -715,7 +722,7 @@ const Grid = () => {
           {/* Header */}
           <Navbar_Editor
             config={config}
-            openModal={openModal}
+            //    openModal={openModal}
             setSideBarState={setSideBarState}
             setFormData={setFormData}
             socket={socket}
@@ -738,6 +745,7 @@ const Grid = () => {
             addCircles={addCircles}
             setSideBarState={setSideBarState}
             fossils={fossils}
+            muestras={muestras}
             setFormFosil={setFormFosil}
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
@@ -750,6 +758,7 @@ const Grid = () => {
             facies={facies}
             socket={socket}
             tableref={tableref}
+            setFormMuestra={setFormMuestra}
           />
         </div>
 
@@ -994,6 +1003,51 @@ const Grid = () => {
                       </li>
                       <li><button className="btn btn-error" onClick={handleDeleteFosil}><p>{t("delete_fossil")}</p></button></li>
                     </ul>)
+                case "muestra":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">{t("muestras")}</li>
+
+                      <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
+                        <li>{t("add_muestras")}</li>
+                        <form onSubmit={handleAddMuestra}>
+                          <li>
+                            <input type='text' required className="select select-bordered w-full max-w-xs" name='muestraText' value={formMuestra.muestraText} onChange={changeFormMuestra} />
+                          </li>
+
+                          <li>
+                            <label>{t("lim_inf")}</label>
+                            <input
+                              type="number"
+                              name='upper'
+                              value={Number(formMuestra.upper)}
+                              min={0}
+                              max={formMuestra.lower}
+                              required
+                              onChange={changeFormMuestra}
+                            />
+                          </li>
+                          <li>
+                            <label>{t("lim_sup")}</label>
+                            <input
+                              type="number"
+                              name='lower'
+                              value={Number(formMuestra.lower)}
+                              min={0}
+                              max={alturaTd}
+                              required
+                              onChange={changeFormMuestra}
+                            />
+                          </li>
+
+                          <button type='submit' className="btn btn-primary"
+                            disabled={Number(formMuestra.lower) > alturaTd || Number(formMuestra.upper) > alturaTd}>
+                            <p>{t("confirm")}</p>
+                          </button>
+                        </form>
+                      </div>
+                    </ul>
+                  );
                 case "polygon":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -1193,10 +1247,13 @@ const Grid = () => {
                         <div className="p-4">
                           <p className="text-lg font-semibold mb-2">{t("tramos_facie")}</p>
                           <ul className="list-disc list-inside space-y-2">
-                            {Object.values(facies[formFacies.facie]).map((value, index) => (
+                            {Object.values(facies[formFacies.facie]).map((value, index) => {
+                              console.log(data.reduce((total, item) => total + (item.Litologia?.Height * scale || 0), 0))
+                              return(
                               <>
                                 <li key={index} className="flex items-center justify-between">
                                   <span>{value["y1"]}cm - {value["y2"]}cm</span>
+                              
                                   <button className="btn btn-error" onClick={() => {
                                     handleDeleteFacieSection(index)
                                   }}>
@@ -1205,7 +1262,7 @@ const Grid = () => {
                                 </li>
 
                               </>
-                            ))}
+                            )})}
                           </ul>
 
                           <p className="text-lg font-semibold mt-4 mb-2">{t("add_tramo_facie")}</p>

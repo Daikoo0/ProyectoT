@@ -4,7 +4,7 @@ import Print from './Print';
 
 interface NavbarProps {
     config: () => void;
-    openModal: () => void;
+   // openModal: () => void;
     setSideBarState: (state: { sideBar: boolean; sideBarMode: string }) => void;
     setFormData: (data: any) => void;
     socket: WebSocket;
@@ -26,7 +26,7 @@ interface InviteModalProps {
 
 const Navbar: React.FC<NavbarProps> = ({
     config,
-    openModal,
+    //openModal,
     setSideBarState,
     setFormData,
     socket,
