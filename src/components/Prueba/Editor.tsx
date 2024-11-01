@@ -33,6 +33,7 @@ const Grid = () => {
   const [messageFacie, setMessageFacie] = useState('');
   const [infoProject, setInfoProject] = useState();
   const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
+  const [isInverted, setIsInverted] = useState(false);
   const tableref = useRef(null);
   var contactsSvg = []
   {
@@ -190,7 +191,7 @@ const Grid = () => {
             setHeader(shapeN.config.Columns)
             setFossils(shapeN.fosil)
             setMuestras(shapeN.muestras)
-            setIsInverted(shapeN.config.isInverted)
+            setIsInverted(shapeN.config.IsInverted)
             setEditingUsers(shapeN.userEditing)
             setUsers(shapeN.users)
             setInfoProject(shapeN.projectInfo)
@@ -261,6 +262,9 @@ const Grid = () => {
             break
           case 'isInverted':
             setIsInverted(shapeN.isInverted)
+            setFacies(shapeN.facies)
+            setFossils(shapeN.fosil)
+            setMuestras(shapeN.muestras)
             break
           case 'addFosil':
             setFossils(prev => ({ ...prev, [shapeN.idFosil]: shapeN.value }));
@@ -739,7 +743,7 @@ const Grid = () => {
 
   // };
 
-  const [isInverted, setIsInverted] = useState(false);
+  
 
 
   const handleAddColumn = (columnName) => {
@@ -1324,7 +1328,6 @@ const Grid = () => {
                           <p className="text-lg font-semibold mb-2">{t("tramos_facie")}</p>
                           <ul className="list-disc list-inside space-y-2">
                             {Object.values(facies[formFacies.facie]).map((value, index) => {
-                              console.log(data.reduce((total, item) => total + (item.Litologia?.Height * scale || 0), 0))
                               return (
                                 <>
                                   <li key={index} className="flex items-center justify-between">

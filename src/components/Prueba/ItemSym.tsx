@@ -10,7 +10,6 @@ interface ItemProps {
 const ItemSymbology: React.FC<ItemProps> = memo(({ item, type, name}) => {
 
     const { loading, SvgIcon } = useDynamicSvgImport(item, type);
-    console.log({ item,type, loading, SvgIcon })
 
     return (
         <div className="flex flex-row mt-4">

@@ -28,6 +28,5 @@ export function useDynamicSvgImport(iconName: string, folder: string) {
     importSvgIcon();
   }, [iconName]);
 
-  console.log(importedIconRef.current,`../assets/${folder}/${iconName}.svg`)
   return { error, loading, SvgIcon: importedIconRef.current };
 }

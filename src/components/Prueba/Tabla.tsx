@@ -620,7 +620,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         const obtenerAlturaTd = () => {
             if (adfas.current) {
                 const alturaBody = adfas.current.getBoundingClientRect().height;
-                console.log(alturaBody)
                 const altura = alturaBody < 170
                     ? data.reduce((total, item) => total + (item.Litologia?.Height * scale || 0), 0)
                     : alturaBody;

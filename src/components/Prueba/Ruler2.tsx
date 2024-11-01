@@ -32,7 +32,7 @@ const Ruler: React.FC<RulerProps> = memo(({ width, height, isInverted, scale }) 
       );
     }
   }
-console.log(height)
+
   return (
     <svg id="rulerSvg" height={height < 170 ? `${height}px` : ''} className="h-full max-h-full"
       width={width} overflow={'hidden'}>

@@ -21,7 +21,7 @@ function SvgIcon(props: IProps) {
           <circle strokeWidth="15" r="15" cx="100" cy="65">
             <animate attributeName="cy" calcMode="spline" dur="2" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate>
           </circle>
-          <circle stroke-width="15" r="15" cx="160" cy="65">
+          <circle strokeWidth="15" r="15" cx="160" cy="65">
             <animate attributeName="cy" calcMode="spline" dur="2" values="65;135;65;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate>
           </circle>
         </svg>
