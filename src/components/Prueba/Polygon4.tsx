@@ -6,75 +6,77 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   const amplitude = 4;
   const resolution = 1;
 
-  const functionContact = (startXX, endXX, endYY, contact, poc) => {
-    var maxWidth = poc ? (startXX - endXX) : (endXX - startXX); // ancho disponible
+  const functionContact = (startXX, endXX, endYY, contact, up) => {
+    var maxWidth = up ? (startXX - endXX) : (endXX - startXX); // ancho disponible
     var patternWidth = contacts[contact].width;
     var numCurves = Math.floor(maxWidth / patternWidth); // número de curvas que caben
     var totalCurvesWidth = numCurves * patternWidth;
     var spaceLeft = maxWidth - totalCurvesWidth;
-    const path = poc ? contacts[contact]?.invertedPath : contacts[contact].path
+    const path = up ? contacts[contact]?.invertedPath : contacts[contact].path
     var newPathData = ""
     let maxValidValue = 0;
     var startIndex = 0;
 
-    if (contact === "95" || contact === "106") {
-      if(poc){let scaledPath = "";
-      let scaleFactor = maxWidth / patternWidth; // factor para ajustar el ancho del patrón
+    if (contact === "95" || contact === "106" || contact === "85") {
+      if (up) {
+        let scaledPath = "";
+        let scaleFactor = maxWidth / patternWidth; 
 
-      for (let j = 0; j < path?.length; j++) {
-        const partes = path[j].match(/[LC]|\-?\d+/g);
-        const tipo = partes[0]; // "L" o "C"
-        let newSegment = "";
-        if (tipo === "L") {
-          // Sumamos curveStartX al primer número de "L"
-          const numero1 = (parseFloat(partes[1]) * scaleFactor);
-          const numero2 = parseFloat(partes[2]) + Height;
-          newSegment = `L ${numero1} ${numero2}`;
-        } else if (tipo === "C") {
-          // Sumamos curveStartX al primer, tercer y sexto número de "C"
-          const numero1 = (parseFloat(partes[1]) * scaleFactor);
-          const numero2 = parseInt(partes[2]) + Height;
-          const numero3 = (parseFloat(partes[3]) * scaleFactor);
-          const numero4 = parseFloat(partes[4]) + Height;
-          const numero5 = (parseFloat(partes[5]) * scaleFactor);
-          const numero6 = parseFloat(partes[6]) + Height;
-          newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
-        } else {
-          // Si no coincide, devolvemos el segmento sin modificaciones.
-          newSegment = path[j];
+        for (let j = 0; j < path?.length; j++) {
+          const partes = path[j].match(/[LC]|\-?\d+/g);
+          const tipo = partes[0]; // "L" o "C"
+          let newSegment = "";
+          if (tipo === "L") {
+            const numero1 = (parseFloat(partes[1]) * scaleFactor);
+            const numero2 = parseFloat(partes[2]) + Height;
+            newSegment = `L ${numero1} ${numero2}`;
+          } else if (tipo === "C") {
+            const numero1 = (parseFloat(partes[1]) * scaleFactor);
+            const numero2 = parseInt(partes[2]) + Height;
+            const numero3 = (parseFloat(partes[3]) * scaleFactor);
+            const numero4 = parseFloat(partes[4]) + Height;
+            const numero5 = (parseFloat(partes[5]) * scaleFactor);
+            const numero6 = parseFloat(partes[6]) + Height;
+            newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
+          } else {
+            newSegment = path[j];
+          }
+          newPathData += `${newSegment} `;
         }
-        // Añadimos el segmento modificado a newPathData
-        newPathData += `${newSegment} `;
+        newPathData += scaledPath;
       }
-      // Devolver el path escalado
-      newPathData += scaledPath;}
 
     } else {
-      if (poc) {
+      if (up) {
         for (let i = 0; i < path?.length; i++) {
           const partes = path[i].match(/[LC]|\-?\d+/g);
           const tipo = partes[0];
           var value = 0;
           if (tipo === "L") {
-            value = parseFloat(partes[1]); // tomar la parte [1] de "L"
+            value = parseFloat(partes[1]); 
           } else if (tipo === "C") {
-            value = parseFloat(partes[5]); // tomar la parte [5] de "C"
+            value = Math.min(parseFloat(partes[5]),parseFloat(partes[3]),parseFloat(partes[1])); 
           }
-          
-          if (value <= spaceLeft && value >= maxValidValue) {
+
+          if (value < spaceLeft && value >= maxValidValue) {
             maxValidValue = value;
             startIndex = i;
             break;
           }
         }
 
-        for (let i = (startIndex); i < path?.length - (contact === "104" ? 2 : 0); i++) {
-          //  newPathData += path[i]; // Concatenamos cada string
+        // console.log(maxValidValue,spaceLeft)
+
+//        newPathData += `L ${startXX-maxValidValue} ${Height}`
+
+        for (let i = (startIndex+1); i < path?.length - (contact === "104" ? 2 : 0); i++) {
           const partes = path[i].match(/[LC]|\-?\d+/g);
-          const tipo = partes[0]; // "L" o "C"
+          const tipo = partes[0];
           let newSegment = "";
+          if(i === startIndex){
+            newSegment += `L ${partes[1]} ${partes[2]}`
+          }
           if (tipo === "L") {
-            // Sumamos curveStartX al primer número de "L"
             const numero1 = (parseFloat(partes[1]) + (startXX - maxValidValue));
             const numero2 = parseFloat(partes[2]) + Height;
             newSegment = `L ${numero1} ${numero2}`;
@@ -88,17 +90,14 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
             const numero6 = parseFloat(partes[6]) + Height;
             newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
           } else {
-            // Si no coincide, devolvemos el segmento sin modificaciones.
             newSegment = path[i];
           }
-          // Añadimos el segmento modificado a newPathData
           newPathData += `${newSegment} `;
         }
       }
 
-
       for (let i = 0; i < numCurves; i++) {
-        const curveStartX = poc ? ((startXX - spaceLeft) - ((i + 1) * patternWidth)) : (startXX + ((i) * patternWidth));
+        const curveStartX = up ? ((startXX - spaceLeft) - ((i + 1) * patternWidth)) : (startXX + ((i) * patternWidth));
         // newPathData += `L ${curveStartX} ${startYY} `
         for (let j = 0; j < path?.length; j++) {
           const partes = path[j].match(/[LC]|\-?\d+/g);
@@ -107,16 +106,16 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           if (tipo === "L") {
             // Sumamos curveStartX al primer número de "L"
             const numero1 = (parseFloat(partes[1]) + curveStartX);
-            const numero2 = parseFloat(partes[2]) + (poc ? Height : 0);
+            const numero2 = parseFloat(partes[2]) + (up ? Height : 0);
             newSegment = `L ${numero1} ${numero2}`;
           } else if (tipo === "C") {
             // Sumamos curveStartX al primer, tercer y sexto número de "C"
             const numero1 = (parseFloat(partes[1]) + curveStartX);
-            const numero2 = parseInt(partes[2]) + (poc ? Height : 0);
+            const numero2 = parseInt(partes[2]) + (up ? Height : 0);
             const numero3 = (parseFloat(partes[3]) + curveStartX);
-            const numero4 = parseFloat(partes[4]) + (poc ? Height : 0);
+            const numero4 = parseFloat(partes[4]) + (up ? Height : 0);
             const numero5 = (parseFloat(partes[5]) + curveStartX);
-            const numero6 = parseFloat(partes[6]) + (poc ? Height : 0);
+            const numero6 = parseFloat(partes[6]) + (up ? Height : 0);
             newSegment = `C ${numero1} ${numero2} ${numero3} ${numero4} ${numero5} ${numero6}`;
           } else {
             // Si no coincide, devolvemos el segmento sin modificaciones.
@@ -128,7 +127,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
 
       }
 
-     if(!poc) {
+      if (!up) {
         for (let i = 0; i < path?.length; i++) {
           const partes = path[i].match(/[LC]|\-?\d+/g);
           const tipo = partes[0];
@@ -139,13 +138,13 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
             value = parseFloat(partes[5]); // tomar la parte [5] de "C"
           }
           if (value <= spaceLeft && value >= maxValidValue) {
-         //   maxValidValue = value;
+            //   maxValidValue = value;
             startIndex = i;
             break;
           }
         }
 
-        for (let i = 0; i < (startIndex+1); i++) {
+        for (let i = 0; i < (startIndex + 1); i++) {
           //  newPathData += path[i]; // Concatenamos cada string
           const partes = path[i].match(/[LC]|\-?\d+/g);
           const tipo = partes[0]; // "L" o "C"
@@ -166,7 +165,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
             newSegment = path[i];
           }
           // Añadimos el segmento modificado a newPathData
-          newPathData +=  `${newSegment} `;
+          newPathData += `${newSegment} `;
         }
       }
     }
@@ -416,9 +415,9 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
     <svg width={Width} height={Height} opacity={0.99} id={File} //id={`svg-${rowIndex}`}
       overflow='visible'
       className={`relative z-[${zindex}]`}
-      // style={{
-      //   transform: isInverted ? "scaleY(-1)" : "none",
-      // }}
+    // style={{
+    //   transform: isInverted ? "scaleY(-1)" : "none",
+    // }}
     >
 
       <defs>
@@ -428,9 +427,10 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       </defs>
 
       <path d={pathData}
-        fill={ File>1 ? `url(#${patternId})` : "white"}
+        fill={File > 1 ? `url(#${patternId})` : "white"}
         //  fill="transparent"
         className="stroke-current text-base-content"
+        //className="stroke-base-content"-
         strokeWidth="0.8"
         onClick={() => {
           handleClickRow(rowIndex, 'Litologia')

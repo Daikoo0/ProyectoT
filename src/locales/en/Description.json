@@ -1,4 +1,11 @@
 {
+    "83":"Planar contact, branched burrows",
+    "84" :"Irregular contact, branched burrows / relief [cm]",
+    "85":"Irregular contact channel base, branched burrows / relief [m]",
+    "86":"Simetric wave contact, branched burrows",
+    "87":"Asimetric wave contac, branched burrows",
+    "88":"Flute cast Contact, branched burrows",
+    "89":"Flame Contact, branched burrows",
     "90": "Irregular contact, branched burrows / relief [mm]",
     "91": "Flame Contact, vertical burrows",
     "92": "Flute cast Contact, vertical burrows",

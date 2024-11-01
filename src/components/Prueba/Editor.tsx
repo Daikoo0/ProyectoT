@@ -267,7 +267,7 @@ const Grid = () => {
             break
           case 'addMuestra':
             setMuestras(prev => ({ ...prev, [shapeN.idMuestra]: shapeN.value }));
-            console.log(muestras,shapeN)
+            console.log(muestras, shapeN)
             break
           case 'addCircle':
             setData(prev => {
@@ -329,6 +329,17 @@ const Grid = () => {
               sideBarMode: ""
             })
             break
+          case 'editMuestra':
+            setMuestras(prev => {
+              const newMuestra = { ...prev };
+              newMuestra[shapeN.idMuestra] = shapeN.value;
+              return newMuestra;
+            });
+            setSideBarState({
+              sideBar: false,
+              sideBarMode: ""
+            })
+            break;
           case 'deleteFosil':
             setFossils((prevFossils) => {
               const newFossils = { ...prevFossils };
@@ -337,6 +348,13 @@ const Grid = () => {
               return newFossils;
             });
             break
+            case 'deleteMuestra':
+              setMuestras((prevMuestras) => {
+                const newMuestra = { ...prevMuestras };
+                delete newMuestra[shapeN.idMuestra];
+                return newMuestra;
+              });
+              break
           case 'deleteFacie':
             setFacies(prevFacies => {
               if (prevFacies[shapeN.facie]) {
@@ -495,6 +513,19 @@ const Grid = () => {
     }));
   }
 
+  const handleDeleteMuestra = () => {
+    socket.send(JSON.stringify({
+      action: 'deleteMuestra',
+      data: {
+        "idMuestra": formMuestra.id,
+        "upper": Number(formMuestra.upper),
+        "lower": Number(formMuestra.lower),
+        "muestraText": formMuestra.muestraText,
+        "x": formMuestra.x
+      }
+    }));
+  }
+
   const handleFosilEdit = () => {
 
     socket.send(JSON.stringify({
@@ -505,6 +536,20 @@ const Grid = () => {
         "lower": Number(formFosil.lower),
         "fosilImg": formFosil.fosilImgCopy,
         "x": formFosil.x
+      }
+    }));
+  }
+
+  const handleMuestraEdit = () => {
+
+    socket.send(JSON.stringify({
+      action: 'editMuestra',
+      data: {
+        "idMuestra": formMuestra.id,
+        "upper": Number(formMuestra.upper),
+        "lower": Number(formMuestra.lower),
+        "muestraText": formMuestra.muestraText,
+        "x": formMuestra.x
       }
     }));
   }
@@ -899,7 +944,7 @@ const Grid = () => {
                               <IconSvg
                                 iconName={fosilJson[formFosil.fosilImg]}
                                 folder='fosiles'
-                                svgProp={{ width: 50, height: 50 }}
+                                svgProp={{ width: 50, height: 50, className : "stroke-base-content"}}
                               />
                             }
 
@@ -956,7 +1001,7 @@ const Grid = () => {
                             <IconSvg
                               iconName={formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}
                               folder='fosiles'
-                              svgProp={{ width: 50, height: 50 }}
+                              svgProp={{ width: 50, height: 50, className : "stroke-base-content" }}
                             />
                           </div>
                           <div className="divider divider-horizontal">
@@ -969,7 +1014,7 @@ const Grid = () => {
                             <IconSvg
                               iconName={fosilJson[formFosil.fosilImgCopy]}
                               folder='fosiles'
-                              svgProp={{ width: 50, height: 50 }}
+                              svgProp={{ width: 50, height: 50, className : "stroke-base-content" }}
                             />
 
                           </div>
@@ -1009,7 +1054,7 @@ const Grid = () => {
                       <li className="menu-title">{t("muestras")}</li>
 
                       <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
-                        <li>{t("add_muestras")}</li>
+                        <li>Añadir muestra</li>
                         <form onSubmit={handleAddMuestra}>
                           <li>
                             <input type='text' required className="select select-bordered w-full max-w-xs" name='muestraText' value={formMuestra.muestraText} onChange={changeFormMuestra} />
@@ -1048,6 +1093,37 @@ const Grid = () => {
                       </div>
                     </ul>
                   );
+                case "editMuestra":
+                  return (
+                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                      <li className="menu-title">Editar muestra</li>
+
+                      <li>
+                        <label>{t("lim_sup")}</label>
+                        <input
+                          type="number"
+                          name='upper'
+                          value={formMuestra.upper}
+                          onChange={changeFormMuestra}
+                        />
+                      </li>
+                      <li>
+                        <label>{t("lim_inf")}</label>
+                        <input
+                          type="number"
+                          name='lower'
+                          value={formMuestra.lower}
+                          onChange={changeFormMuestra}
+                        />
+                      </li>
+                      <li>
+                        <button className="btn btn-primary" onClick={handleMuestraEdit}
+                          disabled={formMuestra.lower > alturaTd || formMuestra.upper > alturaTd}>
+                          <p>{t("confirm_edit")}</p>
+                        </button>
+                      </li>
+                      <li><button className="btn btn-error" onClick={handleDeleteMuestra}><p>Eliminar muestra</p></button></li>
+                    </ul>)
                 case "polygon":
                   return (
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -1249,20 +1325,21 @@ const Grid = () => {
                           <ul className="list-disc list-inside space-y-2">
                             {Object.values(facies[formFacies.facie]).map((value, index) => {
                               console.log(data.reduce((total, item) => total + (item.Litologia?.Height * scale || 0), 0))
-                              return(
-                              <>
-                                <li key={index} className="flex items-center justify-between">
-                                  <span>{value["y1"]}cm - {value["y2"]}cm</span>
-                              
-                                  <button className="btn btn-error" onClick={() => {
-                                    handleDeleteFacieSection(index)
-                                  }}>
-                                    <p>{t("delete_facie_sec")}</p>
-                                  </button>
-                                </li>
+                              return (
+                                <>
+                                  <li key={index} className="flex items-center justify-between">
+                                    <span>{value["y1"]}cm - {value["y2"]}cm</span>
 
-                              </>
-                            )})}
+                                    <button className="btn btn-error" onClick={() => {
+                                      handleDeleteFacieSection(index)
+                                    }}>
+                                      <p>{t("delete_facie_sec")}</p>
+                                    </button>
+                                  </li>
+
+                                </>
+                              )
+                            })}
                           </ul>
 
                           <p className="text-lg font-semibold mt-4 mb-2">{t("add_tramo_facie")}</p>

@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, CSSProperties, useMemo } from "react";
 import Polygon from "./Polygon4";
 import Fosil from "./Fosil";
 import Muestra from "./Muestra";
-import fosiles from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
 import Ab from "./pdfFunction";
@@ -12,18 +11,20 @@ import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, Touch
 import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
+import Symbology from './Symbology'
 
 interface Layer {
     userId: string;
     Columns: any;
     Litologia: any;
-
 }
 
 interface col {
     Name: string;
     Visible: boolean;
 }
+
+const pix = 2
 
 const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
     const { attributes, listeners } = useSortable({
@@ -32,7 +33,7 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
 
     return (
         <button {...attributes} {...listeners} style={{
-            maxHeight: row.original.Litologia.Height, padding: 0,
+            padding: 0,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center'
@@ -45,7 +46,7 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
 
 const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas,setFormMuestra
+    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas, setFormMuestra
 }: {
     row: Row<Layer>;
     index: number;
@@ -67,11 +68,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
     facies: any;
     setFormFacies(state: { facie: string });
     adfas: any;
-    setFormMuestra : (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
+    setFormMuestra: (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.id,
     });
+
+    
 
     const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
@@ -80,7 +83,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         zIndex: isDragging ? 1000 : row.getVisibleCells().length - Number(row.id),
         position: 'relative',
         padding: 0,
-        height: row.original.Litologia.Height * scale,
+        height: (row.original.Litologia.Height * scale)-pix,
         margin: 0,
     };
 
@@ -101,6 +104,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 style={{
                                     verticalAlign: "top",
                                 }}
+                                className="border border-base-content"
                             >
 
                                 <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
@@ -113,12 +117,12 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 }
                 if (cell.column.id === "Litologia") {
                     return (
-                        <td key={cell.id} style={{ padding: 0, height: cell.row.original.Litologia.Height * scale }}>
+                        <td key={cell.id} style={{ padding: 0, height: (cell.row.original.Litologia.Height * scale) - pix }}>
                             <Polygon
                                 zindex={row.getVisibleCells().length - index}
                                 isInverted={isInverted}
                                 rowIndex={index}//rowIndex={adjustedRowIndex}
-                                Height={(cell.row.original.Litologia.Height * scale) + 2}// * scale}
+                                Height={(cell.row.original.Litologia.Height * scale)}// * scale}
                                 Width={columnWidths['Litologia'] || 250}
                                 File={lithoJson[cell.row.original.Litologia.File]}
                                 ColorFill={cell.row.original.Litologia.ColorFill}
@@ -169,7 +173,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                         className="h-full max-h-full"
                                         width={columnWidths["Estructura fosil"] || cell.column.getSize()}
                                         height={alturaTd < 153 ? alturaTd : ''}
-                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible": "hidden" }
+                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
                                     >
                                         {cdef["fossils"]
                                             ? Object.keys(cdef["fossils"]).map((data, index) => (
@@ -195,7 +199,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         return null;
                     }
                 }
-                if(cell.column.id ==="Muestras"){
+                if (cell.column.id === "Muestras") {
                     if (index === 0) {
                         return (
                             <td
@@ -227,7 +231,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                         className="h-full max-h-full"
                                         width={columnWidths["Muestras"] || cell.column.getSize()}
                                         height={alturaTd < 153 ? alturaTd : ''}
-                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible": "hidden" }
+                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
                                     >
                                         {cdef["muestras"]
                                             ? Object.keys(cdef["muestras"]).map((data, index) => (
@@ -306,14 +310,16 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                 <text
                                                                     key={"value-" + key + value + i}
                                                                     fontSize={14}
+                                                                    fontFamily="Times New Roman, Times, serif"
                                                                     className="fill fill-base-content"
-                                                                    x={10}
+                                                                    x={isInverted ?10: -((parseFloat(value.y2) - parseFloat(value.y1)) * scale)}
                                                                     transform={
-                                                                        // isInverted
-                                                                        //     ?
-                                                                        // `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
-                                                                        //     : 
-                                                                        `rotate(90, 5, ${parseFloat(value.y1) * scale})`
+                                                                        isInverted
+                                                                            ? 
+                                                                            `rotate(90, 5, ${parseFloat(value.y1) * scale})` 
+                                                                            :
+                                                                         `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+
                                                                     }
                                                                     y={(parseFloat(value.y1) - 2) * scale}
 
@@ -351,8 +357,8 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 }
                 if (cell.column.id === "drag-handle") {
                     return (
-                        <td key={cell.id} style={{ width: cell.column.getSize() }} className="no-print">
-                            <div style={{ height: row.original.Litologia.Height * scale }}>
+                        <td key={cell.id} style={{ height: (row.original.Litologia.Height * scale) - pix, width: cell.column.getSize() }} className="no-print">
+                            <div style={{ height: (row.original.Litologia.Height * scale) - pix }}>
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </div>
                         </td>
@@ -361,7 +367,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 return (
                     <td key={cell.id} style={{
                         width: cell.column.getSize(),
-                        height: row.original.Litologia.Height * scale,
+                        height: (row.original.Litologia.Height * scale) - pix,
                         overflow: 'hidden',
                         padding: '0',
                         top: '0',
@@ -384,13 +390,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                         onMouseLeave={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseLeave"] : null)}
                     >
 
-                        <div style={{ display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: cell.row.original.Litologia.Height * scale, height: "100%" }}>
+                        <div style={{ display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: (cell.row.original.Litologia.Height * scale) - pix, }}>
                             {(editingUsers?.[`[${row.id},${cellIndex}]`] && hovered) ?
                                 <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
                                 : <></>
                             }
                             <div
-                                style={{ overflow: hovered ? "auto" : "hidden", height: row.original.Litologia.Height * scale }}
+                                style={{ overflow: hovered ? "auto" : "hidden", height: (row.original.Litologia.Height * scale) - pix }}
                                 className="ql-editor prose"
                                 dangerouslySetInnerHTML={{ __html: row.original.Columns[cell.column.id] }} />
                         </div>
@@ -413,15 +419,15 @@ const HeaderVal = ({ percentage, name, top, columnWidths }) => {
                 {name}
             </textPath>
             </text> */}
-              <foreignObject 
-                x={x - 10} 
-                y={pos -10} 
-                width="50" 
-                height="20" 
+            <foreignObject
+                x={x - 10}
+                y={pos - 10}
+                width="50"
+                height="20"
                 transform={`rotate(${270}, ${x}, ${pos})`}
-            > <p style={{ fontFamily: "Times New Roman, Times, serif", fontSize: "12px", fontWeight: "bold", color: "currentColor" }}>
-            {name}
-        </p></foreignObject>
+            > <p className="text text-accent-content" style={{ fontFamily: "Times New Roman, Times, serif", fontSize: "12px", fontWeight: "bold" }}>
+                    {name}
+                </p></foreignObject>
             {top ? <>
                 <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={x} x2={x} strokeWidth="1"></line>
             </> : <>
@@ -438,7 +444,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref ,setFormMuestra, muestras}) => {
+    editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref, setFormMuestra, muestras }) => {
     const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
@@ -481,7 +487,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             },
             "Muestras": {
                 accessorKey: 'Muestras',
-                muestras:muestras,
+                muestras: muestras,
                 header: "Muestras",
             },
         };
@@ -503,7 +509,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             });
 
         return [fixedColumns["drag-handle"], ...orderedColumns];
-    }, [header, fossils,muestras]);
+    }, [header, fossils, muestras]);
 
     const table = useReactTable({
         data,
@@ -632,22 +638,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
         }
     }, [adfas.current, data, scale]);
 
-    var patterns = []
-    var contacts = []
-    var fossilsName = []
-
-    data.forEach(row => {
-        if (!patterns.includes(row["Litologia"].File) && lithoJson[row["Litologia"].File] > 1) {
-            patterns.push(row["Litologia"].File);
-        }
-        if (!contacts.includes(row["Litologia"].Contact)) {
-            contacts.push(row["Litologia"].Contact)
-        }
-    });
-
-    const name = Object.values(fossils).map(fossil => Object.values(fossil)[2]);
-    fossilsName.push(name[0])
-    fossilsName = fossilsName.filter(item => item !== undefined)
 
     return (
         <>
@@ -1033,7 +1023,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     >
 
                                         <div className="flex justify-between items-center font-semibold">
-                                            <p style={{fontFamily: "Times New Roman, Times, serif"}} className="text text-accent-content w-1/2">{t("" + col.header)}</p>
+                                            <p style={{ fontFamily: "Times New Roman, Times, serif" }} className="text text-accent-content w-1/2">{t("" + col.header)}</p>
 
                                             {col.header === "Litologia" ?
                                                 <>
@@ -1175,79 +1165,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
                 </table>
 
-                <div className=" mt-20">
-                    <h1 className="text-2xl font-bold">Simbología</h1>
-
-                    {patterns.length > 0 && (
-                        <div className="flex flex-col mt-4">
-                            <h2 className="text-xl font-semibold">Patrones</h2>
-                            {patterns.map((pattern) => (
-                                <div
-                                    key={pattern}
-                                    className="flex items-center mt-2"
-                                >
-                                    <div
-                                        className="bg-cover bg-center w-12 h-12 border border-black mr-2"
-                                        style={{ backgroundImage: `url('/src/assets/patrones/${lithoJson[pattern]}.svg')`, zoom: 2 }}
-                                    />
-                                    <p className="text-sm m-0">
-                                        {t(pattern, { ns: 'Patterns' })}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {contacts && (
-                        <div className="flex flex-col mt-4">
-                            <h2 className="text-xl font-semibold">Contactos</h2>
-                            {contacts.map((contact) => (
-                                <div
-                                    key={contact}
-                                    className="flex items-center mt-2"
-                                    style={{zoom:1.5}}
-                                >
-                                    <div className="flex w-36 h-24 relative">
-                                        <img
-                                            src={`/src/assets/contacts/${contact}.svg`}
-                                            alt="Contact Icon"
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                    <p className="text-sm m-0">
-                                        {t(contact, { ns: 'Description' })}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {fossilsName && fossilsName.length > 0 && (
-                        <div className="flex flex-col mt-4">
-                            <h2 className="text-xl font-semibold">Fósiles</h2>
-                            {fossilsName.map((fossil) => (
-                                <div
-                                    key={fossil}
-                                    className="flex items-center mt-2"
-                                >
-                                    <div className="flex w-20 h-20 relative">
-                                        <img
-                                            src={`/src/assets/fosiles/${fosiles[fossil]}.svg`}
-                                            alt="Fossil Icon"
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                    <p className="text-sm m-0">
-                                        {fossil}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-            </div >
-
+                <Symbology data={data} fossils={fossils} />
+            </div>
         </>
     );
 };

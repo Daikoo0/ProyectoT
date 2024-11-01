@@ -20,3 +20,10 @@ export interface LitologiaStruc {
     Tension: number;
     Circles: any[];
 }
+
+export interface Fosil  {
+	Upper:    number;
+	Lower:     number;
+	FosilImg:  string;
+	X:        number;
+}
