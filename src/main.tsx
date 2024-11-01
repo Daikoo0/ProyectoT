@@ -24,6 +24,8 @@ import createProjectES from './locales/es/create_project.json';
 import createProjectEN from './locales/en/create_project.json';
 import InvitationES from './locales/es/Invitation.json';
 import InvitationEN from './locales/en/Invitation.json';
+import FossilsEN from './locales/en/fossils.json';
+import FossilsES from './locales/es/fossils.json';
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -38,6 +40,7 @@ i18n.use(initReactI18next).init({
       About: AboutEN,
       CProject : createProjectEN,
       Invitation: InvitationEN,
+      Fossils : FossilsEN,
     },
     es: {
         Editor: editorES,
@@ -50,10 +53,11 @@ i18n.use(initReactI18next).init({
         About: AboutES,
         CProject : createProjectES,
         Invitation : InvitationES,
+        Fossils : FossilsES,
     },
   },
     fallbackLng: "es",
-    ns: ['PDF', 'Home','Editor','Login','Description','Patterns','Perfil','About','CProject','Invitation'],
+    ns: ['PDF', 'Home','Editor','Login','Description','Patterns','Perfil','About','CProject','Invitation','Fossils'],
     interpolation: {
         escapeValue: false
     },

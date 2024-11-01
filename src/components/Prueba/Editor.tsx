@@ -934,7 +934,7 @@ const Grid = () => {
                             <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
                               <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
                               {Object.keys(fosilJson).map(option => (
-                                <option className="bg-base-100 text-base-content" key={option} value={option}>{option}</option>
+                                <option className="bg-base-100 text-base-content" key={option} value={option}>{t(option,{ns:"Fossils"})}</option>
                               ))}
                             </select>
                           </li>

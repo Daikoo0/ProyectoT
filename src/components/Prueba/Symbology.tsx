@@ -30,7 +30,7 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
     fossilsName = fossilsName.filter(item => item !== undefined)
 
     
-    const { t } = useTranslation(['Patterns','Description']);
+    const { t } = useTranslation(['Patterns','Description','Fossils']);
 
     return (
         <div className=" mt-20">
@@ -72,7 +72,7 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
                             key={`fossil-${index}`}
                             item={fosiles[fossil]}
                             type={'fosiles'}
-                            name={fossil}
+                            name={t(fossil,{ns:'Fossils'})}
                         />
                     ))}
                 </>
