@@ -1,5 +1,6 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { useParams } from "react-router-dom";
+import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import Navbar_Editor from './Navbar_Editor';
 import Tabla from './Tabla';
 import fosilJson from '../../fossil.json';
@@ -10,7 +11,6 @@ import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
 import IconSvg from '../Web/IconSVG';
 import EditorQuill from './EditorQuill';
-import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import { useTranslation } from 'react-i18next';
 import { arrayMove } from '@dnd-kit/sortable';
 import { DataInfo, Col } from './types';
@@ -43,6 +43,18 @@ const Grid = () => {
       contactsSvg.push({ loading, SvgIcon, contact, description });
     })
   }
+
+  
+
+  const sortedOptions = useMemo(() => {
+    console.log("FosilJSON")
+    return Object.keys(fosilJson)
+      .map(option => ({
+        key: option,
+        value: t(option, { ns: "Fossils" }) // Obtiene la traducción
+      }))
+      .sort((a, b) => a.value.localeCompare(b.value)); // Ordena las opciones por el valor traducido
+  }, [fosilJson, t]);
 
   const initialFormData = {
     index: null,
@@ -352,13 +364,13 @@ const Grid = () => {
               return newFossils;
             });
             break
-            case 'deleteMuestra':
-              setMuestras((prevMuestras) => {
-                const newMuestra = { ...prevMuestras };
-                delete newMuestra[shapeN.idMuestra];
-                return newMuestra;
-              });
-              break
+          case 'deleteMuestra':
+            setMuestras((prevMuestras) => {
+              const newMuestra = { ...prevMuestras };
+              delete newMuestra[shapeN.idMuestra];
+              return newMuestra;
+            });
+            break
           case 'deleteFacie':
             setFacies(prevFacies => {
               if (prevFacies[shapeN.facie]) {
@@ -743,7 +755,7 @@ const Grid = () => {
 
   // };
 
-  
+
 
 
   const handleAddColumn = (columnName) => {
@@ -937,8 +949,10 @@ const Grid = () => {
                           <li>
                             <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
                               <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
-                              {Object.keys(fosilJson).map(option => (
-                                <option className="bg-base-100 text-base-content" key={option} value={option}>{t(option,{ns:"Fossils"})}</option>
+                              {sortedOptions.map(option => (
+                                <option className="bg-base-100 text-base-content" key={option.key} value={option.key}>
+                                  {option.value}
+                                </option>
                               ))}
                             </select>
                           </li>
@@ -948,7 +962,7 @@ const Grid = () => {
                               <IconSvg
                                 iconName={fosilJson[formFosil.fosilImg]}
                                 folder='fosiles'
-                                svgProp={{ width: 50, height: 50, className : "stroke-base-content"}}
+                                svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
                               />
                             }
 
@@ -991,10 +1005,12 @@ const Grid = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">{t("fossil_edit")}</li>
                       <li>
-                        <select className="select select-bordered w-full max-w-xs" name='fosilImgCopy' value={formFosil.fosilImgCopy} onChange={changeformFosil}>
-                          <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossil_select")}</p></option>
-                          {Object.keys(fosilJson).map(option => (
-                            <option className="bg-base-100 text-base-content" key={option} value={option}>{option}</option>
+                        <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
+                          <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
+                          {sortedOptions.map(option => (
+                            <option className="bg-base-100 text-base-content" key={option.key} value={option.key}>
+                              {option.value}
+                            </option>
                           ))}
                         </select>
                       </li>
@@ -1005,7 +1021,7 @@ const Grid = () => {
                             <IconSvg
                               iconName={formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}
                               folder='fosiles'
-                              svgProp={{ width: 50, height: 50, className : "stroke-base-content" }}
+                              svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
                             />
                           </div>
                           <div className="divider divider-horizontal">
@@ -1018,7 +1034,7 @@ const Grid = () => {
                             <IconSvg
                               iconName={fosilJson[formFosil.fosilImgCopy]}
                               folder='fosiles'
-                              svgProp={{ width: 50, height: 50, className : "stroke-base-content" }}
+                              svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
                             />
 
                           </div>
