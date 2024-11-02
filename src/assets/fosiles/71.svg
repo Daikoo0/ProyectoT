@@ -15,14 +15,14 @@
      id="layer1"
      transform="translate(-9.8643238,-2.7745349)">
     <ellipse
-       style="fill:none;fill-opacity:1;stroke-width:1.57315;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1.57315;stroke-dasharray:none;stroke-opacity:1"
        id="path18"
        cx="45.621357"
        cy="34.164639"
        rx="34.970459"
        ry="15.088183" />
     <ellipse
-       style="fill:none;fill-opacity:1;stroke-width:1.31185;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#000000;fill-opacity:1;stroke-width:1.31185;stroke-dasharray:none;stroke-opacity:1"
        id="path19"
        cx="45.929607"
        cy="33.29126"

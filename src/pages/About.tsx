@@ -78,12 +78,15 @@ const About = () => {
 
 
             <div className="hero bg-base-100 mt-1">
-                <iframe
+                {/* <iframe
                     className="my-5 h-screen w-full max-w-6xl  rounded-box place-items-center"
                     src="https://docs.google.com/forms/d/e/1FAIpQLSc1kz78ROCa8zFdnG7KRy7rJcVd0gPKDgT-L0hwwko4XZP9CQ/viewform?embedded=true"
                 >Cargando…
-                </iframe>
+                </iframe> */}
 
+<iframe
+                    className="my-5 h-screen w-full max-w-6xl  rounded-box place-items-center"
+                    src="https://fm.addxt.com/form/?vf=1FAIpQLSc1kz78ROCa8zFdnG7KRy7rJcVd0gPKDgT-L0hwwko4XZP9CQ" width="1080" height="1240">Loading…</iframe>
             </div>
 
             <div className="divider"></div>

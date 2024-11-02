@@ -550,7 +550,7 @@ const Grid = () => {
         "idFosil": formFosil.id,
         "upper": Number(formFosil.upper),
         "lower": Number(formFosil.lower),
-        "fosilImg": formFosil.fosilImgCopy,
+        "fosilImg": formFosil.fosilImg,   //.fosilImgCopy,
         "x": formFosil.x
       }
     }));
@@ -1005,21 +1005,12 @@ const Grid = () => {
                     <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
                       <li className="menu-title">{t("fossil_edit")}</li>
                       <li>
-                        <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
-                          <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
-                          {sortedOptions.map(option => (
-                            <option className="bg-base-100 text-base-content" key={option.key} value={option.key}>
-                              {option.value}
-                            </option>
-                          ))}
-                        </select>
-                      </li>
-                      <li>
 
                         <div className="flex w-full">
                           <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
-                            <IconSvg
-                              iconName={formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}
+                            
+                              <IconSvg
+                              iconName={fosilJson[formFosil.fosilImgCopy]}
                               folder='fosiles'
                               svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
                             />
@@ -1030,9 +1021,8 @@ const Grid = () => {
                             </svg>
                           </div>
                           <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
-
-                            <IconSvg
-                              iconName={fosilJson[formFosil.fosilImgCopy]}
+                          <IconSvg
+                              iconName={formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}
                               folder='fosiles'
                               svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
                             />
@@ -1041,6 +1031,16 @@ const Grid = () => {
                         </div>
 
 
+                      </li>
+                      <li>
+                        <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
+                          <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
+                          {sortedOptions.map(option => (
+                            <option className="bg-base-100 text-base-content" key={option.key} value={option.key}>
+                              {option.value}
+                            </option>
+                          ))}
+                        </select>
                       </li>
                       <li>
                         <label>{t("lim_sup")}</label>
