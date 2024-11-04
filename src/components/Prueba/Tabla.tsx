@@ -46,7 +46,7 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
 
 const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas, setFormMuestra
+    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas, setFormMuestra, fossils, muestras
 }: {
     row: Row<Layer>;
     index: number;
@@ -69,12 +69,14 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
     setFormFacies(state: { facie: string });
     adfas: any;
     setFormMuestra: (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
+    fossils: any;
+    muestras: any;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.id,
     });
 
-    
+
 
     const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
@@ -83,7 +85,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         zIndex: isDragging ? 1000 : row.getVisibleCells().length - Number(row.id),
         position: 'relative',
         padding: 0,
-        height: (row.original.Litologia.Height * scale)-pix,
+        height: (row.original.Litologia.Height * scale) - pix,
         margin: 0,
     };
 
@@ -175,13 +177,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                         height={alturaTd < 153 ? alturaTd : ''}
                                         overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
                                     >
-                                        {cdef["fossils"]
-                                            ? Object.keys(cdef["fossils"]).map((data, index) => (
+                                        {fossils
+                                            ? Object.keys(fossils).map((data, index) => (
                                                 <Fosil
                                                     //  isInverted={isInverted}
                                                     key={index}
                                                     keyID={data}
-                                                    data={cdef["fossils"][data]}
+                                                    data={fossils[data]}
                                                     setSideBarState={setSideBarState}
                                                     setFormFosil={setFormFosil}
                                                     scale={scale}
@@ -233,12 +235,12 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                         height={alturaTd < 153 ? alturaTd : ''}
                                         overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
                                     >
-                                        {cdef["muestras"]
-                                            ? Object.keys(cdef["muestras"]).map((data, index) => (
+                                        {muestras
+                                            ? Object.keys(muestras).map((data, index) => (
                                                 <Muestra
                                                     key={index}
                                                     keyID={data}
-                                                    data={cdef["muestras"][data]}
+                                                    data={muestras[data]}
                                                     setSideBarState={setSideBarState}
                                                     setFormMuestra={setFormMuestra}
                                                     scale={scale}
@@ -312,13 +314,13 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                     fontSize={14}
                                                                     fontFamily="Times New Roman, Times, serif"
                                                                     className="fill fill-base-content"
-                                                                    x={isInverted ?10: -((parseFloat(value.y2) - parseFloat(value.y1)) * scale)}
+                                                                    x={isInverted ? 10 : -((parseFloat(value.y2) - parseFloat(value.y1)) * scale)}
                                                                     transform={
                                                                         isInverted
-                                                                            ? 
-                                                                            `rotate(90, 5, ${parseFloat(value.y1) * scale})` 
+                                                                            ?
+                                                                            `rotate(90, 5, ${parseFloat(value.y1) * scale})`
                                                                             :
-                                                                         `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+                                                                            `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
 
                                                                     }
                                                                     y={(parseFloat(value.y1) - 2) * scale}
@@ -478,7 +480,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             },
             "Estructura fosil": {
                 accessorKey: 'Estructura fosil',
-                fossils: fossils,
+                //  fossils: fossils,
                 header: "Estructura fosil",
             },
             "Facie": {
@@ -487,7 +489,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             },
             "Muestras": {
                 accessorKey: 'Muestras',
-                muestras: muestras,
+                //   muestras: muestras,
                 header: "Muestras",
             },
         };
@@ -509,7 +511,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
             });
 
         return [fixedColumns["drag-handle"], ...orderedColumns];
-    }, [header, fossils, muestras]);
+    }, [header]);
 
     const table = useReactTable({
         data,
@@ -1152,6 +1154,8 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             setFormFacies={setFormFacies}
                                             adfas={adfas}
                                             setFormMuestra={setFormMuestra}
+                                            fossils={fossils}
+                                            muestras={muestras}
                                         />
 
                                     )

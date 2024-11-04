@@ -1,53 +1,77 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { useParams } from "react-router-dom";
-import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
 import Navbar_Editor from './Navbar_Editor';
 import Tabla from './Tabla';
 import fosilJson from '../../fossil.json';
-import lithoJson from '../../lithologic.json';
-import contacts from '../../contacts.json';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
-import IconSvg from '../Web/IconSVG';
-import EditorQuill from './EditorQuill';
 import { useTranslation } from 'react-i18next';
 import { arrayMove } from '@dnd-kit/sortable';
-import { DataInfo, Col } from './types';
+import { ProjectInfo, DataInfo, Fosil, Col, Muestra, Facies, User, EditingUser, formData, formFosil, formMuestra, formFacies } from './types';
 import Config from './sidebar/Config';
+import AddCapa from './sidebar/AddCapa';
+import AddFossil from './sidebar/AddFossil';
+import EditFossil from './sidebar/EditFossil';
+import AddMuestra from './sidebar/AddMuestra';
+import EditMuestra from './sidebar/EditMuestra';
+import EditPolygon from './sidebar/EditPolygon';
+import EditText from './sidebar/EditText';
+import AddFacie from './sidebar/AddFacie';
+import FacieSection from './sidebar/FacieSection';
+
+const initialFormData: formData = {
+  index: null,
+  column: null,
+  File: 'Sin Pattern', //patternOption
+  ColorFill: '#ffffff',
+  ColorStroke: '#000000',
+  Zoom: 100,
+  Tension: 0.5,
+  initialHeight: 0,
+  Height: 0,
+  Rotation: 0,
+  text: '',
+  Contact: "111",
+};
 
 const Grid = () => {
   const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
   const [socket, setSocket] = useState(null);
-  const isPageActive = useRef(true);
-  const [data, setData] = useState<DataInfo[]>([]);
-  const [header, setHeader] = useState<Col[]>([]);
-  const [fossils, setFossils] = useState([]);
-  const [muestras, setMuestras] = useState([]);
-  const [facies, setFacies] = useState({});
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: 'none' });
   const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
-  const [messageFacie, setMessageFacie] = useState('');
-  const [infoProject, setInfoProject] = useState();
   const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
   const [isInverted, setIsInverted] = useState(false);
+  const [messageFacie, setMessageFacie] = useState('');
+
+  // Referencias
   const tableref = useRef(null);
-  var contactsSvg = []
-  {
-    Object.keys(contacts).map((contact) => {
-      const { loading, SvgIcon } = useDynamicSvgImport(contact, "contacts");
-      var description = t(contact, { ns: 'Description' }) // contacts[contact].description;
-      contactsSvg.push({ loading, SvgIcon, contact, description });
-    })
-  }
+  const isPageActive = useRef(true);
+
+  // Datos
+  const [infoProject, setInfoProject] = useState<ProjectInfo>();
+  const [data, setData] = useState<DataInfo[]>([]);
+  const [fossils, setFossils] = useState<Record<string, Fosil>>({});
+  const [muestras, setMuestras] = useState<Record<string, Muestra>>({});
+  const [facies, setFacies] = useState<Record<string, Facies[]>>({});
+  const [header, setHeader] = useState<Col[]>([]);
+
+  // Formularios
+  const [formData, setFormData] = useState<formData>(initialFormData);
+  const [formFosil, setFormFosil] = useState<formFosil>({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
+  const [formMuestra, setFormMuestra] = useState<formMuestra>({ id: '', upper: 0, lower: 0, muestraText: '', x: 0, muestraTextCopy: '' });
+  const [formFacies, setFormFacies] = useState<formFacies>({ facie: '', y1: 0, y2: 0, y1prev: 0, y2prev: 0 });
+
+  // Usuarios
+  const [editingUsers, setEditingUsers] = useState<Record<string, EditingUser>>({});
+  const [users, setUsers] = useState<Record<string, User>>({});
 
   
 
   const sortedOptions = useMemo(() => {
-    console.log("FosilJSON")
     return Object.keys(fosilJson)
       .map(option => ({
         key: option,
@@ -55,26 +79,6 @@ const Grid = () => {
       }))
       .sort((a, b) => a.value.localeCompare(b.value)); // Ordena las opciones por el valor traducido
   }, [fosilJson, t]);
-
-  const initialFormData = {
-    index: null,
-    column: null,
-    File: 'Sin Pattern', //patternOption
-    ColorFill: '#ffffff',
-    ColorStroke: '#000000',
-    Zoom: 100,
-    Tension: 0.5,
-    initialHeight: 0,
-    Height: 0,
-    Rotation: 0,
-    text: '',
-    Contact: "111",
-  };
-
-  const [formData, setFormData] = useState(initialFormData);
-  const [formFosil, setFormFosil] = useState({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
-  const [formMuestra, setFormMuestra] = useState({ id: '', upper: 0, lower: 0, muestraText: '', x: 0, muestraTextCopy: '' });
-  const [formFacies, setFormFacies] = useState({ facie: '', y1: 0, y2: 0, y1prev: 0, y2prev: 0 });
 
   const changeformFosil = (e) => {
     const { name, value } = e.target;
@@ -184,8 +188,6 @@ const Grid = () => {
     };
   }, [project]);
 
-  const [editingUsers, setEditingUsers] = useState<{ [key: string]: { id: string; name: string; color: string } }>({});
-  const [users, setUsers] = useState<{ [key: string]: { name: string; color: string } }>({});
 
   // Escucha de mensajes del socket
   useEffect(() => {
@@ -687,10 +689,6 @@ const Grid = () => {
 
   // Elimina un punto
   const deleteCirclePoint = (index, deleteIndex) => {
-
-    //const update = polygons[index]["circles"]
-    //update.splice(insertIndex, 1);
-
     socket.send(JSON.stringify({
       action: 'deleteCircle',
       data: {
@@ -701,9 +699,8 @@ const Grid = () => {
     }));
   }
 
-
+  // Añade una nueva capa
   const addShape = (row, height) => {
-
     socket.send(JSON.stringify({
       action: 'añadir',
       data: {
@@ -713,7 +710,7 @@ const Grid = () => {
     }));
   }
 
-
+  // Usuario editando celda
   const sendActionCell = (row, column) => {
     if (socket) {
       socket.send(JSON.stringify({
@@ -726,37 +723,32 @@ const Grid = () => {
     }
   }
 
+  const handleDeletePolygon = () => {
+    setFormData(prevState => ({ ...prevState, index: null }));
+    socket.send(JSON.stringify({
+      action: 'delete',
+      data: {
+        "rowIndex": formData.index
+      }
+    }));
+    setSideBarState({
+      sideBar: false,
+      sideBarMode: ""
+    })
+  }
+
+  const handleEditText = () => {
+    socket.send(JSON.stringify({
+      action: 'editText',
+      data: {
+        "key": formData.column,
+        "value": formData.text,
+        "rowIndex": Number(formData.index)
+      }
+    }));
+  }
+
   const [pdfData, setPdfData] = useState({});
-
-  // const openModal = () => {
-
-  //   (document.getElementById('modal') as HTMLDialogElement).showModal();
-  //   var copyData = data
-  //   var copyHeader = [...header]
-  //   var indexes = Array.from({ length: data.length }, (_, index) => index);
-  //   Ab(copyData, copyHeader, 'C3', 'portrait', "", scale, fossils, infoProject, indexes, '_____________', '_____________', '_____________', '_____________', isInverted)
-  //   const initialPdfData = {
-  //     columnWidths: {},
-  //     data: copyData,
-  //     header: copyHeader,
-  //     format: 'C3',
-  //     orientation: 'portrait',
-  //     customWidthLit: "",
-  //     scale: scale,
-  //     fossils: fossils,
-  //     infoProject: infoProject,
-  //     indexesM: indexes,
-  //     oEstrat: '             ',
-  //     oLev: '             ',
-  //     etSec: '             ',
-  //     date: '             '
-  //   };
-  //   setPdfData(initialPdfData)
-
-  // };
-
-
-
 
   const handleAddColumn = (columnName) => {
     socket.send(JSON.stringify({ action: 'addColumn', data: { name: columnName } }))
@@ -893,517 +885,45 @@ const Grid = () => {
             (() => {
               switch (sideBarState.sideBarMode) {
                 case "config":
-
                   return (
                     <Config socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale} setHeader={setHeader} />
-                  )
-
+                  );
                 case "añadirCapa":
                   return (
-                    <>
-                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content shadow-xl rounded-lg">
-                        <p className="menu-title text-lg font-bold mb-4">{t("add")}</p>
-                        <ul className="menu w-80 min-h-full bg-base-200 text-base-content">
-                          <li className='mb-2'>
-                            <p>
-                              <input type="number" name='Height' onChange={handleChangeLocal} value={Number(formData.Height)} />
-                              cm
-                            </p>
-                          </li>
-                          <li className='mb-2'>
-                            <button className='btn btn-primary' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(0, Number(formData.Height))}>
-                              <p>{t("add_t")}</p>
-                            </button>
-                          </li>
-                          <li className="flex flex-row">
-                            <button className='btn btn-primary  w-3/5' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(Number(formData.initialHeight), Number(formData.Height))}>
-                              <p>{t("add_index")}</p>
-                            </button>
-                            <input type="number" className='w-2/5' name="initialHeight" min="0" max={data.length - 1} onChange={handleChangeLocal} value={Number(formData.initialHeight)} />
-                          </li>
-                          <li className='mt-2'>
-                            <button className='btn btn-primary ' disabled={formData.Height < 5 || formData.Height > 2000} onClick={() => addShape(-1, Number(formData.Height))}>
-                              <p>{t("add_b")}</p>
-                            </button>
-                          </li>
-                        </ul>
-                        <p className="menu-title text-lg font-bold mb-4">Añadir Columna</p>
-                        <div className="mb-4">
-                          <label htmlFor="nombre" className="block text-sm font-medium">Nombre de la Columna</label>
-                          <input type='text' name='column' onChange={handleChangeLocal} className="input input-bordered w-full mt-1" />
-                        </div>
-                        <button className="btn btn-primary w-full" onClick={() => { handleAddColumn(formData.column) }}>
-                          <p>Confirmar nueva Columna</p>
-                        </button>
-                      </div>
-                    </>
+                    <AddCapa handleChangeLocal={handleChangeLocal} formData={formData} lengthData={data.length} handleAddColumn={handleAddColumn} addShape={addShape} />
                   );
                 case "fosil":
                   return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">{t("fossils")}</li>
-
-                      <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
-                        <li>{t("add_fossils")}</li>
-                        <form onSubmit={handleAddFosil}>
-                          <li>
-                            <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
-                              <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
-                              {sortedOptions.map(option => (
-                                <option className="bg-base-100 text-base-content" key={option.key} value={option.key}>
-                                  {option.value}
-                                </option>
-                              ))}
-                            </select>
-                          </li>
-                          <li>
-
-                            {formFosil.fosilImg === "" ? null :
-                              <IconSvg
-                                iconName={fosilJson[formFosil.fosilImg]}
-                                folder='fosiles'
-                                svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
-                              />
-                            }
-
-                          </li>
-                          <li>
-                            <label>{t("lim_inf")}</label>
-                            <input
-                              type="number"
-                              name='upper'
-                              value={Number(formFosil.upper)}
-                              min={0}
-                              max={formFosil.lower}
-                              required
-                              onChange={changeformFosil}
-                            />
-                          </li>
-                          <li>
-                            <label>{t("lim_sup")}</label>
-                            <input
-                              type="number"
-                              name='lower'
-                              value={Number(formFosil.lower)}
-                              min={0}
-                              max={alturaTd}
-                              required
-                              onChange={changeformFosil}
-                            />
-                          </li>
-
-                          <button type='submit' className="btn btn-primary"
-                            disabled={Number(formFosil.lower) > alturaTd || Number(formFosil.upper) > alturaTd}>
-                            <p>{t("confirm")}</p>
-                          </button>
-                        </form>
-                      </div>
-                    </ul>
+                    <AddFossil handleAddFosil={handleAddFosil} formFosil={formFosil} sortedOptions={sortedOptions} changeformFosil={changeformFosil} alturaTd={alturaTd} />
                   );
                 case "editFosil":
                   return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">{t("fossil_edit")}</li>
-                      <li>
-
-                        <div className="flex w-full">
-                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
-                            
-                              <IconSvg
-                              iconName={fosilJson[formFosil.fosilImgCopy]}
-                              folder='fosiles'
-                              svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
-                            />
-                          </div>
-                          <div className="divider divider-horizontal">
-                            <svg className="w-10 h-10 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9" />
-                            </svg>
-                          </div>
-                          <div className="grid h-20 flex-grow card bg-base-300 rounded-box place-items-center">
-                          <IconSvg
-                              iconName={formFosil.fosilImg ? fosilJson[formFosil.fosilImg] : fosilJson[1]}
-                              folder='fosiles'
-                              svgProp={{ width: 50, height: 50, className: "stroke-base-content" }}
-                            />
-
-                          </div>
-                        </div>
-
-
-                      </li>
-                      <li>
-                        <select required className="select select-bordered w-full max-w-xs" name='fosilImg' value={formFosil.fosilImg} onChange={changeformFosil}>
-                          <option className="bg-base-100 text-base-content" value={""} disabled><p>{t("fossils_type")}</p></option>
-                          {sortedOptions.map(option => (
-                            <option className="bg-base-100 text-base-content" key={option.key} value={option.key}>
-                              {option.value}
-                            </option>
-                          ))}
-                        </select>
-                      </li>
-                      <li>
-                        <label>{t("lim_sup")}</label>
-                        <input
-                          type="number"
-                          name='upper'
-                          value={formFosil.upper}
-                          onChange={changeformFosil}
-                        />
-                      </li>
-                      <li>
-                        <label>{t("lim_inf")}</label>
-                        <input
-                          type="number"
-                          name='lower'
-                          value={formFosil.lower}
-                          onChange={changeformFosil}
-                        />
-                      </li>
-                      <li>
-                        <button className="btn btn-primary" onClick={handleFosilEdit}
-                          disabled={formFosil.lower > alturaTd || formFosil.upper > alturaTd}>
-                          <p>{t("confirm_edit")}</p>
-                        </button>
-                      </li>
-                      <li><button className="btn btn-error" onClick={handleDeleteFosil}><p>{t("delete_fossil")}</p></button></li>
-                    </ul>)
+                    <EditFossil formFosil={formFosil} sortedOptions={sortedOptions} changeformFosil={changeformFosil} handleFosilEdit={handleFosilEdit} handleDeleteFosil={handleDeleteFosil} alturaTd={alturaTd} />
+                  );
                 case "muestra":
                   return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">{t("muestras")}</li>
-
-                      <div className="grid h-100 card bg-base-300 rounded-box place-items-center">
-                        <li>Añadir muestra</li>
-                        <form onSubmit={handleAddMuestra}>
-                          <li>
-                            <input type='text' required className="select select-bordered w-full max-w-xs" name='muestraText' value={formMuestra.muestraText} onChange={changeFormMuestra} />
-                          </li>
-
-                          <li>
-                            <label>{t("lim_inf")}</label>
-                            <input
-                              type="number"
-                              name='upper'
-                              value={Number(formMuestra.upper)}
-                              min={0}
-                              max={formMuestra.lower}
-                              required
-                              onChange={changeFormMuestra}
-                            />
-                          </li>
-                          <li>
-                            <label>{t("lim_sup")}</label>
-                            <input
-                              type="number"
-                              name='lower'
-                              value={Number(formMuestra.lower)}
-                              min={0}
-                              max={alturaTd}
-                              required
-                              onChange={changeFormMuestra}
-                            />
-                          </li>
-
-                          <button type='submit' className="btn btn-primary"
-                            disabled={Number(formMuestra.lower) > alturaTd || Number(formMuestra.upper) > alturaTd}>
-                            <p>{t("confirm")}</p>
-                          </button>
-                        </form>
-                      </div>
-                    </ul>
+                    <AddMuestra handleAddMuestra={handleAddMuestra} formMuestra={formMuestra} alturaTd={alturaTd} changeFormMuestra={changeFormMuestra} />
                   );
                 case "editMuestra":
                   return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">Editar muestra</li>
-
-                      <li>
-                        <label>{t("lim_sup")}</label>
-                        <input
-                          type="number"
-                          name='upper'
-                          value={formMuestra.upper}
-                          onChange={changeFormMuestra}
-                        />
-                      </li>
-                      <li>
-                        <label>{t("lim_inf")}</label>
-                        <input
-                          type="number"
-                          name='lower'
-                          value={formMuestra.lower}
-                          onChange={changeFormMuestra}
-                        />
-                      </li>
-                      <li>
-                        <button className="btn btn-primary" onClick={handleMuestraEdit}
-                          disabled={formMuestra.lower > alturaTd || formMuestra.upper > alturaTd}>
-                          <p>{t("confirm_edit")}</p>
-                        </button>
-                      </li>
-                      <li><button className="btn btn-error" onClick={handleDeleteMuestra}><p>Eliminar muestra</p></button></li>
-                    </ul>)
+                    <EditMuestra formMuestra={formMuestra} changeFormMuestra={changeFormMuestra} handleMuestraEdit={handleMuestraEdit} alturaTd={alturaTd} handleDeleteMuestra={handleDeleteMuestra} />
+                  )
                 case "polygon":
                   return (
-                    <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                      <li className="menu-title">{t("editing_p")}</li>
-                      <li>
-                        <details open={false}>
-                          <summary>{t("c_inf")}</summary>
-                          <ul>
-                            {contactsSvg.map((items, index) => {
-                              return (
-                                <li key={`contact-${index}`} className='bg-neutral-content' style={{ padding: '10px', marginBottom: '10px' }}>
-
-                                  <label style={{ display: 'flex', alignItems: 'center' }}>
-                                    <input
-                                      type="checkbox"
-                                      value={items.contact}
-                                      name='Contact'
-                                      checked={formData.Contact == items.contact ? true : false}
-                                      onChange={handleChange}
-                                      style={{ marginRight: '8px' }}
-                                    />
-
-                                    {items.loading ?
-
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="150" height="20" viewBox="0 0 200 200"><circle className="stroke-primary" fill="none" strokeOpacity="1" strokeWidth=".5" cx="100" cy="100" r="0"><animate attributeName="r" calcMode="spline" dur="1.3" values="1;80" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-width" calcMode="spline" dur="1.3" values="0;25" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate><animate attributeName="stroke-opacity" calcMode="spline" dur="1.3" values="1;0" keyTimes="0;1" keySplines="0 .2 .5 1" repeatCount="indefinite"></animate></circle></svg>
-                                      :
-                                      items.SvgIcon && (
-
-                                        <items.SvgIcon {...{ width: "150", height: "50" }} />
-
-                                      )}
-
-                                    <div className="dropdown dropdown-hover dropdown-left dropdown-end">
-                                      {/* <div tabIndex={0} role="button" className="btn m-1"> */}
-                                      <svg tabIndex={0} role="button" className="w-6 h-6 text-gray-800" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 11h2v5m-2 0h4m-2.592-8.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                      </svg>
-                                      {/* </div> */}
-                                      <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                                        <li><a>{items.description}</a></li>
-                                      </ul>
-                                    </div>
-                                  </label>
-
-
-                                </li>
-                              )
-                            }
-
-                            )}
-                          </ul>
-
-                        </details>
-                      </li>
-
-
-                      <li className='flex flex-row'>
-                        <p>{t("tam_cap")}</p>
-                        <input type="number" name="Height" value={formData.Height} onChange={handleChangeLocal} />
-                        <button className="btn" name="Height" value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000}
-                          onClick={handleChange}>{t("change")}</button>
-                      </li>
-
-                      <li>
-                        <p>{t("op_pattern")}</p>
-                        <select name={"File"} value={formData.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
-                          {Object.keys(lithoJson).map(option => (
-                            <option className="bg-base-100 text-base-content" key={option} value={option}>
-                              {t(option, { ns: "Patterns" })}
-                            </option>
-
-                          ))}
-                        </select>
-                      </li>
-
-                      <li>
-                        <p>{t("color_cap")}<input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /></p>
-                      </li>
-                      <li>
-                        <p>{t("color_pattern")}<input type="color" name={"ColorStroke"} value={formData.ColorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
-                      </li>
-
-                      <li>
-                        <p>{t("zoom")}</p>
-                        <input
-                          type="range"
-                          name='Zoom'
-                          min={100}
-                          max={400}
-                          defaultValue={formData.Zoom}
-                          onMouseUp={handleChange}
-                        />
-                      </li>
-
-                      <li>
-                        <p>{t("tension")} </p>
-                        <input
-                          type="range"
-                          name='Tension'
-                          min={0}
-                          max={2.5}
-                          step={0.1}
-                          defaultValue={formData.Tension}
-                          onMouseUp={handleChange}
-                        />
-                      </li>
-
-                      <li>
-                        <p>{t("rotation")}</p>
-                        <input
-                          type="range"
-                          name='Rotation'
-                          min={0}
-                          max={180}
-                          defaultValue={formData.Rotation}
-                          onMouseUp={handleChange}
-                        />
-                      </li>
-
-                      <li>
-                        <button className="btn btn-error" onClick={() => {
-                          setFormData(prevState => ({ ...prevState, index: null }));
-                          socket.send(JSON.stringify({
-                            action: 'delete',
-                            data: {
-                              "rowIndex": formData.index
-                            }
-                          }));
-                          setSideBarState({
-                            sideBar: false,
-                            sideBarMode: ""
-                          })
-                        }}><p>{t("delete_layer")}</p></button>
-                      </li>
-                    </ul>
-
+                    <EditPolygon handleDeletePolygon={handleDeletePolygon} handleChangeLocal={handleChangeLocal} formData={formData} handleChange={handleChange}/>
                   );
                 case "text":
                   return (
-                    <>
-                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
-                        <p className="menu-title">{t("edit_text")}</p>
-
-
-                        <EditorQuill
-                          Text={formData.text}
-                          SetText={(html: string) => setFormData(prevState => ({
-                            ...prevState,
-                            text: html,
-                          }))}
-                        />
-
-                        <button
-                          className='btn btn-primary w-full my-6'
-                          onClick={() => {
-                            socket.send(JSON.stringify({
-                              action: 'editText',
-                              data: {
-                                "key": formData.column,
-                                "value": formData.text,
-                                "rowIndex": Number(formData.index)
-                              }
-                            }));
-                          }}>
-                          {t("send")}
-                        </button>
-                      </div>
-                    </>
+                    <EditText setFormData={setFormData} handleEditText={handleEditText} formData={formData} />
                   );
                 case "addFacie":
                   return (
-                    <>
-                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content shadow-xl rounded-lg">
-                        <p className="menu-title text-lg font-bold mb-4">{t("add_facie")}</p>
-                        <p className="mb-1 font-medium text-sm">{t("e_facies")}</p>
-                        <ul className="list-disc list-inside">
-                          {Object.keys(facies).map((key, index) => (
-                            <li key={index}>{key} - {index}</li>
-                          ))}
-                        </ul>
-
-                        <div className="mb-4 ">
-                          <label htmlFor="nombre" className="block text-sm font-medium">{t("facie_name")}</label>
-                          <input type='text' name='facie' onChange={changeformFacie} className="input input-bordered w-full mt-1" />
-                        </div>
-                        <button className="btn btn-primary w-full" onClick={handleAddFacie}>
-                          <p>{t("new_facie_confirm")}</p>
-                        </button>
-                      </div>
-                    </>
+                    <AddFacie changeformFacie={changeformFacie} handleAddFacie={handleAddFacie} facies={facies} />
                   );
                 case "facieSection":
                   return (
-                    <>
-                      <div className="p-4 w-80 min-h-full bg-base-200 text-base-content">
-                        <p className="menu-title">{t("editing_facie")} {formFacies.facie}</p>
-                        <div className="p-4">
-                          <p className="text-lg font-semibold mb-2">{t("tramos_facie")}</p>
-                          <ul className="list-disc list-inside space-y-2">
-                            {Object.values(facies[formFacies.facie]).map((value, index) => {
-                              return (
-                                <>
-                                  <li key={index} className="flex items-center justify-between">
-                                    <span>{value["y1"]}cm - {value["y2"]}cm</span>
-
-                                    <button className="btn btn-error" onClick={() => {
-                                      handleDeleteFacieSection(index)
-                                    }}>
-                                      <p>{t("delete_facie_sec")}</p>
-                                    </button>
-                                  </li>
-
-                                </>
-                              )
-                            })}
-                          </ul>
-
-                          <p className="text-lg font-semibold mt-4 mb-2">{t("add_tramo_facie")}</p>
-                          <ul className="list-disc list-inside space-y-2">
-                            <li className="flex items-center">
-                              <span>{t("lim_inf")}</span>
-                              <input
-                                type="number"
-                                name="y1"
-                                value={Number(formFacies.y1)}
-                                onChange={changeformFacie}
-                                className="form-input ml-2"
-                              />
-                            </li>
-                            <li className="flex items-center">
-                              <span>{t("lim_sup")}</span>
-                              <input
-                                type="number"
-                                name="y2"
-                                value={Number(formFacies.y2)}
-                                onChange={changeformFacie}
-                                className="form-input ml-2"
-                              />
-                            </li>
-                          </ul>
-
-                          <button className="btn btn-primary mt-4 w-full" onClick={handleAddFacieSection}>
-                            <p>{t("confirm_new_t")}</p>
-                          </button>
-
-                          {messageFacie !== '' && (<>
-                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mt-3 rounded relative" role="alert">
-                              <strong className="font-bold">Error: </strong>
-                              <span className="block sm:inline">{messageFacie}</span>
-                            </div></>)}
-
-                        </div>
-
-                        <button className="btn btn-error mt-4 w-full" onClick={handleDeleteFacie}>
-                          <p>{t("delete_facie")}</p>
-                        </button>
-                      </div>
-                    </>
+                    <FacieSection messageFacie={messageFacie} facies={facies} formFacies={formFacies} handleDeleteFacieSection={handleDeleteFacieSection} changeformFacie={changeformFacie} handleAddFacieSection={handleAddFacieSection} handleDeleteFacie={handleDeleteFacie} />
                   );
-
                 default:
                   return (
                     <div >
