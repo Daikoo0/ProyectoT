@@ -2,11 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { formMuestra } from '../types';
 
 interface EditMuestraProps {
-    formMuestra : formMuestra,
-    changeFormMuestra : (e: any) => void;
-    handleMuestraEdit : () => void;
-    alturaTd : number;
-    handleDeleteMuestra : () => void
+    formMuestra: formMuestra,
+    changeFormMuestra: (e: any) => void;
+    handleMuestraEdit: () => void;
+    alturaTd: number;
+    handleDeleteMuestra: () => void
 }
 
 const EditMuestra: React.FC<EditMuestraProps> = ({ formMuestra, changeFormMuestra, handleMuestraEdit, alturaTd, handleDeleteMuestra }) => {
@@ -16,7 +16,9 @@ const EditMuestra: React.FC<EditMuestraProps> = ({ formMuestra, changeFormMuestr
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
             <li className="menu-title">Editar muestra</li>
-
+            <li>
+                <input type='text' className="input input-bordered w-full max-w-xs" name='muestraText' value={formMuestra.muestraText} placeholder={formMuestra.muestraTextCopy} onChange={changeFormMuestra} />
+            </li>
             <li>
                 <label>{t("lim_sup")}</label>
                 <input

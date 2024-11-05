@@ -76,8 +76,6 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         id: row.id,
     });
 
-
-
     const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
         transition: transition,
@@ -1024,7 +1022,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                     >
 
                                         <div className="flex justify-between items-center font-semibold">
-                                            <p style={{ fontFamily: "Times New Roman, Times, serif" }} className="text text-accent-content w-1/2">{t("" + col.header)}</p>
+                                            <p style={{ fontFamily: "Times New Roman, Times, serif" }} className="text text-accent-content w-1/2">{t(col.header)}{col.header==="Espesor"? " [m]":""}</p>
 
                                             {col.header === "Litologia" ?
                                                 <>

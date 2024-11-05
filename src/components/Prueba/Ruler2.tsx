@@ -13,7 +13,7 @@ const Ruler: React.FC<RulerProps> = memo(({ width, height, isInverted, scale }) 
   for (let i = 0; i <= height; i += 50 * scale) {
     const isLastIteration = (i + 50 * scale > height);
     const position = isInverted ? i : height - i;
-    const text = `${Math.round(i / (100 * scale))} m`;
+    const text = `${Math.round(i / (100 * scale))}`;
 
     if (i % (100 * scale) === 0) {
       marks.push(

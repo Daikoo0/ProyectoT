@@ -25,9 +25,9 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
         }
     });
 
-    const name = Object.values(fossils).map(fossil => Object.values(fossil)[2]);
-    fossilsName.push(name[0])
-    fossilsName = fossilsName.filter(item => item !== undefined)
+
+    const name = Object.values(fossils).map(fossil => Object.values(fossil)[2])
+    fossilsName = name.filter(item => item !== undefined);
 
     
     const { t } = useTranslation(['Patterns','Description','Fossils']);
