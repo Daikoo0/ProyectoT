@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/ApiClient';
 import { useTranslation } from 'react-i18next';
-import { UserEditing } from './types';
+import { UserEditing, UserPassword } from './types';
+import { useAuth } from '../provider/authProvider';
+import { useNavigate } from "react-router-dom";
 
 interface EditProfileProps {
   user: UserEditing;
   setUser: React.Dispatch<React.SetStateAction<UserEditing>>;
+}
+
+interface ChangePasswordProps {
+  pw: UserPassword;
+  setPw: React.Dispatch<React.SetStateAction<UserPassword>>;
 }
 
 const EditProfile: React.FC<EditProfileProps> = ({ user, setUser }) => {
@@ -134,8 +141,39 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, setUser }) => {
 };
 
 
-const ChangePassword: React.FC = () => {
+const ChangePassword: React.FC<ChangePasswordProps> = ({ pw, setPw }) => {
   const { t } = useTranslation(["Perfil"])
+
+  const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { token, setToken } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSubmit() {
+    if (!pw.password || !pw.newPassword || !pw.newPwConfirm) {
+      setMessage({ text: t("All fields are required"), type: 'error' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await api.post(`/users/chagePassword`, pw);
+      if (response.status === 200) {
+        setMessage({ text: t("Password updated successfully"), type: 'success' });
+        setToken();
+        navigate("/", { replace: true });
+      } else {
+        setMessage({ text: t("Failed to update password"), type: 'error' });
+      }
+    } catch (error) {
+      setMessage({ text: t("An error occurred while updating the profile"), type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+
   return (
     <div className="w-full px-6 pb-8 mt-8 sm:max-w-xl sm:rounded-lg">
       <h2 className="pl-6 text-2xl font-bold sm:text-xl">{t("changeP")}</h2>
@@ -147,7 +185,9 @@ const ChangePassword: React.FC = () => {
             type="password"
             id="current_password"
             className="bg-base-200 border border-base-300 text-base-content text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
-            placeholder="Current password"
+            placeholder={"****************"}
+            onChange={(e) => setPw({ ...pw, password: e.target.value })}
+            value={pw.password}
             required
           />
         </div>
@@ -158,6 +198,8 @@ const ChangePassword: React.FC = () => {
             id="new_password"
             className="bg-base-200 border border-base-300 text-base-content text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
             placeholder="New password"
+            onChange={(e) => setPw({ ...pw, newPassword: e.target.value })}
+            value={pw.newPassword}
             required
           />
         </div>
@@ -168,6 +210,8 @@ const ChangePassword: React.FC = () => {
             id="confirm_new_password"
             className="bg-base-200 border border-base-300 text-base-content text-sm rounded-lg focus:ring-primary focus:border-primary block w-full p-2.5"
             placeholder="Confirm new password"
+            onChange={(e) => setPw({ ...pw, newPwConfirm: e.target.value })}
+            value={pw.newPwConfirm}
             required
           />
         </div>
@@ -175,6 +219,7 @@ const ChangePassword: React.FC = () => {
           <button
             type="submit"
             className="text-white bg-primary hover:bg-primary-focus focus:ring-4 focus:outline-none focus:ring-primary-focus font-medium rounded-lg text-sm w-full sm:w-full px-5 py-2.5 text-center"
+            onClick={handleSubmit}
           >
             {t("changeP")}
           </button>
@@ -194,7 +239,14 @@ const Profile: React.FC = () => {
     age: 0,
     gender: "",
     nationality: ""
-  }); 
+  });
+
+
+  const [pw, setPw] = useState<UserPassword>({
+    password: "",
+    newPassword: "",
+    newPwConfirm: ""
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -233,7 +285,7 @@ const Profile: React.FC = () => {
       <main className="w-full min-h-screen py-1 md:w-2/3 lg:w-3/4">
         <div className="p-2 md:p-4">
           {view === 'edit-profile' && <EditProfile user={user} setUser={setUser} />}
-          {view === 'change-password' && <ChangePassword />}
+          {view === 'change-password' && <ChangePassword pw={pw} setPw={setPw} />}
           {/* Agregar más vistas según sea necesario */}
         </div>
       </main>

@@ -5,3 +5,9 @@ export interface UserEditing {
     gender: string;
     nationality: string;
 }
+
+export interface UserPassword {
+    password : string;
+    newPassword : string;
+    newPwConfirm : string;
+}

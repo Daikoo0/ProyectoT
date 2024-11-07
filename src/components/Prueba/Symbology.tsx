@@ -14,7 +14,6 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
 
     var patterns = []
     var contacts = []
-    var fossilsName = []
 
     data.forEach(row => {
         if (!patterns.includes(row["Litologia"].File) && lithoJson[row["Litologia"].File] > 1) {
@@ -27,8 +26,7 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
 
 
     const name = Object.values(fossils).map(fossil => Object.values(fossil)[2])
-    fossilsName = name.filter(item => item !== undefined);
-
+    const fossilsName = [...new Set(name.filter(item => item !== undefined))];
     
     const { t } = useTranslation(['Patterns','Description','Fossils']);
 
