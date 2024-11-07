@@ -1,6 +1,6 @@
 {
-    "create_column":"Crea tu propia columna estratigráfica",
-    "start":"Comenzar",
+    "create_column":"Create your own stratigraphic column",
+    "start":"Start",
     "uso":"When you register and log in, you will be directed to the main page where you can see your own projects and the projects to which you have been invited to collaborate. Additionally, on the left menu, there is a button for public projects. When clicked, it redirects to a map where all the projects designated as public by their creators can be viewed. Each of your own projects in the list has three options on the right to edit the project, delete the project, and invite a user (as a reader or editor). In the upper corner of the page, there is a 'create a new project' button. When you press the button, you will be redirected to a form where you must fill out information about the project to be created, such as the location of the column, the name of the editing room, and a brief description. There is also an option to decide whether the project's access will be public or private (in development).",
     "add_layers":"Add layers",
     "add_layers_text":"The above will create an empty room without any layers created and without any invited users. In the upper left corner, there is a button to add a layer. This opens a menu on the right side of the screen, where you can choose to add the layer above, below, or in a specific position.",

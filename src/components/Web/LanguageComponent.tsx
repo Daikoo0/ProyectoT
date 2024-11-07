@@ -32,7 +32,7 @@ function LangSelector() {
             setLang(userBrowserLang);
             localStorage.setItem("user-lang", userBrowserLang);  
         }
-    }, [i18n]);
+    }, []);
 
     return (
         <select className="select select-primary w-full max-w-xs" value={lang} onChange={handleLangSelect}>
