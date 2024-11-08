@@ -429,7 +429,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       <path d={pathData}
         fill={File > 1 ? `url(#${patternId})` : "white"}
         //  fill="transparent"
-        className="stroke-current text-base-content"
+        className="stroke-current text-base-content cursor-pointer"
         //className="stroke-base-content"-
         strokeWidth="0.8"
         onClick={() => {

@@ -46,7 +46,8 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
 
 const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas, setFormMuestra, fossils, muestras
+    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas, setFormMuestra, fossils, muestras,
+    length
 }: {
     row: Row<Layer>;
     index: number;
@@ -71,6 +72,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
     setFormMuestra: (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
     fossils: any;
     muestras: any;
+    length : number;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.id,
@@ -80,7 +82,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
         transform: CSS.Transform.toString(transform),
         transition: transition,
         opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging ? 1000 : row.getVisibleCells().length - Number(row.id),
+        zIndex: isDragging ? 1000 :  length - Number(row.id),
         position: 'relative',
         padding: 0,
         height: (row.original.Litologia.Height * scale) - pix,
@@ -1154,6 +1156,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                             setFormMuestra={setFormMuestra}
                                             fossils={fossils}
                                             muestras={muestras}
+                                            length={data.length}
                                         />
 
                                     )

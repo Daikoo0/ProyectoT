@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DndContext, closestCorners } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -7,6 +7,8 @@ import SelectTheme from '../../Web/SelectTheme';
 import LangSelector from '../../Web/LanguageComponent';
 import { Col } from '../types';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { ProjectInfo } from '../types';
+import { useState } from 'react';
 
 interface ConfigProps {
     socket: WebSocket | null;
@@ -15,9 +17,11 @@ interface ConfigProps {
     scale: number;
     setScale: React.Dispatch<React.SetStateAction<number>>;
     setHeader: React.Dispatch<React.SetStateAction<Col[]>>;
+    handleInfoProject: (formData: FormData) => void;
+    infoProject: ProjectInfo;
 }
 
-const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setScale, setHeader }) => {
+const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, infoProject, setScale, setHeader, handleInfoProject }) => {
 
     const { t } = useTranslation(['Editor']);
 
@@ -56,7 +60,17 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
             <li className='pb-6 hidden lg:block'>{t("config")}</li>
 
             <li>
-                <details open>
+
+                <details >
+                    <summary>{t("info_column")}</summary>
+
+                    <EditInfoProject infoProject={infoProject} handleInfoProject={handleInfoProject} />
+
+                </details>
+            </li>
+
+            <li>
+                <details>
                     <summary>{t("config_t")}</summary>
                     <ul>
                         <li>
@@ -144,7 +158,7 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
                             </details>
                         </li>
                         <li>
-                            <details open={false}>
+                            <details>
                                 <summary>{t("visibility")}</summary>
                                 <ul>
                                     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
@@ -165,7 +179,7 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
             </li>
 
             <li>
-                <details open>
+                <details>
                     <summary>{t("sala")}</summary>
                     <ul>
                         <li><SelectTheme /></li>
@@ -177,6 +191,98 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, setS
     )
 }
 
+interface FormData {
+    Name: string;
+    Location: string;
+    Visible: boolean;
+    Description: string;
+}
+
+interface EditInfoProjectProps {
+    infoProject: FormData;
+    handleInfoProject: (formData: FormData) => void;
+}
+
+
+const EditInfoProject: React.FC<EditInfoProjectProps> = React.memo(({ infoProject, handleInfoProject }) => {
+
+    const { t } = useTranslation(['Editor']);
+
+    const [formData, setFormData] = useState<FormData>({
+        Name: infoProject.Name,
+        Location: infoProject.Location,
+        Visible: infoProject.Visible,
+        Description: infoProject.Description
+    });
+
+    const [isModified, setIsModified] = useState(false);
+
+    useEffect(() => {
+        const isFormModified =
+            formData.Name !== infoProject.Name ||
+            formData.Location !== infoProject.Location ||
+            formData.Visible !== infoProject.Visible ||
+            formData.Description !== infoProject.Description;
+
+        setIsModified(isFormModified);
+    }, [formData, infoProject]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleInfoProject(formData);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <ul className="form-control">
+                <label className="label">
+                    <span className="label-text">{t("info_column_name")}</span>
+                </label>
+                <input
+                    type="text"
+                    name="name"
+                    value={formData.Name}
+                    onChange={(e) => setFormData({ ...formData, Name: e.target.value })}
+                    className="input input-bordered w-full"
+                />
+
+                <label className="label">
+                    <span className="label-text">{t("info_column_location")}</span>
+                </label>
+                <input
+                    type="text"
+                    name="location"
+                    value={formData.Location}
+                    onChange={(e) => setFormData({ ...formData, Location: e.target.value })}
+                    className="input input-bordered w-full"
+                />
+
+                <label className="label cursor-pointer">
+                    <span className="label-text">{t("info_column_visible")}</span>
+                    <input
+                        type="checkbox"
+                        name="visible"
+                        checked={formData.Visible}
+                        onChange={(e) => setFormData({ ...formData, Visible: e.target.checked })}
+                        className="toggle toggle-primary"
+                    />
+                </label>
+
+                <label className="label">
+                    <span className="label-text">{t("info_column_description")}</span>
+                </label>
+                <textarea
+                    name="description"
+                    value={formData.Description}
+                    onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                    className="textarea textarea-bordered w-full"
+                />
+
+                <button type="submit" className="btn btn-primary" disabled={!isModified}>{t("info_column_buttom")}</button>
+            </ul>
+        </form>
+    )
+});
 
 
 const SortableItem = ({ col, toggleVisibility, deleteColumn }) => {
@@ -216,8 +322,6 @@ const SortableItem = ({ col, toggleVisibility, deleteColumn }) => {
                 </button></> : null}
 
             <span>{col.Name}</span>
-
-
 
             <input
                 type="checkbox"

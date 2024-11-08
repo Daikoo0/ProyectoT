@@ -69,7 +69,6 @@ const Grid = () => {
   const [editingUsers, setEditingUsers] = useState<Record<string, EditingUser>>({});
   const [users, setUsers] = useState<Record<string, User>>({});
 
-  
 
   const sortedOptions = useMemo(() => {
     return Object.keys(fosilJson)
@@ -591,21 +590,10 @@ const Grid = () => {
   }
 
   const handleInfoProject = (e) => {
-    const { name, value } = e.target;
-    console.log(name, value, e.target)
-
-    setInfoProject(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
-
-    // send socket 
+ 
     socket.send(JSON.stringify({
       action: 'infoP',
-      data: {
-        'field': name,
-        'value': value,
-      },
+      data: e
     }));
 
   };
@@ -810,7 +798,6 @@ const Grid = () => {
             setTokenLink={setTokenLink}
             users={users}
             tableref={tableref}
-            handleInfoProject={handleInfoProject}
           />
 
           <Tabla
@@ -911,7 +898,7 @@ const Grid = () => {
               switch (sideBarState.sideBarMode) {
                 case "config":
                   return (
-                    <Config socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale} setHeader={setHeader} />
+                    <Config infoProject={infoProject} handleInfoProject={handleInfoProject} socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale} setHeader={setHeader} />
                   );
                 case "añadirCapa":
                   return (
