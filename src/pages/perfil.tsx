@@ -147,7 +147,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ pw, setPw }) => {
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { token, setToken } = useAuth();
+  const { setToken } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit() {
@@ -167,7 +167,7 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ pw, setPw }) => {
         setMessage({ text: t("Failed to update password"), type: 'error' });
       }
     } catch (error) {
-      setMessage({ text: t("An error occurred while updating the profile"), type: 'error' });
+      setMessage({ text: t("An error occurred while updating the password"), type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -178,6 +178,14 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ pw, setPw }) => {
     <div className="w-full px-6 pb-8 mt-8 sm:max-w-xl sm:rounded-lg">
       <h2 className="pl-6 text-2xl font-bold sm:text-xl">{t("changeP")}</h2>
       {/* Cambiar contraseña */}
+
+      {message && (
+        <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+          {message.text}
+        </div>
+      )}
+
+
       <div className="grid max-w-2xl mx-auto mt-8">
         <div className="mb-2 sm:mb-6">
           <label className="block mb-2 text-sm font-medium text-base-content">{t("currentP")}</label>
@@ -216,13 +224,22 @@ const ChangePassword: React.FC<ChangePasswordProps> = ({ pw, setPw }) => {
           />
         </div>
         <div className="flex justify-end">
-          <button
+          {/* <button
             type="submit"
             className="text-white bg-primary hover:bg-primary-focus focus:ring-4 focus:outline-none focus:ring-primary-focus font-medium rounded-lg text-sm w-full sm:w-full px-5 py-2.5 text-center"
             onClick={handleSubmit}
           >
             {t("changeP")}
-          </button>
+          </button> */}
+          <button
+              type="submit"
+              className={"btn btn-primary w-full"}
+              onClick={handleSubmit}
+              disabled={isLoading}
+            >
+              <span className={`${isLoading ? 'loading loading-spinner' : ''}`}></span>
+              {isLoading ? t("Saving...") : t("save")}
+            </button>
         </div>
       </div>
     </div>

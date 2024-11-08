@@ -211,6 +211,10 @@ const Grid = () => {
             setInfoProject(shapeN.projectInfo)
             break;
           }
+          case 'infoP':{
+            setInfoProject(shapeN.projectInfo)
+            break;
+          }
           case 'userConnected': {
             setUsers(prevState => ({
               ...prevState,
@@ -586,6 +590,26 @@ const Grid = () => {
 
   }
 
+  const handleInfoProject = (e) => {
+    const { name, value } = e.target;
+    console.log(name, value, e.target)
+
+    setInfoProject(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+
+    // send socket 
+    socket.send(JSON.stringify({
+      action: 'infoP',
+      data: {
+        'field': name,
+        'value': value,
+      },
+    }));
+
+  };
+
   const handleAddFacieSection = () => {
 
     let isInsideInterval = false;
@@ -786,6 +810,7 @@ const Grid = () => {
             setTokenLink={setTokenLink}
             users={users}
             tableref={tableref}
+            handleInfoProject={handleInfoProject}
           />
 
           <Tabla

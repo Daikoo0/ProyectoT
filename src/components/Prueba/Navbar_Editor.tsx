@@ -1,6 +1,7 @@
 import React, { MutableRefObject } from 'react';
 import { Link } from 'react-router-dom';
 import Print from './Print';
+import { ChangeEvent } from 'react';
 
 interface NavbarProps {
     config: () => void;
@@ -15,6 +16,7 @@ interface NavbarProps {
     setTokenLink: (state: { editor: string; reader: string }) => void;
     users: { [key: string]: { name: string; color: string } };
     tableref : MutableRefObject<HTMLTableElement | null>;
+    handleInfoProject : (e : ChangeEvent<HTMLInputElement>) => void;
 }
 
 interface InviteModalProps {
@@ -36,7 +38,8 @@ const Navbar: React.FC<NavbarProps> = ({
     tokenLink,
     setTokenLink,
     users,
-    tableref
+    tableref,
+    handleInfoProject
 }) => {
 
     return (
@@ -86,9 +89,9 @@ const Navbar: React.FC<NavbarProps> = ({
                         </div>
                     </div>
 
-                    <div className="text-3xl my-2 ml-4">
-                        {infoProject ? infoProject['Name'] : ' '}
-                    </div>
+                    <input className="text-3xl my-2 ml-4 bg-base-200" name='Name' value={infoProject ? infoProject['Name'] : ' '}
+                    placeholder={infoProject ? infoProject['Name'] : ' '}
+                    onChange={(e)=>handleInfoProject(e)}/>
                 </div>
 
 
