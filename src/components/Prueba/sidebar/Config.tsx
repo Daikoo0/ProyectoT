@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { DndContext, closestCorners } from '@dnd-kit/core';
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTranslation } from 'react-i18next';
 import SelectTheme from '../../Web/SelectTheme';
@@ -16,12 +16,11 @@ interface ConfigProps {
     isInverted: boolean;
     scale: number;
     setScale: React.Dispatch<React.SetStateAction<number>>;
-    setHeader: React.Dispatch<React.SetStateAction<Col[]>>;
     handleInfoProject: (formData: FormData) => void;
     infoProject: ProjectInfo;
 }
 
-const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, infoProject, setScale, setHeader, handleInfoProject }) => {
+const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, infoProject, setScale,  handleInfoProject }) => {
 
     const { t } = useTranslation(['Editor']);
 
@@ -29,20 +28,35 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, info
         const { active, over } = event;
 
         if (active.id !== over.id) {
-            setHeader((items) => {
-                const oldIndex = items.findIndex((item) => item.Name === active.id);
-                const newIndex = items.findIndex((item) => item.Name === over.id);
-                return arrayMove(items, oldIndex, newIndex);
-            });
+            socket?.send(JSON.stringify({
+                action: 'MoveColumn',
+                data: {
+                    "activeId": header.findIndex((item) => item.Name === active.id),
+                    "overId": header.findIndex((item) => item.Name === over.id)
+                }
+            }));
+            
+            // setHeader((items) => {
+            //     const oldIndex = items.findIndex((item) => item.Name === active.id);
+            //     const newIndex = items.findIndex((item) => item.Name === over.id);
+            //     return arrayMove(items, oldIndex, newIndex);
+            // });
         }
     };
 
     const toggleVisibility = (name: string) => {
-        setHeader((prevHeader) =>
-            prevHeader.map((col) =>
-                col.Name === name ? { ...col, Visible: !col.Visible } : col
-            )
-        );
+        socket.send(JSON.stringify({
+            action: 'toggleColumn',
+            data: {
+                "column": name
+            }
+        }));
+
+        // setHeader((prevHeader) =>
+        //     prevHeader.map((col) =>
+        //         col.Name === name ? { ...col, Visible: !col.Visible } : col
+        //     )
+        // );
     };
 
     const deleteColumn = (name: string) => {

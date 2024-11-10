@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import Navbar_Editor from './Navbar_Editor';
 import Tabla from './Tabla';
@@ -68,6 +69,9 @@ const Grid = () => {
   // Usuarios
   const [editingUsers, setEditingUsers] = useState<Record<string, EditingUser>>({});
   const [users, setUsers] = useState<Record<string, User>>({});
+
+  // Errores & Avisos
+  const [alertMessage, setAlertMessage] = useState('');
 
 
   const sortedOptions = useMemo(() => {
@@ -210,7 +214,7 @@ const Grid = () => {
             setInfoProject(shapeN.projectInfo)
             break;
           }
-          case 'infoP':{
+          case 'infoP': {
             setInfoProject(shapeN.projectInfo)
             break;
           }
@@ -274,8 +278,15 @@ const Grid = () => {
           case 'añadirEnd':
             setData(prev => [...prev, shapeN.value]);
             break
-          case 'columns':
-            setHeader(shapeN.columns)
+          case 'toggleColumn':
+            setHeader(prev => prev.map(col => 
+              col.Name === shapeN.column ? {...col, Visible: !col.Visible} : col
+            ));
+            break
+          case "MoveColumn":
+            setHeader((items) => {
+              return arrayMove(items, shapeN.activeId, shapeN.overId);
+            });
             break
           case 'isInverted':
             setIsInverted(shapeN.isInverted)
@@ -434,11 +445,15 @@ const Grid = () => {
             break;
           case 'error':
             console.error(shapeN.message);
+            setAlertMessage(`Error: ${shapeN.message}`);
+            (document.getElementById('modalalert') as HTMLDialogElement).showModal();
             socket.close();  // Cerrar el socket
             isPageActive.current = false;  // Desactivar reconexión
             return
           case "close":
             console.info(shapeN.message);
+            setAlertMessage(`Info: ${shapeN.message}`);
+            (document.getElementById('modalalert') as HTMLDialogElement).showModal();
             socket.close();
             isPageActive.current = false; // Desactivar reconexión
             return
@@ -590,7 +605,7 @@ const Grid = () => {
   }
 
   const handleInfoProject = (e) => {
- 
+
     socket.send(JSON.stringify({
       action: 'infoP',
       data: e
@@ -828,6 +843,34 @@ const Grid = () => {
         </div>
 
         <>
+          {/* Dialog Alerts con color */}
+          <dialog id="modalalert" className="modal glass">
+            <div className={"modal-box bg-secondary"}>
+              <div className={`flex justify-between`}>
+                <div className="flex items-center space-x-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 shrink-0 stroke-neutral-content"
+                    fill="none"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <span className='text-neutral-content'>{alertMessage}</span>
+                </div>
+                {/* Devolver al home */}
+                <Link to='/home'
+                 className="btn btn-primary">
+                  Aceptar
+                </Link>
+              </div>
+            </div>
+          </dialog>
+
+          {/* Dialog Point */}
           <dialog id="modalPoint" className="modal">
             <div className="modal-box border border-accent">
               <form method="dialog" onSubmit={() => updateCirclePoint(modalData.index, modalData.insertIndex, modalData.x, modalData.name)}>
@@ -898,7 +941,7 @@ const Grid = () => {
               switch (sideBarState.sideBarMode) {
                 case "config":
                   return (
-                    <Config infoProject={infoProject} handleInfoProject={handleInfoProject} socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale} setHeader={setHeader} />
+                    <Config infoProject={infoProject} handleInfoProject={handleInfoProject} socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale}/>
                   );
                 case "añadirCapa":
                   return (
@@ -922,7 +965,7 @@ const Grid = () => {
                   )
                 case "polygon":
                   return (
-                    <EditPolygon handleDeletePolygon={handleDeletePolygon} handleChangeLocal={handleChangeLocal} formData={formData} handleChange={handleChange}/>
+                    <EditPolygon handleDeletePolygon={handleDeletePolygon} handleChangeLocal={handleChangeLocal} formData={formData} handleChange={handleChange} />
                   );
                 case "text":
                   return (
