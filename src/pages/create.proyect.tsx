@@ -168,7 +168,7 @@ const ParticipantForm = () => {
             </> : <>
               <label className="label-text"> {t("private")}</label>
             </>}
-            <input type="checkbox" className="toggle toggle-success" checked={visible} onChange={() => setVisible(!visible)} />
+            <input aria-label="visible" type="checkbox" className="toggle toggle-success" checked={visible} onChange={() => setVisible(!visible)} />
           </div>
           <div className="form-control mt-6">
             <button className="btn btn-neutral" onClick={handleSubmit}>{t("create_room")}</button>

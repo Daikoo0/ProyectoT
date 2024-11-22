@@ -86,6 +86,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, setUser }) => {
               <input
                 type="number"
                 id="age"
+                aria-label="age"
                 className="input input-bordered w-full"
                 value={user.age}
                 onChange={(e) => setUser({ ...user, age: parseInt(e.target.value) })}
@@ -97,6 +98,7 @@ const EditProfile: React.FC<EditProfileProps> = ({ user, setUser }) => {
               <label className="block mb-2 text-sm font-medium text-base-content">{t("gender")}</label>
               <select
                 id="gender"
+                aria-label="gender"
                 className="select select-bordered w-full"
                 onChange={(e) => setUser({ ...user, gender: e.target.value })}
                 value={user.gender}

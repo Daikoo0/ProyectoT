@@ -99,9 +99,9 @@ const TableData = ({ Data, refresh, currentPage, totalPages }) => {
                 <thead>
                     <tr>
                         <th>
-                            <label>
+                            {/* <label>
                                 {Data === null ? null : <input type="checkbox" className="checkbox" />}
-                            </label>
+                            </label> */}
                         </th>
                         <th >{t("t_project")}</th>
                         <th >{t("loc_project")}</th>
@@ -125,9 +125,9 @@ const TableData = ({ Data, refresh, currentPage, totalPages }) => {
                         : Data.map((data, index) => (
                             <tr key={index}>
                                 <th>
-                                    <label>
+                                    {/* <label>
                                         <input type="checkbox" className="checkbox" />
-                                    </label>
+                                    </label> */}
                                 </th>
                                 <td>
                                     <div className="flex items-center gap-3">

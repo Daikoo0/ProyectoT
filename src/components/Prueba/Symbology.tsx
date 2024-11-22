@@ -32,7 +32,7 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
 
     return (
         <div className=" mt-20">
-            <h1 className="text-2xl font-bold">Simbología</h1>
+            <h1 className="text-2xl font-bold">{t('symbology', { ns: 'Description' })}</h1>
 
             {patterns.length > 0 && (
                 <>

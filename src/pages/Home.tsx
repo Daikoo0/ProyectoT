@@ -79,15 +79,15 @@ const Home = () => {
         <div className="drawer-side">
           <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
           <ul className="menu px-4 w-80 min-h-full bg-base-200 text-base-content">
-            <li className='pb-6 hidden lg:block'><a className="btn btn-ghost text-xl">StrataScope</a></li>
+            <li className='pb-6 hidden lg:block'><p className="btn btn-ghost text-xl">StrataScope</p></li>
             <button className="btn btn-neutral hidden lg:block" onClick={() => navigate(`/create`)}><p>{t("Create_button")}</p></button>
             <li className="menu-title">{t("projects")}</li>
-            <li onClick={() => setItem('tablaAll')}><a>{t("all_p")}</a></li>
-            <li onClick={() => setItem('tabla_your_p')}><a>{t("your_p")}</a></li>
-            <li onClick={() => setItem("tabla_shared")}><a>{t("shared_wup")}</a></li>
+            <li onClick={() => setItem('tablaAll')}><p>{t("all_p")}</p></li>
+            <li onClick={() => setItem('tabla_your_p')}><p>{t("your_p")}</p></li>
+            <li onClick={() => setItem("tabla_shared")}><p>{t("shared_wup")}</p></li>
             <li className="menu-title">{t("search")}</li>
-            <li onClick={() => { setItem('mapa'); fetchMapData() }}><a>{t("public_project")}</a></li>
-            <li><a>{t("invitations")}</a></li>
+            <li onClick={() => { setItem('mapa'); fetchMapData() }}><p>{t("public_project")}</p></li>
+            <li><p>{t("invitations")}</p></li>
           </ul>
         </div>
       </div>

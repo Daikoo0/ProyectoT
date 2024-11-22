@@ -18,7 +18,7 @@ function LangSelector() {
         const selectedLang = event.target.value;
         i18n.changeLanguage(selectedLang);
         setLang(selectedLang);
-        localStorage.setItem("user-lang", selectedLang);  
+        localStorage.setItem("user-lang", selectedLang);
     };
 
     useEffect(() => {
@@ -30,15 +30,24 @@ function LangSelector() {
             const userBrowserLang = getUserBrowserLanguage();
             i18n.changeLanguage(userBrowserLang);
             setLang(userBrowserLang);
-            localStorage.setItem("user-lang", userBrowserLang);  
+            localStorage.setItem("user-lang", userBrowserLang);
         }
     }, []);
 
     return (
-        <select className="select select-primary w-full max-w-xs" value={lang} onChange={handleLangSelect}>
+
+
+        <select
+            id="language-select"
+            aria-label="Language select"
+            className="select select-primary w-full max-w-xs"
+            value={lang}
+            onChange={handleLangSelect}
+        >
             <option value="en">EN</option>
             <option value="es">ES</option>
         </select>
+
     );
 }
 

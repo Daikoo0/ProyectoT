@@ -4,7 +4,7 @@ import Fosil from "./Fosil";
 import Muestra from "./Muestra";
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
-import Ab from "./pdfFunction";
+// import Ab from "./pdfFunction";
 import ResizeObserver from "resize-observer-polyfill";
 import { useTranslation } from 'react-i18next';
 import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, TouchSensor, type UniqueIdentifier, type DragEndEvent } from '@dnd-kit/core';
@@ -441,7 +441,7 @@ const HeaderVal = ({ percentage, name, top, columnWidths }) => {
 
 
 
-const Tabla = ({ setPdfData, pdfData, data, header, scale,
+const Tabla = ({ data, header, scale,
     addCircles, setSideBarState,
     fossils, setFormFosil,
     facies, setFormFacies,
@@ -606,15 +606,15 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
     //         pdfData.date, isInverted)
     // }
 
-    const handleRows = (number) => {
-        var rowsBefore = [...pdfData.data];
-        var indexes = rowsBefore.map((row, index) => Number(row.Litologia.Height) > Number(number) ? index : -1)
-            .filter(index => index !== -1);
-        Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, indexes, pdfData.oEstrat,
-            pdfData.oLev,
-            pdfData.etSec,
-            pdfData.date, isInverted);
-    }
+    // const handleRows = (number) => {
+    //     var rowsBefore = [...pdfData.data];
+    //     var indexes = rowsBefore.map((row, index) => Number(row.Litologia.Height) > Number(number) ? index : -1)
+    //         .filter(index => index !== -1);
+    //     Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, indexes, pdfData.oEstrat,
+    //         pdfData.oLev,
+    //         pdfData.etSec,
+    //         pdfData.date, isInverted);
+    // }
 
     var adfas = useRef<HTMLTableSectionElement>(null);
 
@@ -642,17 +642,14 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
 
     return (
         <>
-            <>
+            {/* <>
                 <dialog id="modal" className="modal">
                     <div className="modal-box w-screen h-screen max-w-full max-h-full rounded-none">
                         <div className="flex flex-col lg:flex-row h-full">
 
-                            {/* Sección izquierda */}
                             <div className="flex flex-col flex-grow card w-full lg:w-7/10">
                                 <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
                             </div>
-
-                            {/* seccion derecha */}
                             <div className="flex flex-col card w-full lg:w-3/10 overflow-y-auto">
                                 <div className="menu p-4 w-full text-base-content">
                                     <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
@@ -690,7 +687,6 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 <option className="bg-base-100 text-base-content" value={'LEGAL'}>Legal</option>
                                                 <option className="bg-base-100 text-base-content" value={'LETTER'}>Letter</option>
                                                 <option className="bg-base-100 text-base-content" value={'TABLOID'}>Tabloid</option>
-                                                {/* <option className="bg-base-100 text-base-content" value={'ID1'}>ID1</option> */}
                                                 <option className="bg-base-100 text-base-content" value={'4A0'}>4A0</option>
                                                 <option className="bg-base-100 text-base-content" value={'2A0'}>2A0</option>
                                                 <option className="bg-base-100 text-base-content" value={'A0'}>A0</option>
@@ -698,34 +694,15 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                                                 <option className="bg-base-100 text-base-content" value={'A2'}>A2</option>
                                                 <option className="bg-base-100 text-base-content" value={'A3'}>A3</option>
                                                 <option className="bg-base-100 text-base-content" value={'A4'}>A4</option>
-                                                {/* <option className="bg-base-100 text-base-content" value={'A5'}>A5</option>
-                                                <option className="bg-base-100 text-base-content" value={'A6'}>A6</option>
-                                                <option className="bg-base-100 text-base-content" value={'A7'}>A7</option>
-                                                <option className="bg-base-100 text-base-content" value={'A8'}>A8</option>
-                                                <option className="bg-base-100 text-base-content" value={'A9'}>A9</option>
-                                                <option className="bg-base-100 text-base-content" value={'A10'}>A10</option> */}
                                                 <option className="bg-base-100 text-base-content" value={'B0'}>B0</option>
                                                 <option className="bg-base-100 text-base-content" value={'B1'}>B1</option>
                                                 <option className="bg-base-100 text-base-content" value={'B2'}>B2</option>
                                                 <option className="bg-base-100 text-base-content" value={'B3'}>B3</option>
                                                 <option className="bg-base-100 text-base-content" value={'B4'}>B4</option>
-                                                {/* <option className="bg-base-100 text-base-content" value={'B5'}>B5</option>
-                                                <option className="bg-base-100 text-base-content" value={'B6'}>B6</option>
-                                                <option className="bg-base-100 text-base-content" value={'B7'}>B7</option>
-                                                <option className="bg-base-100 text-base-content" value={'B8'}>B8</option>
-                                                <option className="bg-base-100 text-base-content" value={'B9'}>B9</option>
-                                                <option className="bg-base-100 text-base-content" value={'B10'}>B10</option> */}
                                                 <option className="bg-base-100 text-base-content" value={'C0'}>C0</option>
                                                 <option className="bg-base-100 text-base-content" value={'C1'}>C1</option>
                                                 <option className="bg-base-100 text-base-content" value={'C2'}>C2</option>
                                                 <option className="bg-base-100 text-base-content" value={'C3'}>C3</option>
-                                                {/* <option className="bg-base-100 text-base-content" value={'C4'}>C4</option>
-                                                <option className="bg-base-100 text-base-content" value={'C5'}>C5</option>
-                                                <option className="bg-base-100 text-base-content" value={'C6'}>C6</option>
-                                                <option className="bg-base-100 text-base-content" value={'C7'}>C7</option>
-                                                <option className="bg-base-100 text-base-content" value={'C8'}>C8</option>
-                                                <option className="bg-base-100 text-base-content" value={'C9'}>C9</option>
-                                                <option className="bg-base-100 text-base-content" value={'C10'}>C10</option> */}
                                                 <option className="bg-base-100 text-base-content" value={'RA0'}>RA0</option>
                                                 <option className="bg-base-100 text-base-content" value={'RA1'}>RA1</option>
                                                 <option className="bg-base-100 text-base-content" value={'RA2'}>RA2</option>
@@ -990,7 +967,7 @@ const Tabla = ({ setPdfData, pdfData, data, header, scale,
                         </div>
                     </div>
                 </dialog>
-            </>
+            </> */}
 
             <div ref={tableref} className="py-16 pl-6">
                 <table style={{ height: '100px' }} >

@@ -775,7 +775,7 @@ const Grid = () => {
     }));
   }
 
-  const [pdfData, setPdfData] = useState({});
+  // const [pdfData, setPdfData] = useState({});
 
   const handleAddColumn = (columnName) => {
     socket.send(JSON.stringify({ action: 'addColumn', data: { name: columnName } }))
@@ -817,8 +817,8 @@ const Grid = () => {
 
           <Tabla
             // Data
-            setPdfData={setPdfData}
-            pdfData={pdfData}
+            // setPdfData={setPdfData}
+            // pdfData={pdfData}
             data={data}
             header={header}
             scale={scale}
@@ -879,7 +879,8 @@ const Grid = () => {
                 <div className="flex flex-col w-full lg:flex-row">
                   <div className="grid flex-grow h-32 card rounded-box place-items-center">
                     <p>Mud/Sand/Gravel</p>
-                    <select className='select select-accent' disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
+                    <select className='select select-accent' aria-label='Select a mud/sand/gravel'
+                     disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
 
                       {Object.keys(mudgraingravel).map((item) =>
                         <option className="bg-base-100 text-base-content" key={item} value={item} >{item}</option>
@@ -889,7 +890,8 @@ const Grid = () => {
                   <div className="divider lg:divider-horizontal"></div>
                   <div className="grid flex-grow h-32 card rounded-box place-items-center">
                     <p>Limestones</p>
-                    <select className='select select-accent' disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
+                    <select className='select select-accent' aria-label="Select a limestones"
+                    disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
 
                       {Object.keys(limestones).map((item) =>
                         <option className="bg-base-100 text-base-content" key={item} value={item}>{item}</option>
