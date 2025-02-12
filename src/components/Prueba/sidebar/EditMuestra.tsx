@@ -1,17 +1,51 @@
 import { useTranslation } from 'react-i18next';
 import { formMuestra } from '../types';
+import { useRecoilValue } from 'recoil';
+import { atSocket } from '../../../state/atomEditor';
 
 interface EditMuestraProps {
     formMuestra: formMuestra,
     changeFormMuestra: (e: any) => void;
-    handleMuestraEdit: () => void;
+    // handleMuestraEdit: () => void;
     alturaTd: number;
-    handleDeleteMuestra: () => void
+    // handleDeleteMuestra: () => void
 }
 
-const EditMuestra: React.FC<EditMuestraProps> = ({ formMuestra, changeFormMuestra, handleMuestraEdit, alturaTd, handleDeleteMuestra }) => {
+const EditMuestra: React.FC<EditMuestraProps> = ({ formMuestra, changeFormMuestra, alturaTd }) => {
 
     const { t } = useTranslation(['Editor']);
+
+    const socket = useRecoilValue(atSocket);
+
+    const handleMuestraEdit = () => {
+
+        socket.send(JSON.stringify({
+            action: 'editMuestra',
+            data: {
+                "idMuestra": formMuestra.id,
+                "upper": Number(formMuestra.upper),
+                "lower": Number(formMuestra.lower),
+                "muestraText": formMuestra.muestraText,
+                "x": formMuestra.x
+            }
+        }));
+    }
+
+    const handleDeleteMuestra = () => {
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'deleteMuestra',
+                data: {
+                    "idMuestra": formMuestra.id,
+                    "upper": Number(formMuestra.upper),
+                    "lower": Number(formMuestra.lower),
+                    "muestraText": formMuestra.muestraText,
+                    "x": formMuestra.x
+                }
+            }));
+        }
+
+    }
 
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">

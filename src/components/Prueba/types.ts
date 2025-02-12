@@ -1,6 +1,6 @@
-export interface DataInfo {
+export interface LithologyTable {
     Columns: { [key: string]: string };
-    Litologia: LitologiaStruc;
+    Litologia: LithologyType;
 }
 
 export interface ProjectInfo {
@@ -27,7 +27,7 @@ export interface Col {
     Removable: boolean;
 }
 
-export interface LitologiaStruc {
+export interface LithologyType {
     ColorFill: string;
     ColorStroke: string;
     File: string;
@@ -48,17 +48,17 @@ export interface Circles {
 }
 
 export interface Fosil {
-    Upper: number;
-    Lower: number;
-    FosilImg: string;
-    X: number;
+    upper: number;
+    lower: number;
+    fosilImg: string;
+    x: number;
 }
 
 export interface Muestra {
-    Upper: number;
-    Lower: number;
-    MuestraText: string;
-    X: number;
+    upper: number;
+    lower: number;
+    muestraText: string;
+    x: number;
 }
 
 export interface Facies {
@@ -78,7 +78,7 @@ export interface User {
 }
 
 // Formularios del editor
-export interface formData {
+export interface formLithology {
     index: any;
     column: any;
     File: string;
@@ -117,4 +117,16 @@ export interface formFacies {
     y2: number;
     y1prev: number;
     y2prev: number;
+}
+
+export interface sideBar {
+    isOpen: boolean,
+    entityType: string
+    actionType: string
+}
+
+export interface settings {
+    scale: number;
+    isInverted: boolean;
+    header: Col[];
 }

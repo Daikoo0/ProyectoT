@@ -1,17 +1,37 @@
 import { useTranslation } from 'react-i18next';
 import { formMuestra } from '../types';
+import { useRecoilValue } from 'recoil';
+import { atSocket } from '../../../state/atomEditor';
 
 interface AddMuestraProps {
-    handleAddMuestra : (event: any) => void;
-    formMuestra : formMuestra;
-    alturaTd : number;
-    changeFormMuestra : (e: any) => void;
+    // handleAddMuestra : (event: any) => void;
+    formMuestra: formMuestra;
+    alturaTd: number;
+    changeFormMuestra: (e: any) => void;
 }
 
-const AddMuestra: React.FC<AddMuestraProps> = ({ handleAddMuestra, formMuestra, alturaTd, changeFormMuestra }) => {
+const AddMuestra: React.FC<AddMuestraProps> = ({ formMuestra, alturaTd, changeFormMuestra }) => {
 
     const { t } = useTranslation(['Editor']);
-    
+
+    const socket = useRecoilValue(atSocket);
+
+    const handleAddMuestra = (event) => {
+        event.preventDefault();
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'addMuestra',
+                data: {
+                    "upper": Number(formMuestra.upper),
+                    "lower": Number(formMuestra.lower),
+                    "muestraText": formMuestra.muestraText,
+                    "x": formMuestra.x
+                }
+            }));
+        }
+    };
+
+
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
             <li className="menu-title">{t("muestras")}</li>

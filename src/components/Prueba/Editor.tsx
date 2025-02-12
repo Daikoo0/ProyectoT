@@ -1,27 +1,19 @@
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { useSetRecoilState, useRecoilState } from 'recoil';
+import { atFossil, atomUsers, atSocket, atSideBarState, atLithologyTable, atSettings, atformFossil, atformSamples, atSamples } from '../../state/atomEditor';
 import { Link } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import Navbar_Editor from './Navbar_Editor';
 import Tabla from './Tabla';
-import fosilJson from '../../fossil.json';
 import limestones from '../../limestones.json';
 import mudgraingravel from '../../mudgraingravel.json';
 import { useAuth } from '../../provider/authProvider';
 import { useTranslation } from 'react-i18next';
 import { arrayMove } from '@dnd-kit/sortable';
-import { ProjectInfo, DataInfo, Fosil, Col, Muestra, Facies, User, EditingUser, formData, formFosil, formMuestra, formFacies } from './types';
-import Config from './sidebar/Config';
-import AddCapa from './sidebar/AddCapa';
-import AddFossil from './sidebar/AddFossil';
-import EditFossil from './sidebar/EditFossil';
-import AddMuestra from './sidebar/AddMuestra';
-import EditMuestra from './sidebar/EditMuestra';
-import EditPolygon from './sidebar/EditPolygon';
-import EditText from './sidebar/EditText';
-import AddFacie from './sidebar/AddFacie';
-import FacieSection from './sidebar/FacieSection';
+import { ProjectInfo, Muestra, Facies, EditingUser, formLithology, formMuestra, formFacies } from './types';
+import SideBar from './sidebar/SideBar';
 
-const initialFormData: formData = {
+const initialFormData: formLithology = {
   index: null,
   column: null,
   File: 'Sin Pattern', //patternOption
@@ -40,9 +32,9 @@ const Grid = () => {
   const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
   const { token } = useAuth();
   const { project } = useParams(); // Sala de proyecto
-  const [socket, setSocket] = useState(null);
+  const [socket, setSocket] = useRecoilState(atSocket);
   const [modalData, setModalData] = useState({ index: null, insertIndex: null, x: 0.5, name: 'none' });
-  const [scale, setScale] = useState(1);
+  // const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
   const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
   const [isInverted, setIsInverted] = useState(false);
@@ -54,50 +46,44 @@ const Grid = () => {
 
   // Datos
   const [infoProject, setInfoProject] = useState<ProjectInfo>();
-  const [data, setData] = useState<DataInfo[]>([]);
-  const [fossils, setFossils] = useState<Record<string, Fosil>>({});
-  const [muestras, setMuestras] = useState<Record<string, Muestra>>({});
+  const [data, setData] = useRecoilState(atLithologyTable)
+  // const [fossils, setFossils] = useState<Record<string, Fosil>>({});
+  const setFossils = useSetRecoilState(atFossil);
+  // const [muestras, setMuestras] = useState<Record<string, Muestra>>({});
+  const setMuestras = useSetRecoilState(atSamples);
   const [facies, setFacies] = useState<Record<string, Facies[]>>({});
-  const [header, setHeader] = useState<Col[]>([]);
+  const setSettings = useSetRecoilState(atSettings);
 
   // Formularios
-  const [formData, setFormData] = useState<formData>(initialFormData);
-  const [formFosil, setFormFosil] = useState<formFosil>({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
-  const [formMuestra, setFormMuestra] = useState<formMuestra>({ id: '', upper: 0, lower: 0, muestraText: '', x: 0, muestraTextCopy: '' });
+  const [formData, setFormData] = useState<formLithology>(initialFormData);
+  // const [formFosil, setFormFosil] = useState<formFosil>({ id: '', upper: 0, lower: 0, fosilImg: '', x: 0, fosilImgCopy: '' });
+  const setFormMuestra = useSetRecoilState(atformSamples);
+  // const [formMuestra, setFormMuestra] = useState<formMuestra>({ id: '', upper: 0, lower: 0, muestraText: '', x: 0, muestraTextCopy: '' });
   const [formFacies, setFormFacies] = useState<formFacies>({ facie: '', y1: 0, y2: 0, y1prev: 0, y2prev: 0 });
 
   // Usuarios
   const [editingUsers, setEditingUsers] = useState<Record<string, EditingUser>>({});
-  const [users, setUsers] = useState<Record<string, User>>({});
-
+  // const [users, setUsers] = useState<Record<string, User>>({});
+  const setUsers = useSetRecoilState(atomUsers);
   // Errores & Avisos
   const [alertMessage, setAlertMessage] = useState('');
 
 
-  const sortedOptions = useMemo(() => {
-    return Object.keys(fosilJson)
-      .map(option => ({
-        key: option,
-        value: t(option, { ns: "Fossils" }) // Obtiene la traducción
-      }))
-      .sort((a, b) => a.value.localeCompare(b.value)); // Ordena las opciones por el valor traducido
-  }, [fosilJson, t]);
+  // const changeformFosil = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormFosil(prevState => ({
+  //     ...prevState,
+  //     [name]: value,
+  //   }));
+  // }
 
-  const changeformFosil = (e) => {
-    const { name, value } = e.target;
-    setFormFosil(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
-  }
-
-  const changeFormMuestra = (e) => {
-    const { name, value } = e.target;
-    setFormMuestra(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
-  }
+  // const changeFormMuestra = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormMuestra(prevState => ({
+  //     ...prevState,
+  //     [name]: value,
+  //   }));
+  // }
 
   const changeformFacie = (e) => {
     const { name, value } = e.target;
@@ -107,35 +93,35 @@ const Grid = () => {
     }));
   }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    console.log(name, value, e.target)
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   console.log(name, value, e.target)
 
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
+  //   setFormData(prevState => ({
+  //     ...prevState,
+  //     [name]: value,
+  //   }));
 
-    // send socket 
-    socket.send(JSON.stringify({
-      action: 'editPolygon',
-      data: {
-        'rowIndex': formData.index,
-        'column': name,
-        'value': value,
-      },
-    }));
+  //   // send socket 
+  //   socket.send(JSON.stringify({
+  //     action: 'editPolygon',
+  //     data: {
+  //       'rowIndex': formData.index,
+  //       'column': name,
+  //       'value': value,
+  //     },
+  //   }));
 
-  };
+  // };
 
-  const handleChangeLocal = (e) => {
-    const { name, value } = e.target;
-    console.log(name, value)
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value,
-    }));
-  }
+  // const handleChangeLocal = (e) => {
+  //   const { name, value } = e.target;
+  //   console.log(name, value)
+  //   setFormData(prevState => ({
+  //     ...prevState,
+  //     [name]: value,
+  //   }));
+  // }
 
   const handleClickRow = (index, column) => {
     const { Litologia } = data[index]; // Extraer Litologia una vez
@@ -205,10 +191,13 @@ const Grid = () => {
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
             setData(shapeN.data)
             setFacies(shapeN.facies)
-            setHeader(shapeN.config.Columns)
+            setSettings({
+              scale: shapeN.config.Scale,
+              header: shapeN.config.Columns,
+              isInverted: shapeN.config.IsInverted,
+            });
             setFossils(shapeN.fosil)
             setMuestras(shapeN.muestras)
-            setIsInverted(shapeN.config.IsInverted)
             setEditingUsers(shapeN.userEditing)
             setUsers(shapeN.users)
             setInfoProject(shapeN.projectInfo)
@@ -279,14 +268,25 @@ const Grid = () => {
             setData(prev => [...prev, shapeN.value]);
             break
           case 'toggleColumn':
-            setHeader(prev => prev.map(col => 
-              col.Name === shapeN.column ? {...col, Visible: !col.Visible} : col
-            ));
+            setSettings(prev => ({
+              ...prev,
+              header: prev.header.map(col =>
+                col.Name === shapeN.column ? { ...col, Visible: !col.Visible } : col
+              )
+            }));
+            // setHeader(prev => prev.map(col => 
+            //   col.Name === shapeN.column ? {...col, Visible: !col.Visible} : col
+            // ));
             break
           case "MoveColumn":
-            setHeader((items) => {
-              return arrayMove(items, shapeN.activeId, shapeN.overId);
-            });
+            setSettings((prev) => ({
+              ...prev,
+              header: arrayMove(prev.header, shapeN.activeId, shapeN.overId),
+            }));
+
+            // setHeader((items) => {
+            //   return arrayMove(items, shapeN.activeId, shapeN.overId);
+            // });
             break
           case 'isInverted':
             setIsInverted(shapeN.isInverted)
@@ -299,7 +299,6 @@ const Grid = () => {
             break
           case 'addMuestra':
             setMuestras(prev => ({ ...prev, [shapeN.idMuestra]: shapeN.value }));
-            console.log(muestras, shapeN)
             break
           case 'addCircle':
             setData(prev => {
@@ -357,8 +356,8 @@ const Grid = () => {
               return newFossils;
             });
             setSideBarState({
-              sideBar: false,
-              sideBarMode: ""
+              isOpen: false,
+              entityType: "", actionType: ""
             })
             break
           case 'editMuestra':
@@ -368,8 +367,8 @@ const Grid = () => {
               return newMuestra;
             });
             setSideBarState({
-              sideBar: false,
-              sideBarMode: ""
+              isOpen: false,
+              entityType: "", actionType: ""
             })
             break;
           case 'deleteFosil':
@@ -424,14 +423,21 @@ const Grid = () => {
             }
             break;
           case 'addColumn':
-            setHeader(prev => [...prev, shapeN.column]);
+            setSettings(prev => ({
+              ...prev,
+              header: [...prev.header, shapeN.column]
+            }));
+            // setHeader(prev => [...prev, shapeN.column]);
             break;
           case 'deleteColumn':
-            setHeader(prev => prev.filter(col => col.Name !== shapeN.column));
+            setSettings(prev => ({
+              ...prev,
+              header: prev.header.filter(col => col.Name !== shapeN.column)
+            }));
+            // setHeader(prev => prev.filter(col => col.Name !== shapeN.column));
             break;
 
           case 'tokenLink':
-            console.log(shapeN)
             setTokenLink({
               editor: shapeN.editor,
               reader: shapeN.reader
@@ -470,45 +476,26 @@ const Grid = () => {
     }
   }, [socket]);
 
-  const [sideBarState, setSideBarState] = useState({
-    sideBar: false,
-    sideBarMode: ""
-  });
+  const [sideBarState, setSideBarState] = useRecoilState(atSideBarState);
 
-  const config = () => {
-    setSideBarState({
-      sideBar: true,
-      sideBarMode: "config"
-    })
-  }
+
 
   //--------- Funciones Socket ------------//
 
-  const handleAddFosil = (event) => {
-    event.preventDefault();
-    socket.send(JSON.stringify({
-      action: 'addFosil',
-      data: {
-        "upper": Number(formFosil.upper),
-        "lower": Number(formFosil.lower),
-        "fosilImg": formFosil.fosilImg,
-        "x": formFosil.x
-      }
-    }));
-  };
 
-  const handleAddMuestra = (event) => {
-    event.preventDefault();
-    socket.send(JSON.stringify({
-      action: 'addMuestra',
-      data: {
-        "upper": Number(formMuestra.upper),
-        "lower": Number(formMuestra.lower),
-        "muestraText": formMuestra.muestraText,
-        "x": formMuestra.x
-      }
-    }));
-  };
+
+  // const handleAddMuestra = (event) => {
+  //   event.preventDefault();
+  //   socket.send(JSON.stringify({
+  //     action: 'addMuestra',
+  //     data: {
+  //       "upper": Number(formMuestra.upper),
+  //       "lower": Number(formMuestra.lower),
+  //       "muestraText": formMuestra.muestraText,
+  //       "x": formMuestra.x
+  //     }
+  //   }));
+  // };
 
   const openModalPoint = (index, insertIndex, x, name) => {
     (document.getElementById('modalPoint') as HTMLDialogElement).showModal();
@@ -536,59 +523,48 @@ const Grid = () => {
 
   }
 
-  const handleDeleteFosil = () => {
-    socket.send(JSON.stringify({
-      action: 'deleteFosil',
-      data: {
-        "idFosil": formFosil.id,
-        "upper": Number(formFosil.upper),
-        "lower": Number(formFosil.lower),
-        "fosilImg": formFosil.fosilImg,
-        "x": formFosil.x
-      }
-    }));
-  }
 
-  const handleDeleteMuestra = () => {
-    socket.send(JSON.stringify({
-      action: 'deleteMuestra',
-      data: {
-        "idMuestra": formMuestra.id,
-        "upper": Number(formMuestra.upper),
-        "lower": Number(formMuestra.lower),
-        "muestraText": formMuestra.muestraText,
-        "x": formMuestra.x
-      }
-    }));
-  }
 
-  const handleFosilEdit = () => {
+  // const handleDeleteMuestra = () => {
+  //   socket.send(JSON.stringify({
+  //     action: 'deleteMuestra',
+  //     data: {
+  //       "idMuestra": formMuestra.id,
+  //       "upper": Number(formMuestra.upper),
+  //       "lower": Number(formMuestra.lower),
+  //       "muestraText": formMuestra.muestraText,
+  //       "x": formMuestra.x
+  //     }
+  //   }));
+  // }
 
-    socket.send(JSON.stringify({
-      action: 'editFosil',
-      data: {
-        "idFosil": formFosil.id,
-        "upper": Number(formFosil.upper),
-        "lower": Number(formFosil.lower),
-        "fosilImg": formFosil.fosilImg,   //.fosilImgCopy,
-        "x": formFosil.x
-      }
-    }));
-  }
+  // const handleFosilEdit = () => {
 
-  const handleMuestraEdit = () => {
+  //   socket.send(JSON.stringify({
+  //     action: 'editFosil',
+  //     data: {
+  //       "idFosil": formFosil.id,
+  //       "upper": Number(formFosil.upper),
+  //       "lower": Number(formFosil.lower),
+  //       "fosilImg": formFosil.fosilImg,   //.fosilImgCopy,
+  //       "x": formFosil.x
+  //     }
+  //   }));
+  // }
 
-    socket.send(JSON.stringify({
-      action: 'editMuestra',
-      data: {
-        "idMuestra": formMuestra.id,
-        "upper": Number(formMuestra.upper),
-        "lower": Number(formMuestra.lower),
-        "muestraText": formMuestra.muestraText,
-        "x": formMuestra.x
-      }
-    }));
-  }
+  // const handleMuestraEdit = () => {
+
+  //   socket.send(JSON.stringify({
+  //     action: 'editMuestra',
+  //     data: {
+  //       "idMuestra": formMuestra.id,
+  //       "upper": Number(formMuestra.upper),
+  //       "lower": Number(formMuestra.lower),
+  //       "muestraText": formMuestra.muestraText,
+  //       "x": formMuestra.x
+  //     }
+  //   }));
+  // }
 
 
 
@@ -656,8 +632,9 @@ const Grid = () => {
   const handleDeleteFacie = () => {
 
     setSideBarState({
-      sideBar: false,
-      sideBarMode: ""
+      isOpen: false,
+      entityType: "",
+      actionType: "",
     })
 
     // if (facies[formFacies.facie]) {
@@ -727,15 +704,15 @@ const Grid = () => {
   }
 
   // Añade una nueva capa
-  const addShape = (row, height) => {
-    socket.send(JSON.stringify({
-      action: 'añadir',
-      data: {
-        "height": Number(height),
-        "rowIndex": Number(row)
-      }
-    }));
-  }
+  // const addShape = (row, height) => {
+  //   socket.send(JSON.stringify({
+  //     action: 'añadir',
+  //     data: {
+  //       "height": Number(height),
+  //       "rowIndex": Number(row)
+  //     }
+  //   }));
+  // }
 
   // Usuario editando celda
   const sendActionCell = (row, column) => {
@@ -750,19 +727,19 @@ const Grid = () => {
     }
   }
 
-  const handleDeletePolygon = () => {
-    setFormData(prevState => ({ ...prevState, index: null }));
-    socket.send(JSON.stringify({
-      action: 'delete',
-      data: {
-        "rowIndex": formData.index
-      }
-    }));
-    setSideBarState({
-      sideBar: false,
-      sideBarMode: ""
-    })
-  }
+  // const handleDeletePolygon = () => {
+  //   setFormData(prevState => ({ ...prevState, index: null }));
+  //   socket.send(JSON.stringify({
+  //     action: 'delete',
+  //     data: {
+  //       "rowIndex": formData.index
+  //     }
+  //   }));
+  //   setSideBarState({
+  //     isOpen: false,
+  //     entityType: "", actionType: ""
+  //   })
+  // }
 
   const handleEditText = () => {
     socket.send(JSON.stringify({
@@ -777,19 +754,19 @@ const Grid = () => {
 
   // const [pdfData, setPdfData] = useState({});
 
-  const handleAddColumn = (columnName) => {
-    socket.send(JSON.stringify({ action: 'addColumn', data: { name: columnName } }))
-  }
+  // const handleAddColumn = (columnName) => {
+  //   socket.send(JSON.stringify({ action: 'addColumn', data: { name: columnName } }))
+  // }
 
   return (
     <>
       <div className="drawer drawer-end auto-cols-max">
         <input id="my-drawer" type="checkbox" className="drawer-toggle"
-          checked={sideBarState.sideBar}
+          checked={sideBarState.isOpen}
           onChange={() => {
             setSideBarState({
-              sideBar: false,
-              sideBarMode: ""
+              isOpen: false,
+              entityType: "", actionType: ""
             })
             setMessageFacie('')
           }
@@ -801,17 +778,12 @@ const Grid = () => {
 
           {/* Header */}
           <Navbar_Editor
-            config={config}
-            //    openModal={openModal}
-            setSideBarState={setSideBarState}
             setFormData={setFormData}
-            socket={socket}
             t={t}
             infoProject={infoProject}
             initialFormData={initialFormData}
             tokenLink={tokenLink}
             setTokenLink={setTokenLink}
-            users={users}
             tableref={tableref}
           />
 
@@ -820,13 +792,9 @@ const Grid = () => {
             // setPdfData={setPdfData}
             // pdfData={pdfData}
             data={data}
-            header={header}
-            scale={scale}
             addCircles={addCircles}
             setSideBarState={setSideBarState}
-            fossils={fossils}
-            muestras={muestras}
-            setFormFosil={setFormFosil}
+            // setFormFosil={setFormFosil}
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
             sendActionCell={sendActionCell}
@@ -863,7 +831,7 @@ const Grid = () => {
                 </div>
                 {/* Devolver al home */}
                 <Link to='/home'
-                 className="btn btn-primary">
+                  className="btn btn-primary">
                   Aceptar
                 </Link>
               </div>
@@ -880,7 +848,7 @@ const Grid = () => {
                   <div className="grid flex-grow h-32 card rounded-box place-items-center">
                     <p>Mud/Sand/Gravel</p>
                     <select className='select select-accent' aria-label='Select a mud/sand/gravel'
-                     disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
+                      disabled={!mudgraingravel[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: mudgraingravel[e.target.value] })); }}>
 
                       {Object.keys(mudgraingravel).map((item) =>
                         <option className="bg-base-100 text-base-content" key={item} value={item} >{item}</option>
@@ -891,7 +859,7 @@ const Grid = () => {
                   <div className="grid flex-grow h-32 card rounded-box place-items-center">
                     <p>Limestones</p>
                     <select className='select select-accent' aria-label="Select a limestones"
-                    disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
+                      disabled={!limestones[modalData.name]} value={modalData.name} onChange={(e) => { setModalData(prevData => ({ ...prevData, name: e.target.value, x: limestones[e.target.value] })); }}>
 
                       {Object.keys(limestones).map((item) =>
                         <option className="bg-base-100 text-base-content" key={item} value={item}>{item}</option>
@@ -924,73 +892,8 @@ const Grid = () => {
         </>
 
         {/* SideBar */}
-        <div className="drawer-side z-[1003]">
-          <label htmlFor="my-drawer"
-            onClick={() => {
-              if (socket && formData.index !== null) {
-                socket.send(JSON.stringify({
-                  action: 'deleteEditingUser',
-                  data: {
-                    section: `[${formData.index},${header.indexOf(formData.column) + 1}]`,
-                    name: editingUsers[`[${formData.index},${header.indexOf(formData.column)}]`]?.name,
-                  }
-                }));
-              }
-            }}
-            aria-label="close sidebar" className="drawer-overlay"></label>
-          {
-            (() => {
-              switch (sideBarState.sideBarMode) {
-                case "config":
-                  return (
-                    <Config infoProject={infoProject} handleInfoProject={handleInfoProject} socket={socket} header={header} isInverted={isInverted} scale={scale} setScale={setScale}/>
-                  );
-                case "añadirCapa":
-                  return (
-                    <AddCapa handleChangeLocal={handleChangeLocal} formData={formData} lengthData={data.length} handleAddColumn={handleAddColumn} addShape={addShape} />
-                  );
-                case "fosil":
-                  return (
-                    <AddFossil handleAddFosil={handleAddFosil} formFosil={formFosil} sortedOptions={sortedOptions} changeformFosil={changeformFosil} alturaTd={alturaTd} />
-                  );
-                case "editFosil":
-                  return (
-                    <EditFossil formFosil={formFosil} sortedOptions={sortedOptions} changeformFosil={changeformFosil} handleFosilEdit={handleFosilEdit} handleDeleteFosil={handleDeleteFosil} alturaTd={alturaTd} />
-                  );
-                case "muestra":
-                  return (
-                    <AddMuestra handleAddMuestra={handleAddMuestra} formMuestra={formMuestra} alturaTd={alturaTd} changeFormMuestra={changeFormMuestra} />
-                  );
-                case "editMuestra":
-                  return (
-                    <EditMuestra formMuestra={formMuestra} changeFormMuestra={changeFormMuestra} handleMuestraEdit={handleMuestraEdit} alturaTd={alturaTd} handleDeleteMuestra={handleDeleteMuestra} />
-                  )
-                case "polygon":
-                  return (
-                    <EditPolygon handleDeletePolygon={handleDeletePolygon} handleChangeLocal={handleChangeLocal} formData={formData} handleChange={handleChange} />
-                  );
-                case "text":
-                  return (
-                    <EditText setFormData={setFormData} handleEditText={handleEditText} formData={formData} />
-                  );
-                case "addFacie":
-                  return (
-                    <AddFacie changeformFacie={changeformFacie} handleAddFacie={handleAddFacie} facies={facies} />
-                  );
-                case "facieSection":
-                  return (
-                    <FacieSection messageFacie={messageFacie} facies={facies} formFacies={formFacies} handleDeleteFacieSection={handleDeleteFacieSection} changeformFacie={changeformFacie} handleAddFacieSection={handleAddFacieSection} handleDeleteFacie={handleDeleteFacie} />
-                  );
-                default:
-                  return (
-                    <div >
-                      a
-                    </div>)
-              }
-            })()
-          }
 
-        </div >
+        <SideBar formData={formData} editingUsers={editingUsers} alturaTd={alturaTd} />
 
       </div >
     </>

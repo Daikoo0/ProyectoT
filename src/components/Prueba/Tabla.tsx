@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, CSSProperties, useMemo } from "react";
-import Polygon from "./Polygon4";
+import { atFossil, atSideBarState, atformFossil, atSettingsHeader } from "../../state/atomEditor";
+import { useSetRecoilState, useRecoilValue } from "recoil";
+import Lithology from "./Lithology";
 import Fosil from "./Fosil";
 import Muestra from "./Muestra";
 import lithoJson from '../../lithologic.json';
 import Ruler from "./Ruler2";
-// import Ab from "./pdfFunction";
 import ResizeObserver from "resize-observer-polyfill";
 import { useTranslation } from 'react-i18next';
 import { DndContext, rectIntersection, MouseSensor, useSensor, useSensors, TouchSensor, type UniqueIdentifier, type DragEndEvent } from '@dnd-kit/core';
@@ -12,16 +13,12 @@ import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sort
 import { CSS } from '@dnd-kit/utilities';
 import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 import Symbology from './Symbology'
+import { Col } from "./types";
 
 interface Layer {
     userId: string;
     Columns: any;
     Litologia: any;
-}
-
-interface col {
-    Name: string;
-    Visible: boolean;
 }
 
 const pix = 2
@@ -32,11 +29,12 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
     });
 
     return (
-        <button {...attributes} {...listeners} style={{
+        <button {...attributes} {...listeners}  style={{
             padding: 0,
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center'
+            alignItems: 'center',
+            cursor: 'grab',
         }}
         >
             =
@@ -44,45 +42,49 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
     );
 };
 
-const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnWidths
+const DraggableRow = ({ row, index, header, isInverted, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, setFormFosil, hovered, scale, facies, setFormFacies, adfas, setFormMuestra, fossils, muestras,
+    sendActionCell, hovered, scale, facies, setFormFacies, adfas, setFormMuestra, muestras,
     length
 }: {
     row: Row<Layer>;
     index: number;
-    header: Array<col>;
+    header: Array<Col>;
     isInverted: boolean;
-    setSideBarState: (state: { sideBar: boolean, sideBarMode: string }) => void,
+    // setSideBarState: (state: { sideBar: boolean, sideBarMode: string }) => void,
     columnWidths: any;
-    openModalPoint: void;
+    openModalPoint:  (index, insertIndex, x, name) => void;
     handleClickRow: (rowIndex: number, columnName: string) => void;
-    addCircles: void;
+    addCircles: (rowIndex: number, insertIndex: number, point: number) => void;
     prevContact: string;
     rowspan: number;
     alturaTd: number;
     editingUsers: any;
     sendActionCell: (rowIndex: number, columnIndex: number) => void;
-    setFormFosil: (state: { id: string, upper: number, lower: number, fosilImg: string, x: number, fosilImgCopy: string }) => void;
+    // setFormFosil: (state: { id: string, upper: number, lower: number, fosilImg: string, x: number, fosilImgCopy: string }) => void;
     hovered: boolean;
     scale: number;
     facies: any;
     setFormFacies(state: { facie: string });
     adfas: any;
     setFormMuestra: (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
-    fossils: any;
+    // fossils: any;
     muestras: any;
-    length : number;
+    length: number;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
         id: row.id,
     });
 
+    const setFormFossil = useSetRecoilState(atformFossil);
+    const setAtSideBar = useSetRecoilState(atSideBarState);
+    const fossils = useRecoilValue(atFossil);
+
     const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
         transition: transition,
         opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging ? 1000 :  length - Number(row.id),
+        zIndex: isDragging ? 1000 : length - Number(row.id),
         position: 'relative',
         padding: 0,
         height: (row.original.Litologia.Height * scale) - pix,
@@ -120,7 +122,7 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                 if (cell.column.id === "Litologia") {
                     return (
                         <td key={cell.id} style={{ padding: 0, height: (cell.row.original.Litologia.Height * scale) - pix }}>
-                            <Polygon
+                            <Lithology
                                 zindex={row.getVisibleCells().length - index}
                                 isInverted={isInverted}
                                 rowIndex={index}//rowIndex={adjustedRowIndex}
@@ -133,7 +135,6 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                 circles={cell.row.original.Litologia.Circles}
                                 addCircles={addCircles}
                                 openModalPoint={openModalPoint}
-                                setSideBarState={setSideBarState}
                                 handleClickRow={handleClickRow}
                                 tension={cell.row.original.Litologia.Tension}
                                 rotation={cell.row.original.Litologia.Rotation}
@@ -156,15 +157,12 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     className="h-full max-h-full"
                                     onClick={(e) => {
                                         if (e.target instanceof SVGSVGElement) {
-                                            setSideBarState({
-                                                sideBar: true,
-                                                sideBarMode: "fosil",
+                                            setAtSideBar({
+                                                isOpen: true,
+                                                entityType: "fossil", actionType: "add"
                                             });
-                                            setFormFosil({
-                                                id: '',
-                                                upper: 0,
-                                                lower: 0,
-                                                fosilImg: '',
+                                            setFormFossil({
+                                                id: '', upper: 0, lower: 0, fosilImg: '',
                                                 x: e.nativeEvent.offsetX / (columnWidths["Estructura fosil"] || cell.column.getSize()),
                                                 fosilImgCopy: '',
                                             });
@@ -184,8 +182,6 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                     key={index}
                                                     keyID={data}
                                                     data={fossils[data]}
-                                                    setSideBarState={setSideBarState}
-                                                    setFormFosil={setFormFosil}
                                                     scale={scale}
                                                     litologiaX={columnWidths["Litologia"] || 200}
                                                     columnW={columnWidths["Estructura fosil"] || cell.column.getSize()}
@@ -214,9 +210,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                     className="h-full max-h-full"
                                     onClick={(e) => {
                                         if (e.target instanceof SVGSVGElement) {
-                                            setSideBarState({
-                                                sideBar: true,
-                                                sideBarMode: "muestra",
+                                            setAtSideBar({
+                                                isOpen: true,
+                                                entityType: "sample", actionType: "add"
                                             });
                                             setFormMuestra({
                                                 id: '',
@@ -241,7 +237,6 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                     key={index}
                                                     keyID={data}
                                                     data={muestras[data]}
-                                                    setSideBarState={setSideBarState}
                                                     setFormMuestra={setFormMuestra}
                                                     scale={scale}
                                                     litologiaX={columnWidths["Litologia"] || 200}
@@ -299,9 +294,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                         fill="transparent"
                                                         data-value="value1"
                                                         onClick={() => {
-                                                            setSideBarState({
-                                                                sideBar: true,
-                                                                sideBarMode: "facieSection",
+                                                            setAtSideBar({
+                                                                isOpen: true,
+                                                                entityType: "facieSection", actionType: "edit"
                                                             });
                                                             setFormFacies({ facie: key });
                                                         }}
@@ -338,9 +333,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                                                                 width={wp}
                                                                 height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}
                                                                 onClick={() => {
-                                                                    setSideBarState({
-                                                                        sideBar: true,
-                                                                        sideBarMode: "facieSection",
+                                                                    setAtSideBar({
+                                                                        isOpen: true,
+                                                                        entityType: "facieSection", actionType: "edit"
                                                                     });
                                                                     setFormFacies({ facie: key });
                                                                 }}
@@ -381,9 +376,9 @@ const DraggableRow = ({ row, index, header, isInverted, setSideBarState, columnW
                             editingUsers?.[`[${row.id},${cellIndex}]`] ? 'border-2' : 'border border-base-content'
                         }
                         onClick={() => {
-                            setSideBarState({
-                                sideBar: true,
-                                sideBarMode: "text"
+                            setAtSideBar({
+                                isOpen: true,
+                                entityType: "text", actionType: "edit"
                             });
                             handleClickRow(Number(row.id), String(cdef.header))
                             sendActionCell(Number(row.id), cellIndex)
@@ -439,11 +434,8 @@ const HeaderVal = ({ percentage, name, top, columnWidths }) => {
         </>)
 }
 
-
-
-const Tabla = ({ data, header, scale,
+const Tabla = ({ data, scale,
     addCircles, setSideBarState,
-    fossils, setFormFosil,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
     editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref, setFormMuestra, muestras }) => {
@@ -452,6 +444,8 @@ const Tabla = ({ data, header, scale,
     var cellMinWidth = 150;
     var cellMaxWidth = 300;
     const [columnWidths, setColumnWidths] = useState({});
+
+    const header = useRecoilValue(atSettingsHeader);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -1001,7 +995,7 @@ const Tabla = ({ data, header, scale,
                                     >
 
                                         <div className="flex justify-between items-center font-semibold">
-                                            <p style={{ fontFamily: "Times New Roman, Times, serif" }} className="text text-accent-content w-1/2">{t(col.header)}{col.header==="Espesor"? " [m]":""}</p>
+                                            <p style={{ fontFamily: "Times New Roman, Times, serif" }} className="text text-accent-content w-1/2">{t(col.header)}{col.header === "Espesor" ? " [m]" : ""}</p>
 
                                             {col.header === "Litologia" ?
                                                 <>
@@ -1113,7 +1107,6 @@ const Tabla = ({ data, header, scale,
                                             index={row.index}
                                             header={header}
                                             isInverted={isInverted}
-                                            setSideBarState={setSideBarState}
                                             columnWidths={columnWidths}
                                             openModalPoint={openModalPoint}
                                             handleClickRow={handleClickRow}
@@ -1125,13 +1118,11 @@ const Tabla = ({ data, header, scale,
                                             editingUsers={editingUsers}
                                             sendActionCell={sendActionCell}
                                             hovered={hovered}
-                                            setFormFosil={setFormFosil}
                                             scale={scale}
                                             facies={facies}
                                             setFormFacies={setFormFacies}
                                             adfas={adfas}
                                             setFormMuestra={setFormMuestra}
-                                            fossils={fossils}
                                             muestras={muestras}
                                             length={data.length}
                                         />
@@ -1146,7 +1137,7 @@ const Tabla = ({ data, header, scale,
 
                 </table>
 
-                <Symbology data={data} fossils={fossils} />
+                <Symbology />
             </div>
         </>
     );

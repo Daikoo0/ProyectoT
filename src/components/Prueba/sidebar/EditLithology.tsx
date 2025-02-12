@@ -1,21 +1,56 @@
-
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { atSocket, atSideBarState } from '../../../state/atomEditor';
 import { useTranslation } from 'react-i18next';
 import lithoJson from '../../../lithologic.json';
-import contacts from '../../../contacts.json';
-import { formData } from '../types';
+import { formLithology } from '../types';
 import IconSvg from '../../Web/IconSVG';
+import contacts from '../../../contacts.json';
 
 interface EditPolygonProps {
-    handleDeletePolygon: () => void;
-    handleChange: (e: any) => void;
-    formData: formData;
-    handleChangeLocal: (e: any) => void;
+    resetFormLithology: () => void;
+    // handleChange: (e: any) => void;
+    formLithology: formLithology;
+    changeformLithology: (e: any) => void;
 }
 
-const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, handleChange, handleDeletePolygon }) => {
+const EditPolygon: React.FC<EditPolygonProps> = ({ resetFormLithology, changeformLithology, formLithology }) => {
 
     const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
 
+    const socket = useRecoilValue(atSocket);
+    const setSideBarState = useSetRecoilState(atSideBarState);
+
+    const handleDeletePolygon = () => {
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'delete',
+                data: {
+                    "rowIndex": formLithology.index
+                }
+            }));
+
+            setSideBarState({
+                isOpen: false,
+                entityType: "", actionType: ""
+            })
+
+            resetFormLithology();
+        }
+
+    }
+
+    const handleChange = (e: any) => {
+        changeformLithology(e);
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'edit',
+                data: {
+                    "rowIndex": formLithology.index,
+                    [e.target.name]: e.target.value
+                }
+            }));
+        }
+    }
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
             <li className="menu-title">{t("editing_p")}</li>
@@ -32,7 +67,7 @@ const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, 
                                             type="checkbox"
                                             value={contact}
                                             name='Contact'
-                                            checked={formData.Contact == contact ? true : false}
+                                            checked={formLithology.Contact == contact ? true : false}
                                             onChange={handleChange}
                                             style={{ marginRight: '8px' }}
                                         />
@@ -68,14 +103,14 @@ const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, 
 
             <li className='flex flex-row'>
                 <p>{t("tam_cap")}</p>
-                <input type="number" name="Height" value={formData.Height} onChange={handleChangeLocal} />
-                <button className="btn" name="Height" value={formData.Height} disabled={formData.Height === formData.initialHeight || formData.Height < 5 || formData.Height > 2000}
+                <input type="number" name="Height" value={formLithology.Height} onChange={changeformLithology} />
+                <button className="btn" name="Height" value={formLithology.Height} disabled={formLithology.Height === formLithology.initialHeight || formLithology.Height < 5 || formLithology.Height > 2000}
                     onClick={handleChange}>{t("change")}</button>
             </li>
 
             <li>
                 <p>{t("op_pattern")}</p>
-                <select name={"File"} value={formData.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
+                <select name={"File"} value={formLithology.File} onChange={handleChange} className='select select-bordered w-full max-w-xs'>
                     {Object.keys(lithoJson).map(option => (
                         <option className="bg-base-100 text-base-content" key={option} value={option}>
                             {t(option, { ns: "Patterns" })}
@@ -86,10 +121,10 @@ const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, 
             </li>
 
             <li>
-                <p>{t("color_cap")}<input type="color" name={"ColorFill"} value={formData.ColorFill} onChange={handleChangeLocal} onBlur={handleChange} /></p>
+                <p>{t("color_cap")}<input type="color" name={"ColorFill"} value={formLithology.ColorFill} onChange={changeformLithology} onBlur={handleChange} /></p>
             </li>
             <li>
-                <p>{t("color_pattern")}<input type="color" name={"ColorStroke"} value={formData.ColorStroke} onChange={handleChangeLocal} onBlur={handleChange} /> </p>
+                <p>{t("color_pattern")}<input type="color" name={"ColorStroke"} value={formLithology.ColorStroke} onChange={changeformLithology} onBlur={handleChange} /> </p>
             </li>
 
             <li>
@@ -99,7 +134,7 @@ const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, 
                     name='Zoom'
                     min={100}
                     max={400}
-                    defaultValue={formData.Zoom}
+                    defaultValue={formLithology.Zoom}
                     onMouseUp={handleChange}
                 />
             </li>
@@ -112,7 +147,7 @@ const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, 
                     min={0}
                     max={2.5}
                     step={0.1}
-                    defaultValue={formData.Tension}
+                    defaultValue={formLithology.Tension}
                     onMouseUp={handleChange}
                 />
             </li>
@@ -124,7 +159,7 @@ const EditPolygon: React.FC<EditPolygonProps> = ({ handleChangeLocal, formData, 
                     name='Rotation'
                     min={0}
                     max={180}
-                    defaultValue={formData.Rotation}
+                    defaultValue={formLithology.Rotation}
                     onMouseUp={handleChange}
                 />
             </li>

@@ -1,8 +1,24 @@
 import { useState } from "react";
+import { useSetRecoilState, useRecoilValue } from "recoil";
+import { atformFossil, atSideBarState, atSettings } from "../../state/atomEditor"; 
 import fosilJson from '../../fossil.json';
 import { useDynamicSvgImport } from "../../utils/dynamicSvgImport";
+import { Fosil } from "./types";
 
-const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, columnW, isInverted }) => {
+interface FossilProps { 
+    keyID: string;
+    data: Fosil;
+    // scale: number;
+    litologiaX: number;
+    columnW: number;
+    // isInverted: boolean;
+}
+
+const Fossil: React.FC<FossilProps> = ({ keyID, data, litologiaX, columnW }) => {
+
+    const setFormFosil = useSetRecoilState(atformFossil);
+    const setSideBar = useSetRecoilState(atSideBarState);
+    const settings = useRecoilValue(atSettings);
 
     const { loading, SvgIcon } = useDynamicSvgImport(fosilJson[data.fosilImg], 'fosiles');
 
@@ -12,11 +28,11 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
     const centerX = data.x * columnW;
     const centerY = (data.upper + data.lower) / 2;
 
-    const upper = data.upper * scale;
-    const lower = data.lower * scale;
+    const upper = data.upper * settings.scale;
+    const lower = data.lower * settings.scale;
 
     const gTranslateX = centerX - (width / 2);
-    const gTranslateY = centerY * scale - (height / 2);
+    const gTranslateY = centerY * settings.scale - (height / 2);
 
     const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
 
@@ -29,12 +45,14 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
     };
 
     const a = () => {
-        setSideBarState({
-            sideBar: true,
-            sideBarMode: "editFosil"
+        setSideBar({
+            isOpen: true,
+            entityType: "fossil",
+            actionType: "edit",
         })
 
         setFormFosil({ ...data, id: keyID, fosilImgCopy: data.fosilImg });
+        
     }
 
     return (
@@ -44,7 +62,7 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             onMouseLeave={handleMouseLeave}
             className="fossilUnit"
             //   transform={isInverted ? "scale(1,-1)" : "none"}
-            transform={isInverted ? "none" : "scale(1,-1)"}
+            transform={settings.isInverted ? "none" : "scale(1,-1)"}
             style={{
                 //  transform: isInverted ? "scaleY(-1)" : "none",
                 transformOrigin: "center",
@@ -67,7 +85,7 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
             {/* Imagen del fosil  */}
             <g
                 id="iconFosil" className="stroke-base-content"
-                transform={isInverted ? `translate(${gTranslateX},${gTranslateY})` : `translate(${gTranslateX},${gTranslateY + height}) rotate(180) scale(-1,1)`}
+                transform={settings.isInverted ? `translate(${gTranslateX},${gTranslateY})` : `translate(${gTranslateX},${gTranslateY + height}) rotate(180) scale(-1,1)`}
                 style={{ transformOrigin: `0 0` }}
             >
                 <rect width={width} height={height} className="fill-base-100" stroke="none" /> {/* Cambia 'fill-base-content' por el color que desees */}
@@ -93,4 +111,4 @@ const Fosil = ({ keyID, data, setSideBarState, setFormFosil, scale, litologiaX, 
 
 }
 
-export default Fosil;
+export default Fossil;

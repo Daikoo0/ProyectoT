@@ -1,20 +1,19 @@
 import React, { MutableRefObject } from 'react';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { usersSelector, atSideBarState, atSocket } from '../../state/atomEditor';
 import { Link } from 'react-router-dom';
 import Print from './Print';
 
 interface NavbarProps {
-    config: () => void;
-   // openModal: () => void;
-    setSideBarState: (state: { sideBar: boolean; sideBarMode: string }) => void;
     setFormData: (data: any) => void;
-    socket: WebSocket;
+    // socket: WebSocket;
     t: (key: string) => string;
     infoProject: { [key: string]: any } | null;
     initialFormData: any;
     tokenLink: ({ editor: string; reader: string });
     setTokenLink: (state: { editor: string; reader: string }) => void;
-    users: { [key: string]: { name: string; color: string } };
-    tableref : MutableRefObject<HTMLTableElement | null>;
+    // users: { [key: string]: { name: string; color: string } };
+    tableref: MutableRefObject<HTMLTableElement | null>;
 }
 
 interface InviteModalProps {
@@ -25,19 +24,25 @@ interface InviteModalProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({
-    config,
-    //openModal,
-    setSideBarState,
     setFormData,
-    socket,
     t,
     infoProject,
     initialFormData,
     tokenLink,
     setTokenLink,
-    users,
     tableref
 }) => {
+
+    const setSideBarState = useSetRecoilState(atSideBarState);
+    const socket = useRecoilValue(atSocket);
+
+    const config = () => {
+        setSideBarState({
+            isOpen: true,
+            entityType: "config",
+            actionType: "",
+        })
+    }
 
     return (
         <div className="navbar bg-base-200 fixed top-0 z-[1002]">
@@ -60,9 +65,9 @@ const Navbar: React.FC<NavbarProps> = ({
                         </div>
                     </div>
 
-                  <Print tableref={tableref}/>
+                    <Print tableref={tableref} />
 
-                    <div className="tooltip tooltip-bottom"  onClick={() => (setSideBarState({ sideBar: true, sideBarMode: "añadirCapa" }), setFormData(initialFormData))} data-tip={t("add")}>
+                    <div className="tooltip tooltip-bottom" onClick={() => (setSideBarState({ isOpen: true, entityType: "lithology", actionType: "add" }), setFormData(initialFormData))} data-tip={t("add")}>
                         <div tabIndex={0} role="button" aria-label="addcapa" className="btn btn-ghost btn-circle">
                             <svg className="w-6 h-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
                                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
@@ -86,16 +91,16 @@ const Navbar: React.FC<NavbarProps> = ({
                         </div>
                     </div>
 
-                    <p className="text-3xl my-2 ml-4 bg-base-200" 
+                    <p className="text-3xl my-2 ml-4 bg-base-200"
                     >{infoProject ? infoProject['Name'] : ' '}</p>
-                    
+
                 </div>
 
 
                 {/* Contenedor para los elementos alineados a la derecha */}
                 <div className="flex items-center space-x-4">
 
-                    <Users users={users} />
+                    <Users />
 
                     <InviteModal
                         tokenLink={tokenLink}
@@ -109,12 +114,9 @@ const Navbar: React.FC<NavbarProps> = ({
     );
 };
 
-const Users: React.FC<{ users: { [key: string]: { name: string; color: string } } }> = ({ users }) => {
-    const usersArray = Object.values(users);
-    const maxVisibleUsers = 3;
-    const visibleUsers = usersArray.slice(0, maxVisibleUsers);
-    const remainingUsers = usersArray.slice(maxVisibleUsers);
-    const remainingUsersCount = remainingUsers.length;
+const Users: React.FC = () => {
+
+    const { visibleUsers, remainingUsers, remainingUsersCount } = useRecoilValue(usersSelector);
 
     return (
         <div className="-space-x-3 rtl:space-x-reverse">

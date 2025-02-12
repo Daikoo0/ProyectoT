@@ -1,34 +1,22 @@
-import React, { memo } from 'react';
+import React from 'react';
+import { atFossil, lithologyPatternsAndContacts } from '../../state/atomEditor';
+import { useRecoilValue } from 'recoil';
 import fosiles from '../../fossil.json';
 import lithoJson from '../../lithologic.json';
-import { Fosil } from './types';
 import ItemSymbology from './ItemSym';
 import { useTranslation } from 'react-i18next';
 
-interface SymbologyProps {
-    data: any;
-    fossils: Fosil[];
-}
+interface SymbologyProps {}
 
-const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
+const Symbology: React.FC<SymbologyProps> = () => {
 
-    var patterns = []
-    var contacts = []
+    const { patterns, contacts } = useRecoilValue(lithologyPatternsAndContacts);
+    const fossils = useRecoilValue(atFossil);
 
-    data.forEach(row => {
-        if (!patterns.includes(row["Litologia"].File) && lithoJson[row["Litologia"].File] > 1) {
-            patterns.push(row["Litologia"].File);
-        }
-        if (!contacts.includes(row["Litologia"].Contact)) {
-            contacts.push(row["Litologia"].Contact)
-        }
-    });
-
-
-    const name = Object.values(fossils).map(fossil => Object.values(fossil)[2])
+    const name = Object.values(fossils).map(fossil => Object.values(fossil)[2]);
     const fossilsName = [...new Set(name.filter(item => item !== undefined))];
-    
-    const { t } = useTranslation(['Patterns','Description','Fossils']);
+
+    const { t } = useTranslation(['Patterns', 'Description', 'Fossils']);
 
     return (
         <div className=" mt-20">
@@ -77,6 +65,6 @@ const Symbology: React.FC<SymbologyProps> = memo(({ data, fossils }) => {
             )}
 
         </div>)
-});
+};
 
 export default Symbology;

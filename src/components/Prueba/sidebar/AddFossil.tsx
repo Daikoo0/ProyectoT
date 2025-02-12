@@ -1,28 +1,40 @@
+import React from "react";
+import { useRecoilValue } from "recoil";
+import { atSocket } from '../../../state/atomEditor';
 import fosilJson from '../../../fossil.json';
 import IconSvg from '../../Web/IconSVG';
-import { useTranslation } from 'react-i18next';
+import { formFosil } from "../types";
 
 interface AddFossilProps {
-    handleAddFosil : (event: any) => void;
-    formFosil : {
-        id: string;
-        upper: number;
-        lower: number;
-        fosilImg: string;
-        x: number;
-        fosilImgCopy: string;
-    };
-    sortedOptions : {
+    t:any;
+    formFosil: formFosil;
+    changeformFosil : (e: any) => void;
+    alturaTd: number;
+    sortedOptions: {
         key: string;
         value: string;
     }[];
-    changeformFosil : (e: any) => void;
-    alturaTd : number;
 }
 
-const AddFossil : React.FC<AddFossilProps> = ({ handleAddFosil, formFosil,sortedOptions, changeformFosil, alturaTd }) => {
+const AddFossil : React.FC<AddFossilProps> = ({t, formFosil, changeformFosil, alturaTd, sortedOptions  }) => {
+    
+    const socket = useRecoilValue(atSocket);
 
-    const { t } = useTranslation(['Editor', 'Description', 'Patterns']);
+    const handleAddFosil = (event) => {
+        if (socket) {
+            event.preventDefault();
+            socket.send(JSON.stringify({
+                action: 'addFosil',
+                data: {
+                    "upper": Number(formFosil.upper),
+                    "lower": Number(formFosil.lower),
+                    "fosilImg": formFosil.fosilImg,
+                    "x": formFosil.x
+                }
+            }));
+        }
+    };
+
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
             <li className="menu-title">{t("fossils")}</li>

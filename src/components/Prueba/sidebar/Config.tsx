@@ -1,18 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DndContext, closestCorners } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useTranslation } from 'react-i18next';
 import SelectTheme from '../../Web/SelectTheme';
 import LangSelector from '../../Web/LanguageComponent';
-import { Col } from '../types';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { ProjectInfo } from '../types';
-import { useState } from 'react';
+import { atSocket, atSettings } from '../../../state/atomEditor';
+import { useRecoilValue } from 'recoil';
 
 interface ConfigProps {
-    socket: WebSocket | null;
-    header: Col[];
     isInverted: boolean;
     scale: number;
     setScale: React.Dispatch<React.SetStateAction<number>>;
@@ -20,9 +18,12 @@ interface ConfigProps {
     infoProject: ProjectInfo;
 }
 
-const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, infoProject, setScale,  handleInfoProject }) => {
+const Config: React.FC<ConfigProps> = ({ infoProject, setScale, handleInfoProject }) => {
 
     const { t } = useTranslation(['Editor']);
+
+    const socket = useRecoilValue(atSocket);
+    const settings = useRecoilValue(atSettings);
 
     const handleDragEnd = (event: any) => {
         const { active, over } = event;
@@ -31,43 +32,54 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, info
             socket?.send(JSON.stringify({
                 action: 'MoveColumn',
                 data: {
-                    "activeId": header.findIndex((item) => item.Name === active.id),
-                    "overId": header.findIndex((item) => item.Name === over.id)
+                    "activeId": settings.header.findIndex((item) => item.Name === active.id),
+                    "overId": settings.header.findIndex((item) => item.Name === over.id)
                 }
             }));
-            
-            // setHeader((items) => {
-            //     const oldIndex = items.findIndex((item) => item.Name === active.id);
-            //     const newIndex = items.findIndex((item) => item.Name === over.id);
-            //     return arrayMove(items, oldIndex, newIndex);
-            // });
         }
     };
 
     const toggleVisibility = (name: string) => {
-        socket.send(JSON.stringify({
-            action: 'toggleColumn',
-            data: {
-                "column": name
-            }
-        }));
-
-        // setHeader((prevHeader) =>
-        //     prevHeader.map((col) =>
-        //         col.Name === name ? { ...col, Visible: !col.Visible } : col
-        //     )
-        // );
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'toggleColumn',
+                data: {
+                    "column": name
+                }
+            }));
+        }
     };
 
     const deleteColumn = (name: string) => {
-        socket?.send(JSON.stringify({
-            action: 'deleteColumn',
-            data: {
-                "name": name
-            }
-        }));
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'deleteColumn',
+                data: {
+                    "name": name
+                }
+            }));
+        }
     };
 
+    const inverted = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (socket) {
+            socket.send(JSON.stringify({
+                action: 'isInverted',
+                data: {
+                    "isInverted": e.target.checked
+                }
+            }));
+        }
+    }
+
+    const scales = [
+        { value: 10, label: '1:10' },
+        { value: 5, label: '1:20' },
+        { value: 4, label: '1:25' },
+        { value: 2, label: '1:50' },
+        { value: 1, label: '1:100' },
+        { value: 0.5, label: '1:200' },
+    ];
 
     return (
         <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
@@ -91,59 +103,16 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, info
                             <details open={false}>
                                 <summary>{t("scale")}</summary>
                                 <ul>
-                                    <li>
-                                        <label className="inline-flex items-center">
-                                            <input type="checkbox" value="10" checked={scale === 10}
-                                                onChange={(e) => setScale(Number(e.target.value))}
-                                                className="form-checkbox h-5 w-5 text-indigo-600" />
-                                            <span className="ml-2">1:10</span>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label className="inline-flex items-center">
-                                            <input type="checkbox" value="5" checked={scale === 5}
-                                                onChange={(e) => setScale(Number(e.target.value))}
-                                                className="form-checkbox h-5 w-5 text-indigo-600"
-                                            />
-                                            <span className="ml-2">1:20</span>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label className="inline-flex items-center">
-                                            <input type="checkbox" value="4" checked={scale === 4}
-                                                onChange={(e) => setScale(Number(e.target.value))}
-                                                className="form-checkbox h-5 w-5 text-indigo-600"
-                                            />
-                                            <span className="ml-2">1:25</span>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label className="inline-flex items-center">
-                                            <input type="checkbox" value="2" checked={scale === 2}
-                                                onChange={(e) => setScale(Number(e.target.value))}
-                                                className="form-checkbox h-5 w-5 text-indigo-600"
-                                            />
-                                            <span className="ml-2">1:50</span>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label className="inline-flex items-center">
-                                            <input type="checkbox" value="1" checked={scale === 1}
-                                                onChange={(e) => setScale(Number(e.target.value))}
-                                                className="form-checkbox h-5 w-5 text-indigo-600"
-                                            />
-                                            <span className="ml-2">1:100</span>
-                                        </label>
-                                    </li>
-                                    <li>
-                                        <label className="inline-flex items-center">
-                                            <input type="checkbox" value="0.5" checked={scale === 0.5}
-                                                onChange={(e) => setScale(Number(e.target.value))}
-                                                className="form-checkbox h-5 w-5 text-indigo-600"
-                                            />
-                                            <span className="ml-2">1:200</span>
-                                        </label>
-                                    </li>
+                                    {scales.map(({ value, label }) => (
+                                        <li key={value}>
+                                            <label className="inline-flex items-center">
+                                                <input type="radio" value={value} checked={settings.scale === value}
+                                                    onChange={(e) => setScale(Number(e.target.value))}
+                                                    className="form-radio h-5 w-5 text-indigo-600" />
+                                                <span className="ml-2">{label}</span>
+                                            </label>
+                                        </li>
+                                    ))}
                                 </ul>
                             </details>
                         </li>
@@ -152,20 +121,10 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, info
                                 <summary>{t("position_r")}</summary>
                                 <ul>
                                     <li>
-
                                         <input type="checkbox" className="toggle toggle-success"
-                                            checked={isInverted}
-                                            onChange={(e) => {
-                                                if (socket) {
-                                                    //  setIsInverted(!isInverted)
-                                                    socket.send(JSON.stringify({
-                                                        action: 'isInverted',
-                                                        data: {
-                                                            "isInverted": e.target.checked
-                                                        }
-                                                    }));
-                                                }
-                                            }} />{isInverted ? <p>{t("inverted")}</p> : <p>{t("notinverted")}</p>}
+                                            checked={settings.isInverted}
+                                            onChange={inverted} />
+                                        {settings.isInverted ? <p>{t("inverted")}</p> : <p>{t("notinverted")}</p>}
 
                                     </li>
                                 </ul>
@@ -176,9 +135,9 @@ const Config: React.FC<ConfigProps> = ({ socket, header, isInverted, scale, info
                                 <summary>{t("visibility")}</summary>
                                 <ul>
                                     <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd} modifiers={[restrictToVerticalAxis]}>
-                                        <SortableContext items={header.map((col) => col.Name)} strategy={verticalListSortingStrategy}>
+                                        <SortableContext items={settings.header.map((col) => col.Name)} strategy={verticalListSortingStrategy}>
                                             <div>
-                                                {header.map((col) =>
+                                                {settings.header.map((col) =>
                                                     <SortableItem key={col.Name} col={col} toggleVisibility={toggleVisibility} deleteColumn={deleteColumn} />
                                                 )}
                                             </div>

@@ -1,10 +1,37 @@
 import { useEffect, useState, useMemo } from "react";
+import { atSideBarState } from "../../state/atomEditor";
+import { useSetRecoilState } from "recoil";
 import contacts from '../../contacts.json';
+import { Circles } from "./types";
 
-const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact, prevContact, zindex }) => {
+interface LithologyProps {
+  isInverted: boolean;
+  rowIndex: number;
+  Height: number;
+  Width: number;
+  File: number;
+  ColorFill: string;
+  ColorStroke: string;
+  Zoom: number;
+  circles: Circles[];
+  addCircles: (rowIndex: number, insertIndex: number, point: number) => void;
+  openModalPoint: (index, insertIndex, x, name) => void;
+  handleClickRow: (rowIndex: number, entityType: string) => void;
+  tension: number;
+  rotation: number;
+  contact: string;
+  prevContact: string;
+  zindex: number;
+
+}
+
+
+const Lithology: React.FC<LithologyProps> = ({ isInverted, rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, handleClickRow, tension, rotation, contact, prevContact, zindex }) => {
 
   const amplitude = 4;
   const resolution = 1;
+
+  const setAtSideBar = useSetRecoilState(atSideBarState);
 
   const functionContact = (startXX, endXX, endYY, contact, up) => {
     var maxWidth = up ? (startXX - endXX) : (endXX - startXX); // ancho disponible
@@ -20,7 +47,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
     if (contact === "95" || contact === "106" || contact === "85") {
       if (up) {
         let scaledPath = "";
-        let scaleFactor = maxWidth / patternWidth; 
+        let scaleFactor = maxWidth / patternWidth;
 
         for (let j = 0; j < path?.length; j++) {
           const partes = path[j].match(/[LC]|\-?\d+/g);
@@ -53,9 +80,9 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           const tipo = partes[0];
           var value = 0;
           if (tipo === "L") {
-            value = parseFloat(partes[1]); 
+            value = parseFloat(partes[1]);
           } else if (tipo === "C") {
-            value = Math.min(parseFloat(partes[5]),parseFloat(partes[3]),parseFloat(partes[1])); 
+            value = Math.min(parseFloat(partes[5]), parseFloat(partes[3]), parseFloat(partes[1]));
           }
 
           if (value < spaceLeft && value >= maxValidValue) {
@@ -67,13 +94,13 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
 
         // console.log(maxValidValue,spaceLeft)
 
-//        newPathData += `L ${startXX-maxValidValue} ${Height}`
+        //        newPathData += `L ${startXX-maxValidValue} ${Height}`
 
-        for (let i = (startIndex+1); i < path?.length - (contact === "104" ? 2 : 0); i++) {
+        for (let i = (startIndex + 1); i < path?.length - (contact === "104" ? 2 : 0); i++) {
           const partes = path[i].match(/[LC]|\-?\d+/g);
           const tipo = partes[0];
           let newSegment = "";
-          if(i === startIndex){
+          if (i === startIndex) {
             newSegment += `L ${partes[1]} ${partes[2]}`
           }
           if (tipo === "L") {
@@ -412,7 +439,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   const patternId = `pattern-${rowIndex}`;
 
   return (
-    <svg width={Width} height={Height} opacity={0.99} id={File} //id={`svg-${rowIndex}`}
+    <svg width={Width} height={Height} opacity={0.99} id={File.toString()} //id={`svg-${rowIndex}`}
       overflow='visible'
       className={`relative z-[${zindex}]`}
     // style={{
@@ -434,9 +461,9 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
         strokeWidth="0.8"
         onClick={() => {
           handleClickRow(rowIndex, 'Litologia')
-          setSideBarState({
-            sideBar: true,
-            sideBarMode: "polygon"
+          setAtSideBar({
+            isOpen: true,
+            entityType: "lithology", actionType: "edit"
           })
         }}
       />
@@ -541,7 +568,6 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           fill={points.Movable ? 'purple' : 'transparent'}
           onClick={() => {
             if (points.Movable) {
-              //(document.getElementById('modalPoint') as HTMLDialogElement).showModal();
               openModalPoint(rowIndex, index, circles[index].X, circles[index].Name);
             }
           }}
@@ -556,4 +582,4 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   );
 };
 
-export default PathComponent;
+export default Lithology;

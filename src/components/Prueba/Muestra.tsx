@@ -1,6 +1,23 @@
 import { useState } from "react";
+import { atSettings, atSideBarState } from "../../state/atomEditor";
+import { useSetRecoilState, useRecoilValue } from "recoil";
+import { Muestra } from "./types";
 
-const Muestra = ({ keyID, data, setSideBarState, setFormMuestra, scale, litologiaX, columnW, isInverted }) => {
+interface MuestrasProps {    
+    keyID: string;
+    data: Muestra;
+    setFormMuestra: any;
+    // scale: number;
+    litologiaX: number;
+    columnW: number;
+    // isInverted: boolean;
+
+}
+
+const Muestras: React.FC<MuestrasProps> = ({ keyID, data, setFormMuestra, litologiaX, columnW }) => {
+
+    const setAtSideBar = useSetRecoilState(atSideBarState);
+    const settings = useRecoilValue(atSettings)
 
     const height = 30;
     const width = 30;
@@ -8,11 +25,11 @@ const Muestra = ({ keyID, data, setSideBarState, setFormMuestra, scale, litologi
     const centerX = data.x * columnW;
     const centerY = (data.upper + data.lower) / 2;
 
-    const upper = data.upper * scale;
-    const lower = data.lower * scale;
+    const upper = data.upper * settings.scale;
+    const lower = data.lower * settings.scale;
 
     const gTranslateX = centerX - (width / 2);
-    const gTranslateY = centerY * scale - (height / 2);
+    const gTranslateY = centerY * settings.scale - (height / 2);
 
     const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
 
@@ -25,9 +42,9 @@ const Muestra = ({ keyID, data, setSideBarState, setFormMuestra, scale, litologi
     };
 
     const a = () => {
-        setSideBarState({
-            sideBar: true,
-            sideBarMode: "editMuestra"
+        setAtSideBar({
+            isOpen: true,
+            entityType: "sample", actionType: "edit"
         })
 
         setFormMuestra({ ...data, id: keyID, muestraTextCopy: data.muestraText });
@@ -40,7 +57,7 @@ const Muestra = ({ keyID, data, setSideBarState, setFormMuestra, scale, litologi
             onMouseLeave={handleMouseLeave}
             className="muestraUnit"
             //   transform={isInverted ? "scale(1,-1)" : "none"}
-            transform={isInverted ? "none" : "scale(1,-1)"}
+            transform={settings.isInverted ? "none" : "scale(1,-1)"}
             style={{
                 //  transform: isInverted ? "scaleY(-1)" : "none",
                 transformOrigin: "center",
@@ -64,7 +81,7 @@ const Muestra = ({ keyID, data, setSideBarState, setFormMuestra, scale, litologi
             <g
                 className="stroke-base-content"
                // transform={`translate(${gTranslateX},${gTranslateY})`}
-                transform={isInverted? `translate(${gTranslateX},${gTranslateY})`: `translate(${gTranslateX},${gTranslateY+height}) rotate(180) scale(-1,1)`}
+                transform={settings.isInverted? `translate(${gTranslateX},${gTranslateY})`: `translate(${gTranslateX},${gTranslateY+height}) rotate(180) scale(-1,1)`}
                 style={{ transformOrigin: `0 0` }}
             >
                 <foreignObject
@@ -82,4 +99,4 @@ const Muestra = ({ keyID, data, setSideBarState, setFormMuestra, scale, litologi
 
 }
 
-export default Muestra;
+export default Muestras;
