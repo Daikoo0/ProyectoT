@@ -78,15 +78,21 @@ export const atProjectInfo = atom<ProjectInfo>({
 
 //---------Lithology---------//
 // Lithology array [index] -> Lithology
-export const atLithologyTable = atom<LithologyTable[]>({
+export const atLithologyTable = atom<Record<string, LithologyTable>>({
     key: 'atLithologyTable',
+    default: {},
+});
+
+export const atLithologyTableOrder = atom<string[]>({
+    key: 'atLithologyTableOrder',
     default: [],
 });
+
 
 export const atLithologyTableLength = selector({
     key: 'atLithologyTableLength',
     get: ({ get }) => {
-        const Lithology = get(atLithologyTable);
+        const Lithology = get(atLithologyTableOrder);
         return Lithology.length;
     },
 });
@@ -98,7 +104,9 @@ export const lithologyPatternsAndContacts = selector({
         const patterns: string[] = [];
         const contacts: string[] = [];
 
-        Lithology.forEach(row => {
+        const order = get(atLithologyTableOrder);
+        order.forEach((id: string) => {
+            const row = Lithology[id];
             if (!patterns.includes(row["Litologia"].File) && lithoJson[row["Litologia"].File] > 1) {
                 patterns.push(row["Litologia"].File);
             }

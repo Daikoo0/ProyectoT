@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useSetRecoilState, useRecoilState } from 'recoil';
-import { atFossil, atomUsers, atSocket, atSideBarState, atLithologyTable, atSettings, atformFossil, atformSamples, atSamples } from '../../state/atomEditor';
+import { atLithologyTableOrder, atFossil, atomUsers, atSocket, atSideBarState, atLithologyTable, atSettings, atformFossil, atformSamples, atSamples } from '../../state/atomEditor';
 import { Link } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import Navbar_Editor from './Navbar_Editor';
@@ -46,7 +46,8 @@ const Grid = () => {
 
   // Datos
   const [infoProject, setInfoProject] = useState<ProjectInfo>();
-  const [data, setData] = useRecoilState(atLithologyTable)
+  const [data, setData] = useRecoilState(atLithologyTable);
+  const setOrder = useSetRecoilState(atLithologyTableOrder);
   // const [fossils, setFossils] = useState<Record<string, Fosil>>({});
   const setFossils = useSetRecoilState(atFossil);
   // const [muestras, setMuestras] = useState<Record<string, Muestra>>({});
@@ -189,7 +190,8 @@ const Grid = () => {
           case 'data': {
             console.log(shapeN)
             //const { Litologia, 'Estructura fosil': estructuraFosil, ...rest } = shapeN.data;
-            setData(shapeN.data)
+            setData(shapeN.datalist);
+            setOrder(shapeN.order);
             setFacies(shapeN.facies)
             setSettings({
               scale: shapeN.config.Scale,
@@ -253,19 +255,24 @@ const Grid = () => {
             break;
           }
           case 'añadir': {
-            // if (data.length > 0) {
-            setData(prev => {
-              const newData = [...prev];
-              newData.splice(shapeN.rowIndex, 0, shapeN.value);
-              return newData;
+            setData(prevTable => ({
+              ...prevTable, 
+              [shapeN.value.Id]: shapeN.value
+            }));
+            
+            setOrder(prevOrder => {
+              const newOrder = [...prevOrder];
+              newOrder.splice(shapeN.rowIndex, 0, shapeN.value.Id);
+              return newOrder;
             });
-            // } else {
-            //   setData(shapeN.value)
-            // }
             break;
           }
           case 'añadirEnd':
-            setData(prev => [...prev, shapeN.value]);
+            setData(prevTable => ({
+              ...prevTable,
+              [shapeN.value.Id]: shapeN.value
+            }));
+            setOrder(prev => [...prev, shapeN.value.Id]);
             break
           case 'toggleColumn':
             setSettings(prev => ({
@@ -300,53 +307,37 @@ const Grid = () => {
           case 'addMuestra':
             setMuestras(prev => ({ ...prev, [shapeN.idMuestra]: shapeN.value }));
             break
-          case 'addCircle':
+          case 'addCircle': // // // // // // Revisar 
             setData(prev => {
-              const newData = [...prev];
-              newData[shapeN.rowIndex] = {
-                ...newData[shapeN.rowIndex],
-                Litologia: {
-                  ...newData[shapeN.rowIndex].Litologia,
-                  ["Circles"]: shapeN.value
-                }
-              };
+              const newData = {...prev};
+              newData[shapeN.rowId].Litologia.Circles = shapeN.value; 
               return newData;
-            });
+            })
             break
-          case 'delete': {
+          case 'delete': { // // // // // // Revisar
             setData(prev => {
-              const newData = [...prev];
-              newData.splice(shapeN.rowIndex, 1);
+              const newData = { ...prev };
+              delete newData[shapeN.rowIndex];
               return newData;
-            });
+            }); 
+            setOrder(prev => prev.filter((_, index) => index !== shapeN.rowIndex));
+
             break;
           }
           case 'editPolygon':
             setData(prev => {
-              const newData = [...prev];
-              newData[shapeN.rowIndex] = {
-                ...newData[shapeN.rowIndex],
-                Litologia: {
-                  ...newData[shapeN.rowIndex].Litologia,
-                  [shapeN.key]: shapeN.value
-                }
-              };
+              const newData = {...prev};
+              newData[shapeN.rowId].Litologia[shapeN.column] = shapeN.value;
               return newData;
             });
             break;
           case 'editText':
-            setData(prev =>
-              prev.map((item, index) =>
-                index === shapeN.rowIndex
-                  ? {
-                    ...item,
-                    Columns: {
-                      ...item.Columns,
-                      [shapeN.key]: shapeN.value
-                    }
-                  }
-                  : item
-              )
+            setData(prev => {
+              const newData = {...prev};
+              newData[shapeN.rowId].Columns[shapeN.column] = shapeN.value;
+              return newData;
+            }
+              
             );
             break;
           case 'editFosil':
@@ -444,9 +435,8 @@ const Grid = () => {
             })
             break;
           case 'drop':
-            console.log(shapeN.activeId, shapeN.overId)
-            setData((data) => {
-              return arrayMove(data, shapeN.activeId, shapeN.overId);
+            setOrder((order) => {
+              return arrayMove(order, shapeN.activeId, shapeN.overId);
             });
             break;
           case 'error':
@@ -788,13 +778,8 @@ const Grid = () => {
           />
 
           <Tabla
-            // Data
-            // setPdfData={setPdfData}
-            // pdfData={pdfData}
-            data={data}
             addCircles={addCircles}
             setSideBarState={setSideBarState}
-            // setFormFosil={setFormFosil}
             openModalPoint={openModalPoint}
             handleClickRow={handleClickRow}
             sendActionCell={sendActionCell}

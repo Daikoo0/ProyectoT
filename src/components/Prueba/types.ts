@@ -1,4 +1,5 @@
 export interface LithologyTable {
+    Id: string;
     Columns: { [key: string]: string };
     Litologia: LithologyType;
 }

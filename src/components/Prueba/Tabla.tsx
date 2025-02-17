@@ -434,7 +434,7 @@ const HeaderVal = ({ percentage, name, top, columnWidths }) => {
         </>)
 }
 
-const Tabla = ({ data, scale,
+const Tabla = ({ scale,
     addCircles, setSideBarState,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
