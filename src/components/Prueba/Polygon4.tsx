@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import contacts from '../../contacts.json';
 
 const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, ColorStroke, Zoom, circles, addCircles, openModalPoint, setSideBarState, handleClickRow, tension, rotation, contact, prevContact, zindex }) => {
@@ -20,7 +20,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
     if (contact === "95" || contact === "106" || contact === "85") {
       if (up) {
         let scaledPath = "";
-        let scaleFactor = maxWidth / patternWidth; 
+        let scaleFactor = maxWidth / patternWidth;
 
         for (let j = 0; j < path?.length; j++) {
           const partes = path[j].match(/[LC]|\-?\d+/g);
@@ -53,9 +53,9 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
           const tipo = partes[0];
           var value = 0;
           if (tipo === "L") {
-            value = parseFloat(partes[1]); 
+            value = parseFloat(partes[1]);
           } else if (tipo === "C") {
-            value = Math.min(parseFloat(partes[5]),parseFloat(partes[3]),parseFloat(partes[1])); 
+            value = Math.min(parseFloat(partes[5]), parseFloat(partes[3]), parseFloat(partes[1]));
           }
 
           if (value < spaceLeft && value >= maxValidValue) {
@@ -67,13 +67,13 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
 
         // console.log(maxValidValue,spaceLeft)
 
-//        newPathData += `L ${startXX-maxValidValue} ${Height}`
+        //        newPathData += `L ${startXX-maxValidValue} ${Height}`
 
-        for (let i = (startIndex+1); i < path?.length - (contact === "104" ? 2 : 0); i++) {
+        for (let i = (startIndex + 1); i < path?.length - (contact === "104" ? 2 : 0); i++) {
           const partes = path[i].match(/[LC]|\-?\d+/g);
           const tipo = partes[0];
           let newSegment = "";
-          if(i === startIndex){
+          if (i === startIndex) {
             newSegment += `L ${partes[1]} ${partes[2]}`
           }
           if (tipo === "L") {
@@ -332,6 +332,7 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
   );
 
   const [svgContent, setSvgContent] = useState('');
+  const [PatternComponent, setPatternComponent] = useState<React.FC | null>(null);
 
   useEffect(() => {
     if (File === 0) {
@@ -344,6 +345,10 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
       const response = await fetch(imageURL);
       const svgText = await response.text();
       updateSvgContent(svgText);
+
+      const module = await import(`../../assets/patrones/${File}.tsx`);
+      setPatternComponent(() => module.default);
+
     };
 
     loadImage();
@@ -410,6 +415,8 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
 
 
   const patternId = `pattern-${rowIndex}`;
+  const useRefElement = useRef(null);
+  console.log("Renderizado de litologia")
 
   return (
     <svg width={Width} height={Height} opacity={0.99} id={File} //id={`svg-${rowIndex}`}
@@ -420,17 +427,39 @@ const PathComponent = ({ isInverted, rowIndex, Height, Width, File, ColorFill, C
     // }}
     >
 
-      <defs>
+      {/* <defs>
         <pattern id={patternId} patternUnits="userSpaceOnUse" width={Zoom} height={Zoom} patternTransform={`rotate(${rotation})`}  >
           <g dangerouslySetInnerHTML={{ __html: svgContent }} />
+        </pattern>
+      </defs>
+    */}
+
+      <defs>
+        <symbol id={`e-${patternId}`}>
+          <g ref={useRefElement}>
+            {PatternComponent ? <PatternComponent {...({
+              fill: ColorFill,
+              width: String(Zoom),
+              height: String(Zoom),
+              strokecolor : ColorStroke
+            } as React.SVGProps<SVGSVGElement>)} /> : null}
+          </g>
+        </symbol>
+
+        <pattern id={patternId}
+          patternUnits="userSpaceOnUse"
+          width={(Zoom)} 
+          height={(Zoom)}
+          patternTransform={`rotate(${rotation} ${Zoom/ 2} ${Zoom / 2})`} 
+        >
+          <use xlinkHref={`#e-${patternId}`} width={Zoom} height={Zoom} 
+          />
         </pattern>
       </defs>
 
       <path d={pathData}
         fill={File > 1 ? `url(#${patternId})` : "white"}
-        //  fill="transparent"
         className="stroke-current text-base-content cursor-pointer"
-        //className="stroke-base-content"-
         strokeWidth="0.8"
         onClick={() => {
           handleClickRow(rowIndex, 'Litologia')
