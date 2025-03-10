@@ -24,12 +24,12 @@ const Lithology: React.FC<LithologyProps> = ({ }) => {
         }));
     }
 
-
+console.log(SideBar)
 
     return (
         <>
             {
-                SideBar.actionType === 'edit' ? (
+                SideBar.actionType === "edit" ? (
                     <EditLithology
                         resetFormLithology={resetFormLithology}
                         formLithology={formLithology}

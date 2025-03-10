@@ -3,8 +3,10 @@ import { useRecoilValue } from "recoil";
 import { atSocket, atSideBarState, atSettings } from "../../../state/atomEditor";
 import Fossils from "./Fossils";
 import Lithology from "./Lithology";
+import Samples from "./Samples";
+import Config from "./Config";
+import EditText from "./EditText";
 import { formLithology, EditingUser } from "../types";
-
 
 interface SideBarProps {
   formData: formLithology;
@@ -38,13 +40,15 @@ const SideBar: React.FC<SideBarProps> = ({ formData, editingUsers, alturaTd }) =
         (() => {
           switch (sideBarState.entityType) {
             case 'fossil':
-              return (
-                <Fossils alturaTd={alturaTd} />
-              );
+              return (<Fossils alturaTd={alturaTd} />);
             case 'lithology':
-              return (
-                <Lithology />
-              );
+              return (<Lithology />);
+            case 'sample':
+              return (<Samples alturaTd={alturaTd} />);
+            case 'config':
+              return(<Config/>);
+            case 'text':
+              return(<EditText/>)
             // case "config":
             //   return (
             //     <Config infoProject={infoProject} handleInfoProject={handleInfoProject} socket={socket} settings={settings} isInverted={isInverted} scale={scale} setScale={setScale}/>

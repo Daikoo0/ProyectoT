@@ -32,7 +32,7 @@ export const atSettings = atom<settings>({
 
 export const atSettingsHeader = selector({
     key: "atSettingsHeader",
-    get: ({ get }) => {
+    get: ({ get }) => { 
         return get(atSettings).header;
     },
 });
@@ -161,12 +161,12 @@ export const atformFossil = atom<formFosil>({
 //---------Samples---------//   
 
 export const atSamples = atom<Record<string, Muestra>>({
-    key: 'formFosil',
+    key: 'atSamples',
     default: {},
 });
 
 export const atformSamples = atom<formMuestra>({
-    key: 'atSamples',
+    key: 'formSamples',
     default: {
         id: '',
         upper: 0,

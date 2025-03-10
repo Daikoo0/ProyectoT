@@ -6,24 +6,18 @@ import { useTranslation } from 'react-i18next';
 import SelectTheme from '../../Web/SelectTheme';
 import LangSelector from '../../Web/LanguageComponent';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { ProjectInfo } from '../types';
-import { atSocket, atSettings } from '../../../state/atomEditor';
-import { useRecoilValue } from 'recoil';
+import { atSocket, atSettings, atProjectInfo } from '../../../state/atomEditor';
+import { useRecoilValue, useRecoilState } from 'recoil';
 
 interface ConfigProps {
-    isInverted: boolean;
-    scale: number;
-    setScale: React.Dispatch<React.SetStateAction<number>>;
-    handleInfoProject: (formData: FormData) => void;
-    infoProject: ProjectInfo;
 }
 
-const Config: React.FC<ConfigProps> = ({ infoProject, setScale, handleInfoProject }) => {
+const Config: React.FC<ConfigProps> = () => {
 
     const { t } = useTranslation(['Editor']);
 
     const socket = useRecoilValue(atSocket);
-    const settings = useRecoilValue(atSettings);
+    const [settings, setSettings] = useRecoilState(atSettings);
 
     const handleDragEnd = (event: any) => {
         const { active, over } = event;
@@ -63,14 +57,16 @@ const Config: React.FC<ConfigProps> = ({ infoProject, setScale, handleInfoProjec
 
     const inverted = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (socket) {
-            socket.send(JSON.stringify({
+            socket.send(JSON.stringify({ 
                 action: 'isInverted',
                 data: {
                     "isInverted": e.target.checked
                 }
             }));
         }
+        //setSettings(prev => ({...prev, isInverted: e.target.checked}))
     }
+
 
     const scales = [
         { value: 10, label: '1:10' },
@@ -90,7 +86,7 @@ const Config: React.FC<ConfigProps> = ({ infoProject, setScale, handleInfoProjec
                 <details >
                     <summary>{t("info_column")}</summary>
 
-                    <EditInfoProject infoProject={infoProject} handleInfoProject={handleInfoProject} />
+                    <EditInfoProject />
 
                 </details>
             </li>
@@ -107,7 +103,7 @@ const Config: React.FC<ConfigProps> = ({ infoProject, setScale, handleInfoProjec
                                         <li key={value}>
                                             <label className="inline-flex items-center">
                                                 <input type="radio" value={value} checked={settings.scale === value}
-                                                    onChange={(e) => setScale(Number(e.target.value))}
+                                                    onChange={(e) => setSettings(prev => ({...prev, scale: Number(e.target.value)}))}
                                                     className="form-radio h-5 w-5 text-indigo-600" />
                                                 <span className="ml-2">{label}</span>
                                             </label>
@@ -125,7 +121,6 @@ const Config: React.FC<ConfigProps> = ({ infoProject, setScale, handleInfoProjec
                                             checked={settings.isInverted}
                                             onChange={inverted} />
                                         {settings.isInverted ? <p>{t("inverted")}</p> : <p>{t("notinverted")}</p>}
-
                                     </li>
                                 </ul>
                             </details>
@@ -172,14 +167,15 @@ interface FormData {
 }
 
 interface EditInfoProjectProps {
-    infoProject: FormData;
-    handleInfoProject: (formData: FormData) => void;
+
 }
 
 
-const EditInfoProject: React.FC<EditInfoProjectProps> = React.memo(({ infoProject, handleInfoProject }) => {
+const EditInfoProject: React.FC<EditInfoProjectProps> = React.memo(() => {
 
     const { t } = useTranslation(['Editor']);
+    const infoProject = useRecoilValue(atProjectInfo);
+    const socket = useRecoilValue(atSocket);
 
     const [formData, setFormData] = useState<FormData>({
         Name: infoProject.Name,
@@ -189,6 +185,7 @@ const EditInfoProject: React.FC<EditInfoProjectProps> = React.memo(({ infoProjec
     });
 
     const [isModified, setIsModified] = useState(false);
+
 
     useEffect(() => {
         const isFormModified =
@@ -202,7 +199,11 @@ const EditInfoProject: React.FC<EditInfoProjectProps> = React.memo(({ infoProjec
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        handleInfoProject(formData);
+        // handleInfoProject(formData);
+        socket.send(JSON.stringify({
+            action: 'infoP',
+            data: formData
+        }));
     };
 
     return (

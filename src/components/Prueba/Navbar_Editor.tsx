@@ -1,6 +1,6 @@
 import React, { MutableRefObject } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { usersSelector, atSideBarState, atSocket } from '../../state/atomEditor';
+import { usersSelector, atSideBarState, atSocket, atProjectInfo } from '../../state/atomEditor';
 import { Link } from 'react-router-dom';
 import Print from './Print';
 
@@ -8,7 +8,7 @@ interface NavbarProps {
     setFormData: (data: any) => void;
     // socket: WebSocket;
     t: (key: string) => string;
-    infoProject: { [key: string]: any } | null;
+  //  infoProject: { [key: string]: any } | null;
     initialFormData: any;
     tokenLink: ({ editor: string; reader: string });
     setTokenLink: (state: { editor: string; reader: string }) => void;
@@ -26,7 +26,7 @@ interface InviteModalProps {
 const Navbar: React.FC<NavbarProps> = ({
     setFormData,
     t,
-    infoProject,
+   // infoProject,
     initialFormData,
     tokenLink,
     setTokenLink,
@@ -35,6 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
     const setSideBarState = useSetRecoilState(atSideBarState);
     const socket = useRecoilValue(atSocket);
+    const infoProject = useRecoilValue(atProjectInfo);
 
     const config = () => {
         setSideBarState({

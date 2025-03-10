@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, CSSProperties, useMemo } from "react";
-import { atFossil, atSideBarState, atformFossil, atSettingsHeader } from "../../state/atomEditor";
+import React, { useState, useRef, useEffect, CSSProperties, useMemo } from "react";
+import { atFossil, atSideBarState, atformFossil, atSettingsHeader, atSettings, atSamples, atLithologyTable, atLithologyTableOrder } from "../../state/atomEditor";
 import { useSetRecoilState, useRecoilValue } from "recoil";
 import Lithology from "./Lithology";
 import Fosil from "./Fosil";
@@ -13,23 +13,23 @@ import { SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sort
 import { CSS } from '@dnd-kit/utilities';
 import { TableOptions, Row, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 import Symbology from './Symbology'
-import { Col } from "./types";
+import { LithologyTable } from '../../components/Prueba/types'
 
-interface Layer {
-    userId: string;
-    Columns: any;
-    Litologia: any;
-}
+// interface Layer {
+//     // userId: string;
+//     Columns: any;
+//     Litologia: any;
+// }
 
 const pix = 2
 
-const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
+const RowDragHandleCell = ({ row }: { row: Row<LithologyTable> }) => {
     const { attributes, listeners } = useSortable({
         id: row.id,
     });
 
     return (
-        <button {...attributes} {...listeners}  style={{
+        <button {...attributes} {...listeners} style={{
             padding: 0,
             display: 'flex',
             justifyContent: 'center',
@@ -42,18 +42,18 @@ const RowDragHandleCell = ({ row }: { row: Row<Layer> }) => {
     );
 };
 
-const DraggableRow = ({ row, index, header, isInverted, columnWidths
+const DraggableRow = ({ row, index, columnWidths
     , openModalPoint, handleClickRow, addCircles, prevContact, rowspan, alturaTd, editingUsers,
-    sendActionCell, hovered, scale, facies, setFormFacies, adfas, setFormMuestra, muestras,
+    sendActionCell, hovered, facies, setFormFacies, adfas, setFormMuestra,
     length
 }: {
-    row: Row<Layer>;
+    row: Row<LithologyTable>;
     index: number;
-    header: Array<Col>;
+    // header: Array<Col>;
     isInverted: boolean;
     // setSideBarState: (state: { sideBar: boolean, sideBarMode: string }) => void,
     columnWidths: any;
-    openModalPoint:  (index, insertIndex, x, name) => void;
+    openModalPoint: (index, insertIndex, x, name) => void;
     handleClickRow: (rowIndex: number, columnName: string) => void;
     addCircles: (rowIndex: number, insertIndex: number, point: number) => void;
     prevContact: string;
@@ -63,13 +63,13 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
     sendActionCell: (rowIndex: number, columnIndex: number) => void;
     // setFormFosil: (state: { id: string, upper: number, lower: number, fosilImg: string, x: number, fosilImgCopy: string }) => void;
     hovered: boolean;
-    scale: number;
+    // scale: number;
     facies: any;
     setFormFacies(state: { facie: string });
     adfas: any;
     setFormMuestra: (state: { id: string, upper: number, lower: number, muestraText: string, x: number, muestraTextCopy: string }) => void;
     // fossils: any;
-    muestras: any;
+    // muestras: any;
     length: number;
 }) => {
     const { transform, transition, setNodeRef, isDragging } = useSortable({
@@ -78,7 +78,9 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
 
     const setFormFossil = useSetRecoilState(atformFossil);
     const setAtSideBar = useSetRecoilState(atSideBarState);
+    const settings = useRecoilValue(atSettings);
     const fossils = useRecoilValue(atFossil);
+    const muestras = useRecoilValue(atSamples);
 
     const style: CSSProperties = {
         transform: CSS.Transform.toString(transform),
@@ -87,7 +89,7 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
         zIndex: isDragging ? 1000 : length - Number(row.id),
         position: 'relative',
         padding: 0,
-        height: (row.original.Litologia.Height * scale) - pix,
+        height: (row.original.Litologia.Height * settings.scale) - pix,
         margin: 0,
     };
 
@@ -111,7 +113,7 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                 className="border border-base-content"
                             >
 
-                                <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={isInverted} scale={scale} />
+                                <Ruler height={alturaTd} width={(columnWidths["Espesor"] || 70)} isInverted={settings.isInverted} scale={settings.scale} />
 
                             </td>
                         );
@@ -121,12 +123,12 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                 }
                 if (cell.column.id === "Litologia") {
                     return (
-                        <td key={cell.id} style={{ padding: 0, height: (cell.row.original.Litologia.Height * scale) - pix }}>
+                        <td key={cell.id} style={{ padding: 0, height: (cell.row.original.Litologia.Height * settings.scale) - pix }}>
                             <Lithology
                                 zindex={row.getVisibleCells().length - index}
-                                isInverted={isInverted}
+                                isInverted={settings.isInverted}
                                 rowIndex={index}//rowIndex={adjustedRowIndex}
-                                Height={(cell.row.original.Litologia.Height * scale)}// * scale}
+                                Height={(cell.row.original.Litologia.Height * settings.scale)}
                                 Width={columnWidths['Litologia'] || 250}
                                 File={lithoJson[cell.row.original.Litologia.File]}
                                 ColorFill={cell.row.original.Litologia.ColorFill}
@@ -173,7 +175,7 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                         className="h-full max-h-full"
                                         width={columnWidths["Estructura fosil"] || cell.column.getSize()}
                                         height={alturaTd < 153 ? alturaTd : ''}
-                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
+                                        overflow={settings.header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
                                     >
                                         {fossils
                                             ? Object.keys(fossils).map((data, index) => (
@@ -182,10 +184,8 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                                     key={index}
                                                     keyID={data}
                                                     data={fossils[data]}
-                                                    scale={scale}
                                                     litologiaX={columnWidths["Litologia"] || 200}
                                                     columnW={columnWidths["Estructura fosil"] || cell.column.getSize()}
-                                                    isInverted={isInverted}
                                                 />
                                             ))
                                             : null}
@@ -229,7 +229,7 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                         className="h-full max-h-full"
                                         width={columnWidths["Muestras"] || cell.column.getSize()}
                                         height={alturaTd < 153 ? alturaTd : ''}
-                                        overflow={header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
+                                        overflow={settings.header[cellIndex - 2]?.Name == "Litologia" ? "visible" : "hidden"}
                                     >
                                         {muestras
                                             ? Object.keys(muestras).map((data, index) => (
@@ -238,10 +238,8 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                                     keyID={data}
                                                     data={muestras[data]}
                                                     setFormMuestra={setFormMuestra}
-                                                    scale={scale}
                                                     litologiaX={columnWidths["Litologia"] || 200}
                                                     columnW={columnWidths["Muestra"] || cell.column.getSize()}
-                                                    isInverted={isInverted}
                                                 />
                                             ))
                                             : null}
@@ -274,7 +272,7 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                     className="h-full max-h-full"
                                     width={columnWidths["Facie"] || cell.column.getSize()}
                                     overflow="visible"
-                                    transform={isInverted ? "none" : "scale(1,-1)"}
+                                    transform={settings.isInverted ? "none" : "scale(1,-1)"}
                                     height={alturaTd < 153 ? alturaTd : ''}
                                 >
                                     {facies
@@ -309,16 +307,16 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                                                     fontSize={14}
                                                                     fontFamily="Times New Roman, Times, serif"
                                                                     className="fill fill-base-content"
-                                                                    x={isInverted ? 10 : -((parseFloat(value.y2) - parseFloat(value.y1)) * scale)}
+                                                                    x={settings.isInverted ? 10 : -((parseFloat(value.y2) - parseFloat(value.y1)) * settings.scale)}
                                                                     transform={
-                                                                        isInverted
+                                                                        settings.isInverted
                                                                             ?
-                                                                            `rotate(90, 5, ${parseFloat(value.y1) * scale})`
+                                                                            `rotate(90, 5, ${parseFloat(value.y1) * settings.scale})`
                                                                             :
-                                                                            `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * scale})`
+                                                                            `scale(-1, 1) rotate(${270}, -5, ${parseFloat(value.y1) * settings.scale})`
 
                                                                     }
-                                                                    y={(parseFloat(value.y1) - 2) * scale}
+                                                                    y={(parseFloat(value.y1) - 2) * settings.scale}
 
                                                                 >
                                                                     {key}
@@ -329,9 +327,9 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                                                                 key={"rect-" + key + value + i}
                                                                 className="fill fill-base-content"
                                                                 x={xPosp}
-                                                                y={parseFloat(value.y1) * scale}
+                                                                y={parseFloat(value.y1) * settings.scale}
                                                                 width={wp}
-                                                                height={(parseFloat(value.y2) - parseFloat(value.y1)) * scale}
+                                                                height={(parseFloat(value.y2) - parseFloat(value.y1)) * settings.scale}
                                                                 onClick={() => {
                                                                     setAtSideBar({
                                                                         isOpen: true,
@@ -354,8 +352,8 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                 }
                 if (cell.column.id === "drag-handle") {
                     return (
-                        <td key={cell.id} style={{ height: (row.original.Litologia.Height * scale) - pix, width: cell.column.getSize() }} className="no-print">
-                            <div style={{ height: (row.original.Litologia.Height * scale) - pix }}>
+                        <td key={cell.id} style={{ height: (row.original.Litologia.Height * settings.scale) - pix, width: cell.column.getSize() }} className="no-print">
+                            <div style={{ height: (row.original.Litologia.Height * settings.scale) - pix }}>
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </div>
                         </td>
@@ -364,7 +362,7 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                 return (
                     <td key={cell.id} style={{
                         width: cell.column.getSize(),
-                        height: (row.original.Litologia.Height * scale) - pix,
+                        height: (row.original.Litologia.Height * settings.scale) - pix,
                         overflow: 'hidden',
                         padding: '0',
                         top: '0',
@@ -387,13 +385,13 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
                         onMouseLeave={(editingUsers?.[`[${row.id},${cellIndex}]`] ? cdef["handleMouseLeave"] : null)}
                     >
 
-                        <div style={{ display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: (cell.row.original.Litologia.Height * scale) - pix, }}>
+                        <div style={{ display: 'block', boxSizing: 'border-box', margin: 0, padding: 0, top: 0, overflow: "hidden", maxHeight: (cell.row.original.Litologia.Height * settings.scale) - pix, }}>
                             {(editingUsers?.[`[${row.id},${cellIndex}]`] && hovered) ?
                                 <p style={{ top: 0, fontSize: 12, backgroundColor: editingUsers?.[`[${row.id},${cellIndex}]`]?.color }}>{editingUsers?.[`[${row.id},${cellIndex}]`]?.name}</p>
                                 : <></>
                             }
                             <div
-                                style={{ overflow: hovered ? "auto" : "hidden", height: (row.original.Litologia.Height * scale) - pix }}
+                                style={{ overflow: hovered ? "auto" : "hidden", height: (row.original.Litologia.Height * settings.scale) - pix }}
                                 className="ql-editor prose"
                                 dangerouslySetInnerHTML={{ __html: row.original.Columns[cell.column.id] }} />
                         </div>
@@ -406,39 +404,121 @@ const DraggableRow = ({ row, index, header, isInverted, columnWidths
     );
 };
 
-const HeaderVal = ({ percentage, name, top, columnWidths }) => {
-    var x = percentage * (columnWidths["Litologia"] || 250)
-    var pos = top ? 60 : 105
-    return (
-        <>
-            <path id={name} d={`M${x},${pos} L${x},0`} />
-            {/* <text className="stroke stroke-accent-content" fontWeight="1" fontSize="10"><textPath href={`#${name}`}>
-                {name}
-            </textPath>
-            </text> */}
-            <foreignObject
-                x={x - 10}
-                y={pos - 10}
-                width="50"
-                height="20"
-                transform={`rotate(${270}, ${x}, ${pos})`}
-            > <p className="text text-accent-content" style={{ fontFamily: "Times New Roman, Times, serif", fontSize: "12px", fontWeight: "bold" }}>
-                    {name}
-                </p></foreignObject>
-            {top ? <>
-                <line className="stroke stroke-accent-content" y1="52%" y2="60%" x1={x} x2={x} strokeWidth="1"></line>
-            </> : <>
-                <line className="stroke stroke-accent-content" y1="90%" y2="100%" x1={x} x2={x} strokeWidth="1"></line>
-            </>
-            }
-        </>)
-}
+const LitologiaHeader = ({ columnWidths }) => {
+    // Definimos las opciones para los HeaderVal
+    const options = [
+        { percentage: 0.55, name: "clay", top: false },
+        { percentage: 0.55, name: "mud", top: true },
+        { percentage: 0.59, name: "silt", top: false },
+        { percentage: 0.63, name: "vf", top: false },
+        { percentage: 0.63, name: "wacke", top: true },
+        { percentage: 0.67, name: "f", top: false },
+        { percentage: 0.71, name: "m", top: false },
+        { percentage: 0.71, name: "pack", top: true },
+        { percentage: 0.75, name: "c", top: false },
+        { percentage: 0.79, name: "vc", top: false },
+        { percentage: 0.79, name: "grain", top: true },
+        { percentage: 0.83, name: "gran", top: false },
+        { percentage: 0.83, name: "redstone", top: true },
+        { percentage: 0.87, name: "pebb", top: false },
+        { percentage: 0.87, name: "rud & bound", top: true },
+        { percentage: 0.91, name: "cobb", top: false },
+        { percentage: 0.91, name: "rudstone", top: true },
+        { percentage: 0.95, name: "boul", top: false },
+    ];
 
-const Tabla = ({ scale,
+    // Ancho de la columna "Litologia" o un valor por defecto
+    const litologiaWidth = columnWidths["Litologia"] || 250;
+
+    return (
+        <svg
+            id="headerLit"
+            className="absolute"
+            width={litologiaWidth / 2}
+            height="120"
+            overflow={'visible'}
+            style={{ background: "transparent" }}
+        >
+            {/* Líneas principales */}
+            <line
+                className="stroke stroke-accent-content"
+                y1="0%"
+                y2="100%"
+                x1={0.5 * litologiaWidth}
+                x2={0.5 * litologiaWidth}
+                strokeWidth="1"
+            />
+            <line
+                className="stroke stroke-accent-content"
+                y1="60%"
+                y2="60%"
+                x1={0.5 * litologiaWidth}
+                x2={litologiaWidth}
+                strokeWidth="1"
+            />
+
+            {/* Renderizamos las opciones dinámicamente */}
+            {options.map((option, index) => {
+                const x = option.percentage * litologiaWidth;
+                const pos = option.top ? 60 : 105;
+
+                return (
+                    <React.Fragment key={index}>
+                        {/* Línea vertical */}
+                        <path id={option.name} d={`M${x},${pos} L${x},0`} />
+
+                        {/* Texto rotado */}
+                        <foreignObject
+                            x={x - 10}
+                            y={pos - 10}
+                            width="50"
+                            height="20"
+                            transform={`rotate(${270}, ${x}, ${pos})`}
+                        >
+                            <p
+                                className="text text-accent-content"
+                                style={{
+                                    fontFamily: "Times New Roman, Times, serif",
+                                    fontSize: "12px",
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                {option.name}
+                            </p>
+                        </foreignObject>
+
+                        {/* Línea horizontal superior o inferior */}
+                        {option.top ? (
+                            <line
+                                className="stroke stroke-accent-content"
+                                y1="52%"
+                                y2="60%"
+                                x1={x}
+                                x2={x}
+                                strokeWidth="1"
+                            />
+                        ) : (
+                            <line
+                                className="stroke stroke-accent-content"
+                                y1="90%"
+                                y2="100%"
+                                x1={x}
+                                x2={x}
+                                strokeWidth="1"
+                            />
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </svg>
+    );
+};
+
+const Tabla = ({
     addCircles, setSideBarState,
     facies, setFormFacies,
     openModalPoint, handleClickRow, sendActionCell,
-    editingUsers, isInverted, alturaTd, setAlturaTd, socket, tableref, setFormMuestra, muestras }) => {
+    editingUsers, alturaTd, setAlturaTd, socket, tableref, setFormMuestra }) => {
     const { t } = useTranslation(['PDF']);
     const cellWidth = 150;
     var cellMinWidth = 150;
@@ -446,6 +526,14 @@ const Tabla = ({ scale,
     const [columnWidths, setColumnWidths] = useState({});
 
     const header = useRecoilValue(atSettingsHeader);
+
+    const lithologyTable = useRecoilValue(atLithologyTable);
+    const lithologyTableOrder = useRecoilValue(atLithologyTableOrder);
+    const settings = useRecoilValue(atSettings);
+
+    const data = useMemo(() => {
+        return lithologyTableOrder.map(id => lithologyTable[id]);
+    }, [lithologyTable, lithologyTableOrder]);
 
     const sensors = useSensors(
         useSensor(MouseSensor, {
@@ -511,16 +599,16 @@ const Tabla = ({ scale,
         data,
         columns,
         getCoreRowModel: getCoreRowModel(),
-        getRowId: (row: Layer) => row.userId,
+        // getRowId: (row: Layer) => row.userId,
         debugTable: true,
         debugHeaders: true,
         debugColumns: true,
-    } as TableOptions<Layer>);
+    } as TableOptions<LithologyTable>);
 
 
     const dataIds = useMemo<UniqueIdentifier[]>(
         () => table.getRowModel().rows.map((row) => row.id), // Utiliza el índice como id
-        [table.getRowModel().rows, header, isInverted, columns]
+        [table.getRowModel().rows, header, settings.isInverted, columns]
     );
 
 
@@ -569,47 +657,6 @@ const Tabla = ({ scale,
 
     const [hovered, setHovered] = useState(false); // Estado para controlar si se está pasando el mouse por encima
 
-    // const handleMouseEnter = () => {
-    //     setHovered(true);
-    // };
-
-    // const handleMouseLeave = () => {
-    //     setHovered(false);
-    // };
-
-
-    // const list = ["Sistema", "Edad", "Formacion", "Miembro", "Espesor", "Litologia", "Estructura fosil", "Facie", "Ambiente Depositacional", "Descripcion"]
-
-    // const handleColumns = (e, key) => {
-    //     var newHeaders = pdfData.header
-    //     if (e.target.checked) {
-    //         newHeaders.push(key)
-    //     } else {
-    //         const index = newHeaders.indexOf(key);
-    //         if (index !== -1) {
-    //             newHeaders.splice(index, 1);
-    //         }
-    //     }
-    //     setPdfData(prevState => ({
-    //         ...prevState,
-    //         header: newHeaders,
-    //     }));
-    //     Ab(pdfData.data, newHeaders, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, pdfData.indexesM, pdfData.oEstrat,
-    //         pdfData.oLev,
-    //         pdfData.etSec,
-    //         pdfData.date, isInverted)
-    // }
-
-    // const handleRows = (number) => {
-    //     var rowsBefore = [...pdfData.data];
-    //     var indexes = rowsBefore.map((row, index) => Number(row.Litologia.Height) > Number(number) ? index : -1)
-    //         .filter(index => index !== -1);
-    //     Ab(pdfData.data, pdfData.header, pdfData.format, pdfData.orientation, pdfData.customWidthLit, pdfData.scale, pdfData.fossils, pdfData.infoProject, indexes, pdfData.oEstrat,
-    //         pdfData.oLev,
-    //         pdfData.etSec,
-    //         pdfData.date, isInverted);
-    // }
-
     var adfas = useRef<HTMLTableSectionElement>(null);
 
     useEffect(() => {
@@ -617,7 +664,7 @@ const Tabla = ({ scale,
             if (adfas.current) {
                 const alturaBody = adfas.current.getBoundingClientRect().height;
                 const altura = alturaBody < 170
-                    ? data.reduce((total, item) => total + (item.Litologia?.Height * scale || 0), 0)
+                    ? data.reduce((total, item) => total + (item.Litologia?.Height * 1 || 0), 0)
                     : alturaBody;
 
                 setAlturaTd(altura);
@@ -631,338 +678,11 @@ const Tabla = ({ scale,
                 resizeObserver.disconnect();
             };
         }
-    }, [adfas.current, data, scale]);
+    }, [adfas.current, data]);
 
 
     return (
         <>
-            {/* <>
-                <dialog id="modal" className="modal">
-                    <div className="modal-box w-screen h-screen max-w-full max-h-full rounded-none">
-                        <div className="flex flex-col lg:flex-row h-full">
-
-                            <div className="flex flex-col flex-grow card w-full lg:w-7/10">
-                                <iframe id="main-iframe" className="w-full flex-grow" style={{ height: '100%' }}></iframe>
-                            </div>
-                            <div className="flex flex-col card w-full lg:w-3/10 overflow-y-auto">
-                                <div className="menu p-4 w-full text-base-content">
-                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
-                                        <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("paper_format")}</div>
-                                        <div className="collapse-content">
-                                            <select
-                                                value={pdfData.format}
-                                                onChange={(e) => {
-                                                    setPdfData((prevState) => ({
-                                                        ...prevState,
-                                                        format: e.target.value,
-                                                    }));
-                                                    Ab(
-                                                        pdfData.data,
-                                                        pdfData.header,
-                                                        e.target.value,
-                                                        pdfData.orientation,
-                                                        pdfData.customWidthLit,
-                                                        pdfData.scale,
-                                                        pdfData.fossils,
-                                                        pdfData.infoProject,
-                                                        pdfData.indexesM,
-                                                        pdfData.oEstrat,
-                                                        pdfData.oLev,
-                                                        pdfData.etSec,
-                                                        pdfData.date, isInverted
-                                                    );
-                                                }}
-                                                className="select select-bordered w-full mb-4"
-                                            >
-                                                <option className="bg-base-100 text-base-content" value={''} disabled>{t("choose_paper")}</option>
-                                                <option className="bg-base-100 text-base-content" value={'EXECUTIVE'}>Executive</option>
-                                                <option className="bg-base-100 text-base-content" value={'FOLIO'}>Folio</option>
-                                                <option className="bg-base-100 text-base-content" value={'LEGAL'}>Legal</option>
-                                                <option className="bg-base-100 text-base-content" value={'LETTER'}>Letter</option>
-                                                <option className="bg-base-100 text-base-content" value={'TABLOID'}>Tabloid</option>
-                                                <option className="bg-base-100 text-base-content" value={'4A0'}>4A0</option>
-                                                <option className="bg-base-100 text-base-content" value={'2A0'}>2A0</option>
-                                                <option className="bg-base-100 text-base-content" value={'A0'}>A0</option>
-                                                <option className="bg-base-100 text-base-content" value={'A1'}>A1</option>
-                                                <option className="bg-base-100 text-base-content" value={'A2'}>A2</option>
-                                                <option className="bg-base-100 text-base-content" value={'A3'}>A3</option>
-                                                <option className="bg-base-100 text-base-content" value={'A4'}>A4</option>
-                                                <option className="bg-base-100 text-base-content" value={'B0'}>B0</option>
-                                                <option className="bg-base-100 text-base-content" value={'B1'}>B1</option>
-                                                <option className="bg-base-100 text-base-content" value={'B2'}>B2</option>
-                                                <option className="bg-base-100 text-base-content" value={'B3'}>B3</option>
-                                                <option className="bg-base-100 text-base-content" value={'B4'}>B4</option>
-                                                <option className="bg-base-100 text-base-content" value={'C0'}>C0</option>
-                                                <option className="bg-base-100 text-base-content" value={'C1'}>C1</option>
-                                                <option className="bg-base-100 text-base-content" value={'C2'}>C2</option>
-                                                <option className="bg-base-100 text-base-content" value={'C3'}>C3</option>
-                                                <option className="bg-base-100 text-base-content" value={'RA0'}>RA0</option>
-                                                <option className="bg-base-100 text-base-content" value={'RA1'}>RA1</option>
-                                                <option className="bg-base-100 text-base-content" value={'RA2'}>RA2</option>
-                                                <option className="bg-base-100 text-base-content" value={'RA3'}>RA3</option>
-                                                <option className="bg-base-100 text-base-content" value={'RA4'}>RA4</option>
-                                                <option className="bg-base-100 text-base-content" value={'SRA0'}>SRA0</option>
-                                                <option className="bg-base-100 text-base-content" value={'SRA1'}>SRA1</option>
-                                                <option className="bg-base-100 text-base-content" value={'SRA2'}>SRA2</option>
-                                                <option className="bg-base-100 text-base-content" value={'SRA3'}>SRA3</option>
-                                                <option className="bg-base-100 text-base-content" value={'SRA4'}>SRA4</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
-                                        <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("header_info")}</div>
-                                        <div className="collapse-content">
-                                            <ul>
-                                                <li>
-                                                    <label >{t("o_est")}</label>
-                                                    <p>
-                                                        <input id="oEstrat" className="input input-bordered w-full" value={pdfData.oEstrat}
-                                                            onChange={(e) => setPdfData(prevState => ({
-                                                                ...prevState,
-                                                                oEstrat: e.target.value,
-                                                            }))} />
-                                                        <button className="btn btn-primary"
-                                                            onClick={() => {
-                                                                const val = document.getElementById('oEstrat')["value"];
-                                                                Ab(
-                                                                    pdfData.data,
-                                                                    pdfData.header,
-                                                                    pdfData.format,
-                                                                    pdfData.orientation,
-                                                                    pdfData.customWidthLit,
-                                                                    pdfData.scale,
-                                                                    pdfData.fossils,
-                                                                    pdfData.infoProject,
-                                                                    pdfData.indexesM,
-                                                                    val,
-                                                                    pdfData.oLev,
-                                                                    pdfData.etSec,
-                                                                    pdfData.date, isInverted
-                                                                );
-                                                            }}
-                                                        >Aplicar</button>
-                                                    </p>
-                                                </li>
-                                                <li>
-                                                    <label >{t("o_lev")}</label>
-                                                    <p>
-                                                        <input id="oLev" className="input input-bordered w-full" value={pdfData.oLev}
-                                                            onChange={(e) => setPdfData(prevState => ({
-                                                                ...prevState,
-                                                                oLev: e.target.value,
-                                                            }))} />
-                                                        <button className="btn btn-primary"
-                                                            onClick={() => {
-                                                                const val = document.getElementById('oLev')["value"];
-                                                                Ab(
-                                                                    pdfData.data,
-                                                                    pdfData.header,
-                                                                    pdfData.format,
-                                                                    pdfData.orientation,
-                                                                    pdfData.customWidthLit,
-                                                                    pdfData.scale,
-                                                                    pdfData.fossils,
-                                                                    pdfData.infoProject,
-                                                                    pdfData.indexesM,
-                                                                    pdfData.oEstrat,
-                                                                    val,
-                                                                    pdfData.etSec,
-                                                                    pdfData.date
-                                                                    , isInverted
-                                                                );
-                                                            }}
-                                                        >
-                                                            <p >{t("apply")}</p></button>
-                                                    </p>
-                                                </li>
-                                                <li>
-                                                    <label >{t("section_etiq")}</label>
-                                                    <p>
-                                                        <input id="etSec" className="input input-bordered w-full" value={pdfData.etSec}
-                                                            onChange={(e) => setPdfData(prevState => ({
-                                                                ...prevState,
-                                                                etSec: e.target.value,
-                                                            }))} />
-                                                        <button className="btn btn-primary"
-                                                            onClick={() => {
-                                                                const val = document.getElementById('etSec')["value"];
-                                                                Ab(
-                                                                    pdfData.data,
-                                                                    pdfData.header,
-                                                                    pdfData.format,
-                                                                    pdfData.orientation,
-                                                                    pdfData.customWidthLit,
-                                                                    pdfData.scale,
-                                                                    pdfData.fossils,
-                                                                    pdfData.infoProject,
-                                                                    pdfData.indexesM,
-                                                                    pdfData.oEstrat,
-                                                                    pdfData.oLev,
-                                                                    val,
-                                                                    pdfData.date, isInverted
-                                                                );
-                                                            }}
-                                                        ><p >{t("apply")}</p></button>
-                                                    </p>
-                                                </li>
-                                                <li>
-                                                    <label >{t("date")}</label>
-                                                    <p>
-                                                        <input id="date" className="input input-bordered w-full" value={pdfData.date}
-                                                            onChange={(e) => setPdfData(prevState => ({
-                                                                ...prevState,
-                                                                date: e.target.value,
-                                                            }))}
-                                                        />
-                                                        <button className="btn btn-primary"
-                                                            onClick={() => {
-                                                                const val = document.getElementById('date')["value"];
-                                                                Ab(
-                                                                    pdfData.data,
-                                                                    pdfData.header,
-                                                                    pdfData.format,
-                                                                    pdfData.orientation,
-                                                                    pdfData.customWidthLit,
-                                                                    pdfData.scale,
-                                                                    pdfData.fossils,
-                                                                    pdfData.infoProject,
-                                                                    pdfData.indexesM,
-                                                                    pdfData.oEstrat,
-                                                                    pdfData.oLev,
-                                                                    pdfData.etSec,
-                                                                    val, isInverted
-                                                                );
-                                                            }}
-                                                        ><p >{t("apply")}</p></button>
-                                                    </p>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-
-                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
-                                        <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("orientation")}</div>
-                                        <div className="collapse-content">
-                                            <div className="form-control w-full">
-                                                <label className="label-text">
-                                                    {pdfData.orientation === "portrait" ?
-                                                        <label>Vertical</label> :
-                                                        <label>Horizontal</label>}
-                                                </label>
-                                                <input
-                                                    type="checkbox"
-                                                    className="toggle toggle-success"
-                                                    checked={pdfData.orientation === "portrait"}
-                                                    onChange={(e) => {
-                                                        setPdfData((prevState) => ({
-                                                            ...prevState,
-                                                            orientation: (e.target.checked ? "portrait" : "landscape"),
-                                                        }));
-                                                        Ab(
-                                                            pdfData.data,
-                                                            pdfData.header,
-                                                            pdfData.format,
-                                                            e.target.checked ? "portrait" : "landscape",
-                                                            pdfData.customWidthLit,
-                                                            pdfData.scale,
-                                                            pdfData.fossils,
-                                                            pdfData.infoProject,
-                                                            pdfData.indexesM,
-                                                            pdfData.oEstrat,
-                                                            pdfData.oLev,
-                                                            pdfData.etSec,
-                                                            pdfData.date, isInverted
-                                                        );
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
-                                        <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("w_lit")}
-                                        </div>
-                                        <div className="collapse-content">
-                                            <select
-                                                value={pdfData.customWidthLit}
-                                                onChange={(e) => {
-                                                    setPdfData((prevState) => ({
-                                                        ...prevState,
-                                                        customWidthLit: e.target.value,
-                                                    }));
-                                                    Ab(
-                                                        pdfData.data,
-                                                        pdfData.header,
-                                                        pdfData.format,
-                                                        pdfData.orientation,
-                                                        e.target.value,
-                                                        pdfData.scale,
-                                                        pdfData.fossils,
-                                                        pdfData.infoProject,
-                                                        pdfData.indexesM,
-                                                        pdfData.oEstrat,
-                                                        pdfData.oLev,
-                                                        pdfData.etSec,
-                                                        pdfData.date, isInverted
-                                                    );
-                                                }}
-                                                className="select select-bordered w-full mb-4"
-                                            >
-                                                <option className="bg-base-100 text-base-content" value={""} disabled>{t("c_w_lit")}</option>
-                                                <option className="bg-base-100 text-base-content" value={'20%'}>20%</option>
-                                                <option className="bg-base-100 text-base-content" value={'25%'}>25%</option>
-                                                <option className="bg-base-100 text-base-content" value={'30%'}>30%</option>
-                                                <option className="bg-base-100 text-base-content" value={'40%'}>40%</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
-                                        <input type="checkbox" className="peer" />
-                                        <div className="collapse-title text-xl font-medium" >{t("visibility_rows")}</div>
-                                        <div className="collapse-content">
-                                            <p className="mb-2" >{t("delete_rows")}</p>
-                                            <div className="flex items-center space-x-2">
-                                                <input
-                                                    type="number"
-                                                    placeholder="En centímetros"
-                                                    id="heightInput"
-                                                    className="input input-bordered w-32 text-indigo-600"
-                                                /> <p>cm</p>
-                                                <button
-                                                    onClick={() => {
-                                                        const height = document.getElementById('heightInput')["value"];
-                                                        handleRows(height);
-                                                    }}
-                                                    className="btn btn-primary"
-                                                >
-                                                    <p >{t("apply")}</p>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                </div>
-
-                                <div className="modal-action mt-4">
-                                    <form method="dialog">
-                                        <button className="btn"><p >{t("close")}</p></button>
-                                    </form>
-                                </div>
-                            </div>
-
-
-                        </div>
-                    </div>
-                </dialog>
-            </> */}
-
             <div ref={tableref} className="py-16 pl-6">
                 <table style={{ height: '100px' }} >
                     <thead className={`relative sticky top-16 z-[1001]`}>
@@ -999,37 +719,7 @@ const Tabla = ({ scale,
 
                                             {col.header === "Litologia" ?
                                                 <>
-                                                    <svg
-                                                        id="headerLit"
-                                                        className="absolute"
-                                                        width={(columnWidths[col.header] || 250) / 2}
-                                                        height="120"
-                                                        overflow={'visible'}
-                                                        style={{
-                                                            background: "transparent",
-                                                        }}>
-                                                        <line className="stroke stroke-accent-content" y1="0%" y2="100%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={0.5 * (columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
-                                                        <line className="stroke stroke-accent-content" y1="60%" y2="60%" x1={0.5 * (columnWidths["Litologia"] || 250)} x2={(columnWidths["Litologia"] || 250)} strokeWidth="1"></line>
-
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"clay"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.55} name={"mud"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.59} name={"silt"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"vf"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.63} name={"wacke"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.67} name={"f"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"m"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.71} name={"pack"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.75} name={"c"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"vc"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.79} name={"grain"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"gran"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.83} name={"redstone"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"pebb"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.87} name={"rud & bound"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"cobb"} top={false} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.91} name={"rudstone"} top={true} />
-                                                        <HeaderVal columnWidths={columnWidths} percentage={0.95} name={"boul"} top={false} />
-                                                    </svg>
+                                                    <LitologiaHeader columnWidths={columnWidths} />
                                                 </> : <></>
                                             }
 
@@ -1091,7 +781,7 @@ const Tabla = ({ scale,
                             strategy={rectSortingStrategy}
                             key={columns.map(column => column.accessorKey).join("")}
                         >
-                            <tbody style={{ maxHeight: data.reduce((acc, item) => acc + (item.Litologia?.Height * scale || 0), 0) }}>
+                            <tbody style={{ maxHeight: data.reduce((acc, item) => acc + (item.Litologia?.Height * 1 || 0), 0) }}>
                                 {(
                                     // isInverted
                                     //     ? table.getRowModel().rows.slice().reverse()
@@ -1105,8 +795,8 @@ const Tabla = ({ scale,
                                             key={row.id + "" + index}
                                             row={row}
                                             index={row.index}
-                                            header={header}
-                                            isInverted={isInverted}
+                                            // header={header}
+                                            isInverted={settings.isInverted}
                                             columnWidths={columnWidths}
                                             openModalPoint={openModalPoint}
                                             handleClickRow={handleClickRow}
@@ -1118,12 +808,10 @@ const Tabla = ({ scale,
                                             editingUsers={editingUsers}
                                             sendActionCell={sendActionCell}
                                             hovered={hovered}
-                                            scale={scale}
                                             facies={facies}
                                             setFormFacies={setFormFacies}
                                             adfas={adfas}
                                             setFormMuestra={setFormMuestra}
-                                            muestras={muestras}
                                             length={data.length}
                                         />
 

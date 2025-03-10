@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useSetRecoilState, useRecoilState } from 'recoil';
-import { atLithologyTableOrder, atFossil, atomUsers, atSocket, atSideBarState, atLithologyTable, atSettings, atformFossil, atformSamples, atSamples } from '../../state/atomEditor';
+import { atLithologyTableOrder, atFossil, atomUsers, atSocket, atSideBarState, atLithologyTable, atSettings, atformFossil, atformSamples, atSamples, atProjectInfo } from '../../state/atomEditor';
 import { Link } from 'react-router-dom';
 import { useParams } from "react-router-dom";
 import Navbar_Editor from './Navbar_Editor';
@@ -37,7 +37,7 @@ const Grid = () => {
   // const [scale, setScale] = useState(1);
   const [alturaTd, setAlturaTd] = useState(null);
   const [tokenLink, setTokenLink] = useState({ editor: '', reader: '' });
-  const [isInverted, setIsInverted] = useState(false);
+  //const [isInverted, setIsInverted] = useState(false);
   const [messageFacie, setMessageFacie] = useState('');
 
   // Referencias
@@ -45,7 +45,9 @@ const Grid = () => {
   const isPageActive = useRef(true);
 
   // Datos
-  const [infoProject, setInfoProject] = useState<ProjectInfo>();
+ 
+  //const [infoProject, setInfoProject] = useState<ProjectInfo>();
+  const setInfoProject = useSetRecoilState(atProjectInfo);
   const [data, setData] = useRecoilState(atLithologyTable);
   const setOrder = useSetRecoilState(atLithologyTableOrder);
   // const [fossils, setFossils] = useState<Record<string, Fosil>>({});
@@ -53,7 +55,7 @@ const Grid = () => {
   // const [muestras, setMuestras] = useState<Record<string, Muestra>>({});
   const setMuestras = useSetRecoilState(atSamples);
   const [facies, setFacies] = useState<Record<string, Facies[]>>({});
-  const setSettings = useSetRecoilState(atSettings);
+  const [settings,setSettings] = useRecoilState(atSettings);
 
   // Formularios
   const [formData, setFormData] = useState<formLithology>(initialFormData);
@@ -193,11 +195,11 @@ const Grid = () => {
             setData(shapeN.datalist);
             setOrder(shapeN.order);
             setFacies(shapeN.facies)
-            setSettings({
-              scale: shapeN.config.Scale,
+            setSettings(prev => ({
+              ...prev,
               header: shapeN.config.Columns,
-              isInverted: shapeN.config.IsInverted,
-            });
+              isInverted: shapeN.config.IsInverted, 
+            }));
             setFossils(shapeN.fosil)
             setMuestras(shapeN.muestras)
             setEditingUsers(shapeN.userEditing)
@@ -255,11 +257,12 @@ const Grid = () => {
             break;
           }
           case 'añadir': {
+            console.log(shapeN)
             setData(prevTable => ({
-              ...prevTable, 
+              ...prevTable,
               [shapeN.value.Id]: shapeN.value
             }));
-            
+
             setOrder(prevOrder => {
               const newOrder = [...prevOrder];
               newOrder.splice(shapeN.rowIndex, 0, shapeN.value.Id);
@@ -296,7 +299,7 @@ const Grid = () => {
             // });
             break
           case 'isInverted':
-            setIsInverted(shapeN.isInverted)
+            setSettings(prev => ({...prev, isInverted: shapeN.isInverted}))
             setFacies(shapeN.facies)
             setFossils(shapeN.fosil)
             setMuestras(shapeN.muestras)
@@ -309,8 +312,8 @@ const Grid = () => {
             break
           case 'addCircle': // // // // // // Revisar 
             setData(prev => {
-              const newData = {...prev};
-              newData[shapeN.rowId].Litologia.Circles = shapeN.value; 
+              const newData = { ...prev };
+              newData[shapeN.rowId].Litologia.Circles = shapeN.value;
               return newData;
             })
             break
@@ -319,25 +322,25 @@ const Grid = () => {
               const newData = { ...prev };
               delete newData[shapeN.rowIndex];
               return newData;
-            }); 
+            });
             setOrder(prev => prev.filter((_, index) => index !== shapeN.rowIndex));
 
             break;
           }
           case 'editPolygon':
             setData(prev => {
-              const newData = {...prev};
+              const newData = { ...prev };
               newData[shapeN.rowId].Litologia[shapeN.column] = shapeN.value;
               return newData;
             });
             break;
           case 'editText':
             setData(prev => {
-              const newData = {...prev};
+              const newData = { ...prev };
               newData[shapeN.rowId].Columns[shapeN.column] = shapeN.value;
               return newData;
             }
-              
+
             );
             break;
           case 'editFosil':
@@ -570,14 +573,6 @@ const Grid = () => {
 
   }
 
-  const handleInfoProject = (e) => {
-
-    socket.send(JSON.stringify({
-      action: 'infoP',
-      data: e
-    }));
-
-  };
 
   const handleAddFacieSection = () => {
 
@@ -770,7 +765,6 @@ const Grid = () => {
           <Navbar_Editor
             setFormData={setFormData}
             t={t}
-            infoProject={infoProject}
             initialFormData={initialFormData}
             tokenLink={tokenLink}
             setTokenLink={setTokenLink}
@@ -784,7 +778,7 @@ const Grid = () => {
             handleClickRow={handleClickRow}
             sendActionCell={sendActionCell}
             editingUsers={editingUsers}
-            isInverted={isInverted}
+            //isInverted={settings.isInverted}
             alturaTd={alturaTd}
             setAlturaTd={setAlturaTd}
             setFormFacies={setFormFacies}

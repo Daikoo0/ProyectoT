@@ -30,7 +30,6 @@ const Lithology: React.FC<LithologyProps> = ({ isInverted, rowIndex, Height, Wid
 
   const amplitude = 4;
   const resolution = 1;
-
   const setAtSideBar = useSetRecoilState(atSideBarState);
 
   const functionContact = (startXX, endXX, endYY, contact, up) => {
@@ -453,7 +452,7 @@ const Lithology: React.FC<LithologyProps> = ({ isInverted, rowIndex, Height, Wid
         </pattern>
       </defs>
 
-      <path d={pathData}
+      <path d={pathData} 
         fill={File > 1 ? `url(#${patternId})` : "white"}
         //  fill="transparent"
         className="stroke-current text-base-content cursor-pointer"
